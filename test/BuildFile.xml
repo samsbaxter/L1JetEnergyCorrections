@@ -3,4 +3,3 @@
 
 <include_path path="../interface"/>
 
-<bin name="matcherTest" file="matcherTest.cpp"/>
