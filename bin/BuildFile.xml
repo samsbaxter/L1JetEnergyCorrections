@@ -1,6 +1,4 @@
+<use name="L1Trigger/L1JetEnergyCorrections"/>
 <use name="root"/>
-<!-- <use name="L1Trigger/L1JetEnergyCorrections"/> -->
-
 <include_path path="../interface"/>
-
 <bin name="matcherTest" file="matcherTest.cpp"/>
