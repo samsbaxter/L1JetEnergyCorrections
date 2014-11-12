@@ -1,0 +1,14 @@
+<flags ADD_SUBDIR="1"/>
+
+<use name="root"/>
+<use name="rootgraphics"/>
+<use name="boost"/>
+<use name="boost_filesystem"/>
+<use name="boost_program_options"/>
+
+
+<include_path path="interface"/>
+
+<export>
+  <lib name="L1JetEnergyCorrections"/>
+</export>
