@@ -1,13 +1,33 @@
-#ifndef MATCHER_H
-#define MATCHER_H
+#ifndef L1Trigger_L1JetEnergyCorrections_Matcher_h
+#define L1Trigger_L1JetEnergyCorrections_Matcher_h
+// -*- C++ -*-
+//
+// Package:     L1Trigger/L1JetEnergyCorrections
+// Class  :     Matcher
+//
+/**\class Matcher Matcher.h "L1Trigger/L1JetEnergyCorrections/interface/Matcher.h"
+
+ Description: Base class that defines interface for all Matcher implementations.
+
+ Usage:
+    <usage>
+
+*/
+//
+// Original Author:  Robin Cameron Aggleton
+//         Created:  Wed, 12 Nov 2014 21:17:23 GMT
+//
 
 #include "TLorentzVector.h"
 #include <iostream>
 
 /**
  * @brief Base class that defines interface for all Matcher implementations.
- * @details Different matching schemes should be implemented as classes that inherit from this class.
- * This keeps a consistent, clean interface for whatever program is using a Matcher derivation.
+ * @details A "Matcher" takes in 2 collections: one reference jet collection, and
+ * one collection of L1 jets. It outputs pairs of reference & L1 jets that
+ * "match" based on some criteria. Different matching schemes should be
+ * implemented as classes that inherit from this class. This keeps a
+ * consistent, clean interface for whatever program is using a Matcher derivation.
  */
 class Matcher
 {
@@ -16,7 +36,6 @@ public:
 
     /**
      * @brief Set reference jet collection (e.g. GenJets)
-     * @details [long description]
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
@@ -24,26 +43,23 @@ public:
 
     /**
      * @brief Set L1 jet collection (e.g. from GCT)
-     * @details [long description]
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
     virtual void setL1Jets(std::vector<TLorentzVector> l1Jets) = 0;
 
     /**
-     * @brief Match L1 jets to reference jets based on deltaR(refJet-l1Jet)
-     * @details We loop over all combinations of reference & L1 jets. For each pair, we calculate deltaR
-     * between the jets. If deltaR < _maxDeltaR, it counts as a match.
-     * If there are > 1 possible matches, the one with the smallest deltaR is used.
-     * @return Returns a vector of std::pair of matched jets. pair.first = reference jet, pair.second = L1 jet
+     * @brief Produce pairs of L1 jets matched to reference jets based on some criteria.
+     * @details Details of how matching is done will be provided by derived classes.
+     * @return Returns a vector of std::pair of matched jets, where
+     * pair.first = reference jet, pair.second = L1 jet
      */
     virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs() = 0;
 
     /**
      * @brief Dummy function to print out basic details.
-     * @details [long description]
      */
     virtual void printName() { std::cout << "I am a abstract Matcher." << std::endl; };
 };
 
-#endif /* MATCHER_H */
+#endif /* L1JetEnergyCorrections_Matcher_h */

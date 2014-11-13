@@ -1,9 +1,32 @@
-#ifndef DELTARMATCHER_H
-#define DELTARMATCHER_H
+#ifndef L1Trigger_L1JetEnergyCorrections_DeltaR_Matcher_h
+#define L1Trigger_L1JetEnergyCorrections_DeltaR_Matcher_h
+
+// -*- C++ -*-
+//
+// Package:     L1Trigger/L1JetEnergyCorrections
+// Class  :     DeltaR_Matcher
+//
+/**\class DeltaR_Matcher DeltaR_Matcher.h "L1Trigger/L1JetEnergyCorrections/interface/DeltaR_Matcher2.h"
+
+ Description: Implementation of jet matcher using delta R between jets.
+
+ Usage:
+    <usage>
+
+*/
+//
+// Original Author:  Robin Cameron Aggleton
+//         Created:  Wed, 12 Nov 2014 21:21:21 GMT
+//
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
 
 #include "Matcher.h"
+
 #include "TLorentzVector.h"
-#include <iostream>
+
 
 /**
  * @brief Implementation of jet matcher using delta R between jets.
@@ -13,7 +36,9 @@
  * passed to the object constructor.
  *
  * There is also a pT cut on reference and L1 jets. By default, these are set to 0.
- * If you want non-zero cut values, use the relevant constructor.
+ * If you want non-zero cut values, use the relevant constructor or setters. In addition,
+ * there is a maximum abs(eta) cuts on jets as well. By default, this is set to 5.
+ * If you want a different cut value, use the relevant constructor or setter.
  */
 class DeltaR_Matcher : public Matcher
 {
@@ -39,6 +64,8 @@ public:
      */
     DeltaR_Matcher(const double maxDeltaR, double minRefJetPt, double minL1JetPt, double maxJetEta);
 
+    virtual ~DeltaR_Matcher();
+
     // @TODO: make these const refs or something. but no copying!
 
     /**
@@ -47,7 +74,7 @@ public:
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
-    void setRefJets(std::vector<TLorentzVector> refJets);
+    virtual void setRefJets(std::vector<TLorentzVector> refJets);
 
     /**
      * @brief Set L1 jet collection (e.g. from GCT)
@@ -55,7 +82,7 @@ public:
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
-    void setL1Jets(std::vector<TLorentzVector> l1Jets);
+    virtual void setL1Jets(std::vector<TLorentzVector> l1Jets);
 
     /**
      * @brief Set minimum jet pT cut to be applied to reference jets.
@@ -63,7 +90,7 @@ public:
      *
      * @param jetPt Minimum pT value.
      */
-    void setMinRefJetPt(double jetPt) { _minRefJetPt = jetPt; };
+    void setMinRefJetPt(double jetPt) { minRefJetPt_ = jetPt; };
 
     /**
      * @brief Set minimum jet pT cut to be applied to L1 jets.
@@ -71,7 +98,7 @@ public:
      *
      * @param jetPt Minimum pT value.
      */
-    void setMinL1JetPt(double jetPt) { _minL1JetPt = jetPt; };
+    void setMinL1JetPt(double jetPt) { minL1JetPt_ = jetPt; };
 
     /**
      * @brief Set maximum absolute jet eta cut to be applied to both L1 and ref jets.
@@ -79,19 +106,19 @@ public:
      *
      * @param jetEta Maximum absolute Eta value
      */
-    void setMaxJetEta(double jetEta) { _maxJetEta = jetEta; };
+    void setMaxJetEta(double jetEta) { maxJetEta_ = jetEta; };
 
     /**
-     * @brief Match L1 jets to reference jets based on deltaR(refJet-l1Jet)
+     * @brief Produce pairs of L1 jets matched to reference jets based on deltaR(refJet-l1Jet).
      * @details We loop over all combinations of reference & L1 jets. For each
-     * pair, we calculate deltaR between the jets. If deltaR < _maxDeltaR, it
+     * pair, we calculate deltaR between the jets. If deltaR < maxDeltaR_, it
      * counts as a match. If there are > 1 possible matches, the one with the
      * smallest deltaR is used. Also applies min pT cut and max abs(eta) cut on
      * jets. Values set by associated setters.
      * @return Returns a vector of std::pair of matched jets.
      * pair.first = reference jet, pair.second = L1 jet
      */
-    std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs();
+    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs();
 
     /**
      * @brief Check if jet pT > minPt.
@@ -116,21 +143,32 @@ public:
     bool checkJetEta(TLorentzVector jet, const double maxEta);
 
     /**
+     * @brief Binary predicate to use in std::sort, to allow sorting TLorentzVectors by descending pT
+     * @details [long description]
+     *
+     * @param a One TlorentzVector
+     * @param b Other TLorentzVector
+     *
+     * @return True if a.Pt() > b.Pt()
+     */
+    bool sortPtDescending(TLorentzVector a, TLorentzVector b) { return (a.Pt() > b.Pt()); } ;
+
+    /**
      * @brief Dummy function to print out basic details.
      * @details [long description]
      */
-    void printName() { std::cout << "I am a deltaR Matcher, with max DeltaR " << _maxDeltaR
-                        << ", matching reference jets with pT > " << _minRefJetPt
-                        << " and L1 jet with pT > " << _minL1JetPt << std::endl; };
+    void printName() { std::cout << "I am a deltaR Matcher, with max DeltaR " << maxDeltaR_
+                        << ", matching reference jets with pT > " << minRefJetPt_
+                        << " and L1 jet with pT > " << minL1JetPt_ << std::endl; };
 
 private:
-    std::vector<TLorentzVector> _refJets; // to store reference jet collection
-    std::vector<TLorentzVector> _l1Jets; // to store L1 jet collection
-    std::vector<std::pair<TLorentzVector,TLorentzVector>> _matchedJets; // to store matches
-    const double _maxDeltaR; // Maximum deltaR between reference and L1 jet to count as a 'match'.
-    double _minRefJetPt; // Minimum pT for reference jet to take part in matching.
-    double _minL1JetPt; // Minimum pT for L1 jet to take part in matching.
-    double _maxJetEta;  // Maximum absolute eta for any jet to take part in matching.
+    std::vector<TLorentzVector> refJets_; // to store reference jet collection
+    std::vector<TLorentzVector> l1Jets_; // to store L1 jet collection
+    // std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_; // to store matches
+    const double maxDeltaR_; // Maximum deltaR between reference and L1 jet to count as a 'match'.
+    double minRefJetPt_; // Minimum pT for reference jet to take part in matching.
+    double minL1JetPt_; // Minimum pT for L1 jet to take part in matching.
+    double maxJetEta_;  // Maximum absolute eta for any jet to take part in matching.
 };
 
-#endif /* DELTARMATCHER_H */
+#endif /* L1Trigger_L1JetEnergyCorrections_DeltaR_Matcher_h */
