@@ -15,8 +15,13 @@ It is an attempt to unify previous fragments of code lying around, in a *generic
 First make sure you have a copy of CMSSW (I'm using CMSSW_7_2_0_pre7). Then in `CMSSW_X_Y_Z/src`:
 
 ```shell
-git clone XXX
-XXX
+cmsenv
+git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
+scram b -j9
+# to make documentaion:
+cd L1Trigger/L1JetEnergyCorrections/doc
+doxygen Doxyfile
+cd latex; make # optional - to build pdf documentation
 ```
 
 ## Running
@@ -56,3 +61,7 @@ One type of calibration scheme is by plotting the ratio of E_T for matched refer
 
 ## Robin's notes
 
+If you want to make by hand, instead of using SCRAM, do:
+```
+g++ -std=c++11 -o matcherTest matcherTest.cpp -I ../interface `root-config --cflags --glibs`
+```
