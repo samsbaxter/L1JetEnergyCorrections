@@ -1,6 +1,7 @@
 <flags CXXFLAGS="-O0 -g -DDEBUG -Wno-error=unused-variable"/>
 <flags ADD_SUBDIR="1"/>
 <use name="root"/>
+<use name="boost"/>
 <include_path path="interface"/>
 <export>
   <lib name="L1TriggerL1JetEnergyCorrections"/>
