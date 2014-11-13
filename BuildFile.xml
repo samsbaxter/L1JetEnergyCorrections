@@ -1,4 +1,4 @@
-<flags CXXFLAGS="-O0 -g -DDEBUG"/>
+<flags CXXFLAGS="-O0 -g -DDEBUG -Wno-error=unused-variable"/>
 <flags ADD_SUBDIR="1"/>
 <use name="root"/>
 <include_path path="interface"/>
