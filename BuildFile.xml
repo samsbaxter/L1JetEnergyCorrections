@@ -2,6 +2,7 @@
 <flags ADD_SUBDIR="1"/>
 <use name="root"/>
 <use name="boost"/>
+<use name="cppunit"/>
 <include_path path="interface"/>
 <export>
   <lib name="L1TriggerL1JetEnergyCorrections"/>
