@@ -5,4 +5,3 @@
 <include_path path="../interface"/>
 <bin name="matcherTest" file="matcherTest.cpp"/>
 <bin name="loopTest" file="loopTest.cpp"/>
-<bin name="basicTest" file="basicTest.cpp"/>

@@ -3,3 +3,5 @@
 <!-- <use name="L1Trigger/L1JetEnergyCorrections"/> -->
 
 <include_path path="../interface"/>
+<bin name="BasicTest" file="basicTest.cpp"/>
+<!-- <bin name="MatcherTest" file="matcherUnitTests.cpp"/> -->

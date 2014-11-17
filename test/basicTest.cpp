@@ -8,7 +8,12 @@
 
 /**
  * @brief An example of how to implement CppUnit, since the cookbook is confusing.
- * @details [long description]
+ * @details To ensure tests are build & run you need to do:
+ * - make sure test in "test" folder
+ * - add to test/BuildFile.xml:
+ * <use name="cppunit"/>
+ * <bin name="BasicTest" file="basicTest.cpp"/>
+ * - to build & run do: scram b runtests
  */
 
 class BasicTest : public CppUnit::TestCase {
@@ -86,7 +91,11 @@ int main() {
      */
     CppUnit::TextUi::TestRunner runner;
     runner.addTest( BasicTest::suite() );
-    runner.run();
+    // runner.run();
+    // return 0;
 
-    return 0;
+    // alternatively, to include in BuildProcess, have to return value
+    // diff to 0 in event of Failure
+    bool wasSuccessful = runner.run("", false);
+    return !wasSuccessful;
 }
