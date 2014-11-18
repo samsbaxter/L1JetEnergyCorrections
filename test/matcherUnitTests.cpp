@@ -31,6 +31,7 @@ class MatcherUnitTest : public CppUnit::TestCase {
     CPPUNIT_TEST_SUITE( MatcherUnitTest );
     CPPUNIT_TEST( runSimpleMatch );
     CPPUNIT_TEST( checkMinPtMaxEta );
+    CPPUNIT_TEST( checkDeltaRMax );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -39,8 +40,10 @@ public:
     void setUp();
     void tearDown();
 
+    // Tests
     void runSimpleMatch();
     void checkMinPtMaxEta();
+    void checkDeltaRMax();
 
     // Utilities
     void cleanupObjects(DeltaR_Matcher *m,
@@ -106,7 +109,7 @@ void MatcherUnitTest::runSimpleMatch() {
 
 /**
  * @brief Check that min pT cut works for ref & L1 jets, and max eta works for both
- * @details 4 pairs of jets that match in eta/phi, but should fail on min pT or max Eta
+ * @details 4 pairs of jets that match in eta/phi, but should all fail on min pT or max Eta
  */
 void MatcherUnitTest::checkMinPtMaxEta() {
     TLorentzVector l1_1; l1_1.SetPtEtaPhiM(1.2,1,0.5,0); // fail min L1 jet pT
@@ -148,6 +151,33 @@ void MatcherUnitTest::checkMinPtMaxEta() {
     cleanupObjects(m, refJets, L1Jets, pairs);
 }
 
+/**
+ * @brief Check that DeltaR_Matcher excludes pairs with deltaR > maxDeltaR
+ * @details Check for deltaEta, deltaPhi, and deltaR. No pairs should match.
+ */
+void MatcherUnitTest::checkDeltaRMax() {
+    TLorentzVector l1_1; l1_1.SetPtEtaPhiM(40,1,0.71,0); // deltaR > maxDeltaR
+    TLorentzVector ref_1; ref_1.SetPtEtaPhiM(38,1.41,0.4,0);
+
+    TLorentzVector l1_2; l1_2.SetPtEtaPhiM(40,1,-0.5,0); // deltaEta > maxDeltaR
+    TLorentzVector ref_2; ref_2.SetPtEtaPhiM(38,1.8,-0.5,0);
+
+    TLorentzVector l1_3; l1_3.SetPtEtaPhiM(40,-1,-0.5,0); // deltaPhi > maxDeltaR (checking we calculate out deltaPhi corectly)
+    TLorentzVector ref_3; ref_3.SetPtEtaPhiM(38,-1,-1.46,0);
+
+    refJets = {ref_1, ref_2, ref_3};
+    L1Jets = {l1_1, l1_2, l1_3};
+
+    m = new DeltaR_Matcher(0.5);
+    m->setRefJets(refJets);
+    m->setL1Jets(L1Jets);
+    m->printName();
+    std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs = m->produceMatchingPairs();
+    m->printMatches(pairs);
+    CPPUNIT_ASSERT( pairs.size() == 0 );
+
+    cleanupObjects(m, refJets, L1Jets, pairs);
+}
 
 
 /**
