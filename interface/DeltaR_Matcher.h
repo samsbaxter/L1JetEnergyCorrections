@@ -6,7 +6,7 @@
 // Package:     L1Trigger/L1JetEnergyCorrections
 // Class  :     DeltaR_Matcher
 //
-/**\class DeltaR_Matcher DeltaR_Matcher.h "L1Trigger/L1JetEnergyCorrections/interface/DeltaR_Matcher2.h"
+/**\class DeltaR_Matcher DeltaR_Matcher.h "L1Trigger/L1JetEnergyCorrections/interface/DeltaR_Matcher.h"
 
  Description: Implementation of jet matcher using delta R between jets.
 
@@ -27,7 +27,6 @@
 
 #include "TLorentzVector.h"
 
-
 /**
  * @brief Implementation of jet matcher using delta R between jets.
  * @details DeltaR defined as:
@@ -35,10 +34,9 @@
  * sucessfully match if deltaR < maxDeltaR, where maxDeltaR must be
  * passed to the object constructor.
  *
- * There is also a pT cut on reference and L1 jets. By default, these are set to 0.
- * If you want non-zero cut values, use the relevant constructor or setters. In addition,
- * there is a maximum abs(eta) cuts on jets as well. By default, this is set to 5.
- * If you want a different cut value, use the relevant constructor or setter.
+ * There is also a pT cut on reference and L1 jets. In addition,
+ * there is a maximum abs(eta) cuts on jets as well. Defaults for these are found
+ * in the constructor. If you want a different cut value, use the relevant constructor or setter.
  */
 class DeltaR_Matcher : public Matcher
 {
@@ -46,16 +44,14 @@ class DeltaR_Matcher : public Matcher
 public:
 
     /**
-     * @brief Constructor specifying maximum DeltaR. Defaults minRefJetPt & minL1JetPt = 0, maxJetEta = 5.
-     * @details [long description]
+     * @brief Constructor specifying maximum DeltaRfor matching. Set defaults for minRefJetPt, minL1JetPt, maxJetEta.
      *
      * @param maxDeltaR Maximum deltaR for matching between ref and L1 jet.
      */
     DeltaR_Matcher(const double maxDeltaR);
 
     /**
-     * @brief Constructor, specifying maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta.
-     * @details [long description]
+     * @brief Constructor, specifying maximum DeltaR for matching, minRefJetPt, minL1JetPt, maxJetEta.
      *
      * @param maxDeltaR Maximum deltaR for matching between ref and L1 jet.
      * @param minRefJetPt Minimum pT a reference jet must have to participate in matching [GeV].
@@ -69,16 +65,14 @@ public:
     // @TODO: make these const refs or something. but no copying!
 
     /**
-     * @brief Set reference jet collection (e.g. GenJets)
-     * @details [long description]
+     * @brief Set reference jet collection (e.g. GenJets) & sorts by descending pT
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
     virtual void setRefJets(std::vector<TLorentzVector> refJets);
 
     /**
-     * @brief Set L1 jet collection (e.g. from GCT)
-     * @details [long description]
+     * @brief Set L1 jet collection (e.g. from GCT) & sorts by descending pT
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
@@ -86,7 +80,6 @@ public:
 
     /**
      * @brief Set minimum jet pT cut to be applied to reference jets.
-     * @details [long description]
      *
      * @param jetPt Minimum pT value.
      */
@@ -94,7 +87,6 @@ public:
 
     /**
      * @brief Set minimum jet pT cut to be applied to L1 jets.
-     * @details [long description]
      *
      * @param jetPt Minimum pT value.
      */
@@ -102,7 +94,6 @@ public:
 
     /**
      * @brief Set maximum absolute jet eta cut to be applied to both L1 and ref jets.
-     * @details [long description]
      *
      * @param jetEta Maximum absolute Eta value
      */
@@ -110,19 +101,32 @@ public:
 
     /**
      * @brief Produce pairs of L1 jets matched to reference jets based on deltaR(refJet-l1Jet).
-     * @details We loop over all combinations of reference & L1 jets. For each
+     *
+     * @details For each L1 jet, we loop over all reference jets. For each
      * pair, we calculate deltaR between the jets. If deltaR < maxDeltaR_, it
      * counts as a match. If there are > 1 possible matches, the one with the
      * smallest deltaR is used. Also applies min pT cut and max abs(eta) cut on
-     * jets. Values set by associated setters.
+     * jets. Values of these cuts are set by associated setters or constructor.
+     * Note that because the jets are sorted by pT, higher pT jets get priority
+     * in matching, since we remove a refJet from potential matches once matched
+     * to a L1 jet.
+     *
      * @return Returns a vector of std::pair of matched jets.
      * pair.first = reference jet, pair.second = L1 jet
      */
     virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs();
 
     /**
+     * @brief Dummy function to print out basic details.
+     */
+    void printName() { std::cout << "I am a deltaR Matcher, with max DeltaR " << maxDeltaR_
+                        << ", matching reference jets with pT > " << minRefJetPt_
+                        << " and L1 jet with pT > " << minL1JetPt_ << std::endl; };
+
+private:
+
+    /**
      * @brief Check if jet pT > minPt.
-     * @details [long description]
      *
      * @param jet Jet under test.
      * @param minPt Minimum pT cut value.
@@ -133,7 +137,6 @@ public:
 
     /**
      * @brief Check if abs(eta) of jet < maxEta.
-     * @details [long description]
      *
      * @param jet Jet under test.
      * @param eta Maximum absolute eta allowed.
@@ -144,24 +147,16 @@ public:
 
     /**
      * @brief Binary predicate to use in std::sort, to allow sorting TLorentzVectors by descending pT
-     * @details [long description]
+     * @details Since this is a CLASS method, need to make it static for it to work in std::sort. Maybe
+     * I should make it a common function outside of the class?
      *
-     * @param a One TlorentzVector
+     * @param a One TLorentzVector
      * @param b Other TLorentzVector
      *
      * @return True if a.Pt() > b.Pt()
      */
-    bool sortPtDescending(TLorentzVector a, TLorentzVector b) { return (a.Pt() > b.Pt()); } ;
+    static bool sortPtDescending(const TLorentzVector &a, const TLorentzVector &b) { return (a.Pt() > b.Pt()); } ;
 
-    /**
-     * @brief Dummy function to print out basic details.
-     * @details [long description]
-     */
-    void printName() { std::cout << "I am a deltaR Matcher, with max DeltaR " << maxDeltaR_
-                        << ", matching reference jets with pT > " << minRefJetPt_
-                        << " and L1 jet with pT > " << minL1JetPt_ << std::endl; };
-
-private:
     std::vector<TLorentzVector> refJets_; // to store reference jet collection
     std::vector<TLorentzVector> l1Jets_; // to store L1 jet collection
     // std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_; // to store matches

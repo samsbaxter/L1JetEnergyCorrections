@@ -42,37 +42,25 @@ DeltaR_Matcher::~DeltaR_Matcher()
 // member functions //
 //////////////////////
 
- void DeltaR_Matcher::setRefJets(std::vector<TLorentzVector> refJets)
+void DeltaR_Matcher::setRefJets(std::vector<TLorentzVector> refJets)
 {
     refJets_ = refJets;
-    // sort by descending pT
-    // std::sort(refJets_.begin(), refJets_.end(), sortPtDescending);
+    std::sort(refJets_.begin(), refJets_.end(), DeltaR_Matcher::sortPtDescending);
 }
 
 
- void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
+void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
 {
     l1Jets_ = l1Jets;
-    // sort by descending pT
+    std::sort(l1Jets_.begin(), l1Jets_.end(), DeltaR_Matcher::sortPtDescending);
 }
 
-// bool DeltaR_Matcher::sortPtDescending(const TLorentzVector& a, const TLorentzVector& b)
-// {
-//     return (a.Pt() > b.Pt());
-// }
 
-
- std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMatchingPairs()
+std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMatchingPairs()
 {
-
-    std::vector<std::pair<TLorentzVector, TLorentzVector>> matchedJets;
-
-    // loop over reference jets
-    // for (const auto &ref_it: refJets_)
+    std::vector<std::pair<TLorentzVector, TLorentzVector>> matchedJets; // to hold matching pairs
     for (const auto &l1_it: l1Jets_)
     {
-
-        // if (!checkJetPt(ref_it, minRefJetPt_) || !checkJetEta(ref_it, maxJetEta_))
         if (!checkJetPt(l1_it, minL1JetPt_) || !checkJetEta(l1_it, maxJetEta_))
         {
             continue;
@@ -81,20 +69,15 @@ DeltaR_Matcher::~DeltaR_Matcher()
         // store matching L1 jets & their deltaR for this ref jet
         std::vector<std::pair<TLorentzVector,double>> possibleMatches;
 
-        // loop over L1 jets
-        // for each, calculate deltaR, add to above vector if satisfies maxDeltaR
-        // for (const auto &l1_it: l1Jets_)
+        // for each, calculate deltaR, add to vector if satisfies maxDeltaR
         for (const auto &ref_it: refJets_)
         {
-
-            // if (!checkJetPt(l1_it, minL1JetPt_) || !checkJetEta(l1_it, maxJetEta_))
             if (!checkJetPt(ref_it, minRefJetPt_) || !checkJetEta(ref_it, maxJetEta_))
             {
                 continue;
             }
 
             // @TODO: NEED TO ADD CHECK THAT WE HAVEN'T ALREADY USED THIS L1 JET
-            // The actual matching criteria bit here - check deltaR
             double deltaR = ref_it.DeltaR(l1_it);
             if (deltaR < maxDeltaR_)
             {
@@ -109,21 +92,18 @@ DeltaR_Matcher::~DeltaR_Matcher()
         {
             continue;
         }
-        else if (possibleMatches.size() == 1)
-        {
-            // matchedJets_.push_back(std::make_pair(ref_it, possibleMatches.at(0).first));
-            matchedJets.push_back(std::make_pair(l1_it, possibleMatches.at(0).first));
-        }
         else
         {
-            // sort by ascending deltaR
-            std::sort(possibleMatches.begin(), possibleMatches.end(),
-                boost::bind(&std::pair<TLorentzVector, double>::second, _1) <
-                boost::bind(&std::pair<TLorentzVector, double>::second, _2));
-            matchedJets.push_back(std::make_pair(l1_it, possibleMatches.at(0).first));
+            if (possibleMatches.size() != 1)
+            {
+                // sort by ascending deltaR
+                std::sort(possibleMatches.begin(), possibleMatches.end(),
+                    boost::bind(&std::pair<TLorentzVector, double>::second, _1) <
+                    boost::bind(&std::pair<TLorentzVector, double>::second, _2));
+            }
+            matchedJets.push_back(std::make_pair(l1_it, possibleMatches[0].first));
         }
     }
-
     return matchedJets;
 }
 
