@@ -47,7 +47,7 @@ private:
 
 };
 
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( BasicTest, "BasicTest" );
+// CPPUNIT_TEST_SUITE_REGISTRATION( BasicTest, "BasicTest" );
 
 // use setUp() and tearDown() to setup/destroy common objects used for tests
 void BasicTest::setUp() {
@@ -90,12 +90,14 @@ int main() {
      * is all done via the macros used in the class above.
      */
     CppUnit::TextUi::TestRunner runner;
+    // CppUnit::TestFactoryRegistry &registry = CppUnit::TestFactoryRegistry::getRegistry();
+    // runner.addTest( registry.makeTest() );
     runner.addTest( BasicTest::suite() );
-    // runner.run();
-    // return 0;
+    runner.run();
+    return 0;
 
     // alternatively, to include in BuildProcess, have to return value
     // diff to 0 in event of Failure
-    bool wasSuccessful = runner.run("", false);
-    return !wasSuccessful;
+    // bool wasSuccessful = runner.run("", false);
+    // return !wasSuccessful;
 }
