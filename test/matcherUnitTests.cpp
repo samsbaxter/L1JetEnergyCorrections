@@ -32,6 +32,7 @@ class MatcherUnitTest : public CppUnit::TestCase {
     CPPUNIT_TEST( runSimpleMatch );
     CPPUNIT_TEST( checkMinPtMaxEta );
     CPPUNIT_TEST( checkDeltaRMax );
+    CPPUNIT_TEST( checkPtOrdering );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -44,6 +45,7 @@ public:
     void runSimpleMatch();
     void checkMinPtMaxEta();
     void checkDeltaRMax();
+    void checkPtOrdering();
 
     // Utilities
     void cleanupObjects(DeltaR_Matcher *m,
@@ -175,6 +177,31 @@ void MatcherUnitTest::checkDeltaRMax() {
     std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs = m->produceMatchingPairs();
     m->printMatches(pairs);
     CPPUNIT_ASSERT( pairs.size() == 0 );
+
+    cleanupObjects(m, refJets, L1Jets, pairs);
+}
+
+
+/**
+ * @brief Check to ensure that matches are made with pT-ordered collections
+ * @details [long description]
+ */
+void MatcherUnitTest::checkPtOrdering() {
+    TLorentzVector l1_1;  l1_1.SetPtEtaPhiM(40, 1, 0.5, 0); // ref_1 should match with l1_1, not l1_2
+    TLorentzVector l1_2; l1_2.SetPtEtaPhiM(38, 1, 1.0, 0);
+    TLorentzVector ref_1; ref_1.SetPtEtaPhiM(32, 1, 0.75, 0);
+
+    refJets = {ref_1};
+    L1Jets = {l1_1, l1_2};
+
+    m = new DeltaR_Matcher(0.5);
+    m->setRefJets(refJets);
+    m->setL1Jets(L1Jets);
+    m->printName();
+    std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs = m->produceMatchingPairs();
+    m->printMatches(pairs);
+    CPPUNIT_ASSERT( pairs.size() == 1 );
+    CPPUNIT_ASSERT( pairs.at(0).second == l1_1 );
 
     cleanupObjects(m, refJets, L1Jets, pairs);
 }
