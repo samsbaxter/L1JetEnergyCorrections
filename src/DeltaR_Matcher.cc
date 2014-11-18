@@ -77,17 +77,15 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMat
                 continue;
             }
 
-            // @TODO: NEED TO ADD CHECK THAT WE HAVEN'T ALREADY USED THIS L1 JET
             double deltaR = ref_it.DeltaR(l1_it);
             if (deltaR < maxDeltaR_)
             {
-                possibleMatches.push_back(std::make_pair(l1_it, deltaR));
+                possibleMatches.push_back(std::make_pair(ref_it, deltaR));
             }
 
         }
 
         // after matching, we want the closest L1 jet (if it exists)
-        //@TODO pop the L1 jet so we can't use it again?
         if (possibleMatches.size() == 0)
         {
             continue;
@@ -101,7 +99,10 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMat
                     boost::bind(&std::pair<TLorentzVector, double>::second, _1) <
                     boost::bind(&std::pair<TLorentzVector, double>::second, _2));
             }
-            matchedJets.push_back(std::make_pair(l1_it, possibleMatches[0].first));
+            matchedJets.push_back(std::make_pair(possibleMatches[0].first, l1_it));
+            // remove sucessfully matched refJet from vector of possible matches so it can't be used again
+            // uses Erase-Remove idiom: https://en.wikipedia.org/wiki/Erase-remove_idiom
+            refJets_.erase(remove(refJets_.begin(), refJets_.end(), possibleMatches[0].first), refJets_.end());
         }
     }
     return matchedJets;

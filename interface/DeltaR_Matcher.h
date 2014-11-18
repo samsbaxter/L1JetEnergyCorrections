@@ -121,7 +121,8 @@ public:
      */
     void printName() { std::cout << "I am a deltaR Matcher, with max DeltaR " << maxDeltaR_
                         << ", matching reference jets with pT > " << minRefJetPt_
-                        << " and L1 jet with pT > " << minL1JetPt_ << std::endl; };
+                        << " and L1 jet with pT > " << minL1JetPt_
+                        << " and jet |eta| < " << maxJetEta_ << std::endl; };
 
 private:
 
