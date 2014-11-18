@@ -42,10 +42,15 @@ public:
     void runSimpleMatch();
     void checkMinPtMaxEta();
 
+    // Utilities
     void cleanupObjects(DeltaR_Matcher *m,
                         std::vector<TLorentzVector> refJets,
                         std::vector<TLorentzVector> L1Jets,
                         std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs);
+
+    void cleanupObjects(DeltaR_Matcher *m,
+                        std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs);
+
 private:
     std::vector<TLorentzVector> refJets;
     std::vector<TLorentzVector> L1Jets;
@@ -65,21 +70,8 @@ void MatcherUnitTest::setUp() {
  * @brief Destroy any common objects used for tests
  */
 void MatcherUnitTest::tearDown() {
-    // if (m != nullptr) delete m;
-    // if (refJets.size() != 0) refJets.clear();
-    // if (L1Jets.size() != 0) L1Jets.clear();
 }
 
-
-void cleanupObjects(DeltaR_Matcher *m,
-                    std::vector<TLorentzVector> refJets,
-                    std::vector<TLorentzVector> L1Jets,
-                    std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs) {
-    if (m != nullptr) delete m;
-    if (refJets.size() != 0) refJets.clear();
-    if (L1Jets.size() != 0) L1Jets.clear();
-    if (pairs.size() != 0) pairs.clear();
-}
 
 /**
  * @brief Runs simple matching test to ensure it should do the basics
@@ -108,9 +100,7 @@ void MatcherUnitTest::runSimpleMatch() {
     m->printMatches(pairs);
     CPPUNIT_ASSERT( pairs.size() == 4 );
 
-    delete m;
-    refJets.clear();
-    L1Jets.clear();
+    cleanupObjects(m, refJets, L1Jets, pairs);
 }
 
 
@@ -142,8 +132,8 @@ void MatcherUnitTest::checkMinPtMaxEta() {
     std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs = m->produceMatchingPairs();
     m->printMatches(pairs);
     CPPUNIT_ASSERT( pairs.size() == 0 );
-    delete m;
-    if (pairs.size() != 0) pairs.clear();
+
+    cleanupObjects(m, pairs);
 
     // test via setters
     m = new DeltaR_Matcher(0.7);
@@ -155,10 +145,40 @@ void MatcherUnitTest::checkMinPtMaxEta() {
     m->printMatches(pairs);
     CPPUNIT_ASSERT( pairs.size() == 0 );
 
-    delete m;
+    cleanupObjects(m, refJets, L1Jets, pairs);
+}
+
+
+
+/**
+ * @brief Cleanup Matcher, jet collections, and mathed pairs
+ *
+ * @param matcher Matcher
+ * @param refJets Ref jet collection
+ * @param L1Jets L1 jet collection
+ * @param pairs Matched pairs
+ */
+void MatcherUnitTest::cleanupObjects(DeltaR_Matcher *matcher,
+                                    std::vector<TLorentzVector> refJets,
+                                    std::vector<TLorentzVector> L1Jets,
+                                    std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs) {
+    if (matcher != nullptr) delete matcher;
+    if (refJets.size() != 0) refJets.clear();
+    if (L1Jets.size() != 0) L1Jets.clear();
     if (pairs.size() != 0) pairs.clear();
-    refJets.clear();
-    L1Jets.clear();
+}
+
+
+/**
+ * @brief Cleanup Matcher and matched pairs
+ *
+ * @param matcher Matcher pointer
+ * @param pairs Vector of pairs
+ */
+void MatcherUnitTest::cleanupObjects(DeltaR_Matcher *matcher,
+                                     std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs) {
+    if (matcher != nullptr) delete matcher;
+    if (pairs.size() != 0) pairs.clear();
 }
 
 
