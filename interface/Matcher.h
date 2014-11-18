@@ -66,7 +66,9 @@ public:
      */
     virtual void printMatches(std::vector<std::pair<TLorentzVector,TLorentzVector>> results) {
         std::cout << "Matches:" << std::endl;
-        for (auto &it: results) { std::cout << "\nrefjet: "; it.first.Print(); std::cout << "l1jet: "; it.second.Print();}
+        if (results.size() != 0) {
+            for (auto &it: results) { std::cout << "\nrefjet: "; it.first.Print(); std::cout << "l1jet: "; it.second.Print();}
+        } else { std::cout << "<NONE>" << std::endl; };
     };
 };
 
