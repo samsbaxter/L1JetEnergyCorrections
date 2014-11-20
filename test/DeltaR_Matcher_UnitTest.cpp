@@ -34,6 +34,7 @@ class DeltaR_Matcher_UnitTest : public CppUnit::TestCase {
     CPPUNIT_TEST( checkMinPtMaxEta );
     CPPUNIT_TEST( checkDeltaRMax );
     CPPUNIT_TEST( checkPtOrdering );
+    CPPUNIT_TEST( checkRefJetRemoval );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -47,15 +48,7 @@ public:
     void checkMinPtMaxEta();
     void checkDeltaRMax();
     void checkPtOrdering();
-
-    // Utilities
-    void cleanupObjects(DeltaR_Matcher *matcher,
-                        std::vector<TLorentzVector> refJets,
-                        std::vector<TLorentzVector> L1Jets,
-                        std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs);
-
-    void cleanupObjects(DeltaR_Matcher *matcher,
-                        std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs);
+    void checkRefJetRemoval();
 
 private:
     bool printStatements;
@@ -114,6 +107,14 @@ void DeltaR_Matcher_UnitTest::runSimpleMatch() {
         matcher->printMatches(pairs);
     }
     CPPUNIT_ASSERT( pairs.size() == 4 );
+    CPPUNIT_ASSERT( pairs[0].first == ref_1 );
+    CPPUNIT_ASSERT( pairs[0].second == l1_1 );
+    CPPUNIT_ASSERT( pairs[1].first == ref_2 );
+    CPPUNIT_ASSERT( pairs[1].second == l1_2 );
+    CPPUNIT_ASSERT( pairs[2].first == ref_3 );
+    CPPUNIT_ASSERT( pairs[2].second == l1_3 );
+    CPPUNIT_ASSERT( pairs[3].first == ref_4 );
+    CPPUNIT_ASSERT( pairs[3].second == l1_4 );
 
 }
 
@@ -198,7 +199,8 @@ void DeltaR_Matcher_UnitTest::checkDeltaRMax() {
 
 /**
  * @brief Check to ensure that matches are made with pT-ordered collections
- * @details [long description]
+ * @details If there is a ref jet halfway between 2 l1 jets, it should be
+ * matched with higher pT l1 jet (in this scheme)
  */
 void DeltaR_Matcher_UnitTest::checkPtOrdering() {
     TLorentzVector l1_1;  l1_1.SetPtEtaPhiM(40, 1, 0.5, 0); // ref_1 should match with l1_1, not l1_2
@@ -217,7 +219,39 @@ void DeltaR_Matcher_UnitTest::checkPtOrdering() {
         matcher->printMatches(pairs);
     }
     CPPUNIT_ASSERT( pairs.size() == 1 );
+    CPPUNIT_ASSERT( pairs.at(0).first == ref_1 );
     CPPUNIT_ASSERT( pairs.at(0).second == l1_1 );
+}
+
+
+/**
+ * @brief Checks to ensure ref jets are removed from collection after matched to L1 jet
+ * @details If we have situation where l1_1 and l2_2 are equidistant to ref_1,
+ * and there's also a ref_2 which is a bit further away from l1_2, then we should
+ * match (l1_1,ref_1) and (l1_2,ref_2), not (l1_1,ref_1) and (l1_2,ref_2)
+ */
+void DeltaR_Matcher_UnitTest::checkRefJetRemoval() {
+    TLorentzVector l1_1;  l1_1.SetPtEtaPhiM(40, 1, 0.5, 0); // ref_1 should match with l1_1, not l1_2
+    TLorentzVector l1_2; l1_2.SetPtEtaPhiM(38, 1, 1.0, 0);
+    TLorentzVector ref_1; ref_1.SetPtEtaPhiM(32, 1, 0.75, 0);
+    TLorentzVector ref_2; ref_2.SetPtEtaPhiM(30, 1, 1.4, 0);
+
+    refJets = {ref_1, ref_2};
+    L1Jets = {l1_1, l1_2};
+
+    matcher = new DeltaR_Matcher(0.5);
+    matcher->setRefJets(refJets);
+    matcher->setL1Jets(L1Jets);
+    pairs = matcher->produceMatchingPairs();
+    if (printStatements) {
+        matcher->printName();
+        matcher->printMatches(pairs);
+    }
+    CPPUNIT_ASSERT( pairs.size() == 2 );
+    CPPUNIT_ASSERT( pairs.at(0).first == ref_1 );
+    CPPUNIT_ASSERT( pairs.at(0).second == l1_1 );
+    CPPUNIT_ASSERT( pairs.at(1).first == ref_2 );
+    CPPUNIT_ASSERT( pairs.at(1).second == l1_2 );
 }
 
 
