@@ -69,14 +69,14 @@ public:
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
-    virtual void setRefJets(std::vector<TLorentzVector> refJets);
+    virtual void setRefJets(std::vector<TLorentzVector> refJets) override;
 
     /**
      * @brief Set L1 jet collection (e.g. from GCT) & sorts by descending pT
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
-    virtual void setL1Jets(std::vector<TLorentzVector> l1Jets);
+    virtual void setL1Jets(std::vector<TLorentzVector> l1Jets) override;
 
     // TODO: make these protected/private as not conforming to interface?
 
@@ -116,12 +116,12 @@ public:
      * @return Returns a vector of std::pair of matched jets.
      * pair.first = reference jet, pair.second = L1 jet
      */
-    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs();
+    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs() override;
 
     /**
      * @brief Dummy function to print out basic details.
      */
-    void printName() const { std::cout << "\nI am a deltaR Matcher, with max DeltaR " << maxDeltaR_
+    void printName() const override { std::cout << "\nI am a deltaR Matcher, with max DeltaR " << maxDeltaR_
                         << ", matching reference jets with pT > " << minRefJetPt_
                         << " and L1 jet with pT > " << minL1JetPt_
                         << " and jet |eta| < " << maxJetEta_ << std::endl; };
