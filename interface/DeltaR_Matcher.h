@@ -58,7 +58,7 @@ public:
      * @param minL1JetPt Minimum pT a L1 jet must have to participate in matching [GeV].
      * @param maxJetEta Maximum absolute eta of any jet to participate in matching.
      */
-    DeltaR_Matcher(const double maxDeltaR, double minRefJetPt, double minL1JetPt, double maxJetEta);
+    DeltaR_Matcher(const double maxDeltaR, const double minRefJetPt, const double minL1JetPt, const double maxJetEta);
 
     virtual ~DeltaR_Matcher();
 
@@ -77,6 +77,8 @@ public:
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
     virtual void setL1Jets(std::vector<TLorentzVector> l1Jets);
+
+    // TODO: make these protected/private as not conforming to interface?
 
     /**
      * @brief Set minimum jet pT cut to be applied to reference jets.
@@ -107,7 +109,7 @@ public:
      * counts as a match. If there are > 1 possible matches, the one with the
      * smallest deltaR is used. Also applies min pT cut and max abs(eta) cut on
      * jets. Values of these cuts are set by associated setters or constructor.
-     * Note that because the jets are sorted by pT, higher pT jets get priority
+     * Note that because the jets are sorted by pT, higher pT L1 jets get priority
      * in matching, since we remove a refJet from potential matches once matched
      * to a L1 jet.
      *
@@ -119,7 +121,7 @@ public:
     /**
      * @brief Dummy function to print out basic details.
      */
-    void printName() { std::cout << "I am a deltaR Matcher, with max DeltaR " << maxDeltaR_
+    void printName() const { std::cout << "\nI am a deltaR Matcher, with max DeltaR " << maxDeltaR_
                         << ", matching reference jets with pT > " << minRefJetPt_
                         << " and L1 jet with pT > " << minL1JetPt_
                         << " and jet |eta| < " << maxJetEta_ << std::endl; };
@@ -134,7 +136,7 @@ private:
      *
      * @return Whether jet passed test.
      */
-    bool checkJetPt(TLorentzVector jet, const double minPt);
+    bool checkJetPt(const TLorentzVector& jet, const double minPt) const;
 
     /**
      * @brief Check if abs(eta) of jet < maxEta.
@@ -144,7 +146,7 @@ private:
      *
      * @return Whether jet passed test.
      */
-    bool checkJetEta(TLorentzVector jet, const double maxEta);
+    bool checkJetEta(const TLorentzVector& jet, const double maxEta) const;
 
     /**
      * @brief Binary predicate to use in std::sort, to allow sorting TLorentzVectors by descending pT

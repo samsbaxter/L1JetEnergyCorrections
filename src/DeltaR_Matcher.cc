@@ -26,7 +26,7 @@ maxJetEta_(5.0)
 {};
 
 
-DeltaR_Matcher::DeltaR_Matcher(const double maxDeltaR, double minRefJetPt, double minL1JetPt, double maxJetEta) :
+DeltaR_Matcher::DeltaR_Matcher(const double maxDeltaR, const double minRefJetPt, const double minL1JetPt, const double maxJetEta) :
 maxDeltaR_(maxDeltaR),
 minRefJetPt_(minRefJetPt),
 minL1JetPt_(minL1JetPt),
@@ -58,6 +58,8 @@ void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
 
 std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMatchingPairs()
 {
+    // TODO: throw exception if no vectors?
+    // TODO: do I need to worry about this being deleted at end of mathod?
     std::vector<std::pair<TLorentzVector, TLorentzVector>> matchedJets; // to hold matching pairs
     for (const auto &l1_it: l1Jets_)
     {
@@ -109,13 +111,13 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMat
 }
 
 
-bool DeltaR_Matcher::checkJetPt(TLorentzVector jet, const double minPt)
+bool DeltaR_Matcher::checkJetPt(const TLorentzVector& jet, const double minPt) const
 {
     return (jet.Pt() >= minPt);
 }
 
 
-bool DeltaR_Matcher::checkJetEta(TLorentzVector jet, const double maxEta)
+bool DeltaR_Matcher::checkJetEta(const TLorentzVector& jet, const double maxEta) const
 {
     return (fabs(jet.Eta()) <= maxEta);
 }

@@ -59,12 +59,12 @@ public:
     /**
      * @brief Dummy function to print out basic details.
      */
-    virtual void printName() { std::cout << "I am a abstract Matcher." << std::endl; };
+    virtual void printName() const { std::cout << "I am a abstract Matcher." << std::endl; };
 
     /**
      * @brief Debug function to print out details of matching pairs.
      */
-    virtual void printMatches(std::vector<std::pair<TLorentzVector,TLorentzVector>> results) {
+    virtual void printMatches(std::vector<std::pair<TLorentzVector,TLorentzVector>> results) const {
         std::cout << "Matches:" << std::endl;
         if (results.size() != 0) {
             for (auto &it: results) { std::cout << "\nrefjet: "; it.first.Print(); std::cout << "l1jet: "; it.second.Print();}
