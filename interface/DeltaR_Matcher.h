@@ -44,7 +44,7 @@ class DeltaR_Matcher : public Matcher
 public:
 
     /**
-     * @brief Constructor specifying maximum DeltaRfor matching. Set defaults for minRefJetPt, minL1JetPt, maxJetEta.
+     * @brief Constructor specifying maximum DeltaR for matching. Set defaults for minRefJetPt, minL1JetPt, maxJetEta such that they have no effect.
      *
      * @param maxDeltaR Maximum deltaR for matching between ref and L1 jet.
      */

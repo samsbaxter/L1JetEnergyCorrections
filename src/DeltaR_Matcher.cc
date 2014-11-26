@@ -22,7 +22,7 @@ DeltaR_Matcher::DeltaR_Matcher(const double maxDeltaR) :
 maxDeltaR_(maxDeltaR),
 minRefJetPt_(0.0),
 minL1JetPt_(0.0),
-maxJetEta_(5.0)
+maxJetEta_(99)
 {};
 
 
