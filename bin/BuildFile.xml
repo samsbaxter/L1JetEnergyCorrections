@@ -1,7 +1,9 @@
 <flags CXXFLAGS="-O0 -g -DDEBUG -Wno-error=unused-variable"/>
 <use name="L1Trigger/L1JetEnergyCorrections"/>
 <use name="root"/>
-<use name="cppunit"/>
 <include_path path="../interface"/>
+<include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/>
+<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
 <bin name="matcherTest" file="matcherTest.cpp"/>
 <bin name="loopTest" file="loopTest.cpp"/>
+<bin name="RunMatcher" file="RunMatcher.cpp"/>

@@ -1,9 +1,20 @@
 <flags CXXFLAGS="-O0 -g -DDEBUG -Wno-error=unused-variable"/>
 <flags ADD_SUBDIR="1"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="DataFormats/L1Trigger"/>
+<use name="DataFormats/L1GlobalTrigger"/>
+<use name="CondFormats/L1TObjects"/>
+<use name="CondFormats/DataRecord"/>
 <use name="root"/>
 <use name="boost"/>
 <use name="cppunit"/>
 <include_path path="interface"/>
+<include_path path="../../L1TriggerDPG/L1Ntuples/macros"/>
+<include_path path="../../L1TriggerDPG/L1Ntuples/interface"/>
+
+<!-- <flags EDM_PLUGIN="1"/> -->
 <export>
   <lib name="L1TriggerL1JetEnergyCorrections"/>
 </export>
