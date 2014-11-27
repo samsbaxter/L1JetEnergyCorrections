@@ -19,7 +19,10 @@ process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cf
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
 process.MessageLogger = cms.Service("MessageLogger",
-                    suppressWarning=cms.untracked.vstring('l1ExtraTreeProducerGenAk4')
+                    suppressWarning=cms.untracked.vstring('l1ExtraTreeProducerGenAk4'),
+                    destinations=cms.untracked.vstring('detailedInfo'),
+                    categories=cms.untracked.vstring('eventNumber'),
+                    detailedInfo=cms.untracked.PSet(eventNumber=cms.untracked.PSet(reportEvery=cms.untracked.int32(100)))
 )
 
 # output file
@@ -92,12 +95,13 @@ process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
 process.p = cms.Path(
     process.RawToDigi
-    +process.antiktGenJets  # for GenJet
+    # +process.antiktGenJets  # for GenJet
     +process.simGctDigis
     # +process.l1NtupleProducer
     +process.l1extraParticles
     +process.l1extraParticlesAk4
     # +process.gctInternJetToL1Extra
+    +process.l1ExtraTreeProducer
     +process.l1ExtraTreeProducerGctIntern
     +process.l1ExtraTreeProducerGenAk5
     +process.l1ExtraTreeProducerGenAk4
@@ -116,15 +120,47 @@ process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
-readFiles = cms.untracked.vstring('file:QCD_GEN_SIM_RAW.root')
+# readFiles = cms.untracked.vstring('file:QCD_GEN_SIM_RAW.root')
+readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
-                             # fileNames = readFiles,
-                             fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
+                             fileNames = readFiles,
+                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
                              secondaryFileNames = secFiles
                              )
+
+## TTbar samples
+# readFiles.extend( [
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/00E707E5-0D75-E311-B109-003048678BAE.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/00EE7C4E-A976-E311-AFE2-003048678BEA.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/02732ACE-4175-E311-ACDE-003048679266.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/02B61C65-F874-E311-96DB-003048678B92.root'
+#     ])
+
+## QCD samples
+readFiles.extend( [
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/0036E353-51A7-E311-8429-0025905A610C.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/005BDE0C-46A7-E311-BD52-0025905A60CA.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/009B4961-5FA7-E311-BFC4-003048FFD736.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/02575879-39A7-E311-9E16-0025905AA9CC.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/02578496-59A7-E311-982C-003048678AFA.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/0263A814-2EA7-E311-A1E4-002618943963.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/02880A8E-19A7-E311-8235-0025905A48BA.root'
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/029E91A4-1AA7-E311-99D0-002590596486.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/02B56379-57A7-E311-A0EF-003048FFD744.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/02EAD2C2-3CA7-E311-8EB9-0025905A6110.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/04129CAE-49A7-E311-96F9-00248C0BE018.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/041461CE-44A7-E311-8A35-0026189437F0.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/041C1CBA-3BA7-E311-8999-00259059649C.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/04351463-4AA7-E311-A764-002618943845.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/043F3A65-4AA7-E311-A0FE-0025905A60F2.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/046A411C-25A7-E311-9B65-00304867C1BA.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/049CCC9A-4DA7-E311-BFC4-0025905A610A.root',
+    'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/04A666AD-41A7-E311-AF99-0025905A60DE.root'
+    ])
 
 process.output = cms.OutputModule(
     "PoolOutputModule",
