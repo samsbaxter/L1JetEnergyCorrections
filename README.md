@@ -17,11 +17,18 @@ First make sure you have a copy of CMSSW (I'm using CMSSW_7_2_0_pre7). Then in `
 ```shell
 cmsenv
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
+cd interface
+rootcint -f dictionary.cpp -c TLorentzVector.h ../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
+mv dictionary.cpp ../src/
+cd ..
 scram b -j9
-# to make documentaion:
+# to run unit tests (advised whenever you make changes)
+scram b runtests
+# to make documentation:
 cd L1Trigger/L1JetEnergyCorrections/doc
-doxygen Doxyfile
-cd latex; make # optional - to build pdf documentation
+doxygen Doxyfile # html documentation in html/index.html
+# optional - to build pdf documentation. Produces latex/refman.pdf
+cd latex; make
 ```
 
 ## Running
@@ -49,14 +56,18 @@ The top-level script is XXX. It instigates a Matcher and Calibration calculator.
 
 ## An example
 
-One type of jet matching is by deltaR(ref jet - L1 jet), where deltaR^2 = deltaEta^2 + deltaPhi^2 (all deltas are between ref and L1 jets). This is implemented in XXX.
+One type of jet matching is by deltaR(ref jet - L1 jet), where deltaR^2 = deltaEta^2 + deltaPhi^2 (all deltas are between ref and L1 jets). This is implemented in DeltaR_Matcher.
 
 One type of calibration scheme is by plotting the ratio of E_T for matched reference and L1 jets, and fitting with a particular function. This is shown in XXX.
 
 
-## What if I want to do X?
+## I want to do X
 
-- **I want to**
+- **I want to make a new program**: write your C++ program in `/bin`, then add a line to [BuildFile.xml](bin/BuildFile.xml) like:
+```
+<bin name="myProgName" file="myProg.cpp"/>
+```
+Also remember to add any addtional includes.
 - **I want to**
 
 ## Robin's notes

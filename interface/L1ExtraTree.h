@@ -13,6 +13,7 @@
 #include <TFile.h>
 #include <TString.h>
 #include <TTree.h>
+#include <TLorentzVector.h>
 
 #include "../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
 
@@ -137,6 +138,9 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+
+   virtual std::vector<TLorentzVector> makeTLorentzVectors(TString branchName) const;
+
 };
 
 #endif

@@ -12,6 +12,9 @@
 
 #include <algorithm>    // std::sort
 #include <boost/bind.hpp>
+
+#include "TGraph.h"
+
 #include "DeltaR_Matcher.h"
 
 
@@ -121,4 +124,45 @@ bool DeltaR_Matcher::checkJetPt(const TLorentzVector& jet, const double minPt) c
 bool DeltaR_Matcher::checkJetEta(const TLorentzVector& jet, const double maxEta) const
 {
     return (fabs(jet.Eta()) <= maxEta);
+}
+
+
+TMultiGraph* DeltaR_Matcher::plotJets()
+{
+    // load (eta,phi) points into separate graphs for refJets, l1jets, matched jets
+    std::vector<double> refEta, refPhi, l1Eta, l1Phi, matchEta, matchPhi;
+    for (const auto &ref_it: refJets_) {
+        refEta.push_back(ref_it.Eta());
+        refPhi.push_back(ref_it.Phi());
+    }
+    for (const auto &l1_it: l1Jets_) {
+        l1Eta.push_back(l1_it.Eta());
+        l1Phi.push_back(l1_it.Phi());
+    }
+    for (const auto &match_it: matchedJets_) {
+        matchEta.push_back(match_it.first.Eta());
+        matchPhi.push_back(match_it.first.Phi());
+        matchEta.push_back(match_it.second.Eta());
+        matchPhi.push_back(match_it.second.Phi());
+    }
+
+    TGraph * refJetGraph = new TGraph(refEta.size(), &refEta[0], &refPhi[0]);
+    TGraph * l1JetGraph = new TGraph(l1Eta.size(), &l1Eta[0], &l1Phi[0]);
+    TGraph * matchJetGraph = new TGraph(matchEta.size(), &matchEta[0], &matchPhi[0]);
+
+    // styling
+    refJetGraph->SetMarkerStyle(20);
+    refJetGraph->SetMarkerColor(kBlue);
+    l1JetGraph->SetMarkerStyle(21);
+    l1JetGraph->SetMarkerColor(kGreen+1);
+    matchJetGraph->SetMarkerStyle(22);
+    matchJetGraph->SetMarkerColor(kRed);
+
+    // add graphs to TMultiGraph and return it
+    TMultiGraph* plots = new TMultiGraph("plotJets",";#eta;#phi");
+    plots->Add(refJetGraph, "p");
+    plots->Add(l1JetGraph, "p");
+    plots->Add(matchJetGraph, "p");
+
+    return plots;
 }

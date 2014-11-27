@@ -1,8 +1,11 @@
 // #define L1ExtraTree_cxx
-#include "L1ExtraTree.h"
+#include <iostream>
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include <TLeaf.h>
+#include <TBranch.h>
+#include "L1ExtraTree.h"
 
 
 L1ExtraTree::L1ExtraTree(TString filename, TString directory, TTree *tree) : fChain(0)
@@ -169,5 +172,48 @@ void L1ExtraTree::Loop()
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
+   }
+}
+
+/**
+ * @brief Makes vector of TLorentzVectors from given branch for a given event
+ * (so you need to call fChain->GetEntry(i) first)
+ * @details Utilises variables stored in branches: branchName+Et, branchName+Eta, branchName+Phi
+ *
+ * @param branchName Branch to be considered, e.g. cenJet, or tauJet
+ * @return Vector of TLorentzVectors
+ */
+std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(TString branchName) const {
+
+   TString etBranchName  = branchName+"Et";
+   TString etaBranchName = branchName+"Eta";
+   TString phiBranchName = branchName+"Phi";
+
+   // make sure we have et, eta & phi for this branch
+   if (fChain->GetBranch(etBranchName)
+   && fChain->GetBranch(etaBranchName)
+   && fChain->GetBranch(phiBranchName)) {
+
+
+      // This is so crazy. To get the value from a TBranch, I have to first assign a
+      // variable to it. But we don't want to overide the class member variables,
+      // so instead we create new ones, and manually assign addresses.
+      // I'm basically doing fCahin->SetBranchAddress again...
+      const vector<double> &et  = *(vector<double>*)fChain->GetBranch(etBranchName)->GetAddress();
+      const vector<double> &eta = *(vector<double>*)fChain->GetBranch(etaBranchName)->GetAddress();
+      const vector<double> &phi = *(vector<double>*)fChain->GetBranch(phiBranchName)->GetAddress();
+
+      std::vector<TLorentzVector> vecs;
+      cout << endl;
+      for (unsigned i = 0; i < et.size(); ++i) {
+         TLorentzVector v;
+         v.SetPtEtaPhiM(et[i], eta[i], phi[i], 0.);
+         v.Print();
+         vecs.push_back(v);
+      }
+      cout << endl;
+      return vecs;
+   } else {
+      throw "You cannot make TLorentzVectors from branchName give: " + branchName;
    }
 }

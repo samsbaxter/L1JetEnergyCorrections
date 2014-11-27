@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "TMultiGraph.h"
+
 #include "Matcher.h"
 
 #include "TLorentzVector.h"
@@ -125,6 +127,13 @@ public:
                         << ", matching reference jets with pT > " << minRefJetPt_
                         << " and L1 jet with pT > " << minL1JetPt_
                         << " and jet |eta| < " << maxJetEta_ << std::endl; };
+
+    /**
+     * @brief PLots ref jets, L1 jets, and matched jet pairs on a TMultiGraph
+     * @details [long description]
+     * @return [description]
+     */
+    TMultiGraph* plotJets();
 
 private:
 
