@@ -116,7 +116,7 @@ public:
      * @return Returns a vector of std::pair of matched jets.
      * pair.first = reference jet, pair.second = L1 jet
      */
-    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs() override;
+    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> getMatchingPairs() override;
 
     /**
      * @brief Dummy function to print out basic details.
@@ -162,7 +162,8 @@ private:
 
     std::vector<TLorentzVector> refJets_; // to store reference jet collection
     std::vector<TLorentzVector> l1Jets_; // to store L1 jet collection
-    // std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_; // to store matches
+    std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_; // to store matches
+
     const double maxDeltaR_; // Maximum deltaR between reference and L1 jet to count as a 'match'.
     double minRefJetPt_; // Minimum pT for reference jet to take part in matching.
     double minL1JetPt_; // Minimum pT for L1 jet to take part in matching.

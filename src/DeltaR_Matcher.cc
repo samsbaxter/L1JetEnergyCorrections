@@ -56,7 +56,7 @@ void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
 }
 
 
-std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMatchingPairs()
+std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchingPairs()
 {
     // TODO: throw exception if no vectors?
     // TODO: do I need to worry about this being deleted at end of mathod?
@@ -68,7 +68,7 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMat
             continue;
         }
 
-        // store matching L1 jets & their deltaR for this ref jet
+        // store matching ref jets & their deltaR for this l1 jet
         std::vector<std::pair<TLorentzVector,double>> possibleMatches;
 
         // for each, calculate deltaR, add to vector if satisfies maxDeltaR
@@ -87,7 +87,7 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMat
 
         }
 
-        // after matching, we want the closest L1 jet (if it exists)
+        // after matching, we want the closest ref jet (if it exists)
         if (possibleMatches.size() == 0)
         {
             continue;
@@ -107,6 +107,7 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::produceMat
             refJets_.erase(remove(refJets_.begin(), refJets_.end(), possibleMatches[0].first), refJets_.end());
         }
     }
+    matchedJets_ = matchedJets;
     return matchedJets;
 }
 

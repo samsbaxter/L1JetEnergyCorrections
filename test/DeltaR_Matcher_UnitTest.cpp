@@ -100,7 +100,7 @@ void DeltaR_Matcher_UnitTest::runSimpleMatch() {
     matcher = new DeltaR_Matcher(0.7);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
-    pairs = matcher->produceMatchingPairs();
+    pairs = matcher->getMatchingPairs();
     // check we have 4 matching pairs & print out matches
     if (printStatements) {
         matcher->printName();
@@ -143,7 +143,7 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
     matcher = new DeltaR_Matcher(0.7, 3, 4, 5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
-    pairs = matcher->produceMatchingPairs();
+    pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
         matcher->printMatches(pairs);
@@ -159,7 +159,7 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
     matcher->setMaxJetEta(5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
-    pairs = matcher->produceMatchingPairs();
+    pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
         matcher->printMatches(pairs);
@@ -188,7 +188,7 @@ void DeltaR_Matcher_UnitTest::checkDeltaRMax() {
     matcher = new DeltaR_Matcher(0.5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
-    pairs = matcher->produceMatchingPairs();
+    pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
         matcher->printMatches(pairs);
@@ -213,7 +213,7 @@ void DeltaR_Matcher_UnitTest::checkPtOrdering() {
     matcher = new DeltaR_Matcher(0.5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
-    pairs = matcher->produceMatchingPairs();
+    pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
         matcher->printMatches(pairs);
@@ -242,7 +242,7 @@ void DeltaR_Matcher_UnitTest::checkRefJetRemoval() {
     matcher = new DeltaR_Matcher(0.5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
-    pairs = matcher->produceMatchingPairs();
+    pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
         matcher->printMatches(pairs);

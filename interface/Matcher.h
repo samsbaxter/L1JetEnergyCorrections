@@ -54,7 +54,7 @@ public:
      * @return Returns a vector of std::pair of matched jets, where
      * pair.first = reference jet, pair.second = L1 jet
      */
-    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> produceMatchingPairs() = 0;
+    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> getMatchingPairs() = 0;
 
     /**
      * @brief Dummy function to print out basic details.
