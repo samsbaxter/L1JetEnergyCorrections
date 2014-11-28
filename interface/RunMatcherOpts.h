@@ -44,6 +44,7 @@ class RunMatcherOpts
         std::string l1JetDirectory() { return l1Dir_; };
         std::string outputFilename() { return output_; };
         int drawNumber() { return drawN_; };
+        int nEvents() { return nEvents_; };
 
     private:
         RunMatcherOpts(const RunMatcherOpts&); // stop default
@@ -52,7 +53,7 @@ class RunMatcherOpts
 
         // ---------- member data --------------------------------
         std::string input_, refDir_, l1Dir_, output_;
-        int drawN_;
+        int nEvents_, drawN_;
 };
 
 

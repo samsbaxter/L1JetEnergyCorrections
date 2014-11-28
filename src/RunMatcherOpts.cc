@@ -43,6 +43,7 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     refDir_(""),
     l1Dir_(""),
     output_(""),
+    nEvents_(0),
     drawN_(0)
 {
     namespace po = boost::program_options;
@@ -51,6 +52,9 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message & exit")
+        ("nEvents,N",
+            po::value<int>(&nEvents_)->default_value(-1),
+            "number of events to run over. -1 for all.")
         ("input,I",
             po::value<std::string>(&input_)->default_value("python/L1Tree.root"),
             "input filename")
