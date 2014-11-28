@@ -22,7 +22,8 @@ using namespace std;
 /**
  * @brief Class to interface to L1ExtraTree produced by L1ExtraTreeProducer.
  * @details Based on default class generation by ROOT - hence all the public
- * data members, raw pointers, etc.
+ * data members, raw pointers, etc. Not really happy with this, but it'll do (for now)
+ * @author Robin Aggleton
  */
 class L1ExtraTree {
 public :
@@ -89,7 +90,7 @@ public :
     * @param directory Directory that L1ExtraTree is stored in (e.g. l1ExtraTreeProducer)
     * @param tree Optional TTree to use instead of from file... shoudl prob do diff ctors.
     */
-   L1ExtraTree(TString filename, TString directory, TTree *tree=0);
+   L1ExtraTree(TString filename, TString directory, TString treeName="L1ExtraTree", TTree *tree=0);
 
    /**
     * @brief Destructor
