@@ -1,4 +1,3 @@
-// #define L1ExtraTree_cxx
 #include <iostream>
 #include <stdexcept>
 #include <TH2.h>
@@ -9,7 +8,7 @@
 #include "L1ExtraTree.h"
 
 
-L1ExtraTree::L1ExtraTree(TString filename, TString directory, TTree *tree) :
+L1ExtraTree::L1ExtraTree(TString filename, TString directory, TString treeName, TTree *tree) :
    fChain(0),
    b_L1Extra_nIsoEm(0),
    b_L1Extra_isoEmEt(0),
@@ -66,11 +65,12 @@ L1ExtraTree::L1ExtraTree(TString filename, TString directory, TTree *tree) :
    if (tree == 0) {
       TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename);
       if (!f || !f->IsOpen()) {
-         f = new TFile(filename);
+         f = new TFile(filename, "READ");
       }
+      if (f->IsZombie()) throw "Couldn't open file"+filename;
       TDirectory * dir = (TDirectory*)f->Get(filename+":/"+directory);
-      dir->GetObject("L1ExtraTree",tree);
-
+      dir->GetObject(treeName,tree);
+      cout << "Opened " << treeName << " in " << filename << ":/" << directory << endl;
    }
    Init(tree);
 }
