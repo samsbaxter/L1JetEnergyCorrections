@@ -11,8 +11,10 @@
  Description: Implementation of jet matcher using delta R between jets.
 
  Usage:
-    <usage>
-
+    DeltaR_Matcher m;
+    m->setRefJets(myRefJets);
+    m->setL1Jets(myL1Jets);
+    vector<pair<TLorentzVector,TLorentzVector>> results = m.getMatchingPairs();
 */
 //
 // Original Author:  Robin Cameron Aggleton
@@ -22,8 +24,6 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-
-#include "TMultiGraph.h"
 
 #include "Matcher.h"
 
@@ -128,13 +128,6 @@ public:
                         << " and L1 jet with pT > " << minL1JetPt_
                         << " and jet |eta| < " << maxJetEta_ << std::endl; };
 
-    /**
-     * @brief PLots ref jets, L1 jets, and matched jet pairs on a TMultiGraph
-     * @details [long description]
-     * @return [description]
-     */
-    TMultiGraph* plotJets();
-
 private:
 
     /**
@@ -145,7 +138,7 @@ private:
      *
      * @return Whether jet passed test.
      */
-    bool checkJetPt(const TLorentzVector& jet, const double minPt) const;
+    bool checkJetMinPt(const TLorentzVector& jet, const double minPt) const;
 
     /**
      * @brief Check if abs(eta) of jet < maxEta.
@@ -155,7 +148,7 @@ private:
      *
      * @return Whether jet passed test.
      */
-    bool checkJetEta(const TLorentzVector& jet, const double maxEta) const;
+    bool checkJetMaxEta(const TLorentzVector& jet, const double maxEta) const;
 
     /**
      * @brief Binary predicate to use in std::sort, to allow sorting TLorentzVectors by descending pT
@@ -168,10 +161,6 @@ private:
      * @return True if a.Pt() > b.Pt()
      */
     static bool sortPtDescending(const TLorentzVector &a, const TLorentzVector &b) { return (a.Pt() > b.Pt()); } ;
-
-    std::vector<TLorentzVector> refJets_; // to store reference jet collection
-    std::vector<TLorentzVector> l1Jets_; // to store L1 jet collection
-    std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_; // to store matches
 
     const double maxDeltaR_; // Maximum deltaR between reference and L1 jet to count as a 'match'.
     double minRefJetPt_; // Minimum pT for reference jet to take part in matching.

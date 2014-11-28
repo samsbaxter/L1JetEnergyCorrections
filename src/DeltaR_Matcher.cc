@@ -10,11 +10,13 @@
 //         Created:  Wed, 12 Nov 2014 21:21:28 GMT
 //
 
+// STL include
 #include <algorithm>    // std::sort
+
+// BOOST include
 #include <boost/bind.hpp>
 
-#include "TGraph.h"
-
+// User include
 #include "DeltaR_Matcher.h"
 
 
@@ -66,7 +68,7 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
     std::vector<std::pair<TLorentzVector, TLorentzVector>> matchedJets; // to hold matching pairs
     for (const auto &l1_it: l1Jets_)
     {
-        if (!checkJetPt(l1_it, minL1JetPt_) || !checkJetEta(l1_it, maxJetEta_))
+        if (!checkJetMinPt(l1_it, minL1JetPt_) || !checkJetMaxEta(l1_it, maxJetEta_))
         {
             continue;
         }
@@ -77,7 +79,7 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
         // for each, calculate deltaR, add to vector if satisfies maxDeltaR
         for (const auto &ref_it: refJets_)
         {
-            if (!checkJetPt(ref_it, minRefJetPt_) || !checkJetEta(ref_it, maxJetEta_))
+            if (!checkJetMinPt(ref_it, minRefJetPt_) || !checkJetMaxEta(ref_it, maxJetEta_))
             {
                 continue;
             }
@@ -115,54 +117,13 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
 }
 
 
-bool DeltaR_Matcher::checkJetPt(const TLorentzVector& jet, const double minPt) const
+bool DeltaR_Matcher::checkJetMinPt(const TLorentzVector& jet, const double minPt) const
 {
     return (jet.Pt() >= minPt);
 }
 
 
-bool DeltaR_Matcher::checkJetEta(const TLorentzVector& jet, const double maxEta) const
+bool DeltaR_Matcher::checkJetMaxEta(const TLorentzVector& jet, const double maxEta) const
 {
     return (fabs(jet.Eta()) <= maxEta);
-}
-
-
-TMultiGraph* DeltaR_Matcher::plotJets()
-{
-    // load (eta,phi) points into separate graphs for refJets, l1jets, matched jets
-    std::vector<double> refEta, refPhi, l1Eta, l1Phi, matchEta, matchPhi;
-    for (const auto &ref_it: refJets_) {
-        refEta.push_back(ref_it.Eta());
-        refPhi.push_back(ref_it.Phi());
-    }
-    for (const auto &l1_it: l1Jets_) {
-        l1Eta.push_back(l1_it.Eta());
-        l1Phi.push_back(l1_it.Phi());
-    }
-    for (const auto &match_it: matchedJets_) {
-        matchEta.push_back(match_it.first.Eta());
-        matchPhi.push_back(match_it.first.Phi());
-        matchEta.push_back(match_it.second.Eta());
-        matchPhi.push_back(match_it.second.Phi());
-    }
-
-    TGraph * refJetGraph = new TGraph(refEta.size(), &refEta[0], &refPhi[0]);
-    TGraph * l1JetGraph = new TGraph(l1Eta.size(), &l1Eta[0], &l1Phi[0]);
-    TGraph * matchJetGraph = new TGraph(matchEta.size(), &matchEta[0], &matchPhi[0]);
-
-    // styling
-    refJetGraph->SetMarkerStyle(20);
-    refJetGraph->SetMarkerColor(kBlue);
-    l1JetGraph->SetMarkerStyle(21);
-    l1JetGraph->SetMarkerColor(kGreen+1);
-    matchJetGraph->SetMarkerStyle(22);
-    matchJetGraph->SetMarkerColor(kRed);
-
-    // add graphs to TMultiGraph and return it
-    TMultiGraph* plots = new TMultiGraph("plotJets",";#eta;#phi");
-    plots->Add(refJetGraph, "p");
-    plots->Add(l1JetGraph, "p");
-    plots->Add(matchJetGraph, "p");
-
-    return plots;
 }

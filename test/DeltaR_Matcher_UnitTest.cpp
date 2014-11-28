@@ -104,7 +104,7 @@ void DeltaR_Matcher_UnitTest::runSimpleMatch() {
     // check we have 4 matching pairs & print out matches
     if (printStatements) {
         matcher->printName();
-        matcher->printMatches(pairs);
+        matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 4 );
     CPPUNIT_ASSERT( pairs[0].first == ref_1 );
@@ -146,7 +146,7 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
     pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
-        matcher->printMatches(pairs);
+        matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 0 );
 
@@ -162,7 +162,7 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
     pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
-        matcher->printMatches(pairs);
+        matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 0 );
 }
@@ -191,7 +191,7 @@ void DeltaR_Matcher_UnitTest::checkDeltaRMax() {
     pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
-        matcher->printMatches(pairs);
+        matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 0 );
 }
@@ -216,7 +216,7 @@ void DeltaR_Matcher_UnitTest::checkPtOrdering() {
     pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
-        matcher->printMatches(pairs);
+        matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 1 );
     CPPUNIT_ASSERT( pairs.at(0).first == ref_1 );
@@ -245,7 +245,7 @@ void DeltaR_Matcher_UnitTest::checkRefJetRemoval() {
     pairs = matcher->getMatchingPairs();
     if (printStatements) {
         matcher->printName();
-        matcher->printMatches(pairs);
+        matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 2 );
     CPPUNIT_ASSERT( pairs.at(0).first == ref_1 );
