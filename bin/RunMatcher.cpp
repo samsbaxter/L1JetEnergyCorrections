@@ -6,6 +6,7 @@
 
 // ROOT headers
 #include "TCanvas.h"
+#include "TLegend.h"
 #include "TChain.h"
 #include "TFile.h"
 #include "TDirectoryFile.h"
@@ -98,10 +99,11 @@ int main(int argc, char* argv[]) {
     double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(0.), maxJetEta(5.5);
     Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
 
-    // for plottinh jet position graphs
+    // for plotting jet position graphs
     TMultiGraph *jetPlots = nullptr;
     TCanvas c1;
-
+    TLegend leg(0.1,0.91, 0.9, 0.98);
+    leg.SetNColumns(3);
     // loop over all events in trees, produce matching pairs and store
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
@@ -146,6 +148,15 @@ int main(int argc, char* argv[]) {
         if (iEntry < opts.drawNumber()) {
             jetPlots = matcher->plotJets();
             jetPlots->Draw("ap");
+            if (iEntry == 0){
+                // TGraph names assigned in Matcher.h
+                leg.AddEntry(jetPlots->GetListOfGraphs()->FindObject("refJetGraph"), "Reference jets", "p");
+                leg.AddEntry(jetPlots->GetListOfGraphs()->FindObject("l1JetGraph"), "L1 jets", "p");
+                leg.AddEntry(jetPlots->GetListOfGraphs()->FindObject("matchJetGraph"), "Matched jets", "p");
+            }
+            leg.SetFillColor(kWhite);
+            leg.SetLineColor(kWhite);
+            leg.Draw();
             TString pdfname = "match_plots/jets_"+to_string(iEntry)+".pdf";
             c1.SaveAs(pdfname);
         }
