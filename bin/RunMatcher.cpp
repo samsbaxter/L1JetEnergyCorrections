@@ -86,10 +86,12 @@ int main(int argc, char* argv[]) {
     // - if not then throw exception?
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
     Long64_t nEntriesL1  = l1JetExtraTree.fChain->GetEntriesFast();
+    Long64_t nEntries(0);
     if (nEntriesRef != nEntriesL1) {
         throw range_error("Different number of events in L1 & ref trees");
     } else {
-        cout << "Running over " << nEntriesL1 << " events." << endl;
+        nEntries = (opts.nEvents() > 0) ? opts.nEvents() : nEntriesL1;
+        cout << "Running over " << nEntries << " events." << endl;
     }
 
     // setup your jet matcher
@@ -101,7 +103,7 @@ int main(int argc, char* argv[]) {
     TCanvas c1;
 
     // loop over all events in trees, produce matching pairs and store
-    for (Long64_t iEntry = 0; iEntry < nEntriesL1; ++iEntry) {
+    for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry); // jentry is the entry # in the current Tree
         if (jentry < 0) break;
@@ -109,7 +111,7 @@ int main(int argc, char* argv[]) {
         l1JetExtraTree.fChain->GetEntry(iEntry);
 
         // Get vectors of ref & L1 jets from trees
-        // Use cenJet branch, becasue that's the one we use to store genJet/l1jets
+        // Use cenJet branch, because that's the one we use to store genJet/l1jets
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors("cenJet");
 
         std::vector<TLorentzVector> l1JetsCen  = l1JetExtraTree.makeTLorentzVectors("cenJet");
