@@ -1,9 +1,11 @@
+// STL headers
 #include <iostream>
 #include <vector>
 #include <utility>
+#include <stdexcept>
 
+// ROOT headers
 #include "TCanvas.h"
-// #include "TInterpreter.h"
 #include "TChain.h"
 #include "TFile.h"
 #include "TDirectoryFile.h"
@@ -14,19 +16,24 @@
 #include "TRegexp.h"
 #include "TString.h"
 
+// BOOST headers
 // #include <boost/algorithm/string.hpp>
 
+// Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
-
-#include "../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
-
 #include "L1ExtraTree.h"
+#include "RunMatcherOpts.h"
 
+// Headers from other packages
+#include "../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
 
 using std::cout;
 using std::endl;
 // using namespace boost;
+
+// forward declare fns, implementations after main()
+TString getSuffixFromDirectory(TString dir);
 
 
 /**
@@ -37,46 +44,64 @@ using std::endl;
  * for instructions.
  * @author Robin Aggleton, Nov 2014
  */
-int main() {
+int main(int argc, char* argv[]) {
 
     cout << "Running Matcher" << std::endl;
-    // TODO: user program args
 
-    // get input L1Extra trees
-    TString refJetDirectory = "l1ExtraTreeProducerGenAk5";
-    TString refJetSuffix  = refJetDirectory;
-    TRegexp re("l1ExtraTreeProducer");
-    refJetSuffix(re) = "";
-    TString l1JetDirectory  = "l1ExtraTreeProducerGctIntern";
-    TString l1JetSuffix  = l1JetDirectory;
-    l1JetSuffix(re) = "";
+    // deal with user args
+    RunMatcherOpts opts(argc, argv);
 
-    L1ExtraTree refJetExtraTree("python/L1Tree.root", "l1ExtraTreeProducerGenAk5");
-    L1ExtraTree l1JetExtraTree("python/L1Tree.root", "l1ExtraTreeProducerGctIntern");
+    // get input L1Extra TDirectories/TTrees
+    // assumes TTree named "L1ExtraTree", but can specify in ctor
+    TString refJetDirectory = opts.refJetDirectory();
+    TString refJetSuffix  = getSuffixFromDirectory(refJetDirectory);
+    TString l1JetDirectory  = opts.l1JetDirectory();
+    TString l1JetSuffix  = getSuffixFromDirectory(l1JetDirectory);
 
-    // setup your jet matcher
-    double maxDeltaR(0.7), minRefJetPt(0.), minL1JetPt(0.), maxJetEta(5.5);
-    DeltaR_Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
-    std::vector<std::pair<TLorentzVector, TLorentzVector>> matchResults; // holds results from one event
+    L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
+    L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
 
-    // setup output tree to store matched pairs
+    // setup output file to store results
+    TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
+
+    // setup output tree to store matched pairs - keeps all info so you can study anything
     TString outTreeName;
     outTreeName.Form("MatchedPairs_%s_%s", refJetSuffix.Data(), l1JetSuffix.Data());
-    TString outTreeTitle = outTreeName;
-    TTree * outTree = new TTree(outTreeName, outTreeTitle);
+    TTree * outTree = new TTree(outTreeName, outTreeName); // holds match resutls for an event
+    std::vector<std::pair<TLorentzVector, TLorentzVector>> matchResults; // holds results from one event
     outTree->Branch("MatchedPairs", &matchResults);
+
+    // setup output tree to store raw variable for quick plotting/debugging
+    TTree * outTree2 = new TTree("valid", "valid");
+    float out_pt, out_eta, out_phi, out_rsp, out_dr, out_deta, out_dphi; //pt/eta/phi are for l1 jets
+    outTree2->Branch("pt"   ,&out_pt ,"pt/Float_t");
+    outTree2->Branch("eta"  ,&out_eta,"eta/Float_t");
+    outTree2->Branch("phi"  ,&out_phi,"phi/Float_t");
+    outTree2->Branch("rsp"  ,&out_rsp,"rsp/Float_t"); // response = refJet pT/ l1 jet pT
+    outTree2->Branch("dr"   ,&out_dr,"dr/Float_t");
+    outTree2->Branch("deta" ,&out_deta,"deta/Float_t");
+    outTree2->Branch("dphi" ,&out_dphi,"dphi/Float_t");
 
     // check # events in boths trees is same
     // - if not then throw exception?
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
     Long64_t nEntriesL1  = l1JetExtraTree.fChain->GetEntriesFast();
     if (nEntriesRef != nEntriesL1) {
-        throw "Different number of events in L1 & ref trees";
+        throw range_error("Different number of events in L1 & ref trees");
+    } else {
+        cout << "Running over " << nEntriesL1 << " events." << endl;
     }
 
+    // setup your jet matcher
+    double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(0.), maxJetEta(5.5);
+    Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
+
+    // for plottinh jet position graphs
+    TMultiGraph *jetPlots = nullptr;
+    TCanvas c1;
+
     // loop over all events in trees, produce matching pairs and store
-    TMultiGraph *jetPlots;
-    for (Long64_t iEntry = 0; iEntry < 1; ++iEntry) {
+    for (Long64_t iEntry = 0; iEntry < nEntriesL1; ++iEntry) {
 
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry); // jentry is the entry # in the current Tree
         if (jentry < 0) break;
@@ -84,30 +109,69 @@ int main() {
         l1JetExtraTree.fChain->GetEntry(iEntry);
 
         // Get vectors of ref & L1 jets from trees
+        // Use cenJet branch, becasue that's the one we use to store genJet/l1jets
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors("cenJet");
-        std::vector<TLorentzVector> l1Jets  = l1JetExtraTree.makeTLorentzVectors("cenJet");
+
+        std::vector<TLorentzVector> l1JetsCen  = l1JetExtraTree.makeTLorentzVectors("cenJet");
+        std::vector<TLorentzVector> l1JetsFwd  = l1JetExtraTree.makeTLorentzVectors("fwdJet");
+        std::vector<TLorentzVector> l1JetsTau  = l1JetExtraTree.makeTLorentzVectors("tauJet");
+
+        std::vector<TLorentzVector> l1Jets;
+        l1Jets.insert(l1Jets.end(), l1JetsCen.begin(), l1JetsCen.end());
+        l1Jets.insert(l1Jets.end(), l1JetsFwd.begin(), l1JetsFwd.end());
+        l1Jets.insert(l1Jets.end(), l1JetsTau.begin(), l1JetsTau.end());
 
         // Pass jets to matcher, do matching, store output in tree
         matchResults.clear();
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
         matchResults = matcher->getMatchingPairs();
-        matcher->printMatches(matchResults);
+        // matcher->printMatches();
 
-        TCanvas c1;
-        jetPlots = matcher->plotJets();
-        jetPlots->Draw("ap");
-        c1.SaveAs("jets.pdf");
+        // store jets variables
+        for (const auto &it: matchResults) {
+            out_pt = it.second.Et();
+            out_eta = it.second.Eta();
+            out_phi = it.second.Phi();
+            out_rsp = it.first.Et()/it.second.Et();
+            out_dr = it.first.DeltaR(it.second);
+            out_deta = it.first.Eta() - it.second.Eta();
+            out_dphi = it.first.DeltaPhi(it.second);
+            outTree2->Fill();
+        }
+
+        // debugging plot - plots eta vs phi of jets
+        if (iEntry < opts.drawNumber()) {
+            jetPlots = matcher->plotJets();
+            jetPlots->Draw("ap");
+            TString pdfname = "match_plots/jets_"+to_string(iEntry)+".pdf";
+            c1.SaveAs(pdfname);
+        }
 
         outTree->Fill();
     }
 
     // save tree to new file and cleanup
-    TString outFilename("pairs.root");
-    TFile * outFile = openFile(outFilename, "RECREATE");
     outTree->Write("", TObject::kOverwrite);
-    jetPlots->Write("", TObject::kOverwrite);
+    outTree2->Write("", TObject::kOverwrite);
+    if (jetPlots) jetPlots->Write("", TObject::kOverwrite);
 
     // cleanup
     outFile->Close();
+}
+
+
+/**
+ * @brief Get suffix from TDirectory name
+ * @details Assumes it starts with "l1ExtraTreeProducer".
+ *
+ * @param dir Directory name
+ * @return Suitable suffix
+ */
+TString getSuffixFromDirectory(TString dir) {
+    TString suffix(dir);
+    TRegexp re("l1ExtraTreeProducer");
+    suffix(re) = "";
+    if (suffix == "") suffix = dir;
+    return suffix;
 }

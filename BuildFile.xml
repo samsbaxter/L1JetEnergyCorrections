@@ -9,6 +9,8 @@
 <use name="CondFormats/DataRecord"/>
 <use name="root"/>
 <use name="boost"/>
+<use name="boost_program_options"/>
+<use name="boost_filesystem"/>
 <use name="cppunit"/>
 <include_path path="interface"/>
 <include_path path="../../L1TriggerDPG/L1Ntuples/macros"/>

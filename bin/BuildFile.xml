@@ -3,6 +3,7 @@
 <use name="root"/>
 <use name="rootgraphics"/>
 <use name="boost"/>
+<use name="boost_program_options"/>
 <include_path path="../interface"/>
 <include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/>
 <include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
