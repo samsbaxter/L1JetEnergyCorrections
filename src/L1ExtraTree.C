@@ -1,5 +1,6 @@
 // #define L1ExtraTree_cxx
 #include <iostream>
+#include <stdexcept>
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -8,7 +9,57 @@
 #include "L1ExtraTree.h"
 
 
-L1ExtraTree::L1ExtraTree(TString filename, TString directory, TTree *tree) : fChain(0)
+L1ExtraTree::L1ExtraTree(TString filename, TString directory, TTree *tree) :
+   fChain(0),
+   b_L1Extra_nIsoEm(0),
+   b_L1Extra_isoEmEt(0),
+   b_L1Extra_isoEmEta(0),
+   b_L1Extra_isoEmPhi(0),
+   b_L1Extra_isoEmBx(0),
+   b_L1Extra_nNonIsoEm(0),
+   b_L1Extra_nonIsoEmEt(0),
+   b_L1Extra_nonIsoEmEta(0),
+   b_L1Extra_nonIsoEmPhi(0),
+   b_L1Extra_nonIsoEmBx(0),
+   b_L1Extra_nCenJets(0),
+   b_L1Extra_cenJetEt(0),
+   b_L1Extra_cenJetEta(0),
+   b_L1Extra_cenJetPhi(0),
+   b_L1Extra_cenJetBx(0),
+   b_L1Extra_nFwdJets(0),
+   b_L1Extra_fwdJetEt(0),
+   b_L1Extra_fwdJetEta(0),
+   b_L1Extra_fwdJetPhi(0),
+   b_L1Extra_fwdJetBx(0),
+   b_L1Extra_nTauJets(0),
+   b_L1Extra_tauJetEt(0),
+   b_L1Extra_tauJetEta(0),
+   b_L1Extra_tauJetPhi(0),
+   b_L1Extra_tauJetBx(0),
+   b_L1Extra_nMuons(0),
+   b_L1Extra_muonEt(0),
+   b_L1Extra_muonEta(0),
+   b_L1Extra_muonPhi(0),
+   b_L1Extra_muonChg(0),
+   b_L1Extra_muonIso(0),
+   b_L1Extra_muonFwd(0),
+   b_L1Extra_muonMip(0),
+   b_L1Extra_muonRPC(0),
+   b_L1Extra_muonBx(0),
+   b_L1Extra_muonQuality(0),
+   b_L1Extra_hfEtSum(0),
+   b_L1Extra_hfBitCnt(0),
+   b_L1Extra_hfBx(0),
+   b_L1Extra_nMet(0),
+   b_L1Extra_et(0),
+   b_L1Extra_met(0),
+   b_L1Extra_metPhi(0),
+   b_L1Extra_metBx(0),
+   b_L1Extra_nMht(0),
+   b_L1Extra_ht(0),
+   b_L1Extra_mht(0),
+   b_L1Extra_mhtPhi(0),
+   b_L1Extra_mhtBx(0)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -24,18 +75,20 @@ L1ExtraTree::L1ExtraTree(TString filename, TString directory, TTree *tree) : fCh
    Init(tree);
 }
 
+
 L1ExtraTree::~L1ExtraTree()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
+
 Int_t L1ExtraTree::GetEntry(Long64_t entry)
 {
-// Read contents of entry.
    if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
+
 
 Long64_t L1ExtraTree::LoadTree(Long64_t entry)
 {
@@ -49,6 +102,7 @@ Long64_t L1ExtraTree::LoadTree(Long64_t entry)
    }
    return centry;
 }
+
 
 void L1ExtraTree::Init(TTree *tree)
 {
@@ -118,6 +172,7 @@ void L1ExtraTree::Init(TTree *tree)
    Notify();
 }
 
+
 Bool_t L1ExtraTree::Notify()
 {
    // The Notify() function is called when a new file is opened. This
@@ -128,6 +183,7 @@ Bool_t L1ExtraTree::Notify()
 
    return kTRUE;
 }
+
 
 void L1ExtraTree::Show(Long64_t entry)
 {
@@ -175,15 +231,9 @@ void L1ExtraTree::Loop()
    }
 }
 
-/**
- * @brief Makes vector of TLorentzVectors from given branch for a given event
- * (so you need to call fChain->GetEntry(i) first)
- * @details Utilises variables stored in branches: branchName+Et, branchName+Eta, branchName+Phi
- *
- * @param branchName Branch to be considered, e.g. cenJet, or tauJet
- * @return Vector of TLorentzVectors
- */
+
 std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(TString branchName) const {
+   // Make vector of TLorentzVectors from branches
 
    TString etBranchName  = branchName+"Et";
    TString etaBranchName = branchName+"Eta";
@@ -194,7 +244,6 @@ std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(TString branchName)
    && fChain->GetBranch(etaBranchName)
    && fChain->GetBranch(phiBranchName)) {
 
-
       // This is so crazy. To get the value from a TBranch, I have to first assign a
       // variable to it. But we don't want to overide the class member variables,
       // so instead we create new ones, and manually assign addresses.
@@ -204,16 +253,14 @@ std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(TString branchName)
       const vector<double> &phi = *(vector<double>*)fChain->GetBranch(phiBranchName)->GetAddress();
 
       std::vector<TLorentzVector> vecs;
-      cout << endl;
       for (unsigned i = 0; i < et.size(); ++i) {
          TLorentzVector v;
          v.SetPtEtaPhiM(et[i], eta[i], phi[i], 0.);
-         v.Print();
          vecs.push_back(v);
+         // v.Print();
       }
-      cout << endl;
       return vecs;
    } else {
-      throw "You cannot make TLorentzVectors from branchName give: " + branchName;
+      throw invalid_argument(std::string("You cannot make TLorentzVectors from branchName: ") + branchName.Data());
    }
 }

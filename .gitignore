@@ -2,3 +2,5 @@
 __init__.py
 /doc/latex
 /doc/html
+*.root
+*LSF*
