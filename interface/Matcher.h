@@ -74,7 +74,7 @@ public:
     };
 
     /**
-     * @brief PLots ref jets, L1 jets, and matched jet pairs on a TMultiGraph
+     * @brief Plots ref jets, L1 jets, and matched jet pairs on a TMultiGraph
      * @details [long description]
      * @return  TMultiGraph containing separate TGraphs for refJets (blue),
      * l1Jets (green), matchedPairs (red)
@@ -105,10 +105,15 @@ public:
         // styling
         refJetGraph->SetMarkerStyle(20);
         refJetGraph->SetMarkerColor(kBlue);
+        refJetGraph->SetMarkerSize(1.2);
+        refJetGraph->SetName("refJetGraph");
         l1JetGraph->SetMarkerStyle(21);
         l1JetGraph->SetMarkerColor(kGreen+1);
+        l1JetGraph->SetMarkerSize(1.2);
+        l1JetGraph->SetName("l1JetGraph");
         matchJetGraph->SetMarkerStyle(22);
         matchJetGraph->SetMarkerColor(kRed);
+        matchJetGraph->SetName("matchJetGraph");
 
         // add graphs to TMultiGraph and return it
         TMultiGraph* plots = new TMultiGraph("plotJets",";#eta;#phi");

@@ -68,6 +68,7 @@ public:
 
     /**
      * @brief Set reference jet collection (e.g. GenJets) & sorts by descending pT
+     * @details Applies cuts on jets. Only those that pass are saved.
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
@@ -75,6 +76,7 @@ public:
 
     /**
      * @brief Set L1 jet collection (e.g. from GCT) & sorts by descending pT
+     * @details Applies cuts on jets. Only those that pass are saved.
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
@@ -109,8 +111,7 @@ public:
      * @details For each L1 jet, we loop over all reference jets. For each
      * pair, we calculate deltaR between the jets. If deltaR < maxDeltaR_, it
      * counts as a match. If there are > 1 possible matches, the one with the
-     * smallest deltaR is used. Also applies min pT cut and max abs(eta) cut on
-     * jets. Values of these cuts are set by associated setters or constructor.
+     * smallest deltaR is used.
      * Note that because the jets are sorted by pT, higher pT L1 jets get priority
      * in matching, since we remove a refJet from potential matches once matched
      * to a L1 jet.
@@ -129,6 +130,22 @@ public:
                         << " and jet |eta| < " << maxJetEta_ << std::endl; };
 
 private:
+
+    /**
+     * @brief Check reference jet passes cuts
+     *
+     * @param jet Jet to check
+     * @return [description]
+     */
+    bool checkRefJet(const TLorentzVector& jet);
+
+    /**
+     * @brief Check L1 jet passes cuts
+     *
+     * @param jet Jet to check
+     * @return [description]
+     */
+    bool checkL1Jet(const TLorentzVector& jet);
 
     /**
      * @brief Check if jet pT > minPt.
