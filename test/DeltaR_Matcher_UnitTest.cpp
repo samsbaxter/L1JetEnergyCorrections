@@ -130,17 +130,17 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
     TLorentzVector l1_2; l1_2.SetPtEtaPhiM(40, 1, -0.5, 0);
     TLorentzVector ref_2; ref_2.SetPtEtaPhiM(1.2, 1.3, -0.46, 0); // fail min ref jet pT
 
-    TLorentzVector l1_3; l1_3.SetPtEtaPhiM(40, -5.1, -1, 0); // fail max L1 jet eta
-    TLorentzVector ref_3; ref_3.SetPtEtaPhiM(38, -4.6, -1.2, 0);
+    TLorentzVector l1_3; l1_3.SetPtEtaPhiM(40, -5.6, -1, 0); // fail max L1 jet eta
+    TLorentzVector ref_3; ref_3.SetPtEtaPhiM(38, -4.99, -1.1, 0);
 
-    TLorentzVector l1_4; l1_4.SetPtEtaPhiM(40, 4.5, 1.1, 0);
-    TLorentzVector ref_4; ref_4.SetPtEtaPhiM(38, 5.1, 1.2, 0); // fail max ref jet Eta
+    TLorentzVector l1_4; l1_4.SetPtEtaPhiM(40, 4.99, 1.1, 0);
+    TLorentzVector ref_4; ref_4.SetPtEtaPhiM(38, 5.6, 1.1, 0); // fail max ref jet Eta
 
     refJets = {ref_1, ref_2, ref_3, ref_4};
     L1Jets = {l1_1, l1_2, l1_3, l1_4};
 
     // test via constructor
-    matcher = new DeltaR_Matcher(0.7, 3, 4, 5);
+    matcher = new DeltaR_Matcher(0.7, 3, 4, 5.5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
     pairs = matcher->getMatchingPairs();

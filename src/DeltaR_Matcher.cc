@@ -19,6 +19,8 @@
 
 // User include
 
+using std::cout;
+using std::endl;
 
 /////////////////////////////////
 // constructors and destructor //
@@ -55,7 +57,9 @@ void DeltaR_Matcher::setRefJets(std::vector<TLorentzVector> refJets)
     refJets_.clear();
     for (const auto &jetIt: refJets)
     {
-        if (checkRefJet(jetIt)) refJets_.push_back(jetIt);
+        if (checkRefJet(jetIt)) {
+            refJets_.push_back(jetIt);
+        }
     }
     std::sort(refJets_.begin(), refJets_.end(), DeltaR_Matcher::sortPtDescending);
 }
@@ -63,7 +67,7 @@ void DeltaR_Matcher::setRefJets(std::vector<TLorentzVector> refJets)
 
 bool DeltaR_Matcher::checkRefJet(const TLorentzVector& jet)
 {
-    return (jet.Pt() > minRefJetPt_) && (abs(jet.Eta()) < maxJetEta_);
+    return (jet.Pt() > minRefJetPt_) && (fabs(jet.Eta()) < maxJetEta_);
 }
 
 
@@ -80,7 +84,7 @@ void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
 
 bool DeltaR_Matcher::checkL1Jet(const TLorentzVector& jet)
 {
-    return (jet.Pt() > minL1JetPt_) && (abs(jet.Eta()) < maxJetEta_);
+    return (jet.Pt() > minL1JetPt_) && (fabs(jet.Eta()) < maxJetEta_);
 }
 
 

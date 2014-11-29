@@ -125,10 +125,10 @@ public:
      * @brief Dummy function to print out basic details.
      */
     void printName() const override {
-        std::cout << "\nI am a deltaR Matcher, with max DeltaR " << maxDeltaR_
+        std::cout << "\ndeltaR Matcher >> max DeltaR: " << maxDeltaR_
                 << ", matching reference jets with pT > " << minRefJetPt_
-                << " and L1 jet with pT > " << minL1JetPt_
-                << " and jet |eta| < " << maxJetEta_ << std::endl;
+                << ", L1 jet with pT > " << minL1JetPt_
+                << ", jet |eta| < " << maxJetEta_ << std::endl;
     };
 
 private:
