@@ -62,13 +62,13 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
             po::value<std::string>(&refDir_)->default_value("l1ExtraTreeProducerGenAk5"),
             "reference jet TDirectory in input file")
         ("refBranches",
-            po::value<std::vector<std::string>>(&refJetBranchNames_)->default_value(std::vector<std::string>(), "cenJet"),
+            po::value<std::vector<std::string>>(&refJetBranchNames_)->multitoken()->default_value(std::vector<std::string>(1,"cenJet"), "cenJet"),
             "reference jet branches in TTree (e.g. cenJet)")
         ("l1Dir",
             po::value<std::string>(&l1Dir_)->default_value("l1ExtraTreeProducerGctIntern"),
             "L1 jet TDirectory in input file")
         ("l1Branches",
-            po::value<std::vector<std::string>>(&l1JetBranchNames_)->default_value(std::vector<std::string>(), "cenJet"),
+            po::value<std::vector<std::string>>(&l1JetBranchNames_)->multitoken()->default_value(std::vector<std::string>(1,"cenJet"), "cenJet"),
             "l1 jet branches in TTree (e.g. cenJet)")
         ("output,O",
             po::value<std::string>(&output_)->default_value("pairs.root"),
