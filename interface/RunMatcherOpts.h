@@ -12,6 +12,7 @@
  Usage:
      int main(int argc, char* argv[]) {
             RunMatcherOpts opts(arc, argv);
+            std::string fName = opts.intputFilename();
      }
 
 */
@@ -21,6 +22,8 @@
 //
 
 // system include files
+#include <string>
+#include <vector>
 
 // user include files
 
@@ -45,6 +48,8 @@ class RunMatcherOpts
         std::string outputFilename() { return output_; };
         int drawNumber() { return drawN_; };
         int nEvents() { return nEvents_; };
+        std::vector<std::string> refJetBranchNames() { return refJetBranchNames_; };
+        std::vector<std::string> l1JetBranchNames() { return l1JetBranchNames_; };
 
     private:
         RunMatcherOpts(const RunMatcherOpts&); // stop default
@@ -54,6 +59,7 @@ class RunMatcherOpts
         // ---------- member data --------------------------------
         std::string input_, refDir_, l1Dir_, output_;
         int nEvents_, drawN_;
+        std::vector<std::string> refJetBranchNames_, l1JetBranchNames_;
 };
 
 

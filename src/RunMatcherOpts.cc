@@ -9,6 +9,7 @@
 // Original Author:  Robin Cameron Aggleton
 //         Created:  Fri, 28 Nov 2014 14:26:39 GMT
 //
+#include "RunMatcherOpts.h"
 
 // system include files
 #include <iostream>
@@ -21,7 +22,6 @@
 #include <boost/filesystem.hpp>
 
 // user include files
-#include "RunMatcherOpts.h"
 
 using std::cout;
 using std::endl;
@@ -51,19 +51,25 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
 
     po::options_description desc("Allowed options");
     desc.add_options()
-        ("help", "produce help message & exit")
+        ("help,h", "produce help message & exit")
         ("nEvents,N",
             po::value<int>(&nEvents_)->default_value(-1),
             "number of events to run over. -1 for all.")
         ("input,I",
             po::value<std::string>(&input_)->default_value("python/L1Tree.root"),
             "input filename")
-        ("ref,r",
+        ("refDir",
             po::value<std::string>(&refDir_)->default_value("l1ExtraTreeProducerGenAk5"),
             "reference jet TDirectory in input file")
-        ("l1,l",
+        ("refBranches",
+            po::value<std::vector<std::string>>(&refJetBranchNames_)->default_value(std::vector<std::string>(), "cenJet"),
+            "reference jet branches in TTree (e.g. cenJet)")
+        ("l1Dir",
             po::value<std::string>(&l1Dir_)->default_value("l1ExtraTreeProducerGctIntern"),
             "L1 jet TDirectory in input file")
+        ("l1Branches",
+            po::value<std::vector<std::string>>(&l1JetBranchNames_)->default_value(std::vector<std::string>(), "cenJet"),
+            "l1 jet branches in TTree (e.g. cenJet)")
         ("output,O",
             po::value<std::string>(&output_)->default_value("pairs.root"),
             "output filename")
@@ -100,12 +106,14 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
         if (fs::exists(drawDir)) {
             if (!fs::is_directory(drawDir)) {
                 drawN_ = -1;
-                cout << "/match_plots exists but is not a directory, not plotting or saving files." << endl;
+                cout << "/match_plots exists but is not a directory," \
+                " not plotting or saving files." << endl;
             }
         } else {
             if (!fs::create_directory(drawDir)){
                 drawN_ = -1;
-                cout << "Couldn't create plot directory, not plotting or saving files." << endl;
+                cout << "Couldn't create plot directory," \
+                " not plotting or saving files." << endl;
             }
         }
     }

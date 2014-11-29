@@ -20,14 +20,14 @@
 // BOOST headers
 // #include <boost/algorithm/string.hpp>
 
+// Headers from other packages
+#include "../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
+
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
 #include "L1ExtraTree.h"
 #include "RunMatcherOpts.h"
-
-// Headers from other packages
-#include "../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
 
 using std::cout;
 using std::endl;
@@ -41,8 +41,8 @@ TString getSuffixFromDirectory(TString dir);
  * @brief This program implements an instance of Matcher to produce a ROOT file
  * with matching jet pairs from a L1NTuple file produced by XXX.
  * @details READ BEFORE RUNNING: To get this to work, you first need to build
- * the dictionaries ROOT needs to store vectors/pairs in TTree. See interface/LinkDef.h
- * for instructions.
+ * the dictionaries ROOT needs to store vectors/pairs in TTree. See READEM or
+ * interface/LinkDef.h for instructions.
  * @author Robin Aggleton, Nov 2014
  */
 int main(int argc, char* argv[]) {
@@ -52,16 +52,29 @@ int main(int argc, char* argv[]) {
     // deal with user args
     RunMatcherOpts opts(argc, argv);
 
-    // get input L1Extra TDirectories/TTrees
-    // assumes TTree named "L1ExtraTree", but can specify in ctor
-    TString refJetDirectory = opts.refJetDirectory();
-    TString refJetSuffix  = getSuffixFromDirectory(refJetDirectory);
-    TString l1JetDirectory  = opts.l1JetDirectory();
-    TString l1JetSuffix  = getSuffixFromDirectory(l1JetDirectory);
+    ///////////////////////
+    // SETUP INPUT FILES //
+    ///////////////////////
 
+    // get input L1Extra TDirectories/TTrees
+    // assumes TTree named "L1ExtraTree", but can specify in ctor of L1ExtraTree
+    TString refJetDirectory = opts.refJetDirectory();
+    TString refJetSuffix    = getSuffixFromDirectory(refJetDirectory);
+    std::vector<std::string> refJetBranches = opts.refJetBranchNames();
+
+    TString l1JetDirectory  = opts.l1JetDirectory();
+    TString l1JetSuffix     = getSuffixFromDirectory(l1JetDirectory);
+    std::vector<std::string> l1JetBranches = opts.l1JetBranchNames();
+
+    // also specify which branches jets are stored in
+    // for genJets & gctIntern, it's just cenJet branch,
+    // for gctDigis, it's cen/fwd/tau
     L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
     L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
 
+    ////////////////////////
+    // SETUP OUTPUT FILES //
+    ////////////////////////
     // setup output file to store results
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
 
@@ -95,7 +108,9 @@ int main(int argc, char* argv[]) {
         cout << "Running over " << nEntries << " events." << endl;
     }
 
-    // setup your jet matcher
+    ///////////////////////
+    // SETUP JET MATCHER //
+    ///////////////////////
     double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(0.), maxJetEta(5.5);
     Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
 
@@ -104,7 +119,11 @@ int main(int argc, char* argv[]) {
     TCanvas c1;
     TLegend leg(0.1,0.91, 0.9, 0.98);
     leg.SetNColumns(3);
-    // loop over all events in trees, produce matching pairs and store
+
+    //////////////////////
+    // LOOP OVER EVENTS //
+    //////////////////////
+    // produce matching pairs and store
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry); // jentry is the entry # in the current Tree
@@ -113,17 +132,8 @@ int main(int argc, char* argv[]) {
         l1JetExtraTree.fChain->GetEntry(iEntry);
 
         // Get vectors of ref & L1 jets from trees
-        // Use cenJet branch, because that's the one we use to store genJet/l1jets
-        std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors("cenJet");
-
-        std::vector<TLorentzVector> l1JetsCen  = l1JetExtraTree.makeTLorentzVectors("cenJet");
-        std::vector<TLorentzVector> l1JetsFwd  = l1JetExtraTree.makeTLorentzVectors("fwdJet");
-        std::vector<TLorentzVector> l1JetsTau  = l1JetExtraTree.makeTLorentzVectors("tauJet");
-
-        std::vector<TLorentzVector> l1Jets;
-        l1Jets.insert(l1Jets.end(), l1JetsCen.begin(), l1JetsCen.end());
-        l1Jets.insert(l1Jets.end(), l1JetsFwd.begin(), l1JetsFwd.end());
-        l1Jets.insert(l1Jets.end(), l1JetsTau.begin(), l1JetsTau.end());
+        std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
+        std::vector<TLorentzVector> l1Jets  = l1JetExtraTree.makeTLorentzVectors(l1JetBranches);
 
         // Pass jets to matcher, do matching, store output in tree
         matchResults.clear();
