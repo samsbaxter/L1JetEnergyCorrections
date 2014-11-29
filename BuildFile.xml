@@ -8,6 +8,7 @@
 <use name="CondFormats/L1TObjects"/>
 <use name="CondFormats/DataRecord"/>
 <use name="root"/>
+<use name="rootgraphics"/>
 <use name="boost"/>
 <use name="boost_program_options"/>
 <use name="boost_filesystem"/>

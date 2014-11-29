@@ -59,6 +59,16 @@ public:
     virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> getMatchingPairs() = 0;
 
     /**
+     * @brief Access ref jet collection
+     */
+    virtual std::vector<TLorentzVector> getRefJets() { return refJets_; };
+
+    /**
+     * @brief Access L1 jet collection
+     */
+    virtual std::vector<TLorentzVector> getL1Jets() { return l1Jets_; };
+
+    /**
      * @brief Dummy function to print out basic details.
      */
     virtual void printName() const { std::cout << "I am a abstract Matcher." << std::endl; };
@@ -72,57 +82,6 @@ public:
             for (auto &it: matchedJets_) { std::cout << "\nrefjet: "; it.first.Print(); std::cout << "l1jet: "; it.second.Print();}
         } else { std::cout << "<NONE>" << std::endl; };
     };
-
-    /**
-     * @brief Plots ref jets, L1 jets, and matched jet pairs on a TMultiGraph
-     * @details [long description]
-     * @return  TMultiGraph containing separate TGraphs for refJets (blue),
-     * l1Jets (green), matchedPairs (red)
-     */
-    virtual TMultiGraph* plotJets()
-    {
-        // load (eta,phi) points into separate graphs for refJets, l1jets, matched jets
-        std::vector<double> refEta, refPhi, l1Eta, l1Phi, matchEta, matchPhi;
-        for (const auto &ref_it: refJets_) {
-            refEta.push_back(ref_it.Eta());
-            refPhi.push_back(ref_it.Phi());
-        }
-        for (const auto &l1_it: l1Jets_) {
-            l1Eta.push_back(l1_it.Eta());
-            l1Phi.push_back(l1_it.Phi());
-        }
-        for (const auto &match_it: matchedJets_) {
-            matchEta.push_back(match_it.first.Eta());
-            matchPhi.push_back(match_it.first.Phi());
-            matchEta.push_back(match_it.second.Eta());
-            matchPhi.push_back(match_it.second.Phi());
-        }
-
-        TGraph * refJetGraph = new TGraph(refEta.size(), &refEta[0], &refPhi[0]);
-        TGraph * l1JetGraph = new TGraph(l1Eta.size(), &l1Eta[0], &l1Phi[0]);
-        TGraph * matchJetGraph = new TGraph(matchEta.size(), &matchEta[0], &matchPhi[0]);
-
-        // styling
-        refJetGraph->SetMarkerStyle(20);
-        refJetGraph->SetMarkerColor(kBlue);
-        refJetGraph->SetMarkerSize(1.2);
-        refJetGraph->SetName("refJetGraph");
-        l1JetGraph->SetMarkerStyle(21);
-        l1JetGraph->SetMarkerColor(kGreen+1);
-        l1JetGraph->SetMarkerSize(1.2);
-        l1JetGraph->SetName("l1JetGraph");
-        matchJetGraph->SetMarkerStyle(22);
-        matchJetGraph->SetMarkerColor(kRed);
-        matchJetGraph->SetName("matchJetGraph");
-
-        // add graphs to TMultiGraph and return it
-        TMultiGraph* plots = new TMultiGraph("plotJets",";#eta;#phi");
-        plots->Add(refJetGraph, "p");
-        plots->Add(l1JetGraph, "p");
-        plots->Add(matchJetGraph, "p");
-
-        return plots;
-    }
 
 protected:
     std::vector<TLorentzVector> refJets_; //!< to store reference jet collection

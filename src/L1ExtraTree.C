@@ -265,17 +265,13 @@ std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(TString branchName)
 }
 
 
-
 std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(std::vector<std::string> branchNames) const {
     // Make vector of TLorentzVectors from branches with stems in branchNames
     std::vector<TLorentzVector> vecs;
     for (const auto& name: branchNames) {
         std::vector<TLorentzVector> branch;
-        // try {
-            branch = makeTLorentzVectors(name);
-            vecs.insert(vecs.end(), branch.begin(), branch.end());
-        // } catch (const invalid_argument& e) {
-        // }
+        branch = makeTLorentzVectors(name);
+        vecs.insert(vecs.end(), branch.begin(), branch.end());
 
     }
     return vecs;

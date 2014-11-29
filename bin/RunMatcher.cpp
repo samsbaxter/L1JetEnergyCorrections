@@ -28,6 +28,7 @@
 #include "commonRootUtils.h"
 #include "L1ExtraTree.h"
 #include "RunMatcherOpts.h"
+#include "JetDrawer.h"
 
 using std::cout;
 using std::endl;
@@ -61,7 +62,6 @@ int main(int argc, char* argv[]) {
     TString refJetDirectory = opts.refJetDirectory();
     TString refJetSuffix    = getSuffixFromDirectory(refJetDirectory);
     std::vector<std::string> refJetBranches = opts.refJetBranchNames();
-
     TString l1JetDirectory  = opts.l1JetDirectory();
     TString l1JetSuffix     = getSuffixFromDirectory(l1JetDirectory);
     std::vector<std::string> l1JetBranches = opts.l1JetBranchNames();
@@ -114,12 +114,6 @@ int main(int argc, char* argv[]) {
     double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(0.), maxJetEta(5.5);
     Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
 
-    // for plotting jet position graphs
-    TMultiGraph *jetPlots = nullptr;
-    TCanvas c1;
-    TLegend leg(0.1,0.91, 0.9, 0.98);
-    leg.SetNColumns(3);
-
     //////////////////////
     // LOOP OVER EVENTS //
     //////////////////////
@@ -156,19 +150,9 @@ int main(int argc, char* argv[]) {
 
         // debugging plot - plots eta vs phi of jets
         if (iEntry < opts.drawNumber()) {
-            jetPlots = matcher->plotJets();
-            jetPlots->Draw("ap");
-            if (iEntry == 0){
-                // TGraph names assigned in Matcher.h
-                leg.AddEntry(jetPlots->GetListOfGraphs()->FindObject("refJetGraph"), "Reference jets", "p");
-                leg.AddEntry(jetPlots->GetListOfGraphs()->FindObject("l1JetGraph"), "L1 jets", "p");
-                leg.AddEntry(jetPlots->GetListOfGraphs()->FindObject("matchJetGraph"), "Matched jets", "p");
-            }
-            leg.SetFillColor(kWhite);
-            leg.SetLineColor(kWhite);
-            leg.Draw();
+            JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults);
             TString pdfname = "match_plots/jets_"+to_string(iEntry)+".pdf";
-            c1.SaveAs(pdfname);
+            drawer.drawAndSave(pdfname);
         }
 
         outTree->Fill();
@@ -177,7 +161,6 @@ int main(int argc, char* argv[]) {
     // save tree to new file and cleanup
     outTree->Write("", TObject::kOverwrite);
     outTree2->Write("", TObject::kOverwrite);
-    if (jetPlots) jetPlots->Write("", TObject::kOverwrite);
 
     // cleanup
     outFile->Close();
@@ -186,7 +169,8 @@ int main(int argc, char* argv[]) {
 
 /**
  * @brief Get suffix from TDirectory name
- * @details Assumes it starts with "l1ExtraTreeProducer".
+ * @details Assumes it starts with "l1ExtraTreeProducer", so
+ * e.g. "l1ExtraTreeProducerGctIntern" produces "gctIntern"
  *
  * @param dir Directory name
  * @return Suitable suffix

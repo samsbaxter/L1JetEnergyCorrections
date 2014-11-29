@@ -20,12 +20,11 @@
 // Original Author:  Robin Cameron Aggleton
 //         Created:  Wed, 12 Nov 2014 21:21:21 GMT
 //
+#include "Matcher.h"
 
 #include <iostream>
 #include <algorithm>
 #include <vector>
-
-#include "Matcher.h"
 
 #include "TLorentzVector.h"
 
@@ -36,8 +35,8 @@
  * sucessfully match if deltaR < maxDeltaR, where maxDeltaR must be
  * passed to the object constructor.
  *
- * There is also a pT cut on reference and L1 jets. In addition,
- * there is a maximum abs(eta) cuts on jets as well. Defaults for these are found
+ * There is also an optional minimum pT cut on reference and L1 jets, and
+ * an optional maximum abs(eta) cuts on jets as well. Defaults for these are found
  * in the constructor. If you want a different cut value, use the relevant constructor or setter.
  */
 class DeltaR_Matcher : public Matcher
@@ -46,7 +45,8 @@ class DeltaR_Matcher : public Matcher
 public:
 
     /**
-     * @brief Constructor specifying maximum DeltaR for matching. Set defaults for minRefJetPt, minL1JetPt, maxJetEta such that they have no effect.
+     * @brief Constructor specifying maximum DeltaR for matching.
+     * Set defaults for minRefJetPt, minL1JetPt, maxJetEta such that they have no effect.
      *
      * @param maxDeltaR Maximum deltaR for matching between ref and L1 jet.
      */
@@ -64,7 +64,7 @@ public:
 
     virtual ~DeltaR_Matcher();
 
-    // @TODO: make these const refs or something. but no copying!
+    // @TODO: make these const refs or something. but no copying?
 
     /**
      * @brief Set reference jet collection (e.g. GenJets) & sorts by descending pT
@@ -124,10 +124,12 @@ public:
     /**
      * @brief Dummy function to print out basic details.
      */
-    void printName() const override { std::cout << "\nI am a deltaR Matcher, with max DeltaR " << maxDeltaR_
-                        << ", matching reference jets with pT > " << minRefJetPt_
-                        << " and L1 jet with pT > " << minL1JetPt_
-                        << " and jet |eta| < " << maxJetEta_ << std::endl; };
+    void printName() const override {
+        std::cout << "\nI am a deltaR Matcher, with max DeltaR " << maxDeltaR_
+                << ", matching reference jets with pT > " << minRefJetPt_
+                << " and L1 jet with pT > " << minL1JetPt_
+                << " and jet |eta| < " << maxJetEta_ << std::endl;
+    };
 
 private:
 
