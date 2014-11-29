@@ -99,24 +99,6 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
         std::exit(1);
     }
 
-    // if drawing plots, need to create output folder, or check it exists
-    // TODO: move this to RunMatcher? add option for dir name? auto generate from suffix?
-    if (drawN_ > 0) {
-        fs::path drawDir("match_plots");
-        if (fs::exists(drawDir)) {
-            if (!fs::is_directory(drawDir)) {
-                drawN_ = -1;
-                cout << "/match_plots exists but is not a directory," \
-                " not plotting or saving files." << endl;
-            }
-        } else {
-            if (!fs::create_directory(drawDir)){
-                drawN_ = -1;
-                cout << "Couldn't create plot directory," \
-                " not plotting or saving files." << endl;
-            }
-        }
-    }
 }
 
 // RunMatcherOpts::RunMatcherOpts(const RunMatcherOpts& rhs)

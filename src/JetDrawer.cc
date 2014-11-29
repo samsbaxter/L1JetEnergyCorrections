@@ -17,6 +17,10 @@
 
 #include "TCanvas.h"
 
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 //
 // constants, enums and typedefs
 //
@@ -73,7 +77,9 @@ void JetDrawer::drawAndSave(TString filename) {
     TCanvas c;
     graph_->Draw("ap");
     legend_->Draw();
-    c.SaveAs(filename);
+    if (checkPath(filename.Data())) {
+        c.SaveAs(filename);
+    }
 }
 
 
@@ -157,6 +163,27 @@ TLegend * JetDrawer::makeLegend() {
     return leg;
 }
 
+
+bool JetDrawer::checkPath(std::string filepath) {
+    // Do check to ensure we're not overwriting a file,
+    // or that we can actually create the dir for the output
+    fs::path path(filepath);
+    fs::path dir = path.parent_path();
+    if (fs::exists(dir)) {
+        if (!fs::is_directory(dir)) {
+            std::cout << dir << " exists but is not a directory," \
+            " not plotting or saving files." << std::endl;
+            return false;
+        }
+    } else {
+        if (!fs::create_directory(dir)){
+            std::cout << "Couldn't create plot directory," \
+            " not plotting or saving files." << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
 //
 // const member functions
 //

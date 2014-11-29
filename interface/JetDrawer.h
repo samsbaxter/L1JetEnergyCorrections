@@ -30,8 +30,10 @@
 #include "TLegend.h"
 #include "TFile.h"
 
-// forward declarations
-
+/**
+ * @brief Class to draw reference jets, L1 jets, & matching pairs on a plot.
+ * Useful for debugging/checking matching works correctly.
+ */
 class JetDrawer
 {
 
@@ -57,7 +59,7 @@ class JetDrawer
         /**
          * @brief Draw graph and legend on canvas and save to file
          *
-         * @param filename File path & name to save canvas as.
+         * @param filename Filepath & name to save canvas as.
          */
         virtual void drawAndSave(TString filename);
 
@@ -93,25 +95,16 @@ class JetDrawer
 
         /**
          * @brief Apply style to ref jet graph
-         * @details [long description]
-         *
-         * @param graph [description]
          */
         void styleRefJetGraph(TGraph * graph);
 
         /**
          * @brief Apply style to l1 jet graph
-         * @details [long description]
-         *
-         * @param graph [description]
          */
         void styleL1JetGraph(TGraph * graph);
 
         /**
          * @brief Apply style to matched jet graph
-         * @details [long description]
-         *
-         * @param graph [description]
          */
         void styleMatchedJetGraph(TGraph * graph);
 
@@ -122,6 +115,16 @@ class JetDrawer
          */
         TLegend * makeLegend();
 
+        /**
+         * @brief Check we can write to path. Will overwrite file if
+         * already exists
+         * @details Checks that parent directory isn't a file, and can be
+         * created (if it doens't already exist)
+         *
+         * @param path Path of file
+         * @return True if OK, false otherwise
+         */
+        bool checkPath(std::string filepath);
 
         // ---------- member data --------------------------------
         const std::vector<TLorentzVector> refJets_;
