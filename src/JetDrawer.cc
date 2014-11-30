@@ -193,6 +193,7 @@ bool JetDrawer::checkPath(const std::string& filepath) {
             return false;
         }
     } else {
+        std::cout << "Creating directory in " << dir << std::endl;
         if (!fs::create_directory(dir)){
             std::cout << "Couldn't create plot directory," \
             " not plotting or saving files." << std::endl;

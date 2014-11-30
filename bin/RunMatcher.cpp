@@ -18,6 +18,7 @@
 #include "TString.h"
 
 // BOOST headers
+#include <boost/filesystem.hpp>
 // #include <boost/algorithm/string.hpp>
 
 // Headers from this package
@@ -29,7 +30,9 @@
 
 using std::cout;
 using std::endl;
+namespace fs = boost::filesystem;
 // using namespace boost;
+
 
 // forward declare fns, implementations after main()
 TString getSuffixFromDirectory(const TString& dir);
@@ -70,16 +73,20 @@ int main(int argc, char* argv[]) {
     L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
     L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
 
+    // input filename stem (no .root)
+    fs::path inPath(opts.inputFilename());
+    TString inStem(inPath.stem().c_str());
+
     ////////////////////////
     // SETUP OUTPUT FILES //
     ////////////////////////
     // setup output file to store results
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
 
-    // setup output tree to store matched pairs - keeps all info so you can study anything
+    // setup output tree to store matched pairs (keep all info)
     TString outTreeName = TString::Format("MatchedPairs_%s_%s",
         refJetSuffix.Data(), l1JetSuffix.Data());
-    TTree * outTree = new TTree(outTreeName, outTreeName); // holds match resutls for an event
+    TTree * outTree = new TTree(outTreeName, outTreeName);
     std::vector<std::pair<TLorentzVector, TLorentzVector>> matchResults; // holds results from one event
     outTree->Branch("MatchedPairs", &matchResults);
 
@@ -158,13 +165,11 @@ int main(int argc, char* argv[]) {
                 "L1 jet %.1f < p_{T} < %.1f GeV, jet |#eta| < %.1f",
                 minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta);
 
+            // get jets post pT, eta cuts
             JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
 
-            // TString filenameStem = opts.inputFilename();
-            // TRegexp ro("\.root");
-            // filenameStem(ro) = "";
-            TString pdfname = TString::Format("plots_%s_%s/jets_%lld.pdf",
-                refJetSuffix.Data(), l1JetSuffix.Data(), iEntry);
+            TString pdfname = TString::Format("plots_%s_%s_%s/jets_%lld.pdf",
+                inStem.Data(), refJetSuffix.Data(), l1JetSuffix.Data(), iEntry);
             drawer.drawAndSave(pdfname);
         }
 

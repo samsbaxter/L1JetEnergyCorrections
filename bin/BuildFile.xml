@@ -4,9 +4,8 @@
 <use name="rootgraphics"/>
 <use name="boost"/>
 <use name="boost_program_options"/>
+<use name="boost_filesystem"/>
 <include_path path="../interface"/>
-<include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/>
-<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
-<bin name="matcherTest" file="matcherTest.cpp"/>
-<bin name="loopTest" file="loopTest.cpp"/>
 <bin name="RunMatcher" file="RunMatcher.cpp"/>
+<!-- <include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/>
+<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/> -->

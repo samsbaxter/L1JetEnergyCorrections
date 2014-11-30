@@ -19,7 +19,6 @@
 
 // BOOST include
 #include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
 
 // user include files
 
@@ -47,7 +46,6 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     drawN_(0)
 {
     namespace po = boost::program_options;
-    namespace fs = boost::filesystem;
 
     po::options_description desc("Allowed options");
     desc.add_options()
