@@ -26,21 +26,27 @@ using std::endl;
 // constructors and destructor //
 /////////////////////////////////
 DeltaR_Matcher::DeltaR_Matcher(const double maxDeltaR) :
-maxDeltaR_(maxDeltaR),
-minRefJetPt_(0.0),
-minL1JetPt_(0.0),
-maxJetEta_(99)
+    maxDeltaR_(maxDeltaR),
+    minRefJetPt_(0.0),
+    maxRefJetPt_(9999.0),
+    minL1JetPt_(0.0),
+    maxL1JetPt_(9999.0),
+    maxJetEta_(99)
 {};
 
 
 DeltaR_Matcher::DeltaR_Matcher(const double maxDeltaR,
                                const double minRefJetPt,
+                               const double maxRefJetPt,
                                const double minL1JetPt,
+                               const double maxL1JetPt,
                                const double maxJetEta) :
-maxDeltaR_(maxDeltaR),
-minRefJetPt_(minRefJetPt),
-minL1JetPt_(minL1JetPt),
-maxJetEta_(maxJetEta)
+    maxDeltaR_(maxDeltaR),
+    minRefJetPt_(minRefJetPt),
+    maxRefJetPt_(maxRefJetPt),
+    minL1JetPt_(minL1JetPt),
+    maxL1JetPt_(maxL1JetPt),
+    maxJetEta_(maxJetEta)
 {};
 
 
@@ -67,7 +73,9 @@ void DeltaR_Matcher::setRefJets(std::vector<TLorentzVector> refJets)
 
 bool DeltaR_Matcher::checkRefJet(const TLorentzVector& jet)
 {
-    return (jet.Pt() > minRefJetPt_) && (fabs(jet.Eta()) < maxJetEta_);
+    return (checkJetMinPt(jet, minRefJetPt_)
+        && checkJetMaxPt(jet, maxRefJetPt_)
+        && checkJetMaxEta(jet, maxJetEta_));
 }
 
 
@@ -76,7 +84,9 @@ void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
     l1Jets_.clear();
     for (const auto &jetIt: l1Jets)
     {
-        if (checkL1Jet(jetIt)) l1Jets_.push_back(jetIt);
+        if (checkL1Jet(jetIt)) {
+            l1Jets_.push_back(jetIt);
+        }
     }
     std::sort(l1Jets_.begin(), l1Jets_.end(), DeltaR_Matcher::sortPtDescending);
 }
@@ -84,7 +94,9 @@ void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
 
 bool DeltaR_Matcher::checkL1Jet(const TLorentzVector& jet)
 {
-    return (jet.Pt() > minL1JetPt_) && (fabs(jet.Eta()) < maxJetEta_);
+    return (checkJetMinPt(jet, minL1JetPt_)
+        && checkJetMaxPt(jet, maxL1JetPt_)
+        && checkJetMaxEta(jet, maxJetEta_));
 }
 
 
@@ -105,7 +117,6 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
     std::vector<std::pair<TLorentzVector, TLorentzVector>> matchedJets; // to hold matching pairs
     for (const auto &l1_it: l1Jets_)
     {
-
         // store all matching ref jets & their deltaR for this l1 jet
         std::vector<std::pair<TLorentzVector*,double>> possibleMatches;
 
@@ -140,9 +151,17 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
 }
 
 
+
+
 bool DeltaR_Matcher::checkJetMinPt(const TLorentzVector& jet, const double minPt) const
 {
     return (jet.Pt() >= minPt);
+}
+
+
+bool DeltaR_Matcher::checkJetMaxPt(const TLorentzVector& jet, const double maxPt) const
+{
+    return (jet.Pt() <= maxPt);
 }
 
 

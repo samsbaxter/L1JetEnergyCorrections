@@ -50,21 +50,26 @@ public:
      *
      * @param maxDeltaR Maximum deltaR for matching between ref and L1 jet.
      */
-    DeltaR_Matcher(const double maxDeltaR);
+    explicit DeltaR_Matcher(const double maxDeltaR);
 
     /**
      * @brief Constructor, specifying maximum DeltaR for matching, minRefJetPt, minL1JetPt, maxJetEta.
      *
      * @param maxDeltaR Maximum deltaR for matching between ref and L1 jet.
      * @param minRefJetPt Minimum pT a reference jet must have to participate in matching [GeV].
+     * @param maxRefJetPt Maximum pT a reference jet must have to participate in matching [GeV].
      * @param minL1JetPt Minimum pT a L1 jet must have to participate in matching [GeV].
+     * @param maxL1JetPt Maximum pT a L1 jet must have to participate in matching [GeV].
      * @param maxJetEta Maximum absolute eta of any jet to participate in matching.
      */
-    DeltaR_Matcher(const double maxDeltaR, const double minRefJetPt, const double minL1JetPt, const double maxJetEta);
+    DeltaR_Matcher(const double maxDeltaR,
+                   const double minRefJetPt,
+                   const double maxRefJetPt,
+                   const double minL1JetPt,
+                   const double maxL1JetPt,
+                   const double maxJetEta);
 
     virtual ~DeltaR_Matcher();
-
-    // @TODO: make these const refs or something. but no copying?
 
     /**
      * @brief Set reference jet collection (e.g. GenJets) & sorts by descending pT
@@ -81,8 +86,6 @@ public:
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
     virtual void setL1Jets(std::vector<TLorentzVector> l1Jets) override;
-
-    // TODO: make these protected/private as not conforming to interface?
 
     /**
      * @brief Set minimum jet pT cut to be applied to reference jets.
@@ -126,8 +129,10 @@ public:
      */
     void printName() const override {
         std::cout << "\ndeltaR Matcher >> max DeltaR: " << maxDeltaR_
-                << ", matching reference jets with pT > " << minRefJetPt_
-                << ", L1 jet with pT > " << minL1JetPt_
+                << ", matching reference jets with " << minRefJetPt_
+                << " < pT < " << maxRefJetPt_
+                << ", L1 jet with " << minL1JetPt_
+                << " < pT < " << maxL1JetPt_
                 << ", jet |eta| < " << maxJetEta_ << std::endl;
     };
 
@@ -150,7 +155,7 @@ private:
     bool checkL1Jet(const TLorentzVector& jet);
 
     /**
-     * @brief Check if jet pT > minPt.
+     * @brief Check if jet pT >= minPt.
      *
      * @param jet Jet under test.
      * @param minPt Minimum pT cut value.
@@ -160,7 +165,17 @@ private:
     bool checkJetMinPt(const TLorentzVector& jet, const double minPt) const;
 
     /**
-     * @brief Check if abs(eta) of jet < maxEta.
+     * @brief Check if jet pT <= maxPt
+     *
+     * @param jet Jet under test
+     * @param maxPt Maximum pT cut value
+     *
+     * @return Whether jet passed test.
+     */
+    bool checkJetMaxPt(const TLorentzVector& jet, const double maxPt) const;
+
+    /**
+     * @brief Check if abs(eta) of jet <= maxEta.
      *
      * @param jet Jet under test.
      * @param eta Maximum absolute eta allowed.
@@ -183,7 +198,9 @@ private:
 
     const double maxDeltaR_; // Maximum deltaR between reference and L1 jet to count as a 'match'.
     double minRefJetPt_; // Minimum pT for reference jet to take part in matching.
+    double maxRefJetPt_; // Maximum pT for reference jet to take part in matching.
     double minL1JetPt_; // Minimum pT for L1 jet to take part in matching.
+    double maxL1JetPt_; // Maximum pT for L1 jet to take part in matching.
     double maxJetEta_;  // Maximum absolute eta for any jet to take part in matching.
 };
 

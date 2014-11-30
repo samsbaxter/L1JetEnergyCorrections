@@ -20,9 +20,6 @@
 // BOOST headers
 // #include <boost/algorithm/string.hpp>
 
-// Headers from other packages
-#include "../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
-
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
@@ -35,12 +32,12 @@ using std::endl;
 // using namespace boost;
 
 // forward declare fns, implementations after main()
-TString getSuffixFromDirectory(TString dir);
+TString getSuffixFromDirectory(const TString& dir);
 
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
- * with matching jet pairs from a L1NTuple file produced by XXX.
+ * with matching jet pairs from a L1NTuple file produced by python/l1Ntuple_cfg.py.
  * @details READ BEFORE RUNNING: To get this to work, you first need to build
  * the dictionaries ROOT needs to store vectors/pairs in TTree. See READEM or
  * interface/LinkDef.h for instructions.
@@ -59,12 +56,13 @@ int main(int argc, char* argv[]) {
 
     // get input L1Extra TDirectories/TTrees
     // assumes TTree named "L1ExtraTree", but can specify in ctor of L1ExtraTree
-    TString refJetDirectory = opts.refJetDirectory();
-    TString refJetSuffix    = getSuffixFromDirectory(refJetDirectory);
+    TString refJetDirectory                 = opts.refJetDirectory();
+    TString refJetSuffix                    = getSuffixFromDirectory(refJetDirectory);
     std::vector<std::string> refJetBranches = opts.refJetBranchNames();
-    TString l1JetDirectory  = opts.l1JetDirectory();
-    TString l1JetSuffix     = getSuffixFromDirectory(l1JetDirectory);
-    std::vector<std::string> l1JetBranches = opts.l1JetBranchNames();
+
+    TString l1JetDirectory                  = opts.l1JetDirectory();
+    TString l1JetSuffix                     = getSuffixFromDirectory(l1JetDirectory);
+    std::vector<std::string> l1JetBranches  = opts.l1JetBranchNames();
 
     // also specify which branches jets are stored in
     // for genJets & gctIntern, it's just cenJet branch,
@@ -79,15 +77,17 @@ int main(int argc, char* argv[]) {
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
 
     // setup output tree to store matched pairs - keeps all info so you can study anything
-    TString outTreeName;
-    outTreeName.Form("MatchedPairs_%s_%s", refJetSuffix.Data(), l1JetSuffix.Data());
+    TString outTreeName = TString::Format("MatchedPairs_%s_%s",
+        refJetSuffix.Data(), l1JetSuffix.Data());
     TTree * outTree = new TTree(outTreeName, outTreeName); // holds match resutls for an event
     std::vector<std::pair<TLorentzVector, TLorentzVector>> matchResults; // holds results from one event
     outTree->Branch("MatchedPairs", &matchResults);
 
     // setup output tree to store raw variable for quick plotting/debugging
     TTree * outTree2 = new TTree("valid", "valid");
-    float out_pt, out_eta, out_phi, out_rsp, out_dr, out_deta, out_dphi; //pt/eta/phi are for l1 jets
+    // pt/eta/phi are for l1 jets
+    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.);
+    float out_dr(99.), out_deta(99.), out_dphi(99.);
     outTree2->Branch("pt"   ,&out_pt ,"pt/Float_t");
     outTree2->Branch("eta"  ,&out_eta,"eta/Float_t");
     outTree2->Branch("phi"  ,&out_phi,"phi/Float_t");
@@ -111,8 +111,10 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // SETUP JET MATCHER //
     ///////////////////////
-    double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(14.), maxJetEta(5.5);
-    Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
+    double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(250.);
+    double minL1JetPt(0.), maxL1JetPt(250.), maxJetEta(5.5);
+    Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt,
+                                            minL1JetPt, maxL1JetPt, maxJetEta);
     matcher->printName();
 
     //////////////////////
@@ -151,11 +153,18 @@ int main(int argc, char* argv[]) {
 
         // debugging plot - plots eta vs phi of jets
         if (iEntry < opts.drawNumber()) {
-            TString label;
-            label.Form("Gen jet p_{T} > %.1f GeV, L1 jet p_{T} > %.1f GeV, " \
-                "jet |#eta| < %.1f", minRefJetPt, minL1JetPt, maxJetEta);
+            TString label = TString::Format(
+                "Gen jet %.1f < p_{T} < %.1f GeV, " \
+                "L1 jet %.1f < p_{T} < %.1f GeV, jet |#eta| < %.1f",
+                minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta);
+
             JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
-            TString pdfname = "match_plots/jets_"+to_string(iEntry)+".pdf";
+
+            // TString filenameStem = opts.inputFilename();
+            // TRegexp ro("\.root");
+            // filenameStem(ro) = "";
+            TString pdfname = TString::Format("plots_%s_%s/jets_%lld.pdf",
+                refJetSuffix.Data(), l1JetSuffix.Data(), iEntry);
             drawer.drawAndSave(pdfname);
         }
 
@@ -179,7 +188,7 @@ int main(int argc, char* argv[]) {
  * @param dir Directory name
  * @return Suitable suffix
  */
-TString getSuffixFromDirectory(TString dir) {
+TString getSuffixFromDirectory(const TString& dir) {
     TString suffix(dir);
     TRegexp re("l1ExtraTreeProducer");
     suffix(re) = "";

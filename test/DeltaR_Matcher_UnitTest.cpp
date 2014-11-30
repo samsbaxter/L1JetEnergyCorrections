@@ -31,7 +31,7 @@ class DeltaR_Matcher_UnitTest : public CppUnit::TestCase {
      */
     CPPUNIT_TEST_SUITE( DeltaR_Matcher_UnitTest );
     CPPUNIT_TEST( runSimpleMatch );
-    CPPUNIT_TEST( checkMinPtMaxEta );
+    CPPUNIT_TEST( checkMinPtMaxPtMaxEta );
     CPPUNIT_TEST( checkDeltaRMax );
     CPPUNIT_TEST( checkPtOrdering );
     CPPUNIT_TEST( checkRefJetRemoval );
@@ -45,7 +45,7 @@ public:
 
     // Tests
     void runSimpleMatch();
-    void checkMinPtMaxEta();
+    void checkMinPtMaxPtMaxEta();
     void checkDeltaRMax();
     void checkPtOrdering();
     void checkRefJetRemoval();
@@ -120,10 +120,10 @@ void DeltaR_Matcher_UnitTest::runSimpleMatch() {
 
 
 /**
- * @brief Check that min pT cut works for ref & L1 jets, and max eta works for both
+ * @brief Check that min & max pT cut works for ref & L1 jets, and max eta works for both
  * @details 4 pairs of jets that match in eta/phi, but should all fail on min pT or max Eta
  */
-void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
+void DeltaR_Matcher_UnitTest::checkMinPtMaxPtMaxEta() {
     TLorentzVector l1_1; l1_1.SetPtEtaPhiM(1.2, 1, 0.5, 0); // fail min L1 jet pT
     TLorentzVector ref_1; ref_1.SetPtEtaPhiM(38, 1.3, 0.46, 0);
 
@@ -136,11 +136,17 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxEta() {
     TLorentzVector l1_4; l1_4.SetPtEtaPhiM(40, 4.99, 1.1, 0);
     TLorentzVector ref_4; ref_4.SetPtEtaPhiM(38, 5.6, 1.1, 0); // fail max ref jet Eta
 
-    refJets = {ref_1, ref_2, ref_3, ref_4};
-    L1Jets = {l1_1, l1_2, l1_3, l1_4};
+    TLorentzVector l1_5; l1_5.SetPtEtaPhiM(400, 1, 1.1, 0); // fail max ref jet pt
+    TLorentzVector ref_5; ref_5.SetPtEtaPhiM(38, 1.01, 1.1, 0);
+
+    TLorentzVector l1_6; l1_6.SetPtEtaPhiM(40, 4, 1.1, 0);
+    TLorentzVector ref_6; ref_6.SetPtEtaPhiM(380, 4.1, 1.1, 0); // fail max ref jet pt
+
+    refJets = {ref_1, ref_2, ref_3, ref_4, ref_5, ref_6};
+    L1Jets = {l1_1, l1_2, l1_3, l1_4, l1_5, l1_6};
 
     // test via constructor
-    matcher = new DeltaR_Matcher(0.7, 3, 4, 5.5);
+    matcher = new DeltaR_Matcher(0.7, 3, 100, 4, 100, 5.5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);
     pairs = matcher->getMatchingPairs();
