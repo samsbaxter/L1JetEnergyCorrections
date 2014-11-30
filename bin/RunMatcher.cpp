@@ -111,8 +111,9 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // SETUP JET MATCHER //
     ///////////////////////
-    double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(0.), maxJetEta(5.5);
+    double maxDeltaR(0.7), minRefJetPt(14.), minL1JetPt(14.), maxJetEta(5.5);
     Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, minL1JetPt, maxJetEta);
+    matcher->printName();
 
     //////////////////////
     // LOOP OVER EVENTS //
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]) {
         matchResults = matcher->getMatchingPairs();
         // matcher->printMatches();
 
-        // store jets variables
+        // store L1 jet variables
         for (const auto &it: matchResults) {
             out_pt = it.second.Et();
             out_eta = it.second.Eta();
@@ -150,7 +151,10 @@ int main(int argc, char* argv[]) {
 
         // debugging plot - plots eta vs phi of jets
         if (iEntry < opts.drawNumber()) {
-            JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults);
+            TString label;
+            label.Form("Gen jet p_{T} > %.1f GeV, L1 jet p_{T} > %.1f GeV, " \
+                "jet |#eta| < %.1f", minRefJetPt, minL1JetPt, maxJetEta);
+            JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
             TString pdfname = "match_plots/jets_"+to_string(iEntry)+".pdf";
             drawer.drawAndSave(pdfname);
         }

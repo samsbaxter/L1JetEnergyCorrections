@@ -565,13 +565,31 @@ L1ExtraParticlesProd::produce( edm::Event& iEvent,
 			L1GctInternJetDataCollection::const_iterator gctEnd = hwGctInternJetCands->end();
 			for( ; gctItr != gctEnd ; ++gctItr) {
 				if (!gctItr->empty() && (gctItr->et() != 0)){
-					cout << "Jet: " << gctItr->bx() << " : " << gctItr->rank() << " : " << gctItr->et() << " : "  << gctItr->eta() << " : " << gctItr->sgnEta() << " : " << gctItr->phi() << endl;
 					// double et = gctItr->rank() * (*jetScale).linearLsb();
 					double et = gctItr->et() * jetScale->linearLsb();
-					double eta = caloGeom->globalEtaBinCenter(gctItr->eta());
-					double phi = caloGeom->emJetPhiBinCenter(gctItr->phi());
+					double eta = caloGeom->etaBinCenter(gctItr->regionId());
+					double phi = caloGeom->emJetPhiBinCenter(gctItr->regionId());
 					double mass = 0.;
-					std::cout << et << " (" << gctItr->et() << ") : "  << eta << " : " << phi << std::endl;
+
+					// LogDebug("L1ExtraParticlesProd")
+					// cout
+					// << "Jet raw: "
+					// << gctItr->rank() << " : "
+					// << gctItr->et() << " : "
+					// << gctItr->eta() << " : "
+					// << gctItr->regionId().ieta() << " : "
+					// << gctItr->sgnEta() << " : "
+					// << gctItr->phi() << ":"
+					// << gctItr->regionId().iphi()
+					// << endl;
+
+					// LogDebug("L1ExtraParticlesProd")
+					// cout
+					// << "jet val: "
+					// << et << ": "
+					// << eta << " : "
+					// << phi
+					// << std::endl;
 
 					gctInternJetColl->push_back(
 						L1JetParticle(math::PtEtaPhiMLorentzVector(et, eta, phi, mass),

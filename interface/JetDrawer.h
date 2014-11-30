@@ -29,6 +29,9 @@
 #include "TMultiGraph.h"
 #include "TLegend.h"
 #include "TFile.h"
+#include "TCanvas.h"
+#include "TPaveText.h"
+#include "TText.h"
 
 /**
  * @brief Class to draw reference jets, L1 jets, & matching pairs on a plot.
@@ -47,7 +50,9 @@ class JetDrawer
          */
         JetDrawer(std::vector<TLorentzVector> refJets,
                  std::vector<TLorentzVector> l1Jets,
-                 std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets);
+                 std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
+                 TString labelText="");
+
         virtual ~JetDrawer();
 
         // ---------- const member functions ---------------------
@@ -73,12 +78,17 @@ class JetDrawer
         /**
          * @brief Access multigraph with graphs for ref jets, l1 jets, & matched jets
          */
-        virtual TMultiGraph * getGraph() { return graph_; };
+        virtual TMultiGraph * getGraph() const { return graph_; };
 
         /**
          * @brief Access TLegend
          */
-        virtual TLegend * getLegend() { return legend_; };
+        virtual TLegend * getLegend() const { return legend_; };
+
+        /**
+         * @brief Access TCanvas on which plot & legend are drawn
+         */
+        virtual TCanvas * getCanvas() const { return canvas_; };
 
     private:
         JetDrawer(const JetDrawer&); // stop default
@@ -133,6 +143,9 @@ class JetDrawer
         TMultiGraph * graph_;
         TGraph * refJetGraph_, * l1JetGraph_, * matchedJetGraph_;
         TLegend * legend_;
+        TCanvas * canvas_;
+        TPaveText * label_;
+        TString labelText_;
 };
 
 

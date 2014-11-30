@@ -15,8 +15,6 @@
 // user include files
 #include "JetDrawer.h"
 
-#include "TCanvas.h"
-
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
@@ -34,7 +32,8 @@ namespace fs = boost::filesystem;
 //
 JetDrawer::JetDrawer(std::vector<TLorentzVector> refJets,
                    std::vector<TLorentzVector> l1Jets,
-                   std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets):
+                   std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
+                   TString labelText):
     refJets_(refJets),
     l1Jets_(l1Jets),
     matchedJets_(matchedJets),
@@ -42,10 +41,18 @@ JetDrawer::JetDrawer(std::vector<TLorentzVector> refJets,
     refJetGraph_(nullptr),
     l1JetGraph_(nullptr),
     matchedJetGraph_(nullptr),
-    legend_(nullptr)
+    legend_(nullptr),
+    canvas_(new TCanvas("c", "", 600, 600)),
+    label_(new TPaveText(0.15, 0.88, 0.99, 0.95, "NBNDC")),
+    labelText_(labelText)
 {
     graph_  = makeGraph();
     legend_ = makeLegend();
+    label_->SetBorderSize(0);
+    label_->SetFillStyle(0);
+    TText * tt = label_->AddText(labelText);
+    tt->SetTextAlign(kHAlignRight+kVAlignBottom);
+    tt->SetTextAngle(90);
 }
 
 // JetDrawer::JetDrawer(const JetDrawer& rhs)
@@ -74,22 +81,32 @@ JetDrawer::~JetDrawer()
 //
 
 void JetDrawer::drawAndSave(TString filename) {
-    TCanvas c;
+    // if (canvas_ != nullptr) delete canvas_;
+    canvas_ ->cd();
     graph_->Draw("ap");
     legend_->Draw();
+    label_->Draw();
+    canvas_->SetTicks();
+    canvas_->SetGrid();
     if (checkPath(filename.Data())) {
-        c.SaveAs(filename);
+        canvas_->SaveAs(filename);
     }
+    delete canvas_;
 }
 
 
 void JetDrawer::drawAndSave(TFile* file) {
-    TCanvas *c = new TCanvas();
+    // if (canvas_ != nullptr) delete canvas_;
+    canvas_->cd();
     graph_->Draw("ap");
     legend_->Draw();
+    label_->Draw();
+    canvas_->SetTicks();
+    canvas_->SetGrid();
     // TODO check file OK
     file->cd();
-    c->Write("", TObject::kOverwrite);
+    canvas_->Write("", TObject::kOverwrite);
+    delete canvas_;
 }
 
 
@@ -153,7 +170,7 @@ void JetDrawer::styleMatchedJetGraph(TGraph * graph) {
 
 
 TLegend * JetDrawer::makeLegend() {
-    TLegend * leg = new TLegend(0.1,0.91, 0.9, 0.98);
+    TLegend * leg = new TLegend(0.1, 0.91, 0.9, 0.98);
     leg->SetNColumns(3);
     leg->AddEntry(refJetGraph_, "Reference jets", "p");
     leg->AddEntry(l1JetGraph_, "L1 jets", "p");
