@@ -1,0 +1,13 @@
+<use name="L1Trigger/L1JetEnergyCorrections"/>
+<library   file="*.cc" name="L1TriggerL1JetEnergyCorrectionsPlugins">
+  <use name="root"/>
+  <use name="CommonTools/UtilAlgos"/>
+  <use name="FWCore/Framework"/>
+  <use name="FWCore/PluginManager"/>
+  <use name="FWCore/ParameterSet"/>
+  <use name="DataFormats/L1Trigger"/>
+  <use name="DataFormats/L1GlobalTrigger"/>
+  <use name="CondFormats/L1TObjects"/>
+  <use name="CondFormats/DataRecord"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
