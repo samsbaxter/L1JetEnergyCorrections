@@ -31,9 +31,9 @@ namespace fs = boost::filesystem;
 // constructors and destructor
 //
 JetDrawer::JetDrawer(std::vector<TLorentzVector> refJets,
-                   std::vector<TLorentzVector> l1Jets,
-                   std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
-                   TString labelText):
+                     std::vector<TLorentzVector> l1Jets,
+                     std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
+                     TString labelText):
     refJets_(refJets),
     l1Jets_(l1Jets),
     matchedJets_(matchedJets),
@@ -43,16 +43,15 @@ JetDrawer::JetDrawer(std::vector<TLorentzVector> refJets,
     matchedJetGraph_(nullptr),
     legend_(nullptr),
     canvas_(new TCanvas("c", "", 600, 600)),
-    label_(new TPaveText(0.15, 0.88, 0.99, 0.95, "NBNDC")),
+    label_(new TPaveText(0.1, 0.91, 0.9, 0.94, "NDC")),
     labelText_(labelText)
 {
     graph_  = makeGraph();
     legend_ = makeLegend();
+    if (labelText_ == "") legend_->SetY1NDC(0.91);
     label_->SetBorderSize(0);
     label_->SetFillStyle(0);
-    TText * tt = label_->AddText(labelText);
-    tt->SetTextAlign(kHAlignRight+kVAlignBottom);
-    tt->SetTextAngle(90);
+    label_->AddText(labelText);
 }
 
 // JetDrawer::JetDrawer(const JetDrawer& rhs)
@@ -80,7 +79,7 @@ JetDrawer::~JetDrawer()
 // member functions
 //
 
-void JetDrawer::drawAndSave(TString filename) {
+void JetDrawer::drawAndSave(const TString& filename) {
     // if (canvas_ != nullptr) delete canvas_;
     canvas_ ->cd();
     graph_->Draw("ap");
@@ -170,18 +169,19 @@ void JetDrawer::styleMatchedJetGraph(TGraph * graph) {
 
 
 TLegend * JetDrawer::makeLegend() {
-    TLegend * leg = new TLegend(0.1, 0.91, 0.9, 0.98);
+    TLegend * leg = new TLegend(0.1, 0.95, 0.9, 0.99);
     leg->SetNColumns(3);
     leg->AddEntry(refJetGraph_, "Reference jets", "p");
     leg->AddEntry(l1JetGraph_, "L1 jets", "p");
     leg->AddEntry(matchedJetGraph_, "Matched jets", "p");
+    leg->SetTextAlign(kHAlignCenter+kVAlignCenter);
     leg->SetFillColor(kWhite);
     leg->SetLineColor(kWhite);
     return leg;
 }
 
 
-bool JetDrawer::checkPath(std::string filepath) {
+bool JetDrawer::checkPath(const std::string& filepath) {
     // Do check to ensure we're not overwriting a file,
     // or that we can actually create the dir for the output
     fs::path path(filepath);

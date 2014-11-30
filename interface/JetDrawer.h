@@ -49,9 +49,9 @@ class JetDrawer
          * @param matchedJets pairs of matched jets (e.g. from Matcher::getMatchingPairs())
          */
         JetDrawer(std::vector<TLorentzVector> refJets,
-                 std::vector<TLorentzVector> l1Jets,
-                 std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
-                 TString labelText="");
+                  std::vector<TLorentzVector> l1Jets,
+                  std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
+                  TString labelText="");
 
         virtual ~JetDrawer();
 
@@ -66,7 +66,7 @@ class JetDrawer
          *
          * @param filename Filepath & name to save canvas as.
          */
-        virtual void drawAndSave(TString filename);
+        virtual void drawAndSave(const TString& filename);
 
         /**
          * @brief Draw graph and save to TFile
@@ -134,7 +134,7 @@ class JetDrawer
          * @param path Path of file
          * @return True if OK, false otherwise
          */
-        bool checkPath(std::string filepath);
+        bool checkPath(const std::string& filepath);
 
         // ---------- member data --------------------------------
         const std::vector<TLorentzVector> refJets_;
