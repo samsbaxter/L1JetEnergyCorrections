@@ -41,14 +41,14 @@ public:
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
-    virtual void setRefJets(std::vector<TLorentzVector> refJets) = 0;
+    virtual void setRefJets(const std::vector<TLorentzVector>& refJets) = 0;
 
     /**
      * @brief Set L1 jet collection (e.g. from GCT)
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
-    virtual void setL1Jets(std::vector<TLorentzVector> l1Jets) = 0;
+    virtual void setL1Jets(const std::vector<TLorentzVector>& l1Jets) = 0;
 
     /**
      * @brief Produce pairs of L1 jets matched to reference jets based on some criteria.
@@ -61,12 +61,12 @@ public:
     /**
      * @brief Access ref jet collection used in matching process
      */
-    virtual std::vector<TLorentzVector> getRefJets() { return refJets_; };
+    virtual std::vector<TLorentzVector> getRefJets() const { return refJets_; };
 
     /**
      * @brief Access L1 jet collection used in matching process
      */
-    virtual std::vector<TLorentzVector> getL1Jets() { return l1Jets_; };
+    virtual std::vector<TLorentzVector> getL1Jets() const { return l1Jets_; };
 
     /**
      * @brief Dummy function to print out basic details.

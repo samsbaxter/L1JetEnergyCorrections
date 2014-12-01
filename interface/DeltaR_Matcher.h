@@ -77,7 +77,7 @@ public:
      *
      * @param refJets std::vector of TLorentzVector holding reference jets
      */
-    virtual void setRefJets(std::vector<TLorentzVector> refJets) override;
+    virtual void setRefJets(const std::vector<TLorentzVector>& refJets) override;
 
     /**
      * @brief Set L1 jet collection (e.g. from GCT) & sorts by descending pT
@@ -85,7 +85,7 @@ public:
      *
      * @param l1Jets std::vector of TLorentzVector holding L1 jets
      */
-    virtual void setL1Jets(std::vector<TLorentzVector> l1Jets) override;
+    virtual void setL1Jets(const std::vector<TLorentzVector>& l1Jets) override;
 
     /**
      * @brief Set minimum jet pT cut to be applied to reference jets.

@@ -58,7 +58,7 @@ DeltaR_Matcher::~DeltaR_Matcher()
 // member functions //
 //////////////////////
 
-void DeltaR_Matcher::setRefJets(std::vector<TLorentzVector> refJets)
+void DeltaR_Matcher::setRefJets(const std::vector<TLorentzVector>& refJets)
 {
     refJets_.clear();
     for (const auto &jetIt: refJets)
@@ -79,7 +79,7 @@ bool DeltaR_Matcher::checkRefJet(const TLorentzVector& jet)
 }
 
 
-void DeltaR_Matcher::setL1Jets(std::vector<TLorentzVector> l1Jets)
+void DeltaR_Matcher::setL1Jets(const std::vector<TLorentzVector>& l1Jets)
 {
     l1Jets_.clear();
     for (const auto &jetIt: l1Jets)
