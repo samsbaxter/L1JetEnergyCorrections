@@ -31,8 +31,6 @@
 using std::cout;
 using std::endl;
 namespace fs = boost::filesystem;
-// using namespace boost;
-
 
 // forward declare fns, implementations after main()
 TString getSuffixFromDirectory(const TString& dir);
@@ -161,8 +159,8 @@ int main(int argc, char* argv[]) {
         // debugging plot - plots eta vs phi of jets
         if (iEntry < opts.drawNumber()) {
             TString label = TString::Format(
-                "Gen jet %.1f < p_{T} < %.1f GeV, " \
-                "L1 jet %.1f < p_{T} < %.1f GeV, jet |#eta| < %.1f",
+                "%.1f < E^{gen}_{T} < %.1f GeV, " \
+                "L1 jet %.1f < E^{L1}_{T} < %.1f GeV, |#eta_{jet}| < %.1f",
                 minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta);
 
             // get jets post pT, eta cuts

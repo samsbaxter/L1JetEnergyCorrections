@@ -64,7 +64,7 @@ private:
  * @brief Setup common objects used for tests, at start of each CPPUNIT_TEST
  */
 void DeltaR_Matcher_UnitTest::setUp() {
-    printStatements = true;
+    printStatements = false;
 }
 
 
@@ -161,7 +161,9 @@ void DeltaR_Matcher_UnitTest::checkMinPtMaxPtMaxEta() {
     // test via setters
     matcher = new DeltaR_Matcher(0.7);
     matcher->setMinL1JetPt(1.5);
+    matcher->setMaxL1JetPt(100);
     matcher->setMinRefJetPt(1.5);
+    matcher->setMaxRefJetPt(100.5);
     matcher->setMaxJetEta(5);
     matcher->setRefJets(refJets);
     matcher->setL1Jets(L1Jets);

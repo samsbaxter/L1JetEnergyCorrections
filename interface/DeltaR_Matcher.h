@@ -92,21 +92,35 @@ public:
      *
      * @param jetPt Minimum pT value.
      */
-    void setMinRefJetPt(double jetPt) { minRefJetPt_ = jetPt; };
+    void setMinRefJetPt(const double jetPt) { minRefJetPt_ = jetPt; };
+
+    /**
+     * @brief Set maximum jet pT cut to be applied to reference jets.
+     *
+     * @param jetPt Maximum pT value.
+     */
+    void setMaxRefJetPt(const double jetPt) { maxRefJetPt_ = jetPt; };
 
     /**
      * @brief Set minimum jet pT cut to be applied to L1 jets.
      *
      * @param jetPt Minimum pT value.
      */
-    void setMinL1JetPt(double jetPt) { minL1JetPt_ = jetPt; };
+    void setMinL1JetPt(const double jetPt) { minL1JetPt_ = jetPt; };
+
+    /**
+     * @brief Set maximum jet pT cut to be applied to L1 jets.
+     *
+     * @param jetPt Maximum pT value.
+     */
+    void setMaxL1JetPt(const double jetPt) { maxL1JetPt_ = jetPt; };
 
     /**
      * @brief Set maximum absolute jet eta cut to be applied to both L1 and ref jets.
      *
      * @param jetEta Maximum absolute Eta value
      */
-    void setMaxJetEta(double jetEta) { maxJetEta_ = jetEta; };
+    void setMaxJetEta(const double jetEta) { maxJetEta_ = jetEta; };
 
     /**
      * @brief Produce pairs of L1 jets matched to reference jets based on deltaR(refJet-l1Jet).
@@ -127,8 +141,8 @@ public:
     /**
      * @brief Dummy function to print out basic details.
      */
-    void printName() const override {
-        std::cout << "\ndeltaR Matcher >> max DeltaR: " << maxDeltaR_
+    virtual void printName() const override {
+        std::cout << "\ndeltaR Matcher :: max DeltaR: " << maxDeltaR_
                 << ", matching reference jets with " << minRefJetPt_
                 << " < pT < " << maxRefJetPt_
                 << ", L1 jet with " << minL1JetPt_

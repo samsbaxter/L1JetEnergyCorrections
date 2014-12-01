@@ -59,12 +59,12 @@ public:
     virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> getMatchingPairs() = 0;
 
     /**
-     * @brief Access ref jet collection
+     * @brief Access ref jet collection used in matching process
      */
     virtual std::vector<TLorentzVector> getRefJets() { return refJets_; };
 
     /**
-     * @brief Access L1 jet collection
+     * @brief Access L1 jet collection used in matching process
      */
     virtual std::vector<TLorentzVector> getL1Jets() { return l1Jets_; };
 
