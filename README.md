@@ -5,10 +5,10 @@ __tl;dr__: The code in here calculates corrections for jets from the Level 1 tri
 This applies to:
 
 - Legay GCT
-- Stage 1
-- Stage 2
+- Stage 1 *TODO*
+- Stage 2 *TODO*
 
-It is an attempt to unify previous fragments of code lying around, in a *generic* way. So if you arrive here and need to use a new matching method, or want to calibrate using a different scheme, you can do it easily without digging around (too much).
+It is an attempt to unify previous fragments of code lying around, in a *generic* way.
 
 ## Installation
 
@@ -16,11 +16,18 @@ First make sure you have a copy of CMSSW (I'm using CMSSW_7_2_0_pre7). Then in `
 
 ```shell
 cmsenv
+# L1Ntuples package - see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1TriggerDPGNtupleProduction
+git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
+# This package
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
-cd interface
+cd L1Trigger/L1JetEnergyCorrections/interface
 rootcint -f dictionary.cpp -c TLorentzVector.h ../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
 mv dictionary.cpp ../src/
-cd ..
+cd $CMSSW_BASE/src
+# L1ExtraFromDigis - modified L1ExtraParticlesProd. Bit ad-hoc, want better solution
+git add-pkg L1Trigger/L1ExtraFromDigis
+cp plugins/L1ExtraParticlesProd.ccBK L1Trigger/L1ExtraFromDigis/src/L1ExtraParticlesProd.cc
+# Build it all
 scram b -j9
 # to run unit tests (advised whenever you make changes)
 scram b runtests
@@ -28,51 +35,41 @@ scram b runtests
 cd L1Trigger/L1JetEnergyCorrections/doc
 doxygen Doxyfile # html documentation in html/index.html
 # optional - to build pdf documentation. Produces latex/refman.pdf
-cd latex; make
-```
-
-## Running
-
-```
-XXX
+# cd latex; make
 ```
 
 ## Basic concept
 
-The following is an outline of the method that is used to calibrate jet energies.
+The following is a conceptual outline of the method that is used to calibrate jet energies.
 
 1. Run a config file over a sample, running the relevant L1 emulator and produce 2 sets of jets: **reference jets** (e.g. `ak5GenJet`s) and **L1 jets** (the ones you want to calibrate, e.g. `L1GctInternJet`s).
 2. Convert these jet collections into consistent collections, containing the info we need to calibrate (say, 4-vectors).
 3. Pass these 2 collections to a Matcher. This will match L1 jets to reference jets, and output pairs of matched jets.
-4. Pass matched pairs to a Calibration Calculator. This will calcualte the calibration constants, and produce plots.
+4. Pass matched pairs to a Calibration Calculator. This will calcualte the calibration constants, and produce plots. [__NOTE__ this hasn't actually been done yet... just borrowed a python script from Nick Wardle that works pretty well.]
 
-## Derivations/Specialisation
+## Running
+These steps are executed by the following:
 
-The objects mentioned above (Matcher, Calibration calculator) are all **interfaces** (i.e abstract classes). Subclasses/derived classes of these actually perform the matching or calibrating *for some particular matching/calibration scheme*. This way, there is a unified interface, so one can easily swap in a different way of matching or calibrating without a) worrying that they're replacing the right parts/missing bits and b) mucking up some other bit of code.
+1) & 2) Produce Ntuple with relevant jet collections
 
-It's trying to avoid some 1000 line ROOT script where all the important procedures are hidden away, and are coupled to some particular setup.
+3) Produce matching jet pairs from this Ntuple
 
-The top-level script is XXX. It instigates a Matcher and Calibration calculator. All you have to do is tell it which Matcher you want, and which Calibration calculator you want (plus a bit more info).
+4) Make some plots from these pairs, and calculate calibrations constants, etc
 
-## An example
+### Produce Ntuples
+Look at `/python/l1Ntuple_cfg.py`. Do `cmsRun l1NTuple_cfg.py` to run over some GEN-SIM-RAW MC. This should produce a ntuple with L1Extra trees. Note that at the moment, we hijack the cenJet collection of L1ExtraTree for our GenJets/GctInternJets, so we hve to make clones of the L1ExtraProducer for these. Perhaps I should write an EDAnalyzer?
 
-One type of jet matching is by deltaR(ref jet - L1 jet), where deltaR^2 = deltaEta^2 + deltaPhi^2 (all deltas are between ref and L1 jets). This is implemented in DeltaR_Matcher.
+### Produce matching jet pairs
+This is done in `bin/RunMatcher`. You can run it easily by doing `RunMatcher <options>`. For command-line options, do `RunMatcher --help`. As a minimum, you need an input Ntuple and output filename.
 
-One type of calibration scheme is by plotting the ratio of E_T for matched reference and L1 jets, and fitting with a particular function. This is shown in XXX.
+Note that the RunMatcher program also includes an option to plot the eta Vs phi for jets to check it's actually working.
+
+### Make plots, calculate constants, etc
+This is done in `bin/runCalibration.py`. In `/bin` do: `python runCalibration.py <input file> < output file>` where input = whatever file RunMatcher produced.
+
+There is also a script, [showoffPlots.py](bin/showoffPlots.py) that takes the ROOT files and makes select plots, with nice labels, etc, for use in presentations, etc. It's a bit ad-hoc.
 
 
-## I want to do X
+## Editing
 
-- **I want to make a new program**: write your C++ program in `/bin`, then add a line to [BuildFile.xml](bin/BuildFile.xml) like:
-```
-<bin name="myProgName" file="myProg.cpp"/>
-```
-Also remember to add any addtional includes.
-- **I want to**
-
-## Robin's notes
-
-If you want to make by hand, instead of using SCRAM, do:
-```
-g++ -std=c++11 -o matcherTest matcherTest.cpp -I ../interface `root-config --cflags --glibs`
-```
+Please see [DEV_NOTES](DEV_NOTES.md) for info.
