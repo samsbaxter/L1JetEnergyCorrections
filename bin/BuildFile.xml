@@ -1,4 +1,4 @@
-<flags CXXFLAGS="-O0 -g -DDEBUG -Wno-error=unused-variable"/>
+<flags CXXFLAGS="-O2 -g -DDEBUG -Wno-error=unused-variable"/>
 <use name="L1Trigger/L1JetEnergyCorrections"/>
 <use name="root"/>
 <use name="rootgraphics"/>
