@@ -67,9 +67,15 @@ L1ExtraTree::L1ExtraTree(TString filename, TString directory, TString treeName, 
         if (!f || !f->IsOpen()) {
             f = new TFile(filename, "READ");
         }
-        if (f->IsZombie()) throw "Couldn't open file"+filename;
+        if (f->IsZombie()) throw runtime_error(("Couldn't open file"+filename).Data());
         TDirectory * dir = (TDirectory*)f->Get(filename+":/"+directory);
+        if (!dir) {
+            throw runtime_error(("Couldn't open "+filename+":/"+directory).Data());
+        }
         dir->GetObject(treeName,tree);
+        if(!tree) {
+            throw runtime_error(("Couldn't open tree "+treeName).Data());
+        }
         cout << "Opened " << treeName << " in " << filename << ":/" << directory << endl;
     }
     Init(tree);

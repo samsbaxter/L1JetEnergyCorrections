@@ -81,7 +81,7 @@ JetDrawer::~JetDrawer()
 
 void JetDrawer::drawAndSave(const TString& filename) {
     // if (canvas_ != nullptr) delete canvas_;
-    canvas_ ->cd();
+    canvas_->cd();
     graph_->Draw("ap");
     legend_->Draw();
     label_->Draw();

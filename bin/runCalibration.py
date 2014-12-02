@@ -50,7 +50,7 @@ def makeResponseCurves(inputfile,outputfile,ptBins_in, absetamin,absetamax):
     # From the input file, we make the histograms?
 
     cstr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g "%(absetamax,absetamin)
-
+    # rsp here is ref jet pt / l1 jet pt
     tree_raw.Draw("1./rsp:rsp*pt>>h2d_raw(%d,%g,%g,200,0,6)"%(nb,min,max),cstr)
     #tree_raw.Draw("pt:rsp*pt>>h2d_raw_l1(%d,%g,%g,200,0,200)"%(nb,min,max),cstr)
     h2d_raw = ROOT.gROOT.FindObject("h2d_raw")

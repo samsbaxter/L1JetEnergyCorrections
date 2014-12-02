@@ -34,7 +34,7 @@ TFile* openFile(TString filename, TString mode="") {
         mode = "READ";
     }
 
-    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename);
+    TFile *f = dynamic_cast<TFile*>(gROOT->GetListOfFiles()->FindObject(filename));
     if (!f || !f->IsOpen()) {
         f = new TFile(filename, mode);
     } else {
@@ -52,5 +52,5 @@ TFile* openFile(TString filename, TString mode="") {
 
 
 TTree* loadTree(TFile * f, TString treeName) {
-    return (TTree*) f->Get(treeName);
+    return dynamic_cast<TTree*>(f->Get(treeName));
 }

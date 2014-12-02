@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
     ////////////////////////
     // SETUP OUTPUT FILES //
     ////////////////////////
+
     // setup output file to store results
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
 
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
     TTree * outTree2 = new TTree("valid", "valid");
     // pt/eta/phi are for l1 jets
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.);
-    float out_dr(99.), out_deta(99.), out_dphi(99.);
+    float out_dr(99.), out_deta(99.), out_dphi(99.), out_etaRef(99.), out_phiRef(99.);
     outTree2->Branch("pt"   ,&out_pt ,"pt/Float_t");
     outTree2->Branch("eta"  ,&out_eta,"eta/Float_t");
     outTree2->Branch("phi"  ,&out_phi,"phi/Float_t");
@@ -100,6 +101,8 @@ int main(int argc, char* argv[]) {
     outTree2->Branch("dr"   ,&out_dr,"dr/Float_t");
     outTree2->Branch("deta" ,&out_deta,"deta/Float_t");
     outTree2->Branch("dphi" ,&out_dphi,"dphi/Float_t");
+    outTree2->Branch("etaRef" ,&out_etaRef,"etaRef/Float_t");
+    outTree2->Branch("phiRef" ,&out_phiRef,"phiRef/Float_t");
 
     // check # events in boths trees is same
     // - if not then throw exception?
@@ -118,8 +121,7 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(250.);
     double minL1JetPt(0.), maxL1JetPt(250.), maxJetEta(5.5);
-    Matcher * matcher = new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt,
-                                            minL1JetPt, maxL1JetPt, maxJetEta);
+    std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     matcher->printName();
 
     //////////////////////
@@ -144,7 +146,7 @@ int main(int argc, char* argv[]) {
         matchResults = matcher->getMatchingPairs();
         // matcher->printMatches();
 
-        // store L1 jet variables
+        // store L1 & ref jet variables
         for (const auto &it: matchResults) {
             out_pt = it.second.Et();
             out_eta = it.second.Eta();
@@ -153,6 +155,8 @@ int main(int argc, char* argv[]) {
             out_dr = it.first.DeltaR(it.second);
             out_deta = it.first.Eta() - it.second.Eta();
             out_dphi = it.first.DeltaPhi(it.second);
+            out_etaRef = it.first.Eta();
+            out_phiRef = it.first.Phi();
             outTree2->Fill();
         }
 
