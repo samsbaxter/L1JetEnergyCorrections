@@ -1,16 +1,15 @@
 // -*- C++ -*-
 //
-// Package:    L1Trigger/L1GctInternJetToL1Extra
-// Class:      L1GctInternJetToL1Extra
+// Package:    L1Trigger/L1GctInternJetToL1Jet
+// Class:      L1GctInternJetToL1Jet
 // 
-/**\class L1GctInternJetToL1Extra L1GctInternJetToL1Extra.cc L1Trigger/L1GctInternJetToL1Extra/plugins/L1GctInternJetToL1Extra.cc
+/**\class L1GctInternJetToL1Jet L1GctInternJetToL1Jet.cc L1Trigger/L1GctInternJetToL1Jet/plugins/L1GctInternJetToL1Jet.cc
 
- Description: EDProducer to turn L1GctInternJets into L1JetParticles. Can then be passed into l1ExtraTreeProducer
+ Description: EDProducer to turn L1GctInternJets into L1JetParticles. Output can then be passed into l1ExtraTreeProducer.
 
  Implementation:
       Fairly simple - get L1 GCT internal jet collection, loop through it, and for each jet create a L1JetParticle using
-      info from the L1GctInternJetData, and then store the L1JetParticle in collection, which will be added to output.
-      All about the EDGetTokenT: https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideEDMGetDataFromEvent
+      info from the L1GctInternJetData and then store the L1JetParticle in a collection, which will be added to output.
 */
 //
 // Original Author:  Robin Cameron Aggleton
@@ -49,10 +48,10 @@
 // class declaration
 //
 
-class L1GctInternJetToL1Extra : public edm::EDProducer {
+class L1GctInternJetToL1Jet : public edm::EDProducer {
     public:
-        explicit L1GctInternJetToL1Extra(const edm::ParameterSet&);
-        ~L1GctInternJetToL1Extra();
+        explicit L1GctInternJetToL1Jet(const edm::ParameterSet&);
+        ~L1GctInternJetToL1Jet();
 
         static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -87,7 +86,7 @@ class L1GctInternJetToL1Extra : public edm::EDProducer {
 //
 // constructors and destructor
 //
-L1GctInternJetToL1Extra::L1GctInternJetToL1Extra(const edm::ParameterSet& iConfig)
+L1GctInternJetToL1Jet::L1GctInternJetToL1Jet(const edm::ParameterSet& iConfig)
     : gctInternJetSource_( iConfig.getParameter< edm::InputTag >("gctInternJetSource") )
 {
     using namespace l1extra ;
@@ -101,7 +100,7 @@ L1GctInternJetToL1Extra::L1GctInternJetToL1Extra(const edm::ParameterSet& iConfi
 }
 
 
-L1GctInternJetToL1Extra::~L1GctInternJetToL1Extra()
+L1GctInternJetToL1Jet::~L1GctInternJetToL1Jet()
 {
  
     // do anything here that needs to be done at desctruction time
@@ -123,7 +122,7 @@ L1GctInternJetToL1Extra::~L1GctInternJetToL1Extra()
  * @param iSetup [description]
  */
 void
-L1GctInternJetToL1Extra::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+L1GctInternJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
     using namespace l1extra ;
@@ -172,7 +171,7 @@ L1GctInternJetToL1Extra::produce(edm::Event& iEvent, const edm::EventSetup& iSet
  * @return PolarLorentzVector (aka math::PtEtaPhiMLorentzVector) to use in L1JetParticle ctor
  */
 math::PtEtaPhiMLorentzVector
-L1GctInternJetToL1Extra::gctInternJetToLorentzVector(const L1GctInternJetData& gctJet,
+L1GctInternJetToL1Jet::gctInternJetToLorentzVector(const L1GctInternJetData& gctJet,
                                                      const L1CaloGeometry& geom,
                                                      const L1CaloEtScale& scale) {
     // double et = gctJet.rank() * 0.5;
@@ -188,7 +187,7 @@ L1GctInternJetToL1Extra::gctInternJetToLorentzVector(const L1GctInternJetData& g
 // ------------ method called once each job just before starting event loop  ------------
 /*
 void 
-L1GctInternJetToL1Extra::beginJob()
+L1GctInternJetToL1Jet::beginJob()
 {
 }
 */
@@ -196,14 +195,14 @@ L1GctInternJetToL1Extra::beginJob()
 // ------------ method called once each job just after ending the event loop  ------------
 /*
 void 
-L1GctInternJetToL1Extra::endJob() {
+L1GctInternJetToL1Jet::endJob() {
 }
 */
 
 // ------------ method called when starting to processes a run  ------------
 /*
 void
-L1GctInternJetToL1Extra::beginRun(edm::Run const&, edm::EventSetup const&)
+L1GctInternJetToL1Jet::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -211,7 +210,7 @@ L1GctInternJetToL1Extra::beginRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when ending the processing of a run  ------------
 /*
 void
-L1GctInternJetToL1Extra::endRun(edm::Run const&, edm::EventSetup const&)
+L1GctInternJetToL1Jet::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 */
@@ -219,7 +218,7 @@ L1GctInternJetToL1Extra::endRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when starting to processes a luminosity block  ------------
 /*
 void
-L1GctInternJetToL1Extra::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+L1GctInternJetToL1Jet::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
@@ -227,18 +226,18 @@ L1GctInternJetToL1Extra::beginLuminosityBlock(edm::LuminosityBlock const&, edm::
 // ------------ method called when ending the processing of a luminosity block  ------------
 /*
 void
-L1GctInternJetToL1Extra::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+L1GctInternJetToL1Jet::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 */
  
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-L1GctInternJetToL1Extra::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+L1GctInternJetToL1Jet::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("gctInternJetSource", edm::InputTag("simGctDigis"))->setComment("Name of module that produces L1GctInternJetDataCollection");
-  descriptions.add("L1GctInternJetToL1Extra", desc);
+  descriptions.add("L1GctInternJetToL1Jet", desc);
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(L1GctInternJetToL1Extra);
+DEFINE_FWK_MODULE(L1GctInternJetToL1Jet);

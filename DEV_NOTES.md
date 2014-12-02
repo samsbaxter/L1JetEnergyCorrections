@@ -34,6 +34,8 @@ This parses user arguments to the RunMatcher program. Based on boost's program_o
 ### JetDrawer
 This takes in 3 collections of jets (ref jets, L1 jets, matched pairs) and plots them on a plot of eta Vs phi. It's handy for debugging and checking your matcher does something sensible. By default, RunMatcher plots the first 10 events. (I also don't like the name - draw vs plot is confusing, but plot makes it sound like it's plotting distributions).
 
+### L1GctInternJetToL1Jet/GenJetToL1Jet
+These are EDProducers that convert from GCT internal jets and GenJets into L1JetParticle collections. This way you can pass them into the L1ExtraTreeProducer. Little bit ad-hoc, perhaps they should just be EDAnalyzers.
 
 ## Robin's notes
 

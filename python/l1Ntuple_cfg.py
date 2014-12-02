@@ -29,7 +29,8 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 200
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree_Fall13_TTbar_PU20bx25.root')
+    fileName = cms.string('L1Tree.root')
+    # fileName = cms.string('L1Tree_Fall13_TTbar_PU20bx25.root')
     # fileName = cms.string('L1Tree_Fall13_QCD_Pt80to120_1000.root')
     # fileName = cms.string('L1Tree_Spring14_QCD_Pt-15to3000.root')
 )
@@ -52,66 +53,66 @@ process.load("L1TriggerDPG.L1Ntuples.l1MenuTreeProducer_cfi")
 process.load("L1TriggerDPG.L1Ntuples.l1MuonRecoTreeProducer_cfi")
 process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtTriggerMenuLite_cfi")
 
-#####
+##############################
 # GCT internal jet collection
-#####
+##############################
 process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 process.simGctDigis.writeInternalData = cms.bool(True)
 # process.simGctDigis.useImprovedTauAlgorithm = cms.bool(False)
 # process.simGctDigis.preSamples = cms.uint32(0)
 # process.simGctDigis.postSamples = cms.uint32(0)
 
-# Convert Gct Internal jets to L1Extra objects
-process.gctInternJetToL1Extra = cms.EDProducer('L1GctInternJetToL1Extra',
-    gctInternJetSource=cms.InputTag("simGctDigis")
+# Convert Gct Internal jets to L1JetParticles, store in another L1ExtraTree as cenJets
+process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
+    gctInternJetSource = cms.InputTag("simGctDigis")
 )
-# Uses modified l1extraParticles (l1ExtraParticleProd.cc) module
-# Not super happy with it, but will do (for now)
-process.l1extraParticles.gctInternJetSource = cms.InputTag("simGctDigis")
-process.l1extraParticles.genJetSource = cms.InputTag("ak5GenJets")
 
 process.l1ExtraTreeProducerGctIntern = process.l1ExtraTreeProducer.clone()
-process.l1ExtraTreeProducerGctIntern.cenJetLabel = cms.untracked.InputTag("gctInternJetToL1Extra:GctInternalJets")
+process.l1ExtraTreeProducerGctIntern.cenJetLabel = cms.untracked.InputTag("gctInternJetToL1Jet:GctInternalJets")
 process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
 
-#####
-# Make ak4 GenJets
-#####
+##############################
+# Do ak5 GenJets
+##############################
+# Convert ak5 genjets to L1JetParticle objects, store in another L1ExtraTree as cenJets
+process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
+    genJetSource = cms.InputTag("ak5GenJets")
+)
+process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk5:GenJets")
+process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
+
+
+##############################
+# Do ak4 GenJets
+##############################
 process.load('RecoJets.Configuration.GenJetParticles_cff')
 process.load('RecoJets.Configuration.RecoGenJets_cff')
 process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
 
-#####
-# Keep GenJets
-#####
-# Convert ak5 genjets to L1Extra objects
-# can use the l1extraParticles module above, which produces L1JetParticleCollection from ak5GenJets
-process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducer.clone()
-process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("l1extraParticles:GenJets")
-process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
+# Convert ak4 genjets to L1JetParticle objects
+process.genJetToL1JetAk4 = process.genJetToL1JetAk5.clone()
+process.genJetToL1JetAk4.genJetSource = cms.InputTag("ak4GenJets")
 
-# Convert ak4 genjets to L1Extra objects
-# Need to clone the l1extraParticles module and set ak4GenJets as input,
-# then feed that into copy of l1ExtraTreeProducer
-# process.l1extraParticlesAk4 = process.l1extraParticles.clone()
-# process.l1extraParticlesAk4.genJetSource = cms.InputTag("ak4GenJets")
-# process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducer.clone()
-# process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("l1extraParticlesAk4:GenJets")
-# process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
+# Put in another L1ExtraTree as cenJets
+process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
+process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
 
 process.p = cms.Path(
     process.RawToDigi
-    # +process.antiktGenJets  # for GenJet
+    +process.antiktGenJets  # for AK4 GenJet
     +process.simGctDigis
     # +process.l1NtupleProducer
     +process.l1extraParticles
-    +process.gctInternJetToL1Extra
-    # +process.l1extraParticlesAk4
+    +process.gctInternJetToL1Jet
+    +process.genJetToL1JetAk5
+    +process.genJetToL1JetAk4
     +process.l1ExtraTreeProducer # gctDigis in cenJet coll
     +process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
     +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
-    # +process.l1ExtraTreeProducerGenAk4
+    +process.l1ExtraTreeProducerGenAk4
     # +process.l1GtTriggerMenuLite
     # +process.l1MenuTreeProducer
     # +process.l1RecoTreeProducer
@@ -127,10 +128,10 @@ process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
-readFiles = cms.untracked.vstring()
-# readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+# readFiles = cms.untracked.vstring()
+readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
 secFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
                              fileNames = readFiles,
@@ -148,18 +149,18 @@ process.source = cms.Source ("PoolSource",
 #     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/02ECF824-4E75-E311-BB0F-0026189438CE.root'
 #     ])
 
-readFiles.extend( [
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00269845-7290-E311-A032-0025905A6056.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/001E7210-126D-E311-8D68-003048679182.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00280FAA-206E-E311-A12B-0025905AA9CC.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/002AD255-616C-E311-B1D6-0025905A48F2.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00392F64-8190-E311-ACD1-002618943856.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00574A70-E186-E311-8BE9-003048678A7E.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00D33AA9-326D-E311-AB31-003048678E92.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00E2DAC5-8A6C-E311-A2F6-0025905A610C.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00FE3096-476D-E311-8608-0026189437FD.root',
-    'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/0239DBE7-0D91-E311-A208-003048FFCB96.root'
-    ])
+# readFiles.extend( [
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00269845-7290-E311-A032-0025905A6056.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/001E7210-126D-E311-8D68-003048679182.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00280FAA-206E-E311-A12B-0025905AA9CC.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/002AD255-616C-E311-B1D6-0025905A48F2.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00392F64-8190-E311-ACD1-002618943856.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00574A70-E186-E311-8BE9-003048678A7E.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00D33AA9-326D-E311-AB31-003048678E92.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00E2DAC5-8A6C-E311-A2F6-0025905A610C.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00FE3096-476D-E311-8608-0026189437FD.root',
+#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/0239DBE7-0D91-E311-A208-003048FFCB96.root'
+#     ])
 
 # QCD flat samples
 # readFiles.extend( [

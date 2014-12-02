@@ -24,9 +24,6 @@ cd L1Trigger/L1JetEnergyCorrections/interface
 rootcint -f dictionary.cpp -c TLorentzVector.h ../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
 mv dictionary.cpp ../src/
 cd $CMSSW_BASE/src
-# L1ExtraFromDigis - modified L1ExtraParticlesProd. Bit ad-hoc, want better solution
-git add-pkg L1Trigger/L1ExtraFromDigis
-cp plugins/L1ExtraParticlesProd.ccBK L1Trigger/L1ExtraFromDigis/src/L1ExtraParticlesProd.cc
 # Build it all
 scram b -j9
 # to run unit tests (advised whenever you make changes)
@@ -57,7 +54,7 @@ These steps are executed by the following:
 4) Make some plots from these pairs, and calculate calibrations constants, etc
 
 ### Produce Ntuples
-Look at `/python/l1Ntuple_cfg.py`. Do `cmsRun l1NTuple_cfg.py` to run over some GEN-SIM-RAW MC. This should produce a ntuple with L1Extra trees. Note that at the moment, we hijack the cenJet collection of L1ExtraTree for our GenJets/GctInternJets, so we hve to make clones of the L1ExtraProducer for these. Perhaps I should write an EDAnalyzer?
+Look at `/python/l1Ntuple_cfg.py`. Do `cmsRun l1NTuple_cfg.py` to run over some GEN-SIM-RAW MC. This should produce a ntuple with L1Extra trees. Note that at the moment, we hijack the cenJet collection of L1ExtraTree for our GenJets/GctInternJets, so we have to make clones of the L1ExtraTreeProducer for these. `GctInternJetToL1Jet` & `GenJetToL1Jet` are the EDProducers (see `/plugins`) that turn GCT internal jets and GenJet collections into L1JetParticle collections. Then you can pass them to any L1ExtraTreeProducer.
 
 ### Produce matching jet pairs
 This is done in `bin/RunMatcher`. You can run it easily by doing `RunMatcher <options>`. For command-line options, do `RunMatcher --help`. As a minimum, you need an input Ntuple and output filename.
