@@ -2,6 +2,8 @@ import ROOT
 import sys
 import array 
 import numpy 
+from pprint import pprint
+from itertools import izip
 
 # ORIGNALLY BY NICK WARDLE
 
@@ -20,7 +22,7 @@ fitfcn.SetParameter(3,0.05)
 fitfcn.SetParameter(4,0.0)
 fitfcn.SetParameter(5,-11.)
 
-def makeResponseCurves(inputfile,outputfile,ptBins_in, absetamin,absetamax):
+def makeResponseCurves(inputfile,outputfile,ptBins_in, absetamin,absetamax, fit_params):
 
     name = "ResponseProj"
     nptbins = len(ptBins_in)-1
@@ -110,8 +112,63 @@ def makeResponseCurves(inputfile,outputfile,ptBins_in, absetamin,absetamax):
     gr.GetXaxis().SetTitle("<p_{T}^{L1}>")
     gr.GetYaxis().SetTitle("1/<p_{T}^{Gen}/p_{T}^{L1}>")
 
+    # Get out fit params
+    tmp_params = []
+    for i in range(thisfit.GetNumberFreeParameters()):
+        tmp_params.append(thisfit.GetParameter(i))
+
+    fit_params.append(tmp_params)
+
     outputfile.WriteTObject(gr)
     outputfile.WriteTObject(thisfit)
+
+
+def print_lut_screen(fit_params, eta_bins):
+    """
+    Take fit parameters and print to screen
+    """
+    # check
+    if (1+len(fit_params)) != len(eta_bins):
+        print "ERROR: no. of eta bins in fit_params not same as no. of eta bins in setup"
+        return
+
+    # print to screen
+    for i, eta in enumerate(eta_bins[0:-1]):
+        print "Eta bin:", eta, "-", eta_bins[i+1]
+        for j, param in enumerate(fit_params[i]):
+            print "\tParameter:", j, "=", param
+
+
+def print_lut_file(fit_params, eta_bins, filename):
+    """
+    Take fit parameters and print to file, for use in CMSSW config file
+    """
+    # # check
+    if (1+len(fit_params)) != len(eta_bins):
+        print "ERROR: no. of eta bins in fit_params not same as no. of eta bins in setup"
+        return
+
+    with open(filename,"w") as file:
+        file.write("# put this in your py config file\n")
+        file.write("    PFCoefficients = cms.PSet(\n")
+
+        # non tau bit first
+        for i, bin in enumerate(fit_params):
+            line = "        nonTauJetCalib%i = cms.vdouble(" % i
+            line += ','.join([str("%.3f" % x) for x in fit_params[i]])
+            line += "),\n"
+            file.write(line)
+
+        # tau bit - only central region
+        for i, bin in enumerate(fit_params):
+            if eta_bins[i+1] <= 3.0:
+                line = "        tauJetCalib%i = cms.vdouble(" % i
+                line += ','.join([str("%.3f" % x) for x in fit_params[i]])
+                line += "),\n"
+                file.write(line)
+
+        file.write("    )")
+
 
 ########### MAIN ########################
 
@@ -127,11 +184,16 @@ ptBins_1 = numpy.arange(5,105,5)
 ptBins_2 = numpy.arange(100,300,10)
 ptBins = list(ptBins_1)[:]
 ptBins+=list(ptBins_2)
-etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0]
+etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0] #, 3.5, 4.0, 4.5, 5.001]
+fit_params = [] # to store all fit params
 #etaBins = [ 1.392,1.74]
 # Vs PT
 for i,eta in enumerate(etaBins[0:-1]):
     emin = eta
     emax = etaBins[i+1]
-    makeResponseCurves(inputf,output_f,ptBins,emin,emax) # 0 = pt, 1 = eta
+    makeResponseCurves(inputf,output_f,ptBins,emin,emax, fit_params ) # 0 = pt, 1 = eta
 
+
+# Make LUT
+# print_lut_screen(fit_params, etaBins)
+print_lut_file(fit_params, etaBins, "testLUT.py")
