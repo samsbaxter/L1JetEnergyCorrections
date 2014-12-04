@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    L1Trigger/L1GctInternJetToL1Jet
+// Package:    L1Trigger/L1JetEnergyCorrections
 // Class:      L1GctInternJetToL1Jet
 // 
-/**\class L1GctInternJetToL1Jet L1GctInternJetToL1Jet.cc L1Trigger/L1GctInternJetToL1Jet/plugins/L1GctInternJetToL1Jet.cc
+/**\class L1GctInternJetToL1Jet L1GctInternJetToL1Jet.cc L1Trigger/L1JetEnergyCorrections/plugins/L1GctInternJetToL1Jet.cc
 
  Description: EDProducer to turn L1GctInternJets into L1JetParticles. Output can then be passed into l1ExtraTreeProducer.
 
@@ -149,7 +149,7 @@ L1GctInternJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     L1GctInternJetDataCollection::const_iterator gctEnd = hwGctInternJetCollection->end();
     for( ; gctItr != gctEnd ; ++gctItr) {
             if (!gctItr->empty() && (gctItr->et() != 0)){
-                // cout << "Jet: " << gctItr->bx() << " : " << gctItr->rank() << " : " << gctItr->et() << " : "  << gctItr->eta() << " : " << gctItr->phi() << endl;
+                // cout << "Jet: " << gctItr->bx() << " : " << gctItr->rank() << " : " << jetScale->et(gctItr->rank()) << " : " << gctItr->et() << " : "  << gctItr->eta() << " : " << gctItr->phi() << endl;
                 gctInternJetColl->push_back(
                     L1JetParticle(gctInternJetToLorentzVector(*gctItr, *caloGeom, *jetScale),
                                   L1JetParticle::JetType::kUndefined,
@@ -172,11 +172,9 @@ L1GctInternJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
  */
 math::PtEtaPhiMLorentzVector
 L1GctInternJetToL1Jet::gctInternJetToLorentzVector(const L1GctInternJetData& gctJet,
-                                                     const L1CaloGeometry& geom,
-                                                     const L1CaloEtScale& scale) {
-    // double et = gctJet.rank() * 0.5;
-    // double et = gctJet.rank() * scale.linearLsb();
-    double et = gctJet.et() * scale.linearLsb();
+                                                   const L1CaloGeometry& geom,
+                                                   const L1CaloEtScale& scale) {
+    double et = gctJet.et() * scale.linearLsb(); // pre calibration + compression
     double eta = geom.etaBinCenter(gctJet.regionId());
     double phi = geom.emJetPhiBinCenter(gctJet.regionId());
     double mass = 0.;

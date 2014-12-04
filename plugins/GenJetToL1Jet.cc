@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    L1Trigger/GenJetToL1Jet
+// Package:    L1Trigger/L1JetEnergyCorrections
 // Class:      GenJetToL1Jet
 // 
-/**\class GenJetToL1Jet GenJetToL1Jet.cc L1Trigger/GenJetToL1Jet/plugins/GenJetToL1Jet.cc
+/**\class GenJetToL1Jet GenJetToL1Jet.cc L1Trigger/L1JetEnergyCorrections/plugins/GenJetToL1Jet.cc
 
  Description: EDProducer to turn GenJets into L1JetParticles. Can then be passed into l1ExtraTreeProducer
 
