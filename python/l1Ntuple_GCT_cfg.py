@@ -1,6 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
-# make L1 ntuples from RAW+RECO
+"""
+Make L1Ntuples from RAW, for use in L1JetEnergyCorrections
+
+Legacy GCT setup
+"""
 
 process = cms.Process("L1NTUPLE")
 
@@ -18,22 +22,10 @@ process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cf
 # process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-# process.MessageLogger = cms.Service("MessageLogger",
-#                     # suppressWarning=cms.untracked.vstring('l1ExtraTreeProducerGenAk4')
-# )
-process.MessageLogger.cerr.FwkReport.reportEvery = 200
+# process.MessageLogger.cerr.FwkReport.reportEvery = 200
 # process.MessageLogger.debugModules = cms.untracked.vstring("l1extraParticles")
 # process.MessageLogger.cout.threshold = cms.untracked.string("DEBUG")
 # process.MessageLogger.cerr.threshold = cms.untracked.string("DEBUG")
-
-
-# output file
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree.root')
-    # fileName = cms.string('L1Tree_Fall13_TTbar_PU20bx25.root')
-    # fileName = cms.string('L1Tree_Fall13_QCD_Pt80to120_1000.root')
-    # fileName = cms.string('L1Tree_Spring14_QCD_Pt-15to3000.root')
-)
 
 # L1 raw to digi options
 process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(5)
@@ -66,7 +58,6 @@ process.simGctDigis.writeInternalData = cms.bool(True)
 process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
     gctInternJetSource = cms.InputTag("simGctDigis")
 )
-
 process.l1ExtraTreeProducerGctIntern = process.l1ExtraTreeProducer.clone()
 process.l1ExtraTreeProducerGctIntern.cenJetLabel = cms.untracked.InputTag("gctInternJetToL1Jet:GctInternalJets")
 process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
@@ -81,7 +72,6 @@ process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
 process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducer.clone()
 process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk5:GenJets")
 process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
-
 
 ##############################
 # Do ak4 GenJets
@@ -99,6 +89,12 @@ process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducer.clone()
 process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
 process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
+# Testing - check GCT config
+process.load("L1TriggerConfig.GctConfigProducers.l1GctConfigDump_cfi")
+process.MessageLogger.cout.placeholder = cms.untracked.bool(False)
+process.MessageLogger.cout.threshold = cms.untracked.string('DEBUG')
+process.MessageLogger.cerr.threshold = cms.untracked.string('DEBUG')
+process.MessageLogger.debugModules = cms.untracked.vstring('l1GctConfigDump')
 
 process.p = cms.Path(
     process.RawToDigi
@@ -112,7 +108,8 @@ process.p = cms.Path(
     +process.l1ExtraTreeProducer # gctDigis in cenJet coll
     +process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
     +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
-    +process.l1ExtraTreeProducerGenAk4
+    +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
+    +process.l1GctConfigDump # for print GCT config - not needed for production normally
     # +process.l1GtTriggerMenuLite
     # +process.l1MenuTreeProducer
     # +process.l1RecoTreeProducer
@@ -121,14 +118,24 @@ process.p = cms.Path(
 
 
 
+################################
+# Job options - edit these bits
+################################
 
-# job options
+# output file
+process.TFileService = cms.Service("TFileService",
+    fileName = cms.string('L1Tree.root')
+    # fileName = cms.string('L1Tree_Fall13_TTbar_PU20bx25.root')
+    # fileName = cms.string('L1Tree_Fall13_QCD_Pt80to120_1000.root')
+    # fileName = cms.string('L1Tree_Spring14_QCD_Pt-15to3000.root')
+)
+
 # process.GlobalTag.globaltag = 'GR_R_52_V7::All'
 process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
 # readFiles = cms.untracked.vstring()
 readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
@@ -199,24 +206,24 @@ process.source = cms.Source ("PoolSource",
 #     'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/04A666AD-41A7-E311-AF99-0025905A60DE.root'
 #     ])
 
-# process.output = cms.OutputModule(
-#     "PoolOutputModule",
-#     outputCommands = cms.untracked.vstring('keep *'),
-#     # outputCommands = cms.untracked.vstring(
-#     #     'drop *',
+process.output = cms.OutputModule(
+    "PoolOutputModule",
+    outputCommands = cms.untracked.vstring('keep *'),
+    # outputCommands = cms.untracked.vstring(
+    #     'drop *',
 
-#     #     # Keep GCT jets
-#     #     'keep *_gctDigis_*_*',
-#     #     'keep *_simGctDigis_*_*',
+    #     # Keep GCT jets
+    #     'keep *_gctDigis_*_*',
+    #     'keep *_simGctDigis_*_*',
 
-#     #     # Keep GenJets
-#     #     'keep *_ak5GenJets_*_*'
-#     #     ),
-#     fileName = cms.untracked.string('SimGCTEmulator.root')
-#     )
+    #     # Keep GenJets
+    #     'keep *_ak5GenJets_*_*'
+    #     ),
+    fileName = cms.untracked.string('SimGCTEmulator.root')
+    )
 
-# process.output_step = cms.EndPath(process.output)
+process.output_step = cms.EndPath(process.output)
 
-# process.schedule = cms.Schedule(
-#     process.p, process.output_step
-#     )
+process.schedule = cms.Schedule(
+    process.p, process.output_step
+    )
