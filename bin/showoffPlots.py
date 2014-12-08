@@ -153,10 +153,13 @@ def plot_example_et_bin_response(file, etamin, etamax, ptmin, ptmax):
     c.SaveAs("calib_%s_%s.pdf" %(etamin, etamax))
 
 
-def closure(tree):
+def closure_et(tree, etamin, etamax):
+    """
+    Do closure test as fn of L1 ET
+    """
     c = ROOT.TCanvas()
     c.SetTicks()
-    fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", 20, 250)
+    fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10((x)),2)+[2])+[3]*exp(-[4]*(log10((x))-[5])*(log10((x))-[5]))", 20, 250)
     fitfcn.SetParameter(0, -0.1234)
     fitfcn.SetParameter(1, 20.75)
     fitfcn.SetParameter(2, 6.708)
@@ -171,7 +174,7 @@ def closure(tree):
     print corr_pt
     print corr_rsp
 
-    cutstr = "TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" %(0, 0.348)
+    cutstr = "TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (etamin, etamax)
 
     gr_uncorr = ROOT.TGraphErrors()
     gr_corr = ROOT.TGraphErrors()
@@ -194,10 +197,10 @@ def closure(tree):
         tree.Draw(corr_pt+">>h_corr_et_%f_%f(400,0,200)" %(ptmin, ptmax),pt_eta_cut)
         h_corr_et = ROOT.gROOT.FindObject("h_corr_et_%f_%f" %(ptmin, ptmax))
 
-        tree.Draw("1./rsp>>h_uncorr_rsp_%f_%f(50, 0, 2)" %(ptmin, ptmax), pt_eta_cut)
+        tree.Draw("1./rsp>>h_uncorr_rsp_%f_%f(500, 0, 5)" %(ptmin, ptmax), pt_eta_cut)
         h_uncorr_rsp = ROOT.gROOT.FindObject("h_uncorr_rsp_%f_%f" %(ptmin, ptmax))
 
-        tree.Draw(corr_rsp+">>h_corr_rsp_%f_%f(50,0,2)" %(ptmin, ptmax), pt_eta_cut )
+        tree.Draw(corr_rsp+">>h_corr_rsp_%f_%f(500, 0, 5)" %(ptmin, ptmax), pt_eta_cut )
         h_corr_rsp = ROOT.gROOT.FindObject("h_corr_rsp_%f_%f" %(ptmin, ptmax))
 
         if h_uncorr_et.GetEntries() > 0:
@@ -222,10 +225,39 @@ def closure(tree):
     gr_corr.GetXaxis().SetTitle(etL1_str)
     gr_corr.GetYaxis().SetTitle(rsp_str)
 
-    gr_uncorr.Draw("AP")
-    gr_corr.Draw("AP SAME")
+    mg = ROOT.TMultiGraph()
+    mg.Add(gr_uncorr)
+    mg.Add(gr_corr)
+    mg.Draw("AP")
 
-    c.SaveAs("closuretest.pdf")
+    leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
+    leg.AddEntry(gr_uncorr, "Uncorrected L1" , "p")
+    leg.AddEntry(gr_corr, "Corrected L1" , "p")
+    leg.SetFillColor(0)
+    leg.SetFillStyle(0)
+    leg.SetLineColor(0)
+    leg.SetLineStyle(0)
+    leg.SetLineWidth(2)
+    leg.Draw()
+
+    label = ROOT.TPaveText(0.1,0.91,0.4,0.96, "NDCNB")
+    label.SetFillStyle(0)
+    label.SetFillColor(0)
+    label.SetLineColor(0)
+    label.SetLineWidth(0)
+    label.SetLineStlye(0)
+    label.AddText("%.3f < |#eta^{Gen}| < %.3f" % (etamin, etamax))
+    label.Draw()
+
+    xmin = mg.GetHistogram().GetXaxis().GetXmin()  # bloody ridiculous
+    xmin = mg.GetHistogram().GetXaxis().GetXmax()
+    line = ROOT.TLine(xmin, 1, xmax, 1)
+    line.SetLineStyle(2)
+    line.SetLineWidth(2)
+    line.Draw()
+
+    mg.Draw("AP")
+    c.SaveAs("closuretest_%.3f_%.3f.pdf"%(etamin, etamax))
 
 
 def compare_fits(tree):
@@ -254,4 +286,5 @@ if __name__ == "__main__":
     # plot_response_eta_bins(treePairs)
     # plot_example_et_bin_response(inFileCalib, '0', '0.348', '84', '88')
     # plot_example_et_bin_response(inFileCalib, '3', '3.5', '84', '88')
-    closure(treePairs)
+    for i,eta in enumerate(etaBins[0:-1]):
+        closure_et(treePairs, eta, etaBins[i+1])
