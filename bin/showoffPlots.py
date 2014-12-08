@@ -9,6 +9,7 @@ Robin Aggleton
 """
 
 ROOT.TH1.SetDefaultSumw2(True)
+ROOT.gStyle.SetOptFit(0111)
 
 # etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0] #, 3.5, 4.0, 4.5, 5.001]
 etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
@@ -24,7 +25,8 @@ rsp_str = "E_{T}^{L1}/E_{T}^{Gen}"
 etaRef_str = "|#eta^{Gen}|"
 etaL1_str = "|#eta^{L1}|"
 dr_str = "#DeltaR(Gen jet - L1 jet)"
-
+etL1_str = "E_{T}^{L1}"
+etGen_str = "E_{T}^{Gen}"
 
 def getTree(inFile, treeName):
     """
@@ -151,6 +153,81 @@ def plot_example_et_bin_response(file, etamin, etamax, ptmin, ptmax):
     c.SaveAs("calib_%s_%s.pdf" %(etamin, etamax))
 
 
+def closure(tree):
+    c = ROOT.TCanvas()
+    c.SetTicks()
+    fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", 20, 250)
+    fitfcn.SetParameter(0, -0.1234)
+    fitfcn.SetParameter(1, 20.75)
+    fitfcn.SetParameter(2, 6.708)
+    fitfcn.SetParameter(3, -0.7638)
+    fitfcn.SetParameter(4, 0.01114)
+    fitfcn.SetParameter(5, -5.511)
+
+    corr_pt = str(fitfcn.GetExpFormula("p"))
+    corr_pt = corr_pt.replace("(x)","(pt)")
+    corr_rsp = "(1./rsp)*"+corr_pt
+    corr_pt = "pt*"+corr_pt
+    print corr_pt
+    print corr_rsp
+
+    cutstr = "TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" %(0, 0.348)
+
+    gr_uncorr = ROOT.TGraphErrors()
+    gr_corr = ROOT.TGraphErrors()
+    grc = 0
+
+    for i, pt in enumerate(ptBins[0:-1]):
+        ptmin = pt
+        ptmax = ptBins[i+1]
+        print "Doing bin", ptmin, "-", ptmax
+
+        ptcut = "(pt*rsp>%.3f) && (pt*rsp < %.3f)" %(ptmin, ptmax)
+        pt_eta_cut = cutstr+" && " + ptcut
+        print pt_eta_cut
+
+        tree.Draw("pt>>h_uncorr_et_%f_%f(400,0,200)" %(ptmin, ptmax),pt_eta_cut)
+        h_uncorr_et = ROOT.gROOT.FindObject("h_uncorr_et_%f_%f" %(ptmin, ptmax))
+
+        print h_uncorr_et.Integral()
+
+        tree.Draw(corr_pt+">>h_corr_et_%f_%f(400,0,200)" %(ptmin, ptmax),pt_eta_cut)
+        h_corr_et = ROOT.gROOT.FindObject("h_corr_et_%f_%f" %(ptmin, ptmax))
+
+        tree.Draw("1./rsp>>h_uncorr_rsp_%f_%f(50, 0, 2)" %(ptmin, ptmax), pt_eta_cut)
+        h_uncorr_rsp = ROOT.gROOT.FindObject("h_uncorr_rsp_%f_%f" %(ptmin, ptmax))
+
+        tree.Draw(corr_rsp+">>h_corr_rsp_%f_%f(50,0,2)" %(ptmin, ptmax), pt_eta_cut )
+        h_corr_rsp = ROOT.gROOT.FindObject("h_corr_rsp_%f_%f" %(ptmin, ptmax))
+
+        if h_uncorr_et.GetEntries() > 0:
+            print h_uncorr_et.GetMean(), h_uncorr_rsp.GetMean()
+            gr_uncorr.SetPoint(grc, h_uncorr_et.GetMean(), h_uncorr_rsp.GetMean())
+            gr_uncorr.SetPointError(grc, h_uncorr_et.GetMeanError(), h_uncorr_rsp.GetMeanError())
+        if h_corr_et.GetEntries() > 0:
+            print h_corr_et.GetMean(), h_corr_rsp.GetMean()
+            gr_corr.SetPoint(grc, h_corr_et.GetMean(), h_corr_rsp.GetMean())
+            gr_corr.SetPointError(grc, h_corr_et.GetMeanError(), h_corr_rsp.GetMeanError())
+
+        grc += 1
+
+    gr_uncorr.SetMarkerStyle(21)
+    gr_uncorr.SetMarkerColor(ROOT.kBlue)
+
+    gr_corr.SetMarkerStyle(22)
+    gr_corr.SetMarkerColor(ROOT.kRed)
+
+    gr_uncorr.GetXaxis().SetTitle(etL1_str)
+    gr_uncorr.GetYaxis().SetTitle(rsp_str)
+    gr_corr.GetXaxis().SetTitle(etL1_str)
+    gr_corr.GetYaxis().SetTitle(rsp_str)
+
+    gr_uncorr.Draw("AP")
+    gr_corr.Draw("AP SAME")
+
+    c.SaveAs("closuretest.pdf")
+
+
 def compare_fits(tree):
     """
     Plot old vs new calibration curves
@@ -175,5 +252,6 @@ if __name__ == "__main__":
     # plotResponseGeneral(treePairs)
     # plot_ET(treePairs)
     # plot_response_eta_bins(treePairs)
-    plot_example_et_bin_response(inFileCalib, '0', '0.348', '84', '88')
-    plot_example_et_bin_response(inFileCalib, '3', '3.5', '44', '48')
+    # plot_example_et_bin_response(inFileCalib, '0', '0.348', '84', '88')
+    # plot_example_et_bin_response(inFileCalib, '3', '3.5', '84', '88')
+    closure(treePairs)
