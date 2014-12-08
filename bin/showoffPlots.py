@@ -95,7 +95,7 @@ def plotResponseGeneral(tree):
 
 def plot_ET(tree):
     """
-    Plot comaprison of ET^L1 against ET^Gen
+    Plot comparison of ET^L1 against ET^Gen
     """
     c = ROOT.TCanvas()
     c.SetTicks()
@@ -112,16 +112,43 @@ def plot_ET(tree):
 
 
 def plot_response_eta_bins(tree):
+    """
+    Plot response for each eta bin
+    """
     c = ROOT.TCanvas()
     c.SetTicks()
     for i, eta in enumerate(etaBins[0:-1]):
         etamin = eta
         etamax = etaBins[i+1]
         cutstr = "TMath::Abs(eta)<%g && TMath::Abs(eta)>%g" %(etamax, etamin)
-        tree.Draw("1./rsp>>rsp_eta_%g_%g(50, 0, 2)" %(etamin, etamax), cutstr)
+        tree.Draw("1./rsp>>rsp_eta_%g_%g(50, 0, 2)" %(etamin, etamax), cutstr, "HISTE")
         rsp_eta = ROOT.gROOT.FindObject("rsp_eta_%g_%g" %(etamin, etamax))
-        rsp_eta.SetTitle(";%.3f < \#eta_{gen}| < %.3f;Events" %(etamin, etamax))
+        rsp_eta.SetTitle("%.3f < \#eta_{gen}| < %.3f;E_{T}^{L1}/E_{T}^{Gen};Events" %(etamin, etamax))
         c.SaveAs("rsp_eta_%.3f_%.3f.pdf"%(etamin, etamax))
+
+
+def plot_example_et_bin_response(file, etamin, etamax, ptmin, ptmax):
+    """
+    Plot example ETL1 for ETGen bin, and corresponding resp with fit
+    """
+    c = ROOT.TCanvas()
+    c.SetTicks()
+    print "eta_%s_%s/Histograms/L1_pt_genpt_%s_%s" %(etamin, etamax, ptmin, ptmax)
+    h_ET = file.Get("eta_%s_%s/Histograms/L1_pt_genpt_%s_%s" %(etamin, etamax, ptmin, ptmax)).Clone()
+    h_ET.Rebin(2)
+    h_ET.SetTitle("%s < \#eta_{gen}| < %s, %s < E_{T}^{Gen} < %s GeV;E_{T}^{L1} [GeV];Events" % (etamin, etamax, ptmin, ptmax))
+    h_ET.Draw("HISTE")
+    c.SaveAs("L1_pt_genpt_%s_%s_eta_%s_%s.pdf" %(ptmin, ptmax, etamin, etamax))
+
+    h_rsp = file.Get("eta_%s_%s/Histograms/Rsp_genpt_%s_%s" %(etamin, etamax, ptmin, ptmax)).Clone()
+    h_rsp.SetTitle("Response for %s < \#eta_{gen}| < %s, %s < E_{T}^{Gen} < %s GeV;E_{T}^{L1}/E_{T}^{Gen};Events" %(etamin, etamax, ptmin, ptmax))
+    h_rsp.Draw()
+    c.SaveAs("rsp_%s_%s_eta_%s_%s.pdf" % (ptmin, ptmax, etamin, etamax))
+
+    g_calib = file.Get("l1corr_eta_%s_%s" %(etamin, etamax)).Clone()
+    g_calib.SetTitle(";<E_{T}^{L1}> [GeV]; 1/<E_{T}^{L1}/E_{T}^{Gen}>")
+    g_calib.Draw("APL")
+    c.SaveAs("calib_%s_%s.pdf" %(etamin, etamax))
 
 
 def compare_fits(tree):
@@ -134,11 +161,12 @@ if __name__ == "__main__":
     ROOT.gROOT.SetBatch(True)
 
     # Get input ROOT files
-    inFilePairs = ROOT.TFile(sys.argv[1])
+    inFilePairs = ROOT.TFile(sys.argv[1], "READ")
     print sys.argv[1]
     treePairs = getTree(inFilePairs, "valid")
-    # inFileCalib = ROOT.TFile(sys.argv[2])
-    # print sys.argv[2]
+    inFileCalib = ROOT.TFile(sys.argv[2], "READ")
+    print sys.argv[2]
+
     # output_f = ROOT.TFile(sys.argv[2],"RECREATE")
     # print sys.argv[2]
     # treeCalib = getTree(inFileCalib, "valid")
@@ -146,4 +174,6 @@ if __name__ == "__main__":
     # Turn these on an off as necessary
     # plotResponseGeneral(treePairs)
     # plot_ET(treePairs)
-    plot_response_eta_bins(treePairs)
+    # plot_response_eta_bins(treePairs)
+    plot_example_et_bin_response(inFileCalib, '0', '0.348', '84', '88')
+    plot_example_et_bin_response(inFileCalib, '3', '3.5', '44', '48')
