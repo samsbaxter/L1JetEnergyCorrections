@@ -92,12 +92,13 @@ int main(int argc, char* argv[]) {
     // setup output tree to store raw variable for quick plotting/debugging
     TTree * outTree2 = new TTree("valid", "valid");
     // pt/eta/phi are for l1 jets
-    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.);
+    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp2(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.), out_etaRef(99.), out_phiRef(99.);
     outTree2->Branch("pt"   ,&out_pt ,"pt/Float_t");
     outTree2->Branch("eta"  ,&out_eta,"eta/Float_t");
     outTree2->Branch("phi"  ,&out_phi,"phi/Float_t");
     outTree2->Branch("rsp"  ,&out_rsp,"rsp/Float_t"); // response = refJet pT/ l1 jet pT
+    outTree2->Branch("rsp2"  ,&out_rsp2,"rsp2/Float_t"); // response = refJet pT/ l1 jet pT
     outTree2->Branch("dr"   ,&out_dr,"dr/Float_t");
     outTree2->Branch("deta" ,&out_deta,"deta/Float_t");
     outTree2->Branch("dphi" ,&out_dphi,"dphi/Float_t");
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]) {
     // SETUP JET MATCHER //
     ///////////////////////
     double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(250.);
-    double minL1JetPt(0.), maxL1JetPt(250.), maxJetEta(5.5);
+    double minL1JetPt(0.), maxL1JetPt(250.), maxJetEta(5);
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     matcher->printName();
 
@@ -152,6 +153,7 @@ int main(int argc, char* argv[]) {
             out_eta = it.second.Eta();
             out_phi = it.second.Phi();
             out_rsp = it.first.Et()/it.second.Et();
+            out_rsp2 = it.second.Et()/it.first.Et();
             out_dr = it.first.DeltaR(it.second);
             out_deta = it.first.Eta() - it.second.Eta();
             out_dphi = it.first.DeltaPhi(it.second);
