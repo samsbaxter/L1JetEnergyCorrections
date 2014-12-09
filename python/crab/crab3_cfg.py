@@ -12,7 +12,8 @@ config.JobType.pluginName  = 'Analysis'
 config.JobType.psetName    = 'l1Ntuple_cfg.py'
 
 config.section_("Data")
-config.Data.inputDataset = '/TT_Tune4C_13TeV-pythia8-tauola/Fall13dr-tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW'
+# config.Data.inputDataset = '/TT_Tune4C_13TeV-pythia8-tauola/Fall13dr-tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW'
+config.Data.inputDataset = '/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Spring14dr-Flat20to50_POSTLS170_V5-v1/GEN-SIM-RAW'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 100
 config.Data.publication = False
