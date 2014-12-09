@@ -1,5 +1,6 @@
 #include <iostream>
 #include <exception>
+#include <stdexcept>
 
 #include "TFile.h"
 #include "TROOT.h"
@@ -38,7 +39,7 @@ TFile* openFile(TString filename, TString mode="") {
     if (!f || !f->IsOpen()) {
         f = new TFile(filename, mode);
     } else {
-        throw "Couldn't open "+filename;
+        throw runtime_error(("Couldn't open "+filename).Data());
     }
 
     // did it actually open correctly?
@@ -46,7 +47,7 @@ TFile* openFile(TString filename, TString mode="") {
         std::cout << "Opened " + filename << " in " << mode << " mode" << std::endl;
         return f;
     } else {
-        throw "Couldn't open "+filename;
+        throw runtime_error(("Couldn't open "+filename).Data());
     }
 }
 

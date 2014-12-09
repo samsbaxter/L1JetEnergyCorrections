@@ -238,25 +238,24 @@ def closure_et(tree, etamin, etamax):
     leg.SetLineColor(0)
     leg.SetLineStyle(0)
     leg.SetLineWidth(2)
-    leg.Draw()
+    leg.Draw("SAME")
 
     label = ROOT.TPaveText(0.1,0.91,0.4,0.96, "NDCNB")
     label.SetFillStyle(0)
     label.SetFillColor(0)
     label.SetLineColor(0)
     label.SetLineWidth(0)
-    label.SetLineStlye(0)
+    label.SetLineStyle(0)
     label.AddText("%.3f < |#eta^{Gen}| < %.3f" % (etamin, etamax))
-    label.Draw()
+    label.Draw("SAME")
 
     xmin = mg.GetHistogram().GetXaxis().GetXmin()  # bloody ridiculous
-    xmin = mg.GetHistogram().GetXaxis().GetXmax()
+    xmax = mg.GetHistogram().GetXaxis().GetXmax()
     line = ROOT.TLine(xmin, 1, xmax, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
-    line.Draw()
+    line.Draw("SAME")
 
-    mg.Draw("AP")
     c.SaveAs("closuretest_%.3f_%.3f.pdf"%(etamin, etamax))
 
 
