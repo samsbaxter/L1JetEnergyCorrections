@@ -8,7 +8,7 @@ This applies to:
 - Stage 1 *TODO*
 - Stage 2 *TODO*
 
-It is an attempt to unify previous fragments of code lying around, in a *generic* way.
+It is an attempt to unify previous fragments of code lying around in a generic way.
 
 ## Installation
 
@@ -21,7 +21,7 @@ git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
 # This package
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
 cd L1Trigger/L1JetEnergyCorrections/interface
-rootcint -f dictionary.cpp -c TLorentzVector.h ../../../L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
+rootcint -f dictionary.cpp -c TLorentzVector.h $CMSSW_BASE/src/L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
 mv dictionary.cpp ../src/
 cd $CMSSW_BASE/src
 # Build it all
