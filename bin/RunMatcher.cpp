@@ -94,16 +94,16 @@ int main(int argc, char* argv[]) {
     // pt/eta/phi are for l1 jets
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp2(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.), out_etaRef(99.), out_phiRef(99.);
-    outTree2->Branch("pt"   ,&out_pt ,"pt/Float_t");
-    outTree2->Branch("eta"  ,&out_eta,"eta/Float_t");
-    outTree2->Branch("phi"  ,&out_phi,"phi/Float_t");
-    outTree2->Branch("rsp"  ,&out_rsp,"rsp/Float_t"); // response = refJet pT/ l1 jet pT
-    outTree2->Branch("rsp2"  ,&out_rsp2,"rsp2/Float_t"); // response = refJet pT/ l1 jet pT
-    outTree2->Branch("dr"   ,&out_dr,"dr/Float_t");
-    outTree2->Branch("deta" ,&out_deta,"deta/Float_t");
-    outTree2->Branch("dphi" ,&out_dphi,"dphi/Float_t");
-    outTree2->Branch("etaRef" ,&out_etaRef,"etaRef/Float_t");
-    outTree2->Branch("phiRef" ,&out_phiRef,"phiRef/Float_t");
+    outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
+    outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
+    outTree2->Branch("phi",    &out_phi,    "phi/Float_t");
+    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree2->Branch("rsp2",   &out_rsp2,   "rsp2/Float_t"); // response = refJet pT/ l1 jet pT
+    outTree2->Branch("dr",     &out_dr,     "dr/Float_t");
+    outTree2->Branch("deta",   &out_deta,   "deta/Float_t");
+    outTree2->Branch("dphi",   &out_dphi,   "dphi/Float_t");
+    outTree2->Branch("etaRef", &out_etaRef, "etaRef/Float_t");
+    outTree2->Branch("phiRef", &out_phiRef, "phiRef/Float_t");
 
     // check # events in boths trees is same
     // - if not then throw exception?
@@ -133,6 +133,9 @@ int main(int argc, char* argv[]) {
 
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry); // jentry is the entry # in the current Tree
         if (jentry < 0) break;
+        if (iEntry % 10000 == 0) {
+            cout << "Entry: " << iEntry << endl;
+        }
         refJetExtraTree.fChain->GetEntry(iEntry);
         l1JetExtraTree.fChain->GetEntry(iEntry);
 
@@ -140,14 +143,15 @@ int main(int argc, char* argv[]) {
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
         std::vector<TLorentzVector> l1Jets  = l1JetExtraTree.makeTLorentzVectors(l1JetBranches);
 
-        // Pass jets to matcher, do matching, store output in tree
+        // Pass jets to matcher, do matching
         matchResults.clear();
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
         matchResults = matcher->getMatchingPairs();
         // matcher->printMatches();
 
-        // store L1 & ref jet variables
+        // store L1 & ref jet variables in tree
+        // .first = ref, .second = l1
         for (const auto &it: matchResults) {
             out_pt = it.second.Et();
             out_eta = it.second.Eta();
