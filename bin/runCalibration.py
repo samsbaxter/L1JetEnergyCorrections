@@ -110,16 +110,21 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
             fitStatus = int(hc.Fit("gaus", "Q", "R", hc.GetMean() - 1. * hc.GetRMS(), hc.GetMean() + 1. * hc.GetRMS()))
         output_f_hists.WriteTObject(hc)
 
-        if not hpt.GetEntries() > 0:
-            continue
-        if not hc.GetEntries() > 0:
+        if hpt.GetEntries() < 0 or hc.GetEntries() < 0:
             continue
 
         if fitStatus < 0:
             continue
+
         mean = hc.GetFunction("gaus").GetParameter(1)
         err = hc.GetFunction("gaus").GetParError(1)
-        if not err > 0:
+        # check if fit mean is close to raw mean - if not use raw mean cos
+        # we have a bad fit
+        if abs(mean - hc.GetMean()) > (hc.GetMean()*0.2):
+            print "Fit mean differs to Raw mean:", mean, hc.GetMean(), bin1, bin2, absetamin, absetamax
+            mean = hc.GetMean()
+            # err = hc.GetRMS()
+        if err < 0:
             continue
 
         print ptR, "-", ptBins[i + 1], hpt.GetMean()
