@@ -200,36 +200,30 @@ def print_lut_file(fit_params, eta_bins, filename):
 
 ########### MAIN ########################
 
-#inputf = ROOT.TFile('~/store/l1jec_upgrade/phase2calib/OutputJetsQcdHighPtE.root')
-inputf = ROOT.TFile(sys.argv[1])
-print sys.argv[1]
-output_f = ROOT.TFile(sys.argv[2], "RECREATE")
-print sys.argv[2]
-#input_ttbar = ROOT.TFile('~/store/l1jec_upgrade/phase2calib/OutputJetsTtbarHighPtEta2p5.root')
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print "Usage:"
+        print "python runCalibration <inputfile> <outputfile>"
+        exit(1)
 
-#ptBins  = [10,18,24,32,40,48,56,70,80,90,100,120,140,160,180,200,220,240,260,280,300,325,350]
-# ptBins_1 = numpy.arange(5,105,5)
-# ptBins_2 = numpy.arange(100,300,10)
-# ptBins = list(ptBins_1)[:]
-ptBins_1 = [14, 18, 22, 24]
-ptBins_2 = numpy.arange(28, 248, 4)
-ptBins = ptBins_1[:]
+    inputf = ROOT.TFile(sys.argv[1])
+    output_f = ROOT.TFile(sys.argv[2], "RECREATE")
+    print sys.argv[1]
+    print sys.argv[2]
 
-ptBins += list(ptBins_2)
-# , 3.5, 4.0, 4.5, 5.001]
-etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
-fit_params = []  # to store all fit params
-#etaBins = [ 1.392,1.74]
-# Vs PT
-for i,eta in enumerate(etaBins[0:-1]):
-    emin = eta
-    emax = etaBins[i+1]
-# emin = 0.0
-# emax = 0.348
-# 0 = pt, 1 = eta
-    makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
+    # Setup pt, eta bins for doing calibrations
+    ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
+    etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
 
+    # Do plots & fitting to get calib consts
+    fit_params = []
+    for i,eta in enumerate(etaBins[0:-1]):
+        emin = eta
+        emax = etaBins[i+1]
+        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
 
-# Make LUT
-# print_lut_screen(fit_params, etaBins)
-print_lut_file(fit_params, etaBins, "testLUT_new.py")
+    # Make LUT
+    # print_lut_screen(fit_params, etaBins)
+    dname, fname = os.path.split(sys.argv[2])
+    lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
+    print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
