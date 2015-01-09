@@ -13,9 +13,12 @@ ROOT.gStyle.SetOptFit(1111)
 
 #what = "AllJets"
 
+fitmin = 30.
+fitmax = 250.
+
 # definition of the response function to fit
 # fitfcn = ROOT.TF1("fitfcn","[0] + [1]/(TMath::Power(TMath::Log10(x),2) + [2]) + [3]*TMath::Exp(-1.*[4]*TMath::Power(TMath::Log10(x)-[5],2))", 20, 250)
-fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", 30, 250)
+fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", fitmin, fitmax)
 fitfcn.SetParameter(0, 0.5)
 fitfcn.SetParameter(1, 27)
 fitfcn.SetParameter(2, 8.78)
@@ -127,7 +130,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
     thisfit = fitfcn.Clone()
     thisfit.SetName(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-    gr.Fit(thisfit.GetName(), "", "R+", 20, 250)
+    gr.Fit(thisfit.GetName(), "", "R+", fitmin, fitmax)
     gr.SetName('l1corr_eta_%g_%g' % (absetamin, absetamax))
     gr.GetXaxis().SetTitle("<p_{T}^{L1}>")
     gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
