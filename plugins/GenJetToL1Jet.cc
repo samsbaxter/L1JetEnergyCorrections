@@ -130,7 +130,7 @@ GenJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     reco::GenJetCollection::const_iterator jetItr = hwGenJetCollection->begin();
     reco::GenJetCollection::const_iterator jetEnd = hwGenJetCollection->end();
     for( ; jetItr != jetEnd ; ++jetItr) {
-        // cout << "Jet: " << jetItr->et() << " : "  << jetItr->eta() << " : " << jetItr->phi() << endl;
+        // cout << "GenJet: " << jetItr->et() << " : "  << jetItr->eta() << " : " << jetItr->phi() << endl;
         genJetColl->push_back(L1JetParticle(jetItr->p4(), L1JetParticle::JetType::kUndefined, 0));
     }
 

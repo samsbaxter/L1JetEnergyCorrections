@@ -1,3 +1,4 @@
+<flags CXXFLAGS="-O2 -g -DDEBUG -Wno-error=unused-variable"/>
 <use name="L1Trigger/L1JetEnergyCorrections"/>
 <library   file="*.cc" name="L1TriggerL1JetEnergyCorrectionsPlugins">
   <use name="root"/>
