@@ -62,6 +62,9 @@ def open_root_file(filename):
 
 
 def check_dir_exists(d):
+    """
+    Check directory exists. If not, make it.
+    """
     opath = os.path.abspath(d)
     if not os.path.isdir(opath):
         os.makedirs(opath)
@@ -83,28 +86,24 @@ def make_four_slide(titles, plotnames, slidetitle="Correction values"):
     return slide
 
 
-def plot_to_tex(f, plotname, texname):
+def plot_to_file(f, plotname, filename):
     """
     f is a TFile
+    filename can be a list of filenames (e.g. for doing .tex, .pdf, .png)
     """
     r.gStyle.SetPaperSize(10.,10.)
-    p = f.Get(plotname)
-    # p.Draw()
+    p = r.TGraphErrors(f.Get(plotname).Clone())
+    p.GetYaxis().SetTitle("1/< p_{T}^{L1}/p_{T}^{Ref} >")
+    p.GetXaxis().SetTitle("<p_{T}^{L1}> [GeV]")
     p.SetMaximum(1.2)
     p.SetMinimum(0.3)
+    fit = r.TF1(p.GetListOfFunctions().At(0))
+    if fit:
+        print "remove fit"
+        p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
     p.Draw()
-    r.gPad.Print(texname)
-    r.gPad.Clear()
-
-
-def plot_to_pdf(f, plotname, pdfname):
-    """
-    f is a TFile
-    """
-    r.gStyle.SetPaperSize(10.,10.)
-    p = f.Get(plotname)
-    p.Draw()
-    r.gPad.SaveAs(pdfname)
+    for f in filename:
+        r.gPad.Print(f)
     r.gPad.Clear()
 
 
@@ -148,8 +147,7 @@ def plot_corr_results(in_name=""):
             emin = eta
             emax = etaBins[i+1]
             name = "l1corr_eta_%g_%g" % (emin, emax)
-            plot_to_tex(input_file, "l1corr_eta_%g_%g" % (emin, emax), odir+name+".tex")
-            plot_to_pdf(input_file, "l1corr_eta_%g_%g" % (emin, emax), odir+name+".pdf")
+            plot_to_file(input_file, "l1corr_eta_%g_%g" % (emin, emax), [odir+name+".tex", odir+name+".pdf"])
             titles.append("$%g <  |\eta| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
             print i
@@ -157,8 +155,8 @@ def plot_corr_results(in_name=""):
             print plotnames
             if (((i+1) % 4 == 0) and (i != 0)) or (i == len(etaBins)-2):
                 print "Writing", emin, emax
-                slidetitle = "Correction value, $0 < p_{T}^{L1} < 500~\\textrm{GeV}$, $14 < p_{T}^{Gen} < 500~\\textrm{GeV}$"
-                slidetitle = "Correction value"
+                slidetitle = "Correction value, $0 < p_{T}^{L1} < 500~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 500~\\mathrm{GeV}$"
+                # slidetitle = "Correction value"
                 slides.write(make_four_slide(titles, plotnames, slidetitle))
                 titles = []
                 plotnames = []
@@ -179,7 +177,7 @@ def plot_corr_results(in_name=""):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-I", "--input", help="input ROOT filename")
+    parser.add_argument("input", help="input ROOT filename")
     args = parser.parse_args()
 
     plot_corr_results(in_name=args.input)
