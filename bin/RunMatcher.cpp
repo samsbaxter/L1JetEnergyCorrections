@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
     outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
     outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
     outTree2->Branch("phi",    &out_phi,    "phi/Float_t");
-    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree2->Branch("rsp2",   &out_rsp2,   "rsp2/Float_t"); // response = refJet pT/ l1 jet pT
+    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = refJet pT/ l1 jet pT (inverted definition)
+    outTree2->Branch("rsp2",   &out_rsp2,   "rsp2/Float_t"); // response = l1 pT/ ref jet pT
     outTree2->Branch("dr",     &out_dr,     "dr/Float_t");
     outTree2->Branch("deta",   &out_deta,   "deta/Float_t");
     outTree2->Branch("dphi",   &out_dphi,   "dphi/Float_t");
@@ -120,8 +120,8 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // SETUP JET MATCHER //
     ///////////////////////
-    double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(250.);
-    double minL1JetPt(0.), maxL1JetPt(250.), maxJetEta(5);
+    double maxDeltaR(0.7), minRefJetPt(30.), maxRefJetPt(500.);
+    double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     matcher->printName();
 
