@@ -80,6 +80,10 @@ int main(int argc, char* argv[]) {
     ////////////////////////
 
     // setup output file to store results
+    // check that we're not overwriting the input file!
+    if (opts.outputFilename() == opts.inputFilename()) {
+        throw std::runtime_error("Cannot use input filename as output filename!");
+    }
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
 
     // setup output tree to store matched pairs (keep all info)
