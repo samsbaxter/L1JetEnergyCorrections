@@ -4,6 +4,7 @@ import array
 import numpy
 from pprint import pprint
 from itertools import izip
+import os
 
 # ORIGNALLY BY NICK WARDLE
 
@@ -13,7 +14,7 @@ ROOT.gStyle.SetOptFit(1111)
 
 #what = "AllJets"
 
-fitmin = 30.
+fitmin = 100.
 fitmax = 250.
 
 # definition of the response function to fit
@@ -88,6 +89,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
     gr = ROOT.TGraphErrors()
     grc = 0
+    max_pt = 0
     for i, ptR in enumerate(ptBins[0:-1]):
 
         bin1 = binindeces[i][0]  # h2d_calib.GetXaxis().FindBin(ptR)
@@ -129,13 +131,15 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
         print ptR, "-", ptBins[i + 1], hpt.GetMean()
 
+        max_pt = hpt.GetMean() if hpt.GetMean() > max_pt else max_pt
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
         grc += 1
 
     thisfit = fitfcn.Clone()
     thisfit.SetName(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-    gr.Fit(thisfit.GetName(), "", "R+", fitmin, fitmax)
+    print "Fitting", fitmin, max_pt
+    gr.Fit(thisfit.GetName(), "", "R+", fitmin, max_pt)
     gr.SetName('l1corr_eta_%g_%g' % (absetamin, absetamax))
     gr.GetXaxis().SetTitle("<p_{T}^{L1}>")
     gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
@@ -212,7 +216,9 @@ if __name__ == "__main__":
     print sys.argv[2]
 
     # Setup pt, eta bins for doing calibrations
-    ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
+    ptBins = list(numpy.arange(14, 254, 4))
+    # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
+    # ptBins = list(numpy.concatenate((numpy.arange(14, 218, 4), numpy.arange(218, 266, 12)))) # slightly odd binning here - why?
     etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
 
     # Do plots & fitting to get calib consts
@@ -223,7 +229,7 @@ if __name__ == "__main__":
         makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
 
     # Make LUT
-    # print_lut_screen(fit_params, etaBins)
+    print_lut_screen(fit_params, etaBins)
     dname, fname = os.path.split(sys.argv[2])
     lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
     print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
