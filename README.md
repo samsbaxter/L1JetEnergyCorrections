@@ -12,10 +12,12 @@ It is an attempt to unify previous fragments of code lying around in a generic w
 
 ## Installation
 
-First make sure you have a copy of CMSSW (I'm using CMSSW_7_2_0_pre7). Then in `CMSSW_X_Y_Z/src`:
-
 ```shell
+cmsrel CMSSW_7_3_0
+cd CMSSW_7_3_0/src
 cmsenv
+# Stage 1 emulator - do this first
+git cms-addpkg L1Trigger/L1TCalorimeter
 # L1Ntuples package - see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1TriggerDPGNtupleProduction
 git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
 # This package
