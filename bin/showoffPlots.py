@@ -17,6 +17,8 @@ ptBins_1 = [14,18,22,24]
 ptBins_2 = numpy.arange(28,120,4)
 ptBins = ptBins_1[:]
 ptBins+=list(ptBins_2)
+ptBins = list(numpy.arange(14, 254, 4))
+
 
 # Some common strings
 # Yes globals bad, yada yada
@@ -159,13 +161,20 @@ def closure_et(tree, etamin, etamax):
     """
     c = ROOT.TCanvas()
     c.SetTicks()
-    fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10((x)),2)+[2])+[3]*exp(-[4]*(log10((x))-[5])*(log10((x))-[5]))", 20, 250)
-    fitfcn.SetParameter(0, -0.1234)
-    fitfcn.SetParameter(1, 20.75)
-    fitfcn.SetParameter(2, 6.708)
-    fitfcn.SetParameter(3, -0.7638)
-    fitfcn.SetParameter(4, 0.01114)
-    fitfcn.SetParameter(5, -5.511)
+    fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10((x)),2)+[2])+[3]*exp(-[4]*(log10((x))-[5])*(log10((x))-[5]))", 20, 500)
+    # fitfcn.SetParameter(0, -0.1234)
+    # fitfcn.SetParameter(1, 20.75)
+    # fitfcn.SetParameter(2, 6.708)
+    # fitfcn.SetParameter(3, -0.7638)
+    # fitfcn.SetParameter(4, 0.01114)
+    # fitfcn.SetParameter(5, -5.511)
+
+    fitfcn.SetParameter(0, 0.8357)
+    fitfcn.SetParameter(1, -0.01692)
+    fitfcn.SetParameter(2, -0.9205)
+    fitfcn.SetParameter(3, -15.55)
+    fitfcn.SetParameter(4, 0.01014)
+    fitfcn.SetParameter(5, -24.13)
 
     corr_pt = str(fitfcn.GetExpFormula("p"))
     corr_pt = corr_pt.replace("(x)","(pt)")
@@ -283,7 +292,9 @@ if __name__ == "__main__":
     # plotResponseGeneral(treePairs)
     # plot_ET(treePairs)
     # plot_response_eta_bins(treePairs)
-    # plot_example_et_bin_response(inFileCalib, '0', '0.348', '84', '88')
-    # plot_example_et_bin_response(inFileCalib, '3', '3.5', '84', '88')
-    for i,eta in enumerate(etaBins[0:-1]):
-        closure_et(treePairs, eta, etaBins[i+1])
+    # plot_example_et_bin_response(inFileCalib, '0', '0.348', '82', '86')
+    plot_example_et_bin_response(inFileCalib, '0.348', '0.695', '82', '86')
+    # plot_example_et_bin_response(inFileCalib, '3', '3.5', '82', '86')
+    # for i,eta in enumerate(etaBins[0:-1]):
+    closure_et(treePairs, etaBins[1], etaBins[2])
+    # closure_et(treePairs, eta, etaBins[i+1])
