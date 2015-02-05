@@ -5,7 +5,7 @@ __tl;dr__: The code in here calculates corrections for jets from the Level 1 tri
 This applies to:
 
 - Legay GCT
-- Stage 1 *TODO*
+- Stage 1
 - Stage 2 *TODO*
 
 It is an attempt to unify previous fragments of code lying around in a generic way.
@@ -23,8 +23,9 @@ git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
 # This package
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
 cd L1Trigger/L1JetEnergyCorrections/interface
-rootcint -f dictionary.cpp -c TLorentzVector.h $CMSSW_BASE/src/L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
-mv dictionary.cpp ../src/
+# For custom classes in TTree branches
+#rootcint -f dictionary.cpp -c TLorentzVector.h $CMSSW_BASE/src/L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h LinkDef.h
+#mv dictionary.cpp ../src/
 cd $CMSSW_BASE/src
 # Build it all
 scram b -j9
@@ -68,6 +69,7 @@ This is done in `bin/runCalibration.py`. In `/bin` do: `python runCalibration.py
 
 There is also a script, [showoffPlots.py](bin/showoffPlots.py) that takes the ROOT files and makes select plots, with nice labels, etc, for use in presentations, etc. It's a bit ad-hoc.
 
+There's another script, [calibration_results.py](bin/calibration_results.py), that takes the ROOT file output by `runCalibration.py` and turns it into a couple of PDF presentations with all the plots for all bins. One will have all the correction values and fits, and one will have the individual pt & response plots for each eta and pt bin.
 
 ## Editing
 

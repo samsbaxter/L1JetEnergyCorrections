@@ -32,7 +32,7 @@ namespace fs = boost::filesystem;
 //
 JetDrawer::JetDrawer(std::vector<TLorentzVector> refJets,
                      std::vector<TLorentzVector> l1Jets,
-                     std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
+                     std::vector<MatchedPair> matchedJets,
                      TString labelText):
     refJets_(refJets),
     l1Jets_(l1Jets),
@@ -122,10 +122,10 @@ TMultiGraph * JetDrawer::makeGraph() {
         l1Phi.push_back(l1_it.Phi());
     }
     for (const auto &match_it: matchedJets_) {
-        matchEta.push_back(match_it.first.Eta());
-        matchPhi.push_back(match_it.first.Phi());
-        matchEta.push_back(match_it.second.Eta());
-        matchPhi.push_back(match_it.second.Phi());
+        matchEta.push_back(match_it.refJet().Eta());
+        matchPhi.push_back(match_it.refJet().Phi());
+        matchEta.push_back(match_it.l1Jet().Eta());
+        matchPhi.push_back(match_it.l1Jet().Phi());
     }
 
     refJetGraph_ = new TGraph(refEta.size(), &refEta[0], &refPhi[0]);

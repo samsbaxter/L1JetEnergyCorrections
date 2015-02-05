@@ -4,7 +4,7 @@
 // Class  :     DeltaR_Matcher
 //
 // Implementation:
-//     [Notes on implementation]
+//     For more comments, see header file.
 //
 // Original Author:  Robin Cameron Aggleton
 //         Created:  Wed, 12 Nov 2014 21:21:28 GMT
@@ -100,7 +100,7 @@ bool DeltaR_Matcher::checkL1Jet(const TLorentzVector& jet)
 }
 
 
-std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchingPairs()
+std::vector<MatchedPair> DeltaR_Matcher::getMatchingPairs()
 {
     matchedJets_.clear();
 
@@ -114,7 +114,7 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
 
     // TODO: throw exception if no vectors?
     // TODO: do I need to worry about this being deleted at end of mathod?
-    std::vector<std::pair<TLorentzVector, TLorentzVector>> matchedJets; // to hold matching pairs
+    std::vector<MatchedPair> matchedJets; // to hold matching pairs
     for (const auto &l1_it: l1Jets_)
     {
         // store all matching ref jets & their deltaR for this l1 jet
@@ -140,7 +140,8 @@ std::vector<std::pair<TLorentzVector,TLorentzVector>> DeltaR_Matcher::getMatchin
                     boost::bind(&std::pair<TLorentzVector*, double>::second, _1) <
                     boost::bind(&std::pair<TLorentzVector*, double>::second, _2));
             }
-            matchedJets.push_back(std::make_pair(*(possibleMatches[0].first), l1_it));
+            MatchedPair m(*(possibleMatches[0].first), l1_it);
+            matchedJets.push_back(m);
             // remove sucessfully matched refJet from vector of possible matches so it can't be used again
             // uses Erase-Remove idiom: https://en.wikipedia.org/wiki/Erase-remove_idiom
             refJetPtrs.erase(remove(refJetPtrs.begin(), refJetPtrs.end(), possibleMatches[0].first), refJetPtrs.end());

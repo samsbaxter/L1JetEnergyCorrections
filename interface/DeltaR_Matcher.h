@@ -14,7 +14,7 @@
     DeltaR_Matcher m;
     m->setRefJets(myRefJets);
     m->setL1Jets(myL1Jets);
-    vector<pair<TLorentzVector,TLorentzVector>> results = m.getMatchingPairs();
+    vector<MatchedPair> results = m.getMatchingPairs();
 */
 //
 // Original Author:  Robin Cameron Aggleton
@@ -133,10 +133,9 @@ public:
      * in matching, since we remove a refJet from potential matches once matched
      * to a L1 jet.
      *
-     * @return Returns a vector of std::pair of matched jets.
-     * pair.first = reference jet, pair.second = L1 jet
+     * @return Returns a vector of of matched jets, held in MatchedPair object.
      */
-    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> getMatchingPairs() override;
+    virtual std::vector<MatchedPair> getMatchingPairs() override;
 
     /**
      * @brief Dummy function to print out basic details.

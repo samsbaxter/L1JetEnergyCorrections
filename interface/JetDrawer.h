@@ -32,7 +32,7 @@
 #include "TCanvas.h"
 #include "TPaveText.h"
 #include "TText.h"
-
+#include "MatchedPair.h"
 /**
  * @brief Class to draw reference jets, L1 jets, & matching pairs on a plot.
  * Useful for debugging/checking matching works correctly.
@@ -50,7 +50,7 @@ class JetDrawer
          */
         JetDrawer(std::vector<TLorentzVector> refJets,
                   std::vector<TLorentzVector> l1Jets,
-                  std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets,
+                  std::vector<MatchedPair> matchedJets,
                   TString labelText="");
 
         virtual ~JetDrawer();
@@ -139,7 +139,7 @@ class JetDrawer
         // ---------- member data --------------------------------
         const std::vector<TLorentzVector> refJets_;
         const std::vector<TLorentzVector> l1Jets_;
-        const std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_;
+        const std::vector<MatchedPair> matchedJets_;
         TMultiGraph * graph_;
         TGraph * refJetGraph_, * l1JetGraph_, * matchedJetGraph_;
         TLegend * legend_;

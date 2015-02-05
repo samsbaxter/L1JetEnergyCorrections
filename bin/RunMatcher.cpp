@@ -87,11 +87,12 @@ int main(int argc, char* argv[]) {
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
 
     // setup output tree to store matched pairs (keep all info)
-    TString outTreeName = TString::Format("MatchedPairs_%s_%s",
-        refJetSuffix.Data(), l1JetSuffix.Data());
-    TTree * outTree = new TTree(outTreeName, outTreeName);
-    std::vector<std::pair<TLorentzVector, TLorentzVector>> matchResults; // holds results from one event
-    outTree->Branch("MatchedPairs", &matchResults);
+    // DON'T USE FOR NOW - HARD TO COMPILE- need to fix LinkDef.h
+    // TString outTreeName = TString::Format("MatchedPairs_%s_%s",
+        // refJetSuffix.Data(), l1JetSuffix.Data());
+    // TTree * outTree = new TTree(outTreeName, outTreeName);
+    std::vector<MatchedPair> matchResults; // holds results from one event
+    // outTree->Branch("MatchedPairs", &matchResults);
 
     // setup output tree to store raw variable for quick plotting/debugging
     TTree * outTree2 = new TTree("valid", "valid");
@@ -155,18 +156,17 @@ int main(int argc, char* argv[]) {
         // matcher->printMatches();
 
         // store L1 & ref jet variables in tree
-        // .first = ref, .second = l1
         for (const auto &it: matchResults) {
-            out_pt = it.second.Et();
-            out_eta = it.second.Eta();
-            out_phi = it.second.Phi();
-            out_rsp = it.first.Et()/it.second.Et();
-            out_rsp2 = it.second.Et()/it.first.Et();
-            out_dr = it.first.DeltaR(it.second);
-            out_deta = it.first.Eta() - it.second.Eta();
-            out_dphi = it.first.DeltaPhi(it.second);
-            out_etaRef = it.first.Eta();
-            out_phiRef = it.first.Phi();
+            out_pt = it.l1Jet().Et();
+            out_eta = it.l1Jet().Eta();
+            out_phi = it.l1Jet().Phi();
+            out_rsp = it.refJet().Et()/it.l1Jet().Et();
+            out_rsp2 = it.l1Jet().Et()/it.refJet().Et();
+            out_dr = it.refJet().DeltaR(it.l1Jet());
+            out_deta = it.refJet().Eta() - it.l1Jet().Eta();
+            out_dphi = it.refJet().DeltaPhi(it.l1Jet());
+            out_etaRef = it.refJet().Eta();
+            out_phiRef = it.refJet().Phi();
             outTree2->Fill();
         }
 
@@ -185,11 +185,11 @@ int main(int argc, char* argv[]) {
             drawer.drawAndSave(pdfname);
         }
 
-        outTree->Fill();
+        // outTree->Fill();
     }
 
     // save tree to new file and cleanup
-    outTree->Write("", TObject::kOverwrite);
+    // outTree->Write("", TObject::kOverwrite);
     outTree2->Write("", TObject::kOverwrite);
 
     // cleanup

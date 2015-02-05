@@ -23,6 +23,7 @@
 #include "TGraph.h"
 #include "TMultiGraph.h"
 
+#include "MatchedPair.h"
 /**
  * @brief Base class that defines interface for all Matcher implementations.
  * @details A "Matcher" takes in 2 collections: one reference jet collection, and
@@ -53,10 +54,9 @@ public:
     /**
      * @brief Produce pairs of L1 jets matched to reference jets based on some criteria.
      * @details Details of how matching is done will be provided by derived classes.
-     * @return Returns a vector of std::pair of matched jets, where
-     * pair.first = reference jet, pair.second = L1 jet
+     * @return Returns a vector of MatchedPair objects, each hold matching ref & L1 jet.
      */
-    virtual std::vector<std::pair<TLorentzVector,TLorentzVector>> getMatchingPairs() = 0;
+    virtual std::vector<MatchedPair> getMatchingPairs() = 0;
 
     /**
      * @brief Access ref jet collection used in matching process
@@ -79,14 +79,14 @@ public:
     virtual void printMatches() const {
         std::cout << "Matches:" << std::endl;
         if (matchedJets_.size() != 0) {
-            for (auto &it: matchedJets_) { std::cout << "\nrefjet: "; it.first.Print(); std::cout << "l1jet: "; it.second.Print();}
+            for (auto &it: matchedJets_) { std::cout << "\nrefjet: "; it.refJet().Print(); std::cout << "l1jet: "; it.l1Jet().Print();}
         } else { std::cout << "<NONE>" << std::endl; };
     };
 
 protected:
     std::vector<TLorentzVector> refJets_; //!< to store reference jet collection
     std::vector<TLorentzVector> l1Jets_; //!< to store L1 jet collection
-    std::vector<std::pair<TLorentzVector,TLorentzVector>> matchedJets_; //!< to store matches
+    std::vector<MatchedPair> matchedJets_; //!< to store matches
 };
 
 #endif /* L1JetEnergyCorrections_Matcher_h */

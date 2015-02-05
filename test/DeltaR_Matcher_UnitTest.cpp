@@ -55,7 +55,7 @@ private:
     std::vector<TLorentzVector> refJets;
     std::vector<TLorentzVector> L1Jets;
     DeltaR_Matcher * matcher;
-    std::vector<std::pair<TLorentzVector, TLorentzVector>> pairs;
+    std::vector<MatchedPair> pairs;
 };
 
 // CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( DeltaR_Matcher_UnitTest, "DeltaR_Matcher_UnitTest" );
@@ -107,14 +107,14 @@ void DeltaR_Matcher_UnitTest::runSimpleMatch() {
         matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 4 );
-    CPPUNIT_ASSERT( pairs[0].first == ref_1 );
-    CPPUNIT_ASSERT( pairs[0].second == l1_1 );
-    CPPUNIT_ASSERT( pairs[1].first == ref_2 );
-    CPPUNIT_ASSERT( pairs[1].second == l1_2 );
-    CPPUNIT_ASSERT( pairs[2].first == ref_3 );
-    CPPUNIT_ASSERT( pairs[2].second == l1_3 );
-    CPPUNIT_ASSERT( pairs[3].first == ref_4 );
-    CPPUNIT_ASSERT( pairs[3].second == l1_4 );
+    CPPUNIT_ASSERT( pairs[0].refJet() == ref_1 );
+    CPPUNIT_ASSERT( pairs[0].l1Jet() == l1_1 );
+    CPPUNIT_ASSERT( pairs[1].refJet() == ref_2 );
+    CPPUNIT_ASSERT( pairs[1].l1Jet() == l1_2 );
+    CPPUNIT_ASSERT( pairs[2].refJet() == ref_3 );
+    CPPUNIT_ASSERT( pairs[2].l1Jet() == l1_3 );
+    CPPUNIT_ASSERT( pairs[3].refJet() == ref_4 );
+    CPPUNIT_ASSERT( pairs[3].l1Jet() == l1_4 );
 
 }
 
@@ -227,8 +227,8 @@ void DeltaR_Matcher_UnitTest::checkPtOrdering() {
         matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 1 );
-    CPPUNIT_ASSERT( pairs.at(0).first == ref_1 );
-    CPPUNIT_ASSERT( pairs.at(0).second == l1_1 );
+    CPPUNIT_ASSERT( pairs.at(0).refJet() == ref_1 );
+    CPPUNIT_ASSERT( pairs.at(0).l1Jet() == l1_1 );
 }
 
 
@@ -256,10 +256,10 @@ void DeltaR_Matcher_UnitTest::checkRefJetRemoval() {
         matcher->printMatches();
     }
     CPPUNIT_ASSERT( pairs.size() == 2 );
-    CPPUNIT_ASSERT( pairs.at(0).first == ref_1 );
-    CPPUNIT_ASSERT( pairs.at(0).second == l1_1 );
-    CPPUNIT_ASSERT( pairs.at(1).first == ref_2 );
-    CPPUNIT_ASSERT( pairs.at(1).second == l1_2 );
+    CPPUNIT_ASSERT( pairs.at(0).refJet() == ref_1 );
+    CPPUNIT_ASSERT( pairs.at(0).l1Jet() == l1_1 );
+    CPPUNIT_ASSERT( pairs.at(1).refJet() == ref_2 );
+    CPPUNIT_ASSERT( pairs.at(1).l1Jet() == l1_2 );
 }
 
 
