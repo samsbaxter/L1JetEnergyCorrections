@@ -218,7 +218,7 @@ def plot_bin_results(in_name=""):
 
     # Now make the slides file
     with open(slides_file, "w") as slides:
-        for i, eta in enumerate(etaBins[0:3]):
+        for i, eta in enumerate(etaBins[0:-1]):
             emin = eta
             emax = etaBins[i+1]
             titles = []
@@ -240,9 +240,6 @@ def plot_bin_results(in_name=""):
                 titles.append("$%g < |p_{T}^{Gen}| < %g GeV$" % (ptmin, ptmax))
                 titles.append("")
 
-                # print i, j
-                # print titles
-                # print plotnames
                 if (len(plotnames) == 4):
                     print "Writing", emin, emax, ptmin, ptmax
                     slidetitle = "$%g <  |\eta| < %g$" % (emin, emax)
@@ -256,7 +253,7 @@ def plot_bin_results(in_name=""):
 def compile_pdf(texfile, pdffile, outdir):
     """
     Compile the pdf
-    Use lualatex for custom font.Do it twice to get TOC and page num right
+    Use lualatex for custom font. Do it twice to get TOC and page num right
     """
 
     output = "-output-directory=%s" % outdir
