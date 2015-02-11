@@ -29,6 +29,9 @@ fitfcn.SetParameter(5, -11.)
 
 
 def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, fit_params):
+    """
+    Do all the relevant hists and fitting, for one eta bin.
+    """
 
     name = "ResponseProj"
     nptbins = len(ptBins_in) - 1
@@ -37,8 +40,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     obj = 'P_{T}^{Gen}'
     unit = '(GeV)'
 
-    nb = 300
-    min, max = 0, 300
+    nb = 500
+    min, max = 0, 500
 
     output_f = outputfile.mkdir('eta_%g_%g' % (absetamin, absetamax))
     output_f_hists = output_f.mkdir("Histograms")
@@ -60,45 +63,62 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
     tree_raw = inputfile.Get("valid")
 
-    # From the input file, we make the histograms?
-
+    # From the input file, we make the histograms
     cstr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
 
+    # Draw response (pT^L1/pT^Gen)
     tree_raw.Draw("1./rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , cstr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
+    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
 
+    # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:rsp*pt>>h2d_raw(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)  # ET^L1/ET^gen Vs Gen Jet pt
-    # tree_raw.Draw("pt:rsp*pt>>h2d_raw_l1(%d,%g,%g,200,0,200)"%(nb,min,max),cstr)
-    h2d_raw = ROOT.gROOT.FindObject("h2d_raw")
-    output_f_hists.WriteTObject(h2d_raw)
+    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)
+    h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
+    h2d_rsp_gen.SetTitle(";p_{T}^{Gen};response (p_{T}^{L1}/p_{T}^{Gen})")
+    output_f_hists.WriteTObject(h2d_rsp_gen)
 
+    # draw pT^Gen Vs pT^L1
+    tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, min, max, nb, min, max), cstr)
+    h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
+    h2d_gen_l1.SetTitle(";p_{T}^{Gen};p_{T}^{L1}")
+    output_f_hists.WriteTObject(h2d_gen_l1)
+
+    # Go through and find histogram bin edges that are cloest to the input pt
+    # bin edges, and store for future use
     ptBins = []
-    binindeces = []
-    # first run through the bins and put the actual values of the bin edges
-    # there
+    bin_indices = []
     for i, ptR in enumerate(ptBins_in[0:-1]):
-        bin1 = h2d_raw.GetXaxis().FindBin(ptR)
-        bin2 = h2d_raw.GetXaxis().FindBin(ptBins_in[i + 1]) - 1
-        xlow = h2d_raw.GetXaxis().GetBinLowEdge(bin1)
-        xup = h2d_raw.GetXaxis().GetBinLowEdge(bin2 + 1)
-        binindeces.append([bin1, bin2])
+        bin1 = h2d_rsp_gen.GetXaxis().FindBin(ptR)
+        bin2 = h2d_rsp_gen.GetXaxis().FindBin(ptBins_in[i + 1]) - 1
+        xlow = h2d_rsp_gen.GetXaxis().GetBinLowEdge(bin1)
+        xup = h2d_rsp_gen.GetXaxis().GetBinLowEdge(bin2 + 1)
+        bin_indices.append([bin1, bin2])
         ptBins.append(xlow)
     ptBins.append(xup)  # only need this last one
 
-    gr = ROOT.TGraphErrors()
+    gr = ROOT.TGraphErrors() # 1/<rsp> VS ptL1
+    gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
     max_pt = 0
     for i, ptR in enumerate(ptBins[0:-1]):
+        # Iterate over pT^Gen bins, and for each:
+        # - Project 2D hist so we have a plot of response for given pT^Gen range
+        # - Fit a Gaussian (if possible) to this resp histogram to get <rsp>
+        # - Plot the L1 pT for given pT^Gen range (remember, for matched pairs)
+        # - Get average response from 1D L1 pT hist
+        # - Add a new graph point, x=<pT^L1> y=<response> for this pT^Gen bin
 
-        bin1 = binindeces[i][0]  # h2d_calib.GetXaxis().FindBin(ptR)
-        bin2 = binindeces[i][1]  # h2d_calib.GetXaxis().FindBin(ptBins[i+1])-1
+        bin1 = bin_indices[i][0]
+        bin2 = bin_indices[i][1]
+        # h2d_calib.GetXaxis().FindBin(ptR)
+        # h2d_calib.GetXaxis().FindBin(ptBins[i+1])-1
         # print "Binning mis-matches", ptR, ptBins[i+1],
         # h2d_calib.GetXaxis().GetBinLowEdge(bin1),h2d_calib.GetXaxis().GetBinLowEdge(bin2+1)
 
         ########################### CALIBRATED #############################
-        hc = h2d_raw.ProjectionY("prj_%s_%sBin%d" % (name, ext, i), bin1, bin2)
+        hc = h2d_rsp_gen.ProjectionY("prj_%s_%sBin%d" % (name, ext, i), bin1, bin2)
         xlow = ptR
         xhigh = ptBins[i + 1]
         tree_raw.Draw("pt>>hpt", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
@@ -120,7 +140,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
         mean = hc.GetFunction("gaus").GetParameter(1)
         err = hc.GetFunction("gaus").GetParError(1)
-        # check if fit mean is close to raw mean - if not use raw mean cos
+        # check if fit mean is close to raw mean - if not use raw mean since
         # we have a bad fit
         if abs(mean - hc.GetMean()) > (hc.GetMean()*0.2):
             print "Fit mean differs to Raw mean:", mean, hc.GetMean(), bin1, bin2, absetamin, absetamax
@@ -129,13 +149,15 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         if err < 0:
             continue
 
-        print ptR, "-", ptBins[i + 1], hpt.GetMean()
+        print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), "<rsp>:", mean
 
         max_pt = hpt.GetMean() if hpt.GetMean() > max_pt else max_pt
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
+        gr_gen.SetPoint(grc, 0.5*(xhigh+xlow), 1. / mean)
         grc += 1
 
+    # Now fit to the response curve to get out correction fn
     thisfit = fitfcn.Clone()
     thisfit.SetName(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
     print "Fitting", fitmin, max_pt
@@ -143,6 +165,10 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     gr.SetName('l1corr_eta_%g_%g' % (absetamin, absetamax))
     gr.GetXaxis().SetTitle("<p_{T}^{L1}>")
     gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
+
+    gr_gen.SetName('gencorr_eta_%g_%g' % (absetamin, absetamax))
+    gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}>")
+    gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
     # Get out fit params
     tmp_params = []
@@ -153,6 +179,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
     outputfile.WriteTObject(gr)
     outputfile.WriteTObject(thisfit)
+    outputfile.WriteTObject(gr_gen)
 
 
 def print_lut_screen(fit_params, eta_bins):
@@ -202,14 +229,9 @@ def print_lut_file(fit_params, eta_bins, filename):
         file.write("    )\n")
 
 
+
 ########### MAIN ########################
-
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print "Usage:"
-        print "python runCalibration <inputfile> <outputfile>"
-        exit(1)
-
+def main():
     inputf = ROOT.TFile(sys.argv[1])
     output_f = ROOT.TFile(sys.argv[2], "RECREATE")
     print sys.argv[1]
@@ -219,7 +241,9 @@ if __name__ == "__main__":
     ptBins = list(numpy.arange(14, 254, 4))
     # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
     # ptBins = list(numpy.concatenate((numpy.arange(14, 218, 4), numpy.arange(218, 266, 12)))) # slightly odd binning here - why?
-    etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
+    etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001][0:2]
+
+    print "Running over eta bins:", etaBins
 
     # Do plots & fitting to get calib consts
     fit_params = []
@@ -229,7 +253,16 @@ if __name__ == "__main__":
         makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
 
     # Make LUT
-    print_lut_screen(fit_params, etaBins)
-    dname, fname = os.path.split(sys.argv[2])
-    lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
-    print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
+    # print_lut_screen(fit_params, etaBins)
+    # dname, fname = os.path.split(sys.argv[2])
+    # lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
+    # print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print "Usage:"
+        print "python runCalibration <inputfile> <outputfile>"
+        exit(1)
+
+    main()
