@@ -79,6 +79,13 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen};response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
+    # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
+    # rsp here is ref jet pt / l1 jet pt
+    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)
+    h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
+    h2d_rsp_l1.SetTitle(";p_{T}^{L1};response (p_{T}^{L1}/p_{T}^{Gen})")
+    output_f_hists.WriteTObject(h2d_rsp_l1)
+
     # draw pT^Gen Vs pT^L1
     tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, min, max, nb, min, max), cstr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
