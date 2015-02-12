@@ -161,11 +161,12 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         if abs(mean - hc.GetMean()) > (hc.GetMean()*0.2):
             print "Fit mean differs to Raw mean:", mean, hc.GetMean(), bin1, bin2, absetamin, absetamax
             mean = hc.GetMean()
-            # err = hc.GetRMS()
+            err = hc.GetMeanError()
         if err < 0:
-            continue
+            raise Exception("Error < 0")
 
-        print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), "<rsp>:", mean
+        print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), \
+               "<pT Gen>:", hpt_gen.GetMean(), "<rsp>:", mean
 
         max_pt = hpt.GetMean() if hpt.GetMean() > max_pt else max_pt
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
