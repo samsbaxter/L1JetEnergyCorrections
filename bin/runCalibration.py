@@ -12,8 +12,6 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
-#what = "AllJets"
-
 fitmin = 100.
 fitmax = 250.
 
@@ -124,16 +122,27 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         # print "Binning mis-matches", ptR, ptBins[i+1],
         # h2d_calib.GetXaxis().GetBinLowEdge(bin1),h2d_calib.GetXaxis().GetBinLowEdge(bin2+1)
 
-        ########################### CALIBRATED #############################
-        hc = h2d_rsp_gen.ProjectionY("prj_%s_%sBin%d" % (name, ext, i), bin1, bin2)
+        ########################### CALIBRATION #############################
         xlow = ptR
         xhigh = ptBins[i + 1]
-        tree_raw.Draw("pt>>hpt", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
-        hpt = ROOT.gROOT.FindObject("hpt")
 
-        hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
+        # Plot of response for given pT Gen bin
+        hc = h2d_rsp_gen.ProjectionY("prj_%s_%sBin%d" % (name, ext, i), bin1, bin2)
         hc.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
+
+        # Plots of pT L1 for given pT Gen bin
+        tree_raw.Draw("pt>>hpt(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
+        hpt = ROOT.gROOT.FindObject("hpt")
+        hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
         output_f_hists.WriteTObject(hpt)
+
+        # Plots of pT Gen for given pT Gen bin
+        tree_raw.Draw("pt*rsp>>hpt_gen(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
+        hpt_gen = ROOT.gROOT.FindObject("hpt_gen")
+        hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
+        output_f_hists.WriteTObject(hpt_gen)
+
+        # Fit Gaussian to response curve
         fitStatus = -1
         if hc.GetEntries() > 0:
             fitStatus = int(hc.Fit("gaus", "Q", "R", hc.GetMean() - 1. * hc.GetRMS(), hc.GetMean() + 1. * hc.GetRMS()))
@@ -161,7 +170,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         max_pt = hpt.GetMean() if hpt.GetMean() > max_pt else max_pt
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
-        gr_gen.SetPoint(grc, 0.5*(xhigh+xlow), 1. / mean)
+        gr_gen.SetPoint(grc, hpt_gen.GetMean(), 1. / mean)
+        # gr_gen.SetPointError(grc, hpt.GetMeanError(), err)
         grc += 1
 
     # Now fit to the response curve to get out correction fn
