@@ -175,7 +175,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         # gr_gen.SetPointError(grc, hpt.GetMeanError(), err)
         grc += 1
 
-    # Now fit to the response curve to get out correction fn
+    # Do response VS pT graphs
+    # Fit to the response curve to get out correction fn
     thisfit = fitfcn.Clone()
     thisfit.SetName(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
     print "Fitting", fitmin, max_pt
@@ -259,9 +260,10 @@ def main():
     ptBins = list(numpy.arange(14, 254, 4))
     # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
     # ptBins = list(numpy.concatenate((numpy.arange(14, 218, 4), numpy.arange(218, 266, 12)))) # slightly odd binning here - why?
-    etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001][0:2]
+    etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
 
     print "Running over eta bins:", etaBins
+    print "Running over pT bins:", ptBins
 
     # Do plots & fitting to get calib consts
     fit_params = []
