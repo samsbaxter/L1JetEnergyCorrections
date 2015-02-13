@@ -18,17 +18,22 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
                                             )
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(-1)
     )
 
 # Input source
+readFiles = cms.untracked.vstring()
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Fall13dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00005/02B79593-F47F-E311-8FF6-003048FFD796.root")
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/008B2415-EBDD-E311-B807-20CF3027A564.root")
-    fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+    # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+    fileNames = readFiles
     )
 
+# readFiles.extend( [
+#   "root://xrootd.unl.edu//store/relval/CMSSW_7_3_0/RelValTTbar_13/GEN-SIM-DIGI-RAW-HLTDEBUG/PU50ns_MCRUN2_73_V9_71XGENSIM_FIXGT-v1/00000/52957EA0-2AA2-E411-908B-002618FDA265.root"
+# ])
 
 process.output = cms.OutputModule(
     "PoolOutputModule",
@@ -53,6 +58,7 @@ process.output = cms.OutputModule(
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag.connect = cms.string('frontier://FrontierProd/CMS_COND_31X_GLOBALTAG')
 process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+# process.GlobalTag.globaltag = cms.string('MCRUN2_73_V9::All')
 
 process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff')
 
@@ -116,7 +122,8 @@ process.l1ExtraTreeProducerIntern = process.l1ExtraTreeProducer.clone()
 process.l1ExtraTreeProducerIntern.cenJetLabel = cms.untracked.InputTag("preGtJetToL1Jet:PreGtJets")
 process.l1ExtraTreeProducerIntern.maxL1Extra = cms.uint32(50)
 
-
+# Turn off any existing stage 1 calibrations (sigh)
+process.caloStage1Params.jetCalibrationType = cms.string("None")
 
 ##############################
 # Do ak5 GenJets
@@ -149,10 +156,9 @@ process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree_QCD.root')
-    # fileName = cms.string('L1Tree_Fall13_TTbar_PU20bx25.root')
-    # fileName = cms.string('L1Tree_Fall13_QCD_Pt80to120_1000.root')
-    # fileName = cms.string('L1Tree_Spring14_QCD_Pt-15to3000_Flat20to50_GCT.root')
+    fileName = cms.string('L1Tree.root')
+    # fileName = cms.string('L1Tree_RelVal_Stage1_newRCT.root')
+    # fileName = cms.string('L1Tree_RelVal_Stage1.root')
 )
 
 
@@ -172,11 +178,11 @@ process.p1 = cms.Path(
 
     )
 
-process.output_step = cms.EndPath(process.output)
+# process.output_step = cms.EndPath(process.output)
 
 process.schedule = cms.Schedule(
-    process.p1,
-    process.output_step
+    process.p1
+    # process.output_step
     )
 
 # Spit out filter efficiency at the end.
