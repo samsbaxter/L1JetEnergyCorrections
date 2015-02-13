@@ -1,3 +1,14 @@
+"""
+This script takes as input the output file from RunMatcher, and loops over
+matched genjet/L1 jet pairs, plotting interesting things and producing a
+correction function, as well as LUTs to put in CMSSW.
+
+Usage:
+python runCalibration <input file> <output file>
+
+Originally by Nick Wardle, modified by Robin Aggleton
+"""
+
 import ROOT
 import sys
 import array
@@ -6,8 +17,6 @@ from pprint import pprint
 from itertools import izip
 import os
 
-# ORIGNALLY BY NICK WARDLE
-
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
@@ -15,7 +24,7 @@ ROOT.gStyle.SetOptFit(1111)
 fitmin = 100.
 fitmax = 250.
 
-# definition of the response function to fit
+# definition of the response function to fit to get our correction function
 # fitfcn = ROOT.TF1("fitfcn","[0] + [1]/(TMath::Power(TMath::Log10(x),2) + [2]) + [3]*TMath::Exp(-1.*[4]*TMath::Power(TMath::Log10(x)-[5],2))", 20, 250)
 fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", fitmin, fitmax)
 fitfcn.SetParameter(0, 0.5)
@@ -107,13 +116,13 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
     max_pt = 0
+    # Iterate over pT^Gen bins, and for each:
+    # - Project 2D hist so we have a plot of response for given pT^Gen range
+    # - Fit a Gaussian (if possible) to this resp histogram to get <rsp>
+    # - Plot the L1 pT for given pT^Gen range (remember, for matched pairs)
+    # - Get average response from 1D L1 pT hist
+    # - Add a new graph point, x=<pT^L1> y=<response> for this pT^Gen bin
     for i, ptR in enumerate(ptBins[0:-1]):
-        # Iterate over pT^Gen bins, and for each:
-        # - Project 2D hist so we have a plot of response for given pT^Gen range
-        # - Fit a Gaussian (if possible) to this resp histogram to get <rsp>
-        # - Plot the L1 pT for given pT^Gen range (remember, for matched pairs)
-        # - Get average response from 1D L1 pT hist
-        # - Add a new graph point, x=<pT^L1> y=<response> for this pT^Gen bin
 
         bin1 = bin_indices[i][0]
         bin2 = bin_indices[i][1]
@@ -248,7 +257,6 @@ def print_lut_file(fit_params, eta_bins, filename):
         file.write("    )\n")
 
 
-
 ########### MAIN ########################
 def main():
     inputf = ROOT.TFile(sys.argv[1])
@@ -270,7 +278,9 @@ def main():
     for i,eta in enumerate(etaBins[0:-1]):
         emin = eta
         emax = etaBins[i+1]
-        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
+        # makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
+    makeResponseCurves(inputf, output_f, ptBins, 0.0, 0.348, fit_params)
+    makeResponseCurves(inputf, output_f, ptBins, 3.5, 4.0, fit_params)
 
     # Make LUT
     # print_lut_screen(fit_params, etaBins)
