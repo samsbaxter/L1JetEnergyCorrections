@@ -12,7 +12,7 @@
  Usage:
      int main(int argc, char* argv[]) {
             RunMatcherOpts opts(arc, argv);
-            std::string fName = opts.intputFilename();
+            std::string fName = opts.inputFilename();
      }
 
 */
@@ -81,6 +81,11 @@ class RunMatcherOpts
         std::string outputFilename() { return output_; };
 
         /**
+         * @brief Get ROOT filename with correction fns
+         */
+        std::string correctionFilename() { return corrFilename_; };
+
+        /**
          * @brief Get number of events to plot
          */
         int drawNumber() { return drawN_; };
@@ -108,7 +113,7 @@ class RunMatcherOpts
         const RunMatcherOpts& operator=(const RunMatcherOpts&); // stop default
 
         // ---------- member data --------------------------------
-        std::string input_, refDir_, l1Dir_, output_;
+        std::string input_, refDir_, l1Dir_, output_, corrFilename_;
         int nEvents_, drawN_;
         std::vector<std::string> refJetBranchNames_, l1JetBranchNames_;
 };

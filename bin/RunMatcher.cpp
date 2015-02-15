@@ -3,6 +3,7 @@
 #include <vector>
 #include <utility>
 #include <stdexcept>
+#include <algorithm>
 
 // ROOT headers
 #include "TCanvas.h"
@@ -27,6 +28,7 @@
 #include "L1ExtraTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
+#include "SortFilterEmulator.h"
 
 using std::cout;
 using std::endl;
@@ -34,14 +36,20 @@ namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
 TString getSuffixFromDirectory(const TString& dir);
-
+void loadCorrectionFunctions(const TString& filename,
+                             std::vector<TF1>& corrFns,
+                             const std::vector<float>& etaBins);
+void correctJets(std::vector<TLorentzVector>& jets,
+                 std::vector<TF1>& corrFns,
+                 std::vector<float>& etaBins,
+                 float minPt = -1.);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
- * with matching jet pairs from a L1NTuple file produced by python/l1Ntuple_cfg.py.
- * @details READ BEFORE RUNNING: To get this to work, you first need to build
- * the dictionaries ROOT needs to store vectors/pairs in TTree. See READEM or
- * interface/LinkDef.h for instructions.
+ * with matching jet pairs from a L1NTuple file produced by
+ * python/l1Ntuple_cfg.py. Can also optionally apply correction functions, and
+ * emulate the GCT/Stage 1 by sorting & keeping top 4 cen & fwd jets.
+ *
  * @author Robin Aggleton, Nov 2014
  */
 int main(int argc, char* argv[]) {
@@ -96,9 +104,10 @@ int main(int argc, char* argv[]) {
 
     // setup output tree to store raw variable for quick plotting/debugging
     TTree * outTree2 = new TTree("valid", "valid");
-    // pt/eta/phi are for l1 jets
+    // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp2(-1.);
-    float out_dr(99.), out_deta(99.), out_dphi(99.), out_etaRef(99.), out_phiRef(99.);
+    float out_dr(99.), out_deta(99.), out_dphi(99.);
+    float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
     outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
     outTree2->Branch("phi",    &out_phi,    "phi/Float_t");
@@ -107,11 +116,11 @@ int main(int argc, char* argv[]) {
     outTree2->Branch("dr",     &out_dr,     "dr/Float_t");
     outTree2->Branch("deta",   &out_deta,   "deta/Float_t");
     outTree2->Branch("dphi",   &out_dphi,   "dphi/Float_t");
+    outTree2->Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
     outTree2->Branch("etaRef", &out_etaRef, "etaRef/Float_t");
     outTree2->Branch("phiRef", &out_phiRef, "phiRef/Float_t");
 
     // check # events in boths trees is same
-    // - if not then throw exception?
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
     Long64_t nEntriesL1  = l1JetExtraTree.fChain->GetEntriesFast();
     Long64_t nEntries(0);
@@ -130,6 +139,21 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     matcher->printName();
 
+
+    /////////////////////////////////////////
+    // GET CORRECTION FUNCTIONS (optional) //
+    /////////////////////////////////////////
+    bool doCorrections = false;
+    std::vector<float> etaBins = {0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001};
+    std::vector<TF1> correctionFunctions;
+    unsigned nTop = 4;
+    std::unique_ptr<SortFilterEmulator> emu(new SortFilterEmulator(nTop));
+    if (opts.correctionFilename() != "") {
+        doCorrections = true;
+        loadCorrectionFunctions(opts.correctionFilename(), correctionFunctions, etaBins);
+    }
+
+
     //////////////////////
     // LOOP OVER EVENTS //
     //////////////////////
@@ -147,6 +171,13 @@ int main(int argc, char* argv[]) {
         // Get vectors of ref & L1 jets from trees
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
         std::vector<TLorentzVector> l1Jets  = l1JetExtraTree.makeTLorentzVectors(l1JetBranches);
+
+        // If doing corrections, split into cen & fwd jets, sort & filter, do it here before matching
+        if (doCorrections) {
+            correctJets(l1Jets, correctionFunctions, etaBins);
+            emu->setJets(l1Jets);
+            l1Jets = emu->getAllJets();
+        }
 
         // Pass jets to matcher, do matching
         matchResults.clear();
@@ -211,4 +242,91 @@ TString getSuffixFromDirectory(const TString& dir) {
     suffix(re) = "";
     if (suffix == "") suffix = dir;
     return suffix;
+}
+
+
+/**
+ * @brief Get correction functions from file, and load into vector.
+ * @details Note that correction functions have names
+ * "fitfcneta_<etaMin>_<etaMax>", where etaMin/Max denote eta bin limits.
+ *
+ * @param filename  Name of file with correction functions.
+ * @param corrFns   Vector of TF1s in which functions are stored.
+ */
+void loadCorrectionFunctions(const TString& filename,
+                             std::vector<TF1>& corrFns,
+                             const std::vector<float>& etaBins) {
+
+    TFile * corrFile = openFile(filename, "READ");
+
+    // Loop over eta bins
+    for (unsigned ind = 0; ind < etaBins.size()-1; ++ind) {
+        float etaMin(etaBins[ind]), etaMax(etaBins[ind+1]);
+        cout << etaMin << " - " << etaMax << endl;
+        TString binName = TString::Format("fitfcneta_%g_%g", etaMin, etaMax);
+        TF1 * fit = dynamic_cast<TF1*>(corrFile->Get(binName));
+        // Make a copy of function and store in vector
+        if (fit) {
+            TF1 fitFcn(*fit);
+            corrFns.push_back(fitFcn);
+        } else {
+            throw invalid_argument(binName.Prepend("No TF1 with name ").Data());
+        }
+    }
+    corrFile->Close();
+}
+
+
+/**
+ * @brief Apply correction function to collection of jets
+ * @details [long description]
+ *
+ * @param corrFn   Vector of TF1 to be applied, corresponding to eta bins
+ * @param etaBins  Eta bin limits
+ * @param minPt    Minimum jet pT for correction to be applied. If unspecified,
+ * it only applies corrections for jets within the fit range of the function.
+ */
+void correctJets(std::vector<TLorentzVector>& jets,
+                 std::vector<TF1>& corrFns,
+                 std::vector<float>& etaBins,
+                 float minPt) {
+    // NB to future self: tried to make corrFns and etaBins const,
+    // but lower_bound doesn't like that
+
+    // check corrFn correct size
+    if (corrFns.size() != etaBins.size()-1) {
+        throw range_error("Corrections functions don't match eta bins");
+    }
+
+    // Loop over jets, get correct function for given |eta| & apply if necessary
+    for (auto& jetItr: jets) {
+        // Get eta bin limits corresponding to jet |eta|
+        float absEta = fabs(jetItr.Eta());
+        auto maxItr = std::lower_bound(etaBins.begin(), etaBins.end(), absEta);
+        if (maxItr == etaBins.begin()) {
+            throw range_error("Max eta != first eta bin");
+        }
+        auto minItr = maxItr - 1;
+
+        cout << "Jet eta: " << absEta << " => bin " << *minItr << " - " << *maxItr << std::endl;
+        cout << "Jet pt before: " << jetItr.Pt();
+
+        // Get correction fn for this bin
+        TF1 corrFn = corrFns[minItr-etaBins.begin()];
+
+        // Get fit range
+        double fitMin(0.), fitMax(0.);
+        corrFn.GetRange(fitMin, fitMax);
+
+        // Now decide if we should apply corrections
+        if (((minPt < 0.) && (jetItr.Pt() > fitMin) && (jetItr.Pt() < fitMax))
+            || ((minPt > 0.) && (jetItr.Pt() > minPt))) {
+
+            float newPt = jetItr.Pt() * corrFn.Eval(jetItr.Pt());
+            jetItr.SetPtEtaPhiM(newPt, jetItr.Eta(), jetItr.Phi(), jetItr.M());
+        }
+
+        cout << ", Jet pt after: " << jetItr.Pt() << endl;
+
+    }
 }

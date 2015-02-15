@@ -4,4 +4,5 @@
 <use name="L1Trigger/L1JetEnergyCorrections"/>
 <include_path path="../interface"/>
 <bin name="DeltaR_Matcher_UnitTest" file="DeltaR_Matcher_UnitTest.cpp"/>
+<bin name="SortFilterEmulator_UnitTest" file="SortFilterEmulator_UnitTest.cpp"/>
 <!-- <bin name="BasicTest" file="basicTest.cpp"/> -->
