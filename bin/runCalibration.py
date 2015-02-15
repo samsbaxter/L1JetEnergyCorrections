@@ -274,7 +274,7 @@ def main():
     # Setup pt, eta bins for doing calibrations
     ptBins = list(numpy.arange(14, 254, 4))
     # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
-    # ptBins = list(numpy.concatenate((numpy.arange(14, 218, 4), numpy.arange(218, 266, 12)))) # slightly odd binning here - why?
+    ptBinsWide = list(numpy.concatenate((numpy.arange(14, 50, 4), numpy.arange(50, 250, 20)))) # larger bins at higher pt
     etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
 
     print "Running over eta bins:", etaBins
@@ -285,15 +285,21 @@ def main():
     for i,eta in enumerate(etaBins[0:-1]):
         emin = eta
         emax = etaBins[i+1]
-        # makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
-    makeResponseCurves(inputf, output_f, ptBins, 0.0, 0.348, fit_params)
-    makeResponseCurves(inputf, output_f, ptBins, 3.5, 4.0, fit_params)
+        if emin >= 3.:
+            makeResponseCurves(inputf, output_f, ptBinsWide, emin, emax, fit_params)
+        else:
+            makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
+
+
+    # For testing:
+    # makeResponseCurves(inputf, output_f, ptBins, 0.0, 0.348, fit_params)
+    # makeResponseCurves(inputf, output_f, ptBins, 3.5, 4.0, fit_params)
 
     # Make LUT
-    # print_lut_screen(fit_params, etaBins)
-    # dname, fname = os.path.split(sys.argv[2])
-    # lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
-    # print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
+    print_lut_screen(fit_params, etaBins)
+    dname, fname = os.path.split(sys.argv[2])
+    lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
+    print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
 
 
 if __name__ == "__main__":
