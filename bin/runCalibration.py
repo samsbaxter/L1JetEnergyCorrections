@@ -125,8 +125,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         xhigh = ptBins[i + 1]
 
         # Plot of response for given pT Gen bin
-        hc = h2d_rsp_gen.ProjectionY("prj_%s_%sBin%d" % (name, ext, i), bin1, bin2)
-        hc.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
+        hrsp = h2d_rsp_gen.ProjectionY("prj_ResponseProj_PTBin%d" % (i), bin1, bin2)
+        hrsp.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
 
         # Plots of pT L1 for given pT Gen bin
         tree_raw.Draw("pt>>hpt(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
@@ -142,24 +142,24 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
 
         # Fit Gaussian to response curve
         fitStatus = -1
-        if hc.GetEntries() > 0:
-            fitStatus = int(hc.Fit("gaus", "Q", "R", hc.GetMean() - 1. * hc.GetRMS(), hc.GetMean() + 1. * hc.GetRMS()))
-        output_f_hists.WriteTObject(hc)
+        if hrsp.GetEntries() > 0:
+            fitStatus = int(hrsp.Fit("gaus", "Q", "R", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
+        output_f_hists.WriteTObject(hrsp)
 
-        if hpt.GetEntries() < 0 or hc.GetEntries() < 0:
+        if hpt.GetEntries() < 0 or hrsp.GetEntries() < 0:
             continue
 
         if fitStatus < 0:
             continue
 
-        mean = hc.GetFunction("gaus").GetParameter(1)
-        err = hc.GetFunction("gaus").GetParError(1)
+        mean = hrsp.GetFunction("gaus").GetParameter(1)
+        err = hrsp.GetFunction("gaus").GetParError(1)
         # check if fit mean is close to raw mean - if not use raw mean since
         # we have a bad fit
-        if abs(mean - hc.GetMean()) > (hc.GetMean()*0.2):
-            print "Fit mean differs to Raw mean:", mean, hc.GetMean(), bin1, bin2, absetamin, absetamax
-            mean = hc.GetMean()
-            err = hc.GetMeanError()
+        if abs(mean - hrsp.GetMean()) > (hrsp.GetMean()*0.2):
+            print "Fit mean differs to Raw mean:", mean, hrsp.GetMean(), bin1, bin2, absetamin, absetamax
+            mean = hrsp.GetMean()
+            err = hrsp.GetMeanError()
         if err < 0:
             raise Exception("Error < 0")
 
