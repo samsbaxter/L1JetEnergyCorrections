@@ -83,6 +83,21 @@ int main(int argc, char* argv[]) {
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
 
+    //////////////////////////////////////////////////////////////
+    // GET CORRECTION FUNCTIONS, SETUP SORT & FILTER (optional) //
+    //////////////////////////////////////////////////////////////
+    // N.B do this *before* opening output file below.
+    // Otherwise, you'll have to add in a outFile->cd() to save ttree to file.
+    bool doCorrections = false;
+    std::vector<float> etaBins = {0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001};
+    std::vector<TF1> correctionFunctions;
+    unsigned nTop = 4;
+    std::unique_ptr<SortFilterEmulator> emu(new SortFilterEmulator(nTop));
+    if (opts.correctionFilename() != "") {
+        doCorrections = true;
+        loadCorrectionFunctions(opts.correctionFilename(), correctionFunctions, etaBins);
+    }
+
     ////////////////////////
     // SETUP OUTPUT FILES //
     ////////////////////////
@@ -138,20 +153,6 @@ int main(int argc, char* argv[]) {
     double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     matcher->printName();
-
-
-    /////////////////////////////////////////
-    // GET CORRECTION FUNCTIONS (optional) //
-    /////////////////////////////////////////
-    bool doCorrections = false;
-    std::vector<float> etaBins = {0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001};
-    std::vector<TF1> correctionFunctions;
-    unsigned nTop = 4;
-    std::unique_ptr<SortFilterEmulator> emu(new SortFilterEmulator(nTop));
-    if (opts.correctionFilename() != "") {
-        doCorrections = true;
-        loadCorrectionFunctions(opts.correctionFilename(), correctionFunctions, etaBins);
-    }
 
 
     //////////////////////
@@ -309,7 +310,6 @@ void correctJets(std::vector<TLorentzVector>& jets,
         auto minItr = maxItr - 1;
 
         cout << "Jet eta: " << absEta << " => bin " << *minItr << " - " << *maxItr << std::endl;
-        cout << "Jet pt before: " << jetItr.Pt();
 
         // Get correction fn for this bin
         TF1 corrFn = corrFns[minItr-etaBins.begin()];
@@ -317,16 +317,19 @@ void correctJets(std::vector<TLorentzVector>& jets,
         // Get fit range
         double fitMin(0.), fitMax(0.);
         corrFn.GetRange(fitMin, fitMax);
+        cout << "Range: " << fitMin << " - " << fitMax << endl;
+        cout << "Jet pt before: " << jetItr.Pt() << endl;;
 
         // Now decide if we should apply corrections
         if (((minPt < 0.) && (jetItr.Pt() > fitMin) && (jetItr.Pt() < fitMax))
             || ((minPt > 0.) && (jetItr.Pt() > minPt))) {
-
+            corrFn.Print();
+            cout << corrFn.Eval(jetItr.Pt()) << endl;
             float newPt = jetItr.Pt() * corrFn.Eval(jetItr.Pt());
             jetItr.SetPtEtaPhiM(newPt, jetItr.Eta(), jetItr.Phi(), jetItr.M());
         }
 
-        cout << ", Jet pt after: " << jetItr.Pt() << endl;
+        cout << " Jet pt after: " << jetItr.Pt() << endl;
 
     }
 }
