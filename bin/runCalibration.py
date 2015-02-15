@@ -173,30 +173,48 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         # gr_gen.SetPointError(grc, hpt.GetMeanError(), err)
         grc += 1
 
-    # Do response VS pT graphs
-    # Fit to the response curve to get out correction fn
-    thisfit = fitfcn.Clone()
-    thisfit.SetName(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-    print "Fitting", fitmin, max_pt
-    gr.Fit(thisfit.GetName(), "", "R+", fitmin, max_pt)
+    # Label response VS pT graphs
     gr.SetName('l1corr_eta_%g_%g' % (absetamin, absetamax))
-    gr.GetXaxis().SetTitle("<p_{T}^{L1}>")
+    gr.GetXaxis().SetTitle("<p_{T}^{L1}> [GeV]")
     gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
     gr_gen.SetName('gencorr_eta_%g_%g' % (absetamin, absetamax))
-    gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}>")
+    gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}> [GeV]")
     gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
-    # Get out fit params
-    tmp_params = []
-    for i in range(thisfit.GetNumberFreeParameters()):
-        tmp_params.append(thisfit.GetParameter(i))
-
+    # Fit correction function to response vs pT graph, add to list
+    thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
+    min_pt = 30 if absetamin >= 3.0 else 35
+    tmp_params = fit_correction(gr, thisfit, min_pt, max_pt)
     fit_params.append(tmp_params)
 
+    # Save these to file
     outputfile.WriteTObject(gr)
     outputfile.WriteTObject(thisfit)
     outputfile.WriteTObject(gr_gen)
+
+
+def fit_correction(graph, function, fit_min, fit_max):
+    """
+    Fit response curve with given correction function, within given bounds.
+
+    Note that sometime the fit fails oddly - if so, we try raising the lower
+    bound of the fit until it suceeds (sometimes it works at 45, but not 40)
+
+    Returns parameters of successful fit.
+    """
+    print "Fitting", fit_min, fit_max
+    fit_result = -1
+    while (fit_result < 0 and fit_min < fit_max):
+        fit_min += 1
+        fit_result = int(graph.Fit(function.GetName(), "", "R+", fit_min, fit_max))
+        print fit_result, fit_min
+
+    params = []
+    for i in range(function.GetNumberFreeParameters()):
+        params.append(function.GetParameter(i))
+
+    return params
 
 
 def print_lut_screen(fit_params, eta_bins):
