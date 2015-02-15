@@ -21,18 +21,27 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
-fitmin = 100.
+# Note that the actual limits used for fitting are defined further down
+fitmin = 35. # 45 for central bins, 35 for fwd
 fitmax = 250.
 
 # definition of the response function to fit to get our correction function
 # fitfcn = ROOT.TF1("fitfcn","[0] + [1]/(TMath::Power(TMath::Log10(x),2) + [2]) + [3]*TMath::Exp(-1.*[4]*TMath::Power(TMath::Log10(x)-[5],2))", 20, 250)
 fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", fitmin, fitmax)
+# Better for Stage1
 fitfcn.SetParameter(0, 0.5)
-fitfcn.SetParameter(1, 27)
-fitfcn.SetParameter(2, 8.78)
-fitfcn.SetParameter(3, 0.05)
+fitfcn.SetParameter(1, 2)
+fitfcn.SetParameter(2, -0.5)
+fitfcn.SetParameter(3, 0.13)
 fitfcn.SetParameter(4, 0.0)
-fitfcn.SetParameter(5, -11.)
+fitfcn.SetParameter(5, -6.)
+# Better for GCT
+# fitfcn.SetParameter(0, 0.5)
+# fitfcn.SetParameter(1, 27)
+# fitfcn.SetParameter(2, 8.78)
+# fitfcn.SetParameter(3, 0.13)
+# fitfcn.SetParameter(4, 0.0)
+# fitfcn.SetParameter(5, -11.)
 
 
 def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, fit_params):
