@@ -49,63 +49,43 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     Do all the relevant hists and fitting, for one eta bin.
     """
 
-    name = "ResponseProj"
-    nptbins = len(ptBins_in) - 1
-    coll = "Off"
-    ext = 'PT'
-    obj = 'P_{T}^{Gen}'
-    unit = '(GeV)'
+    # Input tree
+    tree_raw = inputfile.Get("valid")
 
-    nb = 500
-    min, max = 0, 500
-
+    # Output folders
     output_f = outputfile.mkdir('eta_%g_%g' % (absetamin, absetamax))
     output_f_hists = output_f.mkdir("Histograms")
 
-    lat = ROOT.TLatex()
-    lat.SetNDC()
-    lat.SetTextFont(42)
-    lat.SetTextSize(0.04)
-
-    leg = ROOT.TLegend(0.55, 0.7, 0.94, 0.94)
-    leg.SetFillColor(0)
-    leg.SetTextFont(42)
-    leg.SetTextSize(0.04)
-
-    leg2 = ROOT.TLegend(0.6, 0.75, 0.94, 0.94)
-    leg2.SetFillColor(0)
-    leg.SetTextFont(42)
-    leg.SetTextSize(0.04)
-
-    tree_raw = inputfile.Get("valid")
-
-    # From the input file, we make the histograms
+    # Eta cut string
     cstr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
 
-    # Draw response (pT^L1/pT^Gen)
+    # Draw response (pT^L1/pT^Gen) for all pt bins
     tree_raw.Draw("1./rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , cstr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
 
+    nb = 500
+    min, max = 0, 500
+
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     # rsp here is ref jet pt / l1 jet pt
     tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
-    h2d_rsp_gen.SetTitle(";p_{T}^{Gen};response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     # rsp here is ref jet pt / l1 jet pt
     tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
-    h2d_rsp_l1.SetTitle(";p_{T}^{L1};response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # draw pT^Gen Vs pT^L1
     tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, min, max, nb, min, max), cstr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
-    h2d_gen_l1.SetTitle(";p_{T}^{Gen};p_{T}^{L1}")
+    h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
 
     # Go through and find histogram bin edges that are cloest to the input pt
@@ -127,9 +107,9 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     max_pt = 0
     # Iterate over pT^Gen bins, and for each:
     # - Project 2D hist so we have a plot of response for given pT^Gen range
-    # - Fit a Gaussian (if possible) to this resp histogram to get <rsp>
+    # - Fit a Gaussian (if possible) to this resp histogram to get <response>
     # - Plot the L1 pT for given pT^Gen range (remember, for matched pairs)
-    # - Get average response from 1D L1 pT hist
+    # - Get average response, <pT^L1>, from 1D L1 pT hist
     # - Add a new graph point, x=<pT^L1> y=<response> for this pT^Gen bin
     for i, ptR in enumerate(ptBins[0:-1]):
 
