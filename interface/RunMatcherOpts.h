@@ -85,6 +85,13 @@ class RunMatcherOpts
          */
         std::string correctionFilename() { return corrFilename_; };
 
+       /**
+         * @brief Get minimum pt to apply corrections
+         * @details -1 = only within fit limits, anything else overrides
+         * the fit limits.
+         */
+        float correctionMinPt() { return correctionMinPt_; };
+
         /**
          * @brief Get number of events to plot
          */
@@ -115,6 +122,7 @@ class RunMatcherOpts
         // ---------- member data --------------------------------
         std::string input_, refDir_, l1Dir_, output_, corrFilename_;
         int nEvents_, drawN_;
+        float correctionMinPt_;
         std::vector<std::string> refJetBranchNames_, l1JetBranchNames_;
 };
 

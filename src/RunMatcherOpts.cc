@@ -42,8 +42,10 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     refDir_(""),
     l1Dir_(""),
     output_(""),
+    corrFilename_(""),
     nEvents_(0),
-    drawN_(0)
+    drawN_(0),
+    correctionMinPt_(-1)
 {
     namespace po = boost::program_options;
 
@@ -78,6 +80,10 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
             "If this is set to anything other than \"\", " \
             "it will apply corrections to jets, and then only store values " \
             "for the 4 central and forward jets with highest pT.")
+        ("corrMinPt",
+            po::value<float>(&correctionMinPt_)->default_value(-1),
+            "Minimum L1 jet pT to apply corrections. If < 0, will use whatever " \
+            "the fit limits were. Any other positive value will override this.")
         ("draw,d",
             po::value<int>(&drawN_)->default_value(10),
             "number of events to draw 2D eta-phi plot of ref, L1 & matched " \
@@ -102,6 +108,10 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     if (vm.count("help")) {
         cout << desc << endl;
         std::exit(1);
+    }
+
+    if (vm.count("correct")) {
+        cout << "Will apply corrections from file: " << vm["correct"] << " to jets with min pT " << vm["corrMinPt"] << endl;
     }
 
 }

@@ -42,7 +42,7 @@ void loadCorrectionFunctions(const TString& filename,
 void correctJets(std::vector<TLorentzVector>& jets,
                  std::vector<TF1>& corrFns,
                  std::vector<float>& etaBins,
-                 float minPt = -1.);
+                 float minPt);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         // If doing corrections, split into cen & fwd jets, sort & filter
         // - do it here before matching
         if (doCorrections) {
-            correctJets(l1Jets, correctionFunctions, etaBins, 30);
+            correctJets(l1Jets, correctionFunctions, etaBins, opts.correctionMinPt());
             emu->setJets(l1Jets);
             l1Jets = emu->getAllJets();
         }
