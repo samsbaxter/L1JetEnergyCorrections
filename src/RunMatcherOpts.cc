@@ -111,7 +111,7 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     }
 
     if (vm.count("correct")) {
-        cout << "Will apply corrections from file: " << vm["correct"] << " to jets with min pT " << vm["corrMinPt"] << endl;
+        cout << "Will apply corrections from file: " << vm["correct"].as<std::string>() << " to jets with min pT " << vm["corrMinPt"].as<float>() << endl;
     }
 
 }
