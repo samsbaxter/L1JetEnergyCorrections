@@ -19,6 +19,7 @@ import os
 import argparse
 
 
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
@@ -45,16 +46,9 @@ fitfcn.SetParameter(5, -6.)
 # fitfcn.SetParameter(4, 0.0)
 # fitfcn.SetParameter(5, -11.)
 
-# Turn off if you don't want/need them - they slow things down,
-# and don't affect determination of correction fn
-do_genjet_plots = False
 
-# Turn off if you don't want to fit to the correction curve
-# e.g. if you're testing your calibrations, since it'll waste time
-do_correction_fit = False
-
-
-def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, fit_params):
+def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
+                       fit_params, do_genjet_plots, do_correction_fit):
     """
     Do all the relevant hists and fitting, for one eta bin.
     """
@@ -284,7 +278,20 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
+    parser.add_argument("--no_genjet_plots", action='store_false',
+                        help="Don't do genjet plots for each pt/eta bin")
+    parser.add_argument("--no_correction_fit", action='store_false',
+                        help="Don't do fits to correction functions")
     args = parser.parse_args()
+
+
+    # Turn off if you don't want/need them - they slow things down,
+    # and don't affect determination of correction fn
+    do_genjet_plots = args.no_genjet_plots
+
+    # Turn off if you don't want to fit to the correction curve
+    # e.g. if you're testing your calibrations, since it'll waste time
+    do_correction_fit = args.no_correction_fit
 
     inputf = ROOT.TFile(args.input, "READ")
     output_f = ROOT.TFile(args.output, "RECREATE")
@@ -306,9 +313,9 @@ def main():
         emin = eta
         emax = etaBins[i+1]
         if emin >= 3.:
-            makeResponseCurves(inputf, output_f, ptBinsWide, emin, emax, fit_params)
+            makeResponseCurves(inputf, output_f, ptBinsWide, emin, emax, fit_params, do_genjet_plots, do_correction_fit)
         else:
-            makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params)
+            makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params, do_genjet_plots, do_correction_fit)
 
 
     # For testing:
