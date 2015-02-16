@@ -161,7 +161,7 @@ def plot_corr_results(in_name=""):
             emin = eta
             emax = etaBins[i+1]
             name = "l1corr_eta_%g_%g" % (emin, emax)
-            plot_to_file(input_file, "l1corr_eta_%g_%g" % (emin, emax), [odir+name+".tex", odir+name+".pdf"], xtitile="<p_{T}^{L1}> [GeV]", ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} >", drawfit=True)
+            plot_to_file(input_file, "l1corr_eta_%g_%g" % (emin, emax), [odir+name+".tex", odir+name+".pdf"], xtitle="<p_{T}^{L1}> [GeV]", ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} >", drawfit=True)
             titles.append("$%g <  |\eta| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
             print i
@@ -230,11 +230,11 @@ def plot_bin_results(in_name=""):
                 ptmax = ptBins[j+1]
                 # for each pt bin we have a L1 pt plot, and a response plot w/fit
                 l1name = "L1_pt_genpt_%g_%g" % (ptmin, ptmax)
-                # plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, l1name), [out_dir_eta+l1name+".tex", out_dir_eta+l1name+".pdf"], xtitle="p_{T}^{L1}", ytitle="", drawfit=True)
+                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, l1name), [out_dir_eta+l1name+".tex", out_dir_eta+l1name+".pdf"], xtitle="p_{T}^{L1}", ytitle="", drawfit=True)
                 plotnames.append(out_dir_eta+l1name+".tex")
 
                 rspname = "Rsp_genpt_%g_%g" % (ptmin, ptmax)
-                # plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, rspname), [out_dir_eta+rspname+".tex", out_dir_eta+rspname+".pdf"], xtitle="response = p_{T}^{L1}/p_{T}^{Gen}", ytitle="", drawfit=True)
+                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, rspname), [out_dir_eta+rspname+".tex", out_dir_eta+rspname+".pdf"], xtitle="response = p_{T}^{L1}/p_{T}^{Gen}", ytitle="", drawfit=True)
                 plotnames.append(out_dir_eta+rspname+".tex")
 
                 titles.append("$%g < |p_{T}^{Gen}| < %g GeV$" % (ptmin, ptmax))
@@ -257,9 +257,9 @@ def compile_pdf(texfile, pdffile, outdir):
     """
 
     output = "-output-directory=%s" % outdir
-    # subprocess.call(["lualatex", "-interaction", "nonstopmode", output, out_stem+".tex"])
-    # subprocess.call(["lualatex", "-interaction", "nonstopmode", output, out_stem+".tex"])
-    subprocess.call(["lualatex", output, texfile])
+    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
+    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
+    # subprocess.call(["lualatex", output, texfile])
     # subprocess.call(["lualatex", output, texfile])
     # Open the result
     subprocess.call(["open", pdffile])
@@ -271,5 +271,5 @@ if __name__ == "__main__":
     parser.add_argument("input", help="input ROOT filename")
     args = parser.parse_args()
 
-    # plot_corr_results(in_name=args.input)
-    plot_bin_results(in_name=args.input)
+    plot_corr_results(in_name=args.input)
+    # plot_bin_results(in_name=args.input)
