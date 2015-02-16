@@ -16,6 +16,8 @@ import numpy
 from pprint import pprint
 from itertools import izip
 import os
+import argparse
+
 
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
@@ -43,11 +45,21 @@ fitfcn.SetParameter(5, -6.)
 # fitfcn.SetParameter(4, 0.0)
 # fitfcn.SetParameter(5, -11.)
 
+# Turn off if you don't want/need them - they slow things down,
+# and don't affect determination of correction fn
+do_genjet_plots = False
+
+# Turn off if you don't want to fit to the correction curve
+# e.g. if you're testing your calibrations, since it'll waste time
+do_correction_fit = False
+
 
 def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, fit_params):
     """
     Do all the relevant hists and fitting, for one eta bin.
     """
+
+    print "Doing eta bin: %g - %g" % (absetamin, absetamax)
 
     # Input tree
     tree_raw = inputfile.Get("valid")
@@ -135,10 +147,11 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
         output_f_hists.WriteTObject(hpt)
 
         # Plots of pT Gen for given pT Gen bin
-        tree_raw.Draw("pt*rsp>>hpt_gen(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
-        hpt_gen = ROOT.gROOT.FindObject("hpt_gen")
-        hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
-        output_f_hists.WriteTObject(hpt_gen)
+        if do_genjet_plots:
+            tree_raw.Draw("pt*rsp>>hpt_gen(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
+            hpt_gen = ROOT.gROOT.FindObject("hpt_gen")
+            hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
+            output_f_hists.WriteTObject(hpt_gen)
 
         # Fit Gaussian to response curve
         fitStatus = -1
@@ -146,10 +159,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
             fitStatus = int(hrsp.Fit("gaus", "Q", "R", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
         output_f_hists.WriteTObject(hrsp)
 
-        if hpt.GetEntries() < 0 or hrsp.GetEntries() < 0:
-            continue
-
-        if fitStatus < 0:
+        if hpt.GetEntries() < 0 or hrsp.GetEntries() < 0 or fitStatus < 0:
             continue
 
         mean = hrsp.GetFunction("gaus").GetParameter(1)
@@ -164,13 +174,14 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
             raise Exception("Error < 0")
 
         print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), \
-               "<pT Gen>:", hpt_gen.GetMean(), "<rsp>:", mean
+               "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
 
         max_pt = hpt.GetMean() if hpt.GetMean() > max_pt else max_pt
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
-        gr_gen.SetPoint(grc, hpt_gen.GetMean(), 1. / mean)
-        # gr_gen.SetPointError(grc, hpt.GetMeanError(), err)
+        if do_genjet_plots:
+            gr_gen.SetPoint(grc, hpt_gen.GetMean(), 1. / mean)
+            # gr_gen.SetPointError(grc, hpt.GetMeanError(), err)
         grc += 1
 
     # Label response VS pT graphs
@@ -178,20 +189,24 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax, f
     gr.GetXaxis().SetTitle("<p_{T}^{L1}> [GeV]")
     gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
-    gr_gen.SetName('gencorr_eta_%g_%g' % (absetamin, absetamax))
-    gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}> [GeV]")
-    gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
+    if do_genjet_plots:
+        gr_gen.SetName('gencorr_eta_%g_%g' % (absetamin, absetamax))
+        gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}> [GeV]")
+        gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
     # Fit correction function to response vs pT graph, add to list
-    thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-    min_pt = 30 if absetamin >= 3.0 else 35
-    tmp_params = fit_correction(gr, thisfit, min_pt, max_pt)
-    fit_params.append(tmp_params)
+    if do_correction_fit:
+        thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
+        min_pt = 20 if absetamin >= 3.0 else 30
+        tmp_params = fit_correction(gr, thisfit, min_pt, max_pt)
+        fit_params.append(tmp_params)
 
     # Save these to file
     outputfile.WriteTObject(gr)
-    outputfile.WriteTObject(thisfit)
-    outputfile.WriteTObject(gr_gen)
+    if do_correction_fit:
+        outputfile.WriteTObject(thisfit)
+    if do_genjet_plots:
+        outputfile.WriteTObject(gr_gen)
 
 
 def fit_correction(graph, function, fit_min, fit_max):
@@ -205,10 +220,10 @@ def fit_correction(graph, function, fit_min, fit_max):
     """
     print "Fitting", fit_min, fit_max
     fit_result = -1
-    while (fit_result < 0 and fit_min < fit_max):
+    while (fit_result != 0 and fit_min < fit_max):
+        fit_result = int(graph.Fit(function.GetName(), "", "MR+", fit_min, fit_max))
+        print "Fit result:", fit_result, "for fit min", fit_min
         fit_min += 1
-        fit_result = int(graph.Fit(function.GetName(), "", "R+", fit_min, fit_max))
-        print fit_result, fit_min
 
     params = []
     for i in range(function.GetNumberFreeParameters()):
@@ -266,10 +281,15 @@ def print_lut_file(fit_params, eta_bins, filename):
 
 ########### MAIN ########################
 def main():
-    inputf = ROOT.TFile(sys.argv[1])
-    output_f = ROOT.TFile(sys.argv[2], "RECREATE")
-    print sys.argv[1]
-    print sys.argv[2]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input", help="input ROOT filename")
+    parser.add_argument("output", help="output ROOT filename")
+    args = parser.parse_args()
+
+    inputf = ROOT.TFile(args.input, "READ")
+    output_f = ROOT.TFile(args.output, "RECREATE")
+    print args.input
+    print args.output
 
     # Setup pt, eta bins for doing calibrations
     ptBins = list(numpy.arange(14, 254, 4))
@@ -303,9 +323,4 @@ def main():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print "Usage:"
-        print "python runCalibration <inputfile> <outputfile>"
-        exit(1)
-
     main()
