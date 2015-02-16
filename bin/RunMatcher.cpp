@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         // If doing corrections, split into cen & fwd jets, sort & filter
         // - do it here before matching
         if (doCorrections) {
-            correctJets(l1Jets, correctionFunctions, etaBins);
+            correctJets(l1Jets, correctionFunctions, etaBins, 30);
             emu->setJets(l1Jets);
             l1Jets = emu->getAllJets();
         }
