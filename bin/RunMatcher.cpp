@@ -161,7 +161,8 @@ int main(int argc, char* argv[]) {
     // produce matching pairs and store
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
-        Long64_t jentry = refJetExtraTree.LoadTree(iEntry); // jentry is the entry # in the current Tree
+        // jentry is the entry # in the current Tree
+        Long64_t jentry = refJetExtraTree.LoadTree(iEntry);
         if (jentry < 0) break;
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
@@ -173,7 +174,8 @@ int main(int argc, char* argv[]) {
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
         std::vector<TLorentzVector> l1Jets  = l1JetExtraTree.makeTLorentzVectors(l1JetBranches);
 
-        // If doing corrections, split into cen & fwd jets, sort & filter, do it here before matching
+        // If doing corrections, split into cen & fwd jets, sort & filter
+        // - do it here before matching
         if (doCorrections) {
             correctJets(l1Jets, correctionFunctions, etaBins);
             emu->setJets(l1Jets);
@@ -263,7 +265,6 @@ void loadCorrectionFunctions(const TString& filename,
     // Loop over eta bins
     for (unsigned ind = 0; ind < etaBins.size()-1; ++ind) {
         float etaMin(etaBins[ind]), etaMax(etaBins[ind+1]);
-        cout << etaMin << " - " << etaMax << endl;
         TString binName = TString::Format("fitfcneta_%g_%g", etaMin, etaMax);
         TF1 * fit = dynamic_cast<TF1*>(corrFile->Get(binName));
         // Make a copy of function and store in vector
@@ -309,7 +310,7 @@ void correctJets(std::vector<TLorentzVector>& jets,
         }
         auto minItr = maxItr - 1;
 
-        cout << "Jet eta: " << absEta << " => bin " << *minItr << " - " << *maxItr << std::endl;
+        // cout << "Jet eta: " << absEta << " => bin " << *minItr << " - " << *maxItr << std::endl;
 
         // Get correction fn for this bin
         TF1 corrFn = corrFns[minItr-etaBins.begin()];
@@ -317,19 +318,22 @@ void correctJets(std::vector<TLorentzVector>& jets,
         // Get fit range
         double fitMin(0.), fitMax(0.);
         corrFn.GetRange(fitMin, fitMax);
-        cout << "Range: " << fitMin << " - " << fitMax << endl;
-        cout << "Jet pt before: " << jetItr.Pt() << endl;;
+        // cout << "Range: " << fitMin << " - " << fitMax << endl;
+        // cout << "Jet pt before: " << jetItr.Pt() << endl;;
 
         // Now decide if we should apply corrections
         if (((minPt < 0.) && (jetItr.Pt() > fitMin) && (jetItr.Pt() < fitMax))
             || ((minPt > 0.) && (jetItr.Pt() > minPt))) {
-            corrFn.Print();
-            cout << corrFn.Eval(jetItr.Pt()) << endl;
+            // corrFn.Print();
+            // cout << corrFn.Eval(jetItr.Pt()) << endl;
             float newPt = jetItr.Pt() * corrFn.Eval(jetItr.Pt());
-            jetItr.SetPtEtaPhiM(newPt, jetItr.Eta(), jetItr.Phi(), jetItr.M());
+            // safeguard against crazy values
+            if (newPt < 1000. && newPt > 0.) {
+                jetItr.SetPtEtaPhiM(newPt, jetItr.Eta(), jetItr.Phi(), jetItr.M());
+            }
         }
 
-        cout << " Jet pt after: " << jetItr.Pt() << endl;
+        // cout << " Jet pt after: " << jetItr.Pt() << endl;
 
     }
 }
