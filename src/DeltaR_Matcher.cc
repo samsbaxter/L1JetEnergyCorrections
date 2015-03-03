@@ -152,8 +152,6 @@ std::vector<MatchedPair> DeltaR_Matcher::getMatchingPairs()
 }
 
 
-
-
 bool DeltaR_Matcher::checkJetMinPt(const TLorentzVector& jet, const double minPt) const
 {
     return (jet.Pt() >= minPt);
@@ -169,4 +167,13 @@ bool DeltaR_Matcher::checkJetMaxPt(const TLorentzVector& jet, const double maxPt
 bool DeltaR_Matcher::checkJetMaxEta(const TLorentzVector& jet, const double maxEta) const
 {
     return (fabs(jet.Eta()) <= maxEta);
+}
+
+std::ostream&  DeltaR_Matcher::printName(std::ostream& os) const {
+    return os << "\ndeltaR Matcher :: max DeltaR: " << maxDeltaR_
+            << ", matching reference jets with " << minRefJetPt_
+            << " < pT < " << maxRefJetPt_
+            << ", L1 jet with " << minL1JetPt_
+            << " < pT < " << maxL1JetPt_
+            << ", jet |eta| < " << maxJetEta_ << "\n";
 }

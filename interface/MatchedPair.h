@@ -43,6 +43,11 @@ class MatchedPair
 
       // ---------- member functions ---------------------------
 
+      /**
+       * @brief Overload ostream operator to print out details
+       */
+      friend std::ostream& operator<< (std::ostream& os, const MatchedPair& pair);
+
    private:
       // MatchedPair(const MatchedPair&); // stop default
 

@@ -58,6 +58,17 @@ MatchedPair::~MatchedPair()
 //
 // member functions
 //
+std::ostream& operator<< (std::ostream& os, const MatchedPair& pair) {
+    os << "Matched pair:"
+    << "\n\trefJet: pT: " << pair.refJet_.Pt()
+    << " eta: " << pair.refJet_.Eta()
+    << " phi: " << pair.refJet_.Phi()
+    << "\n\tl1Jet: pT: " << pair.l1Jet_.Pt()
+    << " eta: " << pair.l1Jet_.Eta()
+    << " phi: " << pair.l1Jet_.Phi()
+    << "\n";
+    return os;
+}
 
 //
 // const member functions

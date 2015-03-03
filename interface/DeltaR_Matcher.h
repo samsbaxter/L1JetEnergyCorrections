@@ -137,17 +137,6 @@ public:
      */
     virtual std::vector<MatchedPair> getMatchingPairs() override;
 
-    /**
-     * @brief Dummy function to print out basic details.
-     */
-    virtual void printName() const override {
-        std::cout << "\ndeltaR Matcher :: max DeltaR: " << maxDeltaR_
-                << ", matching reference jets with " << minRefJetPt_
-                << " < pT < " << maxRefJetPt_
-                << ", L1 jet with " << minL1JetPt_
-                << " < pT < " << maxL1JetPt_
-                << ", jet |eta| < " << maxJetEta_ << std::endl;
-    };
 
 private:
 
@@ -208,6 +197,11 @@ private:
      * @return True if a.Pt() > b.Pt()
      */
     static bool sortPtDescending(const TLorentzVector &a, const TLorentzVector &b) { return (a.Pt() > b.Pt()); } ;
+
+    /**
+     * @brief Function to print out basic details, used by ostream operator.
+     */
+    virtual std::ostream&  printName(std::ostream& os) const override;
 
     const double maxDeltaR_; // Maximum deltaR between reference and L1 jet to count as a 'match'.
     double minRefJetPt_; // Minimum pT for reference jet to take part in matching.

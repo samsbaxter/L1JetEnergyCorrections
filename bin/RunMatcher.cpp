@@ -152,8 +152,7 @@ int main(int argc, char* argv[]) {
     double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(500.);
     double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
-    matcher->printName();
-
+    std::cout << *matcher << std::endl;
 
     //////////////////////
     // LOOP OVER EVENTS //
@@ -187,10 +186,11 @@ int main(int argc, char* argv[]) {
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
         matchResults = matcher->getMatchingPairs();
-        // matcher->printMatches();
+        // matcher->printMatches(); // for debugging
 
         // store L1 & ref jet variables in tree
         for (const auto &it: matchResults) {
+            // std::cout << it << std::endl;
             out_pt = it.l1Jet().Et();
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();

@@ -69,9 +69,13 @@ public:
     virtual std::vector<TLorentzVector> getL1Jets() const { return l1Jets_; };
 
     /**
-     * @brief Dummy function to print out basic details.
+     * @brief Overload ostream operator.
+     * @details Can do different message for derived classes
+     * by overloading the printName() method
      */
-    virtual void printName() const { std::cout << "I am a abstract Matcher." << std::endl; };
+    friend std::ostream& operator<< (std::ostream& os, const Matcher& mat) {
+        return mat.printName(os);
+    };
 
     /**
      * @brief Debug function to print out details of matching pairs.
@@ -79,14 +83,23 @@ public:
     virtual void printMatches() const {
         std::cout << "Matches:" << std::endl;
         if (matchedJets_.size() != 0) {
-            for (auto &it: matchedJets_) { std::cout << "\nrefjet: "; it.refJet().Print(); std::cout << "l1jet: "; it.l1Jet().Print();}
+            for (auto &it: matchedJets_) { std::cout << it << std::endl; }
         } else { std::cout << "<NONE>" << std::endl; };
     };
+
 
 protected:
     std::vector<TLorentzVector> refJets_; //!< to store reference jet collection
     std::vector<TLorentzVector> l1Jets_; //!< to store L1 jet collection
     std::vector<MatchedPair> matchedJets_; //!< to store matches
+
+private:
+    /**
+     * @brief Dunction to print out basic details, used by ostream operator.
+     */
+    virtual std::ostream& printName(std::ostream& os) const {
+        return os << "I am a abstract Matcher. Please overload printName().\n";
+    };
 };
 
 #endif /* L1JetEnergyCorrections_Matcher_h */
