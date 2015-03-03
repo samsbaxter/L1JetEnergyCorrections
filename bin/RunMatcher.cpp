@@ -226,7 +226,6 @@ int main(int argc, char* argv[]) {
     // outTree->Write("", TObject::kOverwrite);
     outTree2->Write("", TObject::kOverwrite);
 
-    // cleanup
     outFile->Close();
 }
 
@@ -310,30 +309,22 @@ void correctJets(std::vector<TLorentzVector>& jets,
         }
         auto minItr = maxItr - 1;
 
-        // cout << "Jet eta: " << absEta << " => bin " << *minItr << " - " << *maxItr << std::endl;
-
         // Get correction fn for this bin
         TF1 corrFn = corrFns[minItr-etaBins.begin()];
 
         // Get fit range
         double fitMin(0.), fitMax(0.);
         corrFn.GetRange(fitMin, fitMax);
-        // cout << "Range: " << fitMin << " - " << fitMax << endl;
-        // cout << "Jet pt before: " << jetItr.Pt() << endl;;
 
         // Now decide if we should apply corrections
         if (((minPt < 0.) && (jetItr.Pt() > fitMin) && (jetItr.Pt() < fitMax))
-            || ((minPt > 0.) && (jetItr.Pt() > minPt))) {
+            || ((minPt >= 0.) && (jetItr.Pt() >= minPt))) {
             // corrFn.Print();
-            // cout << corrFn.Eval(jetItr.Pt()) << endl;
             float newPt = jetItr.Pt() * corrFn.Eval(jetItr.Pt());
             // safeguard against crazy values
             if (newPt < 1000. && newPt > 0.) {
                 jetItr.SetPtEtaPhiM(newPt, jetItr.Eta(), jetItr.Phi(), jetItr.M());
             }
         }
-
-        // cout << " Jet pt after: " << jetItr.Pt() << endl;
-
     }
 }

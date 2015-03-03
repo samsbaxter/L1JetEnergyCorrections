@@ -288,10 +288,14 @@ def main():
     # Turn off if you don't want/need them - they slow things down,
     # and don't affect determination of correction fn
     do_genjet_plots = args.no_genjet_plots
+    if not do_genjet_plots:
+        print "Not producing genjet plots"
 
     # Turn off if you don't want to fit to the correction curve
     # e.g. if you're testing your calibrations, since it'll waste time
     do_correction_fit = args.no_correction_fit
+    if not do_correction_fit:
+        print "Not fitting correction curves"
 
     inputf = ROOT.TFile(args.input, "READ")
     output_f = ROOT.TFile(args.output, "RECREATE")
