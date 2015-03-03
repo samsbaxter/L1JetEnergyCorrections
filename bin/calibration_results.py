@@ -11,11 +11,12 @@ import argparse
 import numpy
 from itertools import izip
 import subprocess
+import binning
 
 r.gROOT.SetBatch(1)
 # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
-ptBins = list(numpy.arange(14, 254, 4))
-etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
+ptBins = binning.pt_bins
+etaBins = binning.eta_bins
 
                 # \includegraphics[width=0.85\textwidth]{@PLOT1}
 four_plot_slide = \

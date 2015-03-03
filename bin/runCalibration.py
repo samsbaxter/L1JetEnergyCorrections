@@ -3,8 +3,8 @@ This script takes as input the output file from RunMatcher, and loops over
 matched genjet/L1 jet pairs, plotting interesting things and producing a
 correction function, as well as LUTs to put in CMSSW.
 
-Usage:
-python runCalibration <input file> <output file>
+Usage: see
+python runCalibration -h
 
 Originally by Nick Wardle, modified by Robin Aggleton
 """
@@ -17,7 +17,7 @@ from pprint import pprint
 from itertools import izip
 import os
 import argparse
-
+import binning
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
@@ -303,10 +303,9 @@ def main():
     print args.output
 
     # Setup pt, eta bins for doing calibrations
-    ptBins = list(numpy.arange(14, 254, 4))
-    # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
-    ptBinsWide = list(numpy.concatenate((numpy.arange(14, 50, 4), numpy.arange(50, 250, 20)))) # larger bins at higher pt
-    etaBins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
+    ptBins = binning.pt_bins
+    ptBinsWide = binning.pt_bins_wide # larger bins at higher pt
+    etaBins = binning.eta_bins
 
     print "Running over eta bins:", etaBins
     print "Running over pT bins:", ptBins

@@ -1,6 +1,8 @@
 import ROOT
 import sys
 import numpy
+import binning
+
 
 """
 This script produces plots for showing off in notes/presentations, etc
@@ -12,12 +14,12 @@ ROOT.TH1.SetDefaultSumw2(True)
 ROOT.gStyle.SetOptFit(0111)
 
 # etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0] #, 3.5, 4.0, 4.5, 5.001]
-etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5.001]
+etaBins = binning.eta_bins
 ptBins_1 = [14,18,22,24]
 ptBins_2 = numpy.arange(28,120,4)
 ptBins = ptBins_1[:]
 ptBins+=list(ptBins_2)
-ptBins = list(numpy.arange(14, 254, 4))
+ptBins = binning.pt_bins
 
 
 # Some common strings
