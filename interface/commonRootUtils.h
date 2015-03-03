@@ -31,10 +31,12 @@ TFile* openFile(TString filename, TString mode="") {
         throw std::invalid_argument("filename is null - cannot open ROOT file");
     }
 
+    // safe default mode
     if (mode == "") {
         mode = "READ";
     }
 
+    // actually try and open the file
     TFile *f = dynamic_cast<TFile*>(gROOT->GetListOfFiles()->FindObject(filename));
     if (!f || !f->IsOpen()) {
         f = new TFile(filename, mode);
@@ -44,7 +46,7 @@ TFile* openFile(TString filename, TString mode="") {
 
     // did it actually open correctly?
     if (!f->IsZombie()) {
-        std::cout << "Opened " + filename << " in " << mode << " mode" << std::endl;
+        std::cout << "Opened " << filename << " in " << mode << " mode" << std::endl;
         return f;
     } else {
         throw runtime_error(("Couldn't open "+filename).Data());
@@ -52,6 +54,15 @@ TFile* openFile(TString filename, TString mode="") {
 }
 
 
+/**
+ * @brief Get TTree from TFile
+ * @details Encapsulates error checking.
+ *
+ * @param f TFile to get TTree from
+ * @param treeName Name of TTree
+ *
+ * @return The TTree wanted
+ */
 TTree* loadTree(TFile * f, TString treeName) {
     return dynamic_cast<TTree*>(f->Get(treeName));
 }

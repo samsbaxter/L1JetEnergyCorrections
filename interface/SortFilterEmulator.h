@@ -14,11 +14,11 @@
  Usage:
      SortFilterEmulator emu(4);  // keep top 4
      emu.setJets(myJets); // loads jets & does sorting, filtering
-     emu.getAllJets();
+     auto allJets = emu.getAllJets();
      // if you only want central jets:
-     emu.getCenJets();
+     auto cenJets = emu.getCenJets();
      // if you only want forward jets:
-     emu.getFwdJets();
+     auto fwdJets = emu.getFwdJets();
 
 */
 //
@@ -86,7 +86,7 @@ public:
      */
     std::vector<TLorentzVector> getCenJets() { return cenJets_; };
 
-    /** // loads jets & does sorting, filtering
+    /**
      * @brief [brief description]
      * @details [long description]
      * @return [description]
