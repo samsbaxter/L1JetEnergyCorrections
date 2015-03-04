@@ -17,18 +17,21 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
                                             "l1ExtraTreeProducerIntern"
                                             )
 
+##############################
+# Input/output & standard stuff
+##############################
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(1000)
     )
 
 # Input source
 readFiles = cms.untracked.vstring()
 process.source = cms.Source("PoolSource",
-    secondaryFileNames = cms.untracked.vstring(),
+    # secondaryFileNames = cms.untracked.vstring(),
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Fall13dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00005/02B79593-F47F-E311-8FF6-003048FFD796.root")
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/008B2415-EBDD-E311-B807-20CF3027A564.root")
-    # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
-    fileNames = readFiles
+    fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+    # fileNames = readFiles
     )
 
 # readFiles.extend( [
@@ -54,12 +57,22 @@ process.output = cms.OutputModule(
     )
                                            )
 
+process.TFileService = cms.Service("TFileService",
+    fileName = cms.string('L1Tree.root')
+    # fileName = cms.string('L1Tree_RelVal_Stage1_newRCT.root')
+    # fileName = cms.string('L1Tree_RelVal_Stage1.root')
+)
+
+
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag.connect = cms.string('frontier://FrontierProd/CMS_COND_31X_GLOBALTAG')
 process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
 # process.GlobalTag.globaltag = cms.string('MCRUN2_73_V9::All')
 
+##############################
+# Load up Stage 1 emulator
+##############################
 process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff')
 
 # GT
@@ -118,11 +131,10 @@ process.preGtJetToL1Jet = cms.EDProducer('PreGtJetToL1Jet',
 
 # L1Extra TTree - put preGtJets in "cenJet" branch
 process.l1ExtraTreeProducerIntern = process.l1ExtraTreeProducer.clone()
-# process.l1ExtraTreeProducerIntern.cenJetLabel = cms.untracked.InputTag("l1ExtraLayerPreGt:Central")
 process.l1ExtraTreeProducerIntern.cenJetLabel = cms.untracked.InputTag("preGtJetToL1Jet:PreGtJets")
 process.l1ExtraTreeProducerIntern.maxL1Extra = cms.uint32(50)
 
-# Turn off any existing stage 1 calibrations (sigh)
+# Turn off any existing stage 1 calibrations
 process.caloStage1Params.jetCalibrationType = cms.string("None")
 
 ##############################
@@ -154,28 +166,28 @@ process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("genJetTo
 process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
 
-
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree.root')
-    # fileName = cms.string('L1Tree_RelVal_Stage1_newRCT.root')
-    # fileName = cms.string('L1Tree_RelVal_Stage1.root')
+##############################
+# Store PU info (nvtx, etc)
+##############################
+process.puInfo = cms.EDAnalyzer("PileupInfo",
+  pileupInfoSource = cms.InputTag("addPileupInfo")
 )
 
 
 process.p1 = cms.Path(
     process.L1TCaloStage1_PPFromRaw
     # +process.simGtDigis
-    +process.preGtJetToL1Jet
+    +process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
     +process.l1ExtraLayer2
     +process.l1ExtraLayerPreGt
-    +process.antiktGenJets
-    +process.genJetToL1JetAk5
-    +process.genJetToL1JetAk4
+    +process.antiktGenJets # make ak4GenJets
+    +process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
+    +process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
     +process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
     +process.l1ExtraTreeProducerIntern # ditto but with preGtJets in cenJet branch
     +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
     +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
-
+    +process.puInfo # store nVtx info
     )
 
 # process.output_step = cms.EndPath(process.output)
