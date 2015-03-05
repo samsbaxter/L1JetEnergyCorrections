@@ -81,9 +81,6 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
             fit_l1 = int(h_res_l1.Fit("gaus", "Q", "R", h_res_l1.GetMean() - 1. * h_res_l1.GetRMS(), h_res_l1.GetMean() + 1. * h_res_l1.GetRMS()))
         output_f_hists.WriteTObject(h_res_l1)
 
-        c1 = ROOT.gROOT.FindObject("c1")
-        c1.SaveAs("resL1.pdf")
-
         # Plot resolution wrt Ref pT & fit
         var = "resRef"
         if not check_var_stored(tree_raw, var):
@@ -96,8 +93,6 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
             fit_ref = int(h_res_ref.Fit("gaus", "Q", "R", h_res_ref.GetMean() - 1. * h_res_ref.GetRMS(), h_res_ref.GetMean() + 1. * h_res_ref.GetRMS()))
         output_f_hists.WriteTObject(h_res_ref)
 
-        c1 = ROOT.gROOT.FindObject("c1")
-        c1.SaveAs("resGen.pdf")
 
 ########### MAIN ########################
 def main():
@@ -116,9 +111,9 @@ def main():
         raise Exception("Couldn't open input or output files")
 
     # Setup pt, eta bins for doing calibrations
-    ptBins = binning.pt_bins[:5]
+    ptBins = binning.pt_bins[:]
     ptBinsWide = binning.pt_bins_wide # larger bins at higher pt
-    etaBins = binning.eta_bins[:2]
+    etaBins = binning.eta_bins[:]
 
     print "Running over eta bins:", etaBins
     print "Running over pT bins:", ptBins
