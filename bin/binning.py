@@ -14,7 +14,7 @@ import numpy
 ############
 pt_bins = list(numpy.arange(14, 254, 4))
 # wider binning for low stats regions
-pt_bins_wide = list(numpy.concatenate((numpy.arange(14, 50, 4), numpy.arange(50, 250, 20)))) # larger bins at higher pt
+pt_bins_wide = list(numpy.concatenate((numpy.arange(14, 50, 4), numpy.arange(50, 270, 20)))) # larger bins at higher pt
 
 ############
 # ETA BINS
