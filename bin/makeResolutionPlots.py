@@ -9,7 +9,7 @@ python makeResolutionPlots -h
 
 import ROOT
 import sys
-import array
+from array import array
 import numpy
 from pprint import pprint
 from itertools import izip
@@ -23,19 +23,24 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2()
-ROOT.gROOT.LoadMacro("tdrstyle.C");
-ROOT.setTDRStyle();
+ROOT.gROOT.ProcessLine('.L tdrStyle.C')
+ROOT.setTDRStyle()
 ROOT.gStyle.SetOptTitle(0);
 ROOT.gStyle.SetOptStat(1);
 ROOT.gROOT.ForceStyle();
+
 
 def check_var_stored(tree, var):
     """Check to see if TTree has branch with name var"""
     return tree.GetListOfBranches().FindObject(var)
 
 
-def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
-    """Do various resolution plots for given eta bin, for all pT bins"""
+def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax, widths_l1, widths_ref):
+    """
+    Do various resolution plots for given eta bin, for all pT bins
+
+    Stores widths of fitted gaussians in widths_l1 and widths_ref args.
+    """
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
 
@@ -79,6 +84,10 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         h_res_l1.SetTitle("%g < |#eta| < %g;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1};N" % (absetamin, absetamax))
         if h_res_l1.GetEntries() > 0:
             fit_l1 = int(h_res_l1.Fit("gaus", "Q", "R", h_res_l1.GetMean() - 1. * h_res_l1.GetRMS(), h_res_l1.GetMean() + 1. * h_res_l1.GetRMS()))
+            if fit_l1 == 0:
+                widths_l1.append(h_res_l1.GetFunction("gaus").GetParameter(2))
+            else:
+                append(-1)
         output_f_hists.WriteTObject(h_res_l1)
 
         # Plot resolution wrt Ref pT & fit
@@ -91,7 +100,35 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         h_res_ref.SetTitle("%g < |#eta| < %g;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % (absetamin, absetamax))
         if h_res_ref.GetEntries() > 0:
             fit_ref = int(h_res_ref.Fit("gaus", "Q", "R", h_res_ref.GetMean() - 1. * h_res_ref.GetRMS(), h_res_ref.GetMean() + 1. * h_res_ref.GetRMS()))
+            if fit_ref == 0:
+                widths_ref.append(h_res_ref.GetFunction("gaus").GetParameter(2))
+            else:
+                widths_ref.append(-1)
         output_f_hists.WriteTObject(h_res_ref)
+
+
+def plot_widths(pt_bins, widths, name, title=""):
+    """Plot graph of widths Vs Et"""
+
+    # make x points and error bars
+    pt_centres = []
+    pt_err = []
+
+    for i, pt in enumerate(pt_bins[:-1]):
+        pt_centres.append(0.5 * (pt + pt_bins[i+1]))
+        pt_err.append(pt_centres[i]-pt)
+
+    if len(widths) != len(pt_centres):
+        raise Exception("incorrect pt bins or widths")
+
+    # make y error bars
+    width_err = []
+    for w in widths:
+        width_err.append(0)
+
+    res_graph = ROOT.TGraphErrors(len(widths), array("d", pt_centres), array("d", widths), array("d", pt_err), array("d", width_err))
+    res_graph.SetNameTitle(name, title)
+    res_graph.Write("",ROOT.TObject.kOverwrite)
 
 
 ########### MAIN ########################
@@ -99,37 +136,56 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
+    parser.add_argument("--incl", action="store_true", help="Do inclusive eta plots")
+    parser.add_argument("--excl", action="store_true", help="Do exclusive eta plots")
     args = parser.parse_args()
 
 
     inputf = ROOT.TFile(args.input, "READ")
     outputf = ROOT.TFile(args.output, "RECREATE")
-    print args.input
-    print args.output
+    print "Reading from", args.input
+    print "Writing to", args.output
 
     if not inputf or not outputf:
         raise Exception("Couldn't open input or output files")
 
     # Setup pt, eta bins for doing calibrations
-    ptBins = binning.pt_bins[:]
-    ptBinsWide = binning.pt_bins_wide # larger bins at higher pt
-    etaBins = binning.eta_bins[:]
+    pt_bins = binning.pt_bins[:3]
+    pt_bins_wide = binning.pt_bins_wide # larger bins at higher pt
+    eta_bins = binning.eta_bins[:3]
 
-    print "Running over eta bins:", etaBins
-    print "Running over pT bins:", ptBins
+    print "Running over eta bins:", eta_bins
+    print "Running over pT bins:", pt_bins
 
     # Do plots for individual eta bins
-    for i,eta in enumerate(etaBins[0:-1]):
-        emin = eta
-        emax = etaBins[i+1]
-        if emin >= 3.:
-            plot_resolution(inputf, outputf, ptBinsWide, emin, emax)
-        else:
-            plot_resolution(inputf, outputf, ptBins, emin, emax)
+    if args.excl:
+        print "Doing individual eta bins"
+        for i,eta in enumerate(eta_bins[0:-1]):
+            emin = eta
+            emax = eta_bins[i+1]
+            widths_l1 = []
+            widths_ref = []
+            # diff binning for forward region
+            if emin >= 3.:
+                plot_resolution(inputf, outputf, pt_bins_wide, emin, emax, widths_l1, widths_ref)
+                plot_widths(pt_bins_wide, widths_l1, "resL1_%g_%g" % (emin, emax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % (emin, emax))
+                plot_widths(pt_bins_wide, widths_ref, "resGen_%g_%g" % (emin, emax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % (emin, emax))
+            else:
+                plot_resolution(inputf, outputf, pt_bins, emin, emax, widths_l1, widths_ref)
+                plot_widths(pt_bins, widths_l1, "resL1_%g_%g" % (emin, emax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % (emin, emax))
+                plot_widths(pt_bins, widths_ref, "resGen_%g_%g" % (emin, emax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % (emin, emax))
+
 
     # Do plots for inclusive eta
-    if len(etaBins) > 2:
-        plot_resolution(inputf, outputf, ptBins, etaBins[0], etaBins[-1])
+    # Skip if doing exlcusive and only 2 bins, or if only 1 bin
+    if args.incl and ((not args.excl and len(eta_bins) >= 2) or (args.excl and len(eta_bins)>2):
+        print "Doing inclusive eta"
+        widths_l1_all = []
+        widths_ref_all = []
+        plot_resolution(inputf, outputf, pt_bins, eta_bins[0], eta_bins[-1], widths_l1_all, widths_ref_all)
+        plot_widths(pt_bins, widths_l1_all, "resL1_allEta", "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % (eta_bins[0], eta_bins[-1]))
+        plot_widths(pt_bins, widths_ref_all, "resRef_allEta", "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % (eta_bins[0], eta_bins[-1]))
+
 
 if __name__ == "__main__":
     main()
