@@ -68,8 +68,8 @@ class PileupInfo : public edm::EDAnalyzer {
         TTree * tree_;
 
         // things to store in branches
-        float trueNumInteractions_;
-        int num_PU_vertices_;
+        float trueNumInteractions_; // the *true* mean number of pileup interactions for this event from which each bunch crossing has been sampled; same for all bunch crossings in an event
+        int num_PU_vertices_; // the number of pileup interactions that have been added to the event from this bunch crossing
 };
 
 //

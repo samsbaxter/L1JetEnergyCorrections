@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp2(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
-    float out_ptDiff(99999.), out_resL1(99.), out_resGen(99.);
+    float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
 
     outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
     outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
@@ -136,9 +136,9 @@ int main(int argc, char* argv[]) {
     outTree2->Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
     outTree2->Branch("etaRef", &out_etaRef, "etaRef/Float_t");
     outTree2->Branch("phiRef", &out_phiRef, "phiRef/Float_t");
-    outTree2->Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Gen
-    outTree2->Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Gen / L1
-    outTree2->Branch("resGen", &out_resGen, "resGen/Float_t"); // resolution = L1 - Gen / Gen
+    outTree2->Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
+    outTree2->Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
+    outTree2->Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
 
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
             out_phiRef = it.refJet().Phi();
             out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
             out_resL1 = out_ptDiff/it.l1Jet().Et();
-            out_resGen = out_ptDiff/it.refJet().Et();
+            out_resRef = out_ptDiff/it.refJet().Et();
             outTree2->Fill();
         }
 
