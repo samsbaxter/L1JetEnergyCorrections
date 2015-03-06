@@ -145,117 +145,40 @@ def multiplot_to_file(plots, outfilename, xtitle="", ytitle="", xlim=None, ylim=
     container.GetYaxis().SetTitleSize(0.06)
     container.GetYaxis().SetLabelSize(0.06)
     container.Draw(drawopts)
-    leg.Draw()
+    if leg.GetNRows() != 0:
+        leg.Draw()
     for f in outfilename:
         r.gPad.Print(f)
     r.gPad.Clear()
 
 
-def plot_res_results(in_name=""):
+def plot_res_results(in_name_pre="", in_name_post=""):
     """
-    Puts resolution plots in one pdf. Only for one file.
+    Put resolution plot for each eta bin in one pdf.
+    If in_name_post is specified, it will plot the graphs on the
+    same canvas for ease of comparison.
     """
-    # Setup input file
-    print "Opening", in_name
-    in_stem = os.path.basename(in_name).replace(".root", "")
-    input_file = open_root_file(in_name)
 
-    # Setup output directory & filenames
-    odir = os.path.dirname(os.path.abspath(in_name))+"/"+in_stem+"/"
-    check_dir_exists(odir)
-
-    out_name = odir+in_stem+".pdf"
-    out_stem = out_name.replace(".pdf","")
-    print "Writing to", out_name
-
-    # Start beamer file
-    # Use template - change title, subtitle, include file
-    title = "Resolution plots, binned by $|\eta|$"
-    sub = in_stem.replace("res_", "").replace("_", "\_")
-    sub = sub.replace("_ak", r"\\_ak")
-    subtitle = "{\\tt " + sub +"}"
-    slides_file = out_stem+"_slides.tex"
-    main_file = out_stem+".tex"
-    with open("beamer_template.tex", "r") as t:
-        with open(main_file, "w") as f:
-            substitute = {"@TITLE": title, "@SUBTITLE": subtitle,
-                          "@FILE": slides_file}
-            for line in t:
-                for k in substitute:
-                    if k in line:
-                        line = line.replace(k, substitute[k])
-                f.write(line)
-
-    # Now make the slides file
-    with open(slides_file, "w") as slides:
-        titles = []
-        plotnames = []
-        # Do the L1 resolution plot alongside its corresponding genjet resolution plot
-        for i, eta in enumerate(etaBins[0:-1]):
-            emin = eta
-            emax = etaBins[i+1]
-
-            name = "resL1_%g_%g" % (emin, emax)
-            plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
-                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", ylim=[0, 0.9], drawfit=True, drawopts="ALP")
-            titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
-            plotnames.append(odir+name+".tex")
-
-            name = "resRef_%g_%g" % (emin, emax)
-            plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
-                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", ylim=[0, 0.5], drawfit=True, drawopts="ALP")
-            titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
-            plotnames.append(odir+name+".tex")
-
-            # print i
-            print titles
-            print plotnames
-            if (len(plotnames) == 4): # or (i == len(etaBins)-2):
-                print "Writing", emin, emax
-                slidetitle = "Resolution (L1 \\& GenJet)"
-                slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
-                titles = []
-                plotnames = []
-
-        # Do the inclusive eta plot
-        emin = etaBins[0]
-        emax = etaBins[-1]
-        name = "resL1_%g_%g" % (emin, emax)
-        plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
-            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", ylim=[0, 0.9], drawfit=True, drawopts="ALP")
-        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
-        plotnames.append(odir+name+".tex")
-
-        name = "resRef_%g_%g" % (emin, emax)
-        plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
-            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", ylim=[0, 0.5], drawfit=True, drawopts="ALP")
-        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
-        plotnames.append(odir+name+".tex")
-
-        print "Writing", emin, emax
-        slidetitle = "Resolution (L1 \\& GenJet)"
-        slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
-
-    compile_pdf(main_file, out_name, odir)
-
-
-def plot_res_compare(in_name_pre="", in_name_post=""):
-    """For when you want to plot the pre and post calibrated versions on the same canvas"""
     # Setup input file (pre calib)
     print "Opening", in_name_pre
     in_stem_pre = os.path.basename(in_name_pre).replace(".root", "")
     input_file_pre = open_root_file(in_name_pre)
 
     # Setup input file (post calib)
-    print "Opening", in_name_post
-    in_stem_post = os.path.basename(in_name_post).replace(".root", "")
-    input_file_post = open_root_file(in_name_post)
+    mode = ""
+    if in_name_post:
+        print "Opening", in_name_post
+        in_stem_post = os.path.basename(in_name_post).replace(".root", "")
+        input_file_post = open_root_file(in_name_post)
+        mode = "_compare"
+    else:
+        print "Not opening post file"
 
     # Setup output directory & filenames
-    odir = os.path.dirname(os.path.abspath(in_name_pre))+"/"+in_stem_pre+"_compare/"
+    odir = os.path.dirname(os.path.abspath(in_name_pre))+"/"+in_stem_pre+mode+"/"
     check_dir_exists(odir)
 
-    out_name = odir+in_stem_pre+"_compare.pdf"
+    out_name = odir+in_stem_pre+mode+".pdf"
     out_stem = out_name.replace(".pdf","")
     print "Writing to", out_name
 
@@ -264,7 +187,8 @@ def plot_res_compare(in_name_pre="", in_name_post=""):
     title = "Resolution plots, binned by $|\eta|$,\\\\comparing pre- and post- calibration"
     sub = in_stem_pre.replace("res_", "").replace("_", "\_")
     sub += r"\\"
-    sub += in_stem_post.replace("res_", "").replace("_", "\_")
+    if in_name_post:
+        sub += in_stem_post.replace("res_", "").replace("_", "\_")
     sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub +"}"
     slides_file = out_stem+"_slides.tex"
@@ -290,16 +214,24 @@ def plot_res_compare(in_name_pre="", in_name_post=""):
 
             name = "resL1_%g_%g" % (emin, emax)
             pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
-            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
-            multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+            plots = [pre_dict]
+            if in_name_post:
+                post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+                plots.append(post_dict)
+
+            multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
                 xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", drawfit=True, drawopts="ALP")
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
             name = "resRef_%g_%g" % (emin, emax)
             pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
-            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
-            multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+            plots = [pre_dict]
+            if in_name_post:
+                post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+                plots.append(post_dict)
+
+            multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
                 xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP")
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
@@ -318,19 +250,28 @@ def plot_res_compare(in_name_pre="", in_name_post=""):
         emax = etaBins[-1]
         name = "resL1_%g_%g" % (emin, emax)
         pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
-        post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
-        multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+        plots = [pre_dict]
+        if in_name_post:
+            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+            plots.append(post_dict)
+
+        multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
             xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", drawfit=True, drawopts="ALP")
         titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
         plotnames.append(odir+name+".tex")
 
         name = "resRef_%g_%g" % (emin, emax)
         pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
-        post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
-        multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+        plots = [pre_dict]
+        if in_name_post:
+            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+            plots.append(post_dict)
+
+        multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
             xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP")
         titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
         plotnames.append(odir+name+".tex")
+
         print "Writing", emin, emax
         slidetitle = "Resolution comparison pre \\& post calibration (L1 \\& GenJet)"
         slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
@@ -437,7 +378,7 @@ if __name__ == "__main__":
 
     if args.compare != "":
         # Plot result for each eta bin & overall, comparing pre and post calib
-        plot_res_compare(in_name_pre=args.input, in_name_post=args.compare)
+        plot_res_results(in_name_pre=args.input, in_name_post=args.compare)
     else:
         # Same but no comparison, only 1 file
         plot_res_results(in_name=args.input)
