@@ -61,11 +61,11 @@ r"""
 \begin{center}
 @PLOT1TITLE
 \\
-\scalebox{0.5}{\input{@PLOT1}}
+\scalebox{0.55}{\input{@PLOT1}}
 \\
 @PLOT3TITLE
 \\
-\scalebox{0.5}{\input{@PLOT3}}
+\scalebox{0.55}{\input{@PLOT3}}
 \end{center}
 \end{column}
 
@@ -73,11 +73,11 @@ r"""
 \begin{center}
 @PLOT2TITLE
 \\
-\scalebox{0.5}{\input{@PLOT2}}
+\scalebox{0.55}{\input{@PLOT2}}
 \\
 @PLOT4TITLE
 \\
-\scalebox{0.5}{\input{@PLOT4}}
+\scalebox{0.55}{\input{@PLOT4}}
 \end{center}
 \end{column}
 \end{columns}
@@ -102,7 +102,8 @@ def make_slide(slide_temp, titles, plotnames, slidetitle=""):
 
     # cleanup incase we have leftover unused figures
     slide = re.sub(r"@PLOT\dTITLE", "", slide)
-    slide = re.sub(r"\\scalebox{0\.5}{\\input{@PLOT\d}}", "", slide)  # to avoid "missing .tex file" error
+    # r"\\scalebox{0.55}{\input{@PLOT3}}"
+    slide = re.sub(r"\\scalebox{0\.\d+}{\\input{@PLOT\d}}", "", slide)  # to avoid "missing .tex file" error
     slide = re.sub(r"\\\\\n\n", "", slide)  # remove useless line breaks
     slide = slide.replace("\n\n\\\\", "\\\\")
     return slide
