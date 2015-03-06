@@ -118,7 +118,9 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         h_res_l1.SetTitle("%g < |#eta| < %g;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1};N" % (absetamin, absetamax))
         if h_res_l1.GetEntries() > 0:
             fit_l1 = int(h_res_l1.Fit("gaus", "Q", "R", h_res_l1.GetMean() - 1. * h_res_l1.GetRMS(), h_res_l1.GetMean() + 1. * h_res_l1.GetRMS()))
-            if fit_l1 == 0:
+            fit_mean = h_res_l1.GetFunction("gaus").GetParameter(1)
+            # check fit converged, and is sensible (if means differ significantly can indicate issues)
+            if fit_l1 == 0 and (abs(fit_mean - h_res_l1.Mean()) < (0.2 * h_res_l1.GetMean())):
                 res_graph_l1.SetPoint(gr_count, pt_mid, h_res_l1.GetFunction("gaus").GetParameter(2))
                 res_graph_l1.SetPointError(gr_count, pt_width, h_res_l1.GetFunction("gaus").GetParError(2))
             else:
@@ -135,7 +137,8 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         h_res_ref.SetTitle("%g < |#eta| < %g;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % (absetamin, absetamax))
         if h_res_ref.GetEntries() > 0:
             fit_ref = int(h_res_ref.Fit("gaus", "Q", "R", h_res_ref.GetMean() - 1. * h_res_ref.GetRMS(), h_res_ref.GetMean() + 1. * h_res_ref.GetRMS()))
-            if fit_ref == 0:
+            fit_mean = h_res_ref.GetFunction("gaus").GetParameter(1)
+            if fit_ref == 0 and (abs(fit_mean - h_res_ref.Mean()) < (0.2 * h_res_ref.GetMean())):
                 res_graph_ref.SetPoint(gr_count, pt_mid, h_res_ref.GetFunction("gaus").GetParameter(2))
                 res_graph_ref.SetPointError(gr_count, pt_width, h_res_ref.GetFunction("gaus").GetParError(2))
             else:
