@@ -43,12 +43,12 @@ def check_dir_exists(d):
         os.makedirs(opath)
 
 
-def plot_to_file(f, plotname, filename, xtitle="", ytitle="", xlim=None, ylim=None, drawfit=True, drawopts="", col=""):
+def plot_to_file(infile, plotname, outfilename, xtitle="", ytitle="", xlim=None, ylim=None, drawfit=True, drawopts="", col=""):
     """
     Save plot to file (tex, png, pdf...)
-    f is a TFile
+    infile is a TFile
     plotname is the name of the plot in the file (incl. any directories)
-    filename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
+    outfilename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
     Can optionally not draw the fit to the curve
     Can also provide draw options, and axis titles and limits (each as pair of values)
     """
@@ -56,7 +56,7 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", xlim=None, ylim=No
     r.gStyle.SetOptStat("mre")
     r.gStyle.SetOptFit(1111)
 
-    plt = (f.Get(plotname).Clone())
+    plt = (infile.Get(plotname).Clone())
     plt.GetXaxis().SetTitle(xtitle)
     plt.GetXaxis().SetTitleSize(0.06)
     plt.GetXaxis().SetLabelSize(0.06)
@@ -64,6 +64,7 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", xlim=None, ylim=No
     plt.GetYaxis().SetTitleSize(0.06)
     plt.GetYaxis().SetLabelSize(0.06)
     plt.SetTitle("")
+    plt.SetMarkerSize(0.5)
     if xlim:
         plt.GetXaxis().SetRangeUser(xlim[0], xlim[1])
     if ylim:
@@ -81,7 +82,71 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", xlim=None, ylim=No
     #     r.gStyle.SetOptFit(0)
     #     plt.GetListOfFunctions().Remove(plt.GetListOfFunctions().At(0))
     plt.Draw(drawopts)
-    for f in filename:
+    for f in outfilename:
+        r.gPad.Print(f)
+    r.gPad.Clear()
+
+def multiplot_to_file(plots, outfilename, xtitle="", ytitle="", xlim=None, ylim=None, drawfit=True, drawopts=""):
+    """
+    Put multiple plots on same canvas and save to file
+    plots is a list of dicts, each with entries for TFile, name of plot in file, colour, legend text and legend style
+    e.g. {'infile': file.root, 'plotname': 'hist1', 'color': r.kRed, 'legend_text': "My hist", 'legend_style': "F"}
+
+    outfilename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
+    Can optionally not draw the fit to the curve
+    Can also provide draw options, and axis titles and limits (each as pair of values)
+    """
+    r.gStyle.SetPaperSize(10.,10.)
+    r.gStyle.SetOptStat("mre")
+    r.gStyle.SetOptFit(1111)
+
+    container = None
+    leg = r.TLegend(0.6, 0.7, 0.88, 0.88)
+
+    for plot in plots:
+        plt = (plot["infile"].Get(plot["plotname"]).Clone())
+        # setup container depending on type
+        if not container:
+            hists = ["TH1", "TH2"]
+            graphs = ["TGraph", "TGraphErrors", "TGraphAsymmErrors"]
+            if type(plt).__name__ in hists:
+                container = r.THStack("hstack")
+            elif type(plt).__name__ in graphs:
+                container = r.TMultiGraph()
+        plt.GetXaxis().SetTitle(xtitle)
+        plt.GetXaxis().SetTitleSize(0.06)
+        plt.GetXaxis().SetLabelSize(0.06)
+        plt.GetYaxis().SetTitle(ytitle)
+        plt.GetYaxis().SetTitleSize(0.06)
+        plt.GetYaxis().SetLabelSize(0.06)
+        plt.SetTitle("")
+        plt.SetMarkerSize(0.5)
+        if xlim:
+            plt.GetXaxis().SetRangeUser(xlim[0], xlim[1])
+        if ylim:
+            plt.SetMaximum(ylim[1])
+            plt.SetMinimum(ylim[0])
+        if "color" in plot.keys():
+            col = plot["color"]
+            if col != "":
+                plt.SetLineColor(col)
+                plt.SetMarkerColor(col)
+                plt.SetFillColor(col)
+        container.Add(plt)
+        leg_txt = plot["legend_text"] if "legend_text" in plot.keys() else ""
+        leg_sty = plot["legend_style"] if "legend_style" in plot.keys() else ""
+        leg.AddEntry(plt, leg_txt, leg_sty)
+
+    container.Draw(drawopts)
+    container.GetXaxis().SetTitle(xtitle)
+    container.GetXaxis().SetTitleSize(0.06)
+    container.GetXaxis().SetLabelSize(0.06)
+    container.GetYaxis().SetTitle(ytitle)
+    container.GetYaxis().SetTitleSize(0.06)
+    container.GetYaxis().SetLabelSize(0.06)
+    container.Draw(drawopts)
+    leg.Draw()
+    for f in outfilename:
         r.gPad.Print(f)
     r.gPad.Clear()
 
@@ -131,26 +196,45 @@ def plot_res_results(in_name=""):
             emax = etaBins[i+1]
 
             name = "resL1_%g_%g" % (emin, emax)
-            plot_to_file(f=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, filename=[odir+name+".tex", odir+name+".pdf"],
+            plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
                 xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", ylim=[0, 0.9], drawfit=True, drawopts="ALP")
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
             name = "resRef_%g_%g" % (emin, emax)
-            plot_to_file(f=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, filename=[odir+name+".tex", odir+name+".pdf"],
-                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", ylim=[0, 0.25], drawfit=True, drawopts="ALP")
+            plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
+                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", ylim=[0, 0.5], drawfit=True, drawopts="ALP")
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
             # print i
             print titles
             print plotnames
-            if (len(plotnames) == 4) or (i == len(etaBins)-2):
+            if (len(plotnames) == 4): # or (i == len(etaBins)-2):
                 print "Writing", emin, emax
                 slidetitle = "Resolution (L1 \\& GenJet)"
                 slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                 titles = []
                 plotnames = []
+
+        # Do the inclusive eta plot
+        emin = etaBins[0]
+        emax = etaBins[-1]
+        name = "resL1_%g_%g" % (emin, emax)
+        plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
+            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", ylim=[0, 0.9], drawfit=True, drawopts="ALP")
+        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
+        plotnames.append(odir+name+".tex")
+
+        name = "resRef_%g_%g" % (emin, emax)
+        plot_to_file(infile=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, outfilename=[odir+name+".tex", odir+name+".pdf"],
+            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", ylim=[0, 0.5], drawfit=True, drawopts="ALP")
+        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
+        plotnames.append(odir+name+".tex")
+
+        print "Writing", emin, emax
+        slidetitle = "Resolution (L1 \\& GenJet)"
+        slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
 
     compile_pdf(main_file, out_name, odir)
 
@@ -179,6 +263,8 @@ def plot_res_compare(in_name_pre="", in_name_post=""):
     # Use template - change title, subtitle, include file
     title = "Resolution plots, binned by $|\eta|$,\\\\comparing pre- and post- calibration"
     sub = in_stem_pre.replace("res_", "").replace("_", "\_")
+    sub += r"\\"
+    sub += in_stem_post.replace("res_", "").replace("_", "\_")
     sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub +"}"
     slides_file = out_stem+"_slides.tex"
@@ -203,26 +289,51 @@ def plot_res_compare(in_name_pre="", in_name_post=""):
             emax = etaBins[i+1]
 
             name = "resL1_%g_%g" % (emin, emax)
-            plot_to_file(f=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, filename=[odir+name+".tex", odir+name+".pdf"],
-                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", ylim=[0, 0.9], drawfit=True, drawopts="ALP")
+            pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
+            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+            multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", drawfit=True, drawopts="ALP")
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
             name = "resRef_%g_%g" % (emin, emax)
-            plot_to_file(f=input_file, plotname="eta_%g_%g/" %(emin, emax)+name, filename=[odir+name+".tex", odir+name+".pdf"],
-                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", ylim=[0, 0.25], drawfit=True, drawopts="ALP")
+            pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
+            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+            multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP")
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
-            # print i
             print titles
             print plotnames
-            if (len(plotnames) == 4) or (i == len(etaBins)-2):
+            if (len(plotnames) == 4):
                 print "Writing", emin, emax
-                slidetitle = "Resolution (L1 \\& GenJet)"
+                slidetitle = "Resolution comparison pre \\& post calibration (L1 \\& GenJet)"
                 slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                 titles = []
                 plotnames = []
+
+        # Do the inclusive eta plot
+        emin = etaBins[0]
+        emax = etaBins[-1]
+        name = "resL1_%g_%g" % (emin, emax)
+        pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
+        post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+        multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", drawfit=True, drawopts="ALP")
+        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
+        plotnames.append(odir+name+".tex")
+
+        name = "resRef_%g_%g" % (emin, emax)
+        pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text="Pre-calib", legend_style="LPE")
+        post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text="Post-calib", legend_style="LPE")
+        multiplot_to_file([pre_dict, post_dict], outfilename=[odir+name+".tex", odir+name+".pdf"],
+            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP")
+        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
+        plotnames.append(odir+name+".tex")
+        print "Writing", emin, emax
+        slidetitle = "Resolution comparison pre \\& post calibration (L1 \\& GenJet)"
+        slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
 
     compile_pdf(main_file, out_name, odir)
 
@@ -321,11 +432,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("--detail", action="store_true", help="do all pt bin plots as well (takes much longer!)")
-    # parser.add_argument("--compare", help="filename to compare <input> to (e.g post-calibration)")
+    parser.add_argument("--compare", help="filename to compare to <input> (e.g post-calibration)")
     args = parser.parse_args()
 
-    # Plot result for each eta bin & overall
-    plot_res_results(in_name=args.input)
+    if args.compare != "":
+        # Plot result for each eta bin & overall, comparing pre and post calib
+        plot_res_compare(in_name_pre=args.input, in_name_post=args.compare)
+    else:
+        # Same but no comparison, only 1 file
+        plot_res_results(in_name=args.input)
 
     # Plot each pt bin in every eta bin (i.e. A LOT)
     if args.detail:
