@@ -1,5 +1,5 @@
 """
-This script outputs all the plots in the ROOT file as one long pdf,
+This script outputs all the calibration plots in the ROOT file as one long pdf,
 cos TBrowser sucks.
 """
 
@@ -14,6 +14,8 @@ import subprocess
 import binning
 import beamer_slide_templates as bst
 
+
+r.PyConfig.IgnoreCommandLineOptions = True
 r.gROOT.SetBatch(1)
 # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
 ptBins = binning.pt_bins
@@ -90,9 +92,6 @@ def plot_corr_results(in_name=""):
     sub = in_stem.replace("output_", "").replace("_", "\_")
     sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub +"}"
-    # subtitle = "For Stage 1 + new RCT calibs"
-    # subtitle = "For GCT with fit 30 - 250 GeV"
-    # subtitle += "\\\ {\\tt /RelValQCD_FlatPt_15_3000HS_13/CMSSW_7_3_0-MCRUN2_73_V7-v1/GEN-SIM-DIGI-RAW-HLTDEBUG}"
     slides_file = out_stem+"_slides.tex"
     main_file = out_stem+".tex"
     with open("beamer_template.tex", "r") as t:
@@ -155,6 +154,7 @@ def plot_bin_results(in_name=""):
     title = "Results for each bin"
     sub = in_stem.replace("output_", "")
     sub = sub.replace("_", "\_")
+    sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub +"}"
     slides_file = out_stem+"_slides.tex"
     main_file = out_stem+".tex"
@@ -197,7 +197,7 @@ def plot_bin_results(in_name=""):
                 if (len(plotnames) == 4):
                     print "Writing", emin, emax, ptmin, ptmax
                     slidetitle = "$%g <  |\eta| < %g$" % (emin, emax)
-                    slides.write(make_four_slide(titles, plotnames, slidetitle))
+                    slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                     titles = []
                     plotnames = []
 
@@ -225,5 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("input", help="input ROOT filename")
     args = parser.parse_args()
 
+    # Plot for each eta bin
     plot_corr_results(in_name=args.input)
+    # Plots for each pt bin in every eta bin (ie A LOT)
     # plot_bin_results(in_name=args.input)
