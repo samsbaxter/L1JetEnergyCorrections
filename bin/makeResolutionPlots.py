@@ -1,6 +1,10 @@
 """
 This script takes as input the output file from RunMatcher, and loops over
-matched genjet/L1 jet pairs, making resolution plots.
+matched reference jet/L1 jet pairs, making resolution plots.
+
+Does 2 types of "resolution":
+L1 resolution = L1 - Ref / L1
+Ref resolution = L1 - Ref / Ref
 
 Usage: see
 python makeResolutionPlots -h
@@ -45,18 +49,12 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
 
     # Output folders
     output_f = outputfile.mkdir('eta_%g_%g' % (absetamin, absetamax))
-    # output_f_hists = output_f.mkdir("Histograms")
+    output_f_hists = output_f.mkdir("Histograms")
 
     # Eta cut string
     eta_cut = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
     # pt cut string for 2D plots
     pt_cut_all = "pt < %g && pt > %g" % (ptBins_in[-1], ptBins_in[0])
-
-    # To store widths of gaussians & their errors
-    widths_l1 = []
-    widths_l1_err = []
-    widths_ref = []
-    widths_ref_err = []
 
     # First make 2D plots of resolution Vs Et,
     # then we can project them for individual Et bins
@@ -68,24 +66,28 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
     pt_bin_max = ptBins_in[-1]
     nbins_et = 4 * (pt_bin_max - pt_bin_min)
 
-    # 2D plot of L1-Gen/L1 VS L1
+    # 2D plot of L1-Ref/L1 VS L1
     var = "resL1" if check_var_stored(tree_raw, "resL1") else "(pt-(pt*rsp))/pt"  # for old pair files
     tree_raw.Draw("%s:pt>>res_l1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_l1_2d = ROOT.gROOT.FindObject("res_l1_2d")
     res_l1_2d.SetTitle("%g < |#eta| < %g;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}" % (absetamin, absetamax))
-    output_f.WriteTObject(res_l1_2d)
+    output_f_hists.WriteTObject(res_l1_2d)
 
-    # 2D plot of L1-Gen/L1 VS Gen
+    # 2D plot of L1-Ref/L1 VS Ref
     var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-(pt*rsp))/(pt*rsp)"
     res_min = -2
     nbins_res = 80
     tree_raw.Draw("%s:pt>>res_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_ref_2d = ROOT.gROOT.FindObject("res_ref_2d")
     res_ref_2d.SetTitle("%g < |#eta| < %g;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % (absetamin, absetamax))
-    output_f.WriteTObject(res_ref_2d)
+    output_f_hists.WriteTObject(res_ref_2d)
 
     # Graphs to hold resolution for all pt bins
-    # res_graph_l1 = ROOT.TGraphErrors(len(widths), array("d", pt_centres), array("d", widths), array("d", pt_err), array("d", widths_err))
+    res_graph_l1 = ROOT.TGraphErrors()
+    res_graph_l1.SetNameTitle("resL1_%g_%g" % (absetamin, absetamax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % (absetamin, absetamax))
+    res_graph_ref = ROOT.TGraphErrors()
+    res_graph_ref.SetNameTitle("resRef_%g_%g" % (absetamin, absetamax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % (absetamin, absetamax))
+    gr_count = 0
 
     # Now go thorugh pt bins, and plot resolution for each, fit with gaussian,
     # and add width to graph
@@ -94,18 +96,22 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         pt_cut = "pt < %g && pt > %g" % (ptmax, ptmin)
         print "    Doing pt bin: %g - %g" % (ptmin, ptmax)
 
-        # Plot difference in L1 pT and Gen pT
+        # Plot difference in L1 pT and Ref pT
         nbins = 100
         var = "ptDiff" if check_var_stored(tree_raw, "ptDiff") else "pt-(pt*rsp)"
         tree_raw.Draw("%s>>diffPt(%d)" % (var, nbins), eta_cut + " && " + pt_cut)
         h_diffPt = ROOT.gROOT.FindObject("diffPt")
         h_diffPt.SetName("diffPt_%g_%g" % (ptmin, ptmax))
         h_diffPt.SetTitle("%g < |#eta| < %g;E_{T}^{L1} - E_{T}^{Gen} [GeV];N" % (absetamin, absetamax))
-        output_f.WriteTObject(h_diffPt)
+        output_f_hists.WriteTObject(h_diffPt)
 
         # Get bin indices corresponding to physical pt values
         bin_low = res_l1_2d.GetXaxis().FindBin(ptmin)
         bin_high = res_l1_2d.GetXaxis().FindBin(ptmax)-1
+
+        # For graph - get bin middle & width
+        pt_mid = 0.5 * (ptmin + ptmax)
+        pt_width = ptmin - ptmin
 
         # Plot resolution wrt L1 pT & fit
         h_res_l1 = res_l1_2d.ProjectionY("res_l1_%g_%g" % (ptmin, ptmax), bin_low, bin_high)
@@ -113,20 +119,16 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         if h_res_l1.GetEntries() > 0:
             fit_l1 = int(h_res_l1.Fit("gaus", "Q", "R", h_res_l1.GetMean() - 1. * h_res_l1.GetRMS(), h_res_l1.GetMean() + 1. * h_res_l1.GetRMS()))
             if fit_l1 == 0:
-                widths_l1.append(h_res_l1.GetFunction("gaus").GetParameter(2))
-                widths_l1_err.append(h_res_l1.GetFunction("gaus").GetParError(2))
+                res_graph_l1.SetPoint(gr_count, pt_mid, h_res_l1.GetFunction("gaus").GetParameter(2))
+                res_graph_l1.SetPointError(gr_count, pt_width, h_res_l1.GetFunction("gaus").GetParError(2))
             else:
                 # fallback - use raw width if no good fit
                 print "Poor fit to l1 res - using raw values"
-                widths_l1.append(h_res_l1.GetRMS())
-                widths_l1_err.append(h_res_l1.GetRMSError())
+                res_graph_l1.SetPoint(gr_count, pt_mid, h_res_l1.GetRMS())
+                res_graph_l1.SetPointError(gr_count, pt_width, h_res_l1.GetRMSError())
         else:
-            # If there's nothing in the resolution plot, store 0s
-            # Not sure if this is smart or not
             print "0 entries in l1 res plot"
-            widths_l1.append(0)
-            widths_l1_err.append(0)
-        output_f.WriteTObject(h_res_l1)
+        output_f_hists.WriteTObject(h_res_l1)
 
         # Plot resolution wrt Ref pT & fit
         h_res_ref = res_ref_2d.ProjectionY("res_ref_%g_%g" % (ptmin, ptmax), bin_low, bin_high)
@@ -134,41 +136,19 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         if h_res_ref.GetEntries() > 0:
             fit_ref = int(h_res_ref.Fit("gaus", "Q", "R", h_res_ref.GetMean() - 1. * h_res_ref.GetRMS(), h_res_ref.GetMean() + 1. * h_res_ref.GetRMS()))
             if fit_ref == 0:
-                widths_ref.append(h_res_ref.GetFunction("gaus").GetParameter(2))
-                widths_ref_err.append(h_res_ref.GetFunction("gaus").GetParError(2))
+                res_graph_ref.SetPoint(gr_count, pt_mid, h_res_ref.GetFunction("gaus").GetParameter(2))
+                res_graph_ref.SetPointError(gr_count, pt_width, h_res_ref.GetFunction("gaus").GetParError(2))
             else:
-                print "Poor fit to gen res - using raw values"
-                widths_ref.append(h_res_ref.GetRMS())
-                widths_ref_err.append(h_res_ref.GetRMSError())
+                print "Poor fit to ref res - using raw values"
+                res_graph_ref.SetPoint(gr_count, pt_mid, h_res_ref.GetRMS())
+                res_graph_ref.SetPointError(gr_count, pt_width, h_res_ref.GetRMSError())
+            gr_count += 1
         else:
-            print "0 entries in gen res plot"
-            widths_ref.append(0)
-            widths_ref_err.append(0)
-        output_f.WriteTObject(h_res_ref)
+            print "0 entries in ref res plot"
+        output_f_hists.WriteTObject(h_res_ref)
 
-    # Plot all points on graph Vs Et
-    plot_widths(ptBins_in, widths_l1, widths_l1_err, "resL1_%g_%g" % (absetamin, absetamax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % (absetamin, absetamax))
-    plot_widths(ptBins_in, widths_ref, widths_ref_err, "resGen_%g_%g" % (absetamin, absetamax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % (absetamin, absetamax))
-
-
-def plot_widths(pt_bins_in, widths, widths_err, name, title=""):
-    """Plot graph of widths Vs Et"""
-
-    # make x points and error bars
-    pt_centres = []
-    pt_err = []
-    for i, pt in enumerate(pt_bins_in[:-1]):
-        print "centre", 0.5 * (pt + pt_bins_in[i+1])
-        pt_centres.append(0.5 * (pt + pt_bins_in[i+1]))
-        pt_err.append(pt_centres[i]-pt)
-
-    if len(widths) != len(pt_centres):
-        print len(widths), len(pt_centres)
-        raise Exception("incorrect pt bins or widths")
-
-    res_graph = ROOT.TGraphErrors(len(widths), array("d", pt_centres), array("d", widths), array("d", pt_err), array("d", widths_err))
-    res_graph.SetNameTitle(name, title)
-    res_graph.Write("",ROOT.TObject.kOverwrite)
+    output_f.WriteTObject(res_graph_l1)
+    output_f.WriteTObject(res_graph_ref)
 
 
 ########### MAIN ########################
