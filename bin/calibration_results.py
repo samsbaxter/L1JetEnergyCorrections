@@ -12,45 +12,12 @@ import numpy
 from itertools import izip
 import subprocess
 import binning
+import beamer_slide_templates as bst
 
 r.gROOT.SetBatch(1)
 # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
 ptBins = binning.pt_bins
 etaBins = binning.eta_bins
-
-                # \includegraphics[width=0.85\textwidth]{@PLOT1}
-four_plot_slide = \
-r"""
-\section{@SLIDE_TITLE}
-\begin{frame}{@SLIDE_TITLE}
-\vspace{-.3cm}
-\begin{columns}
-\begin{column}{0.5\textwidth}
-\begin{center}
-@PLOT1TITLE
-\\
-\scalebox{0.5}{\input{@PLOT1}}
-\\
-@PLOT3TITLE
-\\
-\scalebox{0.5}{\input{@PLOT3}}
-\end{center}
-\end{column}
-
-\begin{column}{0.5\textwidth}
-\begin{center}
-@PLOT2TITLE
-\\
-\scalebox{0.5}{\input{@PLOT2}}
-\\
-@PLOT4TITLE
-\\
-\scalebox{0.5}{\input{@PLOT4}}
-\end{center}
-\end{column}
-\end{columns}
-\end{frame}
-"""
 
 
 def open_root_file(filename):
@@ -70,23 +37,6 @@ def check_dir_exists(d):
     opath = os.path.abspath(d)
     if not os.path.isdir(opath):
         os.makedirs(opath)
-
-
-def make_four_slide(titles, plotnames, slidetitle="Correction values"):
-    """
-    Auto makes a slide with up to 4 figures with corresponding titles
-    """
-    print "make 4 slide"
-    slide = four_plot_slide.replace("@SLIDE_TITLE", slidetitle)
-    for i, item in enumerate(izip(titles, plotnames)):
-            slide = slide.replace("@PLOT"+str(i+1)+"TITLE", item[0])
-            slide = slide.replace("@PLOT"+str(i+1), item[1])
-    for i in range(len(titles),5):
-        slide = slide.replace("@PLOT"+str(i+1)+"TITLE", "")
-        slide = slide.replace("\scalebox{0.5}{\input{@PLOT"+str(i+1)+"}}", "") # to avoid "missing .tex file" error
-        slide = slide.replace("\\\\\n\n","")  # remove usless line breaks
-    slide = slide.replace("\n\n\\\\", "\\\\")
-    return slide
 
 
 def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, drawopts=""):
@@ -138,6 +88,7 @@ def plot_corr_results(in_name=""):
     # Use template - change title, subtitle, include file
     title = "Correction value plots, binned by $|\eta|$"
     sub = in_stem.replace("output_", "").replace("_", "\_")
+    sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub +"}"
     # subtitle = "For Stage 1 + new RCT calibs"
     # subtitle = "For GCT with fit 30 - 250 GeV"
@@ -173,7 +124,7 @@ def plot_corr_results(in_name=""):
                 slidetitle = "Correction value, $0 < p_{T}^{L1} < 500~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 500~\\mathrm{GeV}$"
                 # slidetitle = "Correction value, $0 < p_{T}^{L1} < 250~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 250~\\mathrm{GeV}$"
                 # slidetitle = "Correction value"
-                slides.write(make_four_slide(titles, plotnames, slidetitle))
+                slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                 titles = []
                 plotnames = []
 
@@ -226,6 +177,8 @@ def plot_bin_results(in_name=""):
             plotnames = []
             out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
             check_dir_exists(out_dir_eta)
+            if emin >= 3.:
+                ptBins = binning.pt_bins_wide
             for j, pt in enumerate(ptBins[0:-1]):
                 ptmin = pt
                 ptmax = ptBins[j+1]
