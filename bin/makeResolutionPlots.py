@@ -36,11 +36,7 @@ def check_var_stored(tree, var):
 
 
 def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
-    """
-    Do various resolution plots for given eta bin, for all pT bins
-
-    Stores widths of fitted gaussians in widths_l1 and widths_ref args.
-    """
+    """Do various resolution plots for given eta bin, for all pT bins"""
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
 
@@ -80,7 +76,7 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
     output_f.WriteTObject(res_l1_2d)
 
     # 2D plot of L1-Gen/L1 VS Gen
-    var = "resRef" if check_var_stored(tree_raw, "resL1") else "(pt-(pt*rsp))/(pt*rsp)"
+    var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-(pt*rsp))/(pt*rsp)"
     res_min = -2
     nbins_res = 80
     tree_raw.Draw("%s:pt>>res_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
@@ -88,6 +84,11 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
     res_ref_2d.SetTitle("%g < |#eta| < %g;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % (absetamin, absetamax))
     output_f.WriteTObject(res_ref_2d)
 
+    # Graphs to hold resolution for all pt bins
+    # res_graph_l1 = ROOT.TGraphErrors(len(widths), array("d", pt_centres), array("d", widths), array("d", pt_err), array("d", widths_err))
+
+    # Now go thorugh pt bins, and plot resolution for each, fit with gaussian,
+    # and add width to graph
     for i, ptmin in enumerate(ptBins_in[:-1]):
         ptmax = ptBins_in[i+1]
         pt_cut = "pt < %g && pt > %g" % (ptmax, ptmin)
@@ -119,6 +120,12 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
                 print "Poor fit to l1 res - using raw values"
                 widths_l1.append(h_res_l1.GetRMS())
                 widths_l1_err.append(h_res_l1.GetRMSError())
+        else:
+            # If there's nothing in the resolution plot, store 0s
+            # Not sure if this is smart or not
+            print "0 entries in l1 res plot"
+            widths_l1.append(0)
+            widths_l1_err.append(0)
         output_f.WriteTObject(h_res_l1)
 
         # Plot resolution wrt Ref pT & fit
@@ -133,6 +140,10 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
                 print "Poor fit to gen res - using raw values"
                 widths_ref.append(h_res_ref.GetRMS())
                 widths_ref_err.append(h_res_ref.GetRMSError())
+        else:
+            print "0 entries in gen res plot"
+            widths_ref.append(0)
+            widths_ref_err.append(0)
         output_f.WriteTObject(h_res_ref)
 
     # Plot all points on graph Vs Et
@@ -140,17 +151,19 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
     plot_widths(ptBins_in, widths_ref, widths_ref_err, "resGen_%g_%g" % (absetamin, absetamax), "%g < |#eta^{L1}| < %g;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % (absetamin, absetamax))
 
 
-def plot_widths(pt_bins, widths, widths_err, name, title=""):
+def plot_widths(pt_bins_in, widths, widths_err, name, title=""):
     """Plot graph of widths Vs Et"""
 
     # make x points and error bars
     pt_centres = []
     pt_err = []
-    for i, pt in enumerate(pt_bins[:-1]):
-        pt_centres.append(0.5 * (pt + pt_bins[i+1]))
+    for i, pt in enumerate(pt_bins_in[:-1]):
+        print "centre", 0.5 * (pt + pt_bins_in[i+1])
+        pt_centres.append(0.5 * (pt + pt_bins_in[i+1]))
         pt_err.append(pt_centres[i]-pt)
 
     if len(widths) != len(pt_centres):
+        print len(widths), len(pt_centres)
         raise Exception("incorrect pt bins or widths")
 
     res_graph = ROOT.TGraphErrors(len(widths), array("d", pt_centres), array("d", widths), array("d", pt_err), array("d", widths_err))
@@ -179,7 +192,7 @@ def main():
     # Setup pt, eta bins for doing calibrations
     pt_bins = binning.pt_bins[:]
     pt_bins_wide = binning.pt_bins_wide[:] # larger bins at higher pt
-    eta_bins = binning.eta_bins[:]
+    eta_bins = binning.eta_bins[:2]
 
     print "Running over eta bins:", eta_bins
     print "Running over pT bins:", pt_bins
