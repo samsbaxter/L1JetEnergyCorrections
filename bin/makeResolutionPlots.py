@@ -160,7 +160,6 @@ def main():
     parser.add_argument("--excl", action="store_true", help="Do exclusive eta plots")
     args = parser.parse_args()
 
-
     inputf = ROOT.TFile(args.input, "READ")
     outputf = ROOT.TFile(args.output, "RECREATE")
     print "Reading from", args.input
@@ -172,7 +171,7 @@ def main():
     # Setup pt, eta bins for doing calibrations
     pt_bins = binning.pt_bins[:]
     pt_bins_wide = binning.pt_bins_wide[:] # larger bins at higher pt
-    eta_bins = binning.eta_bins[:2]
+    eta_bins = binning.eta_bins[:]
 
     print "Running over eta bins:", eta_bins
     print "Running over pT bins:", pt_bins
@@ -187,7 +186,6 @@ def main():
                 plot_resolution(inputf, outputf, pt_bins_wide, emin, emax)
             else:
                 plot_resolution(inputf, outputf, pt_bins, emin, emax)
-
 
     # Do plots for inclusive eta
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
