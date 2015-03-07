@@ -290,7 +290,7 @@ def plot_res_results(in_name_pre="", in_name_post=""):
 
     compile_pdf(main_file, out_name, odir)
 
-# TODO
+
 def plot_bin_results(in_name=""):
     """
     To plot X for each pt/eta bin.
@@ -331,28 +331,30 @@ def plot_bin_results(in_name=""):
 
     # Now make the slides file
     with open(slides_file, "w") as slides:
+        titles = []
+        plotnames = []
         for i, eta in enumerate(etaBins[0:-1]):
             emin = eta
             emax = etaBins[i+1]
-            titles = []
-            plotnames = []
             out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
             check_dir_exists(out_dir_eta)
             if emin >= 3.:
                 ptBins = binning.pt_bins_wide
+            else:
+                ptBins = binning.pt_bins
             for j, pt in enumerate(ptBins[0:-1]):
                 ptmin = pt
                 ptmax = ptBins[j+1]
                 # for each pt bin we have a L1 pt plot, and a response plot w/fit
-                l1name = "L1_pt_genpt_%g_%g" % (ptmin, ptmax)
-                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, l1name), [out_dir_eta+l1name+".tex", out_dir_eta+l1name+".pdf"], xtitle="p_{T}^{L1}", ytitle="", drawfit=True)
-                plotnames.append(out_dir_eta+l1name+".tex")
+                name = "res_l1_%g_%g" % (ptmin, ptmax)
+                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{L1}", ytitle="", drawfit=True)
+                plotnames.append(out_dir_eta+name+".tex")
 
-                rspname = "Rsp_genpt_%g_%g" % (ptmin, ptmax)
-                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, rspname), [out_dir_eta+rspname+".tex", out_dir_eta+rspname+".pdf"], xtitle="response = p_{T}^{L1}/p_{T}^{Gen}", ytitle="", drawfit=True)
-                plotnames.append(out_dir_eta+rspname+".tex")
+                name = "res_ref_%g_%g" % (ptmin, ptmax)
+                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{Gen}", ytitle="", drawfit=True)
+                plotnames.append(out_dir_eta+name+".tex")
 
-                titles.append("$%g < |p_{T}^{Gen}| < %g GeV$" % (ptmin, ptmax))
+                titles.append("$%g < |p_{T}^{L1}| < %g GeV$" % (ptmin, ptmax))
                 titles.append("")
 
                 if (len(plotnames) == 4):
@@ -362,20 +364,44 @@ def plot_bin_results(in_name=""):
                     titles = []
                     plotnames = []
 
-    compile_pdf(main_file, out_name, odir)
+        # the inclusive eta bin:
+        emin = eta
+        emax = etaBins[-1]
+        out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
+        check_dir_exists(out_dir_eta)
+        for j, pt in enumerate(ptBins[0:-1]):
+            ptmin = pt
+            ptmax = ptBins[j+1]
+            # for each pt bin we have a L1 pt plot, and a response plot w/fit
+            name = "res_l1_%g_%g" % (ptmin, ptmax)
+            plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{L1}", ytitle="", drawfit=True)
+            plotnames.append(out_dir_eta+name+".tex")
+
+            name = "res_ref_%g_%g" % (ptmin, ptmax)
+            plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{Gen}", ytitle="", drawfit=True)
+            plotnames.append(out_dir_eta+name+".tex")
+
+            titles.append("$%g < p_{T}^{L1} < %g GeV$" % (ptmin, ptmax))
+            titles.append("")
+
+            print "Writing", emin, emax, ptmin, ptmax
+            slidetitle = "$%g <  |\eta| < %g$" % (emin, emax)
+            slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
+
+    compile_pdf(main_file, out_name, odir, n=1)
 
 
-def compile_pdf(texfile, pdffile, outdir):
+def compile_pdf(texfile, pdffile, outdir, n=2):
     """
     Compile the pdf
-    Use lualatex for custom font. Do it twice to get TOC and page num right
+    Use lualatex for custom font. Can do it specified n times
+    (n=2 makes page num correct but slower)
     """
 
     output = "-output-directory=%s" % outdir
-    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
-    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
-    # subprocess.call(["lualatex", output, texfile])
-    # subprocess.call(["lualatex", output, texfile])
+    for i in range(n):
+        subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
+        # subprocess.call(["lualatex", output, texfile])
     # Open the result
     subprocess.call(["open", pdffile])
 
