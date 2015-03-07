@@ -38,6 +38,11 @@ def check_var_stored(tree, var):
     """Check to see if TTree has branch with name var"""
     return tree.GetListOfBranches().FindObject(var)
 
+def check_fit_peaks(fit_mean, hist):
+    """Check fit ok by comparing peaks"""
+    peak = hist.GetBinCenter(hist.GetMaximumBin())
+    return abs(peak - fit_mean) < abs(peak)
+
 
 def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
     """Do various resolution plots for given eta bin, for all pT bins"""
@@ -117,10 +122,11 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         h_res_l1 = res_l1_2d.ProjectionY("res_l1_%g_%g" % (ptmin, ptmax), bin_low, bin_high)
         h_res_l1.SetTitle("%g < |#eta| < %g;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1};N" % (absetamin, absetamax))
         if h_res_l1.GetEntries() > 0:
-            fit_l1 = int(h_res_l1.Fit("gaus", "Q", "R", h_res_l1.GetMean() - 1. * h_res_l1.GetRMS(), h_res_l1.GetMean() + 1. * h_res_l1.GetRMS()))
+            # fit_l1 = int(h_res_l1.Fit("gaus", "Q", "R", h_res_l1.GetMean() - 1. * h_res_l1.GetRMS(), h_res_l1.GetMean() + 1. * h_res_l1.GetRMS()))
+            fit_l1 = int(h_res_l1.Fit("gaus", "Q"))
             fit_mean = h_res_l1.GetFunction("gaus").GetParameter(1)
             # check fit converged, and is sensible (if means differ significantly can indicate issues)
-            if fit_l1 == 0 and (abs(fit_mean - h_res_l1.GetMean()) < (0.2 * h_res_l1.GetMean())):
+            if fit_l1 == 0:# and check_fit_peaks(fit_mean, h_res_l1):
                 res_graph_l1.SetPoint(gr_count, pt_mid, h_res_l1.GetFunction("gaus").GetParameter(2))
                 res_graph_l1.SetPointError(gr_count, pt_width, h_res_l1.GetFunction("gaus").GetParError(2))
             else:
@@ -136,9 +142,10 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         h_res_ref = res_ref_2d.ProjectionY("res_ref_%g_%g" % (ptmin, ptmax), bin_low, bin_high)
         h_res_ref.SetTitle("%g < |#eta| < %g;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % (absetamin, absetamax))
         if h_res_ref.GetEntries() > 0:
-            fit_ref = int(h_res_ref.Fit("gaus", "Q", "R", h_res_ref.GetMean() - 1. * h_res_ref.GetRMS(), h_res_ref.GetMean() + 1. * h_res_ref.GetRMS()))
+            # fit_ref = int(h_res_ref.Fit("gaus", "Q", "R", h_res_ref.GetMean() - 1. * h_res_ref.GetRMS(), h_res_ref.GetMean() + 1. * h_res_ref.GetRMS()))
+            fit_ref = int(h_res_ref.Fit("gaus", "Q"))
             fit_mean = h_res_ref.GetFunction("gaus").GetParameter(1)
-            if fit_ref == 0 and (abs(fit_mean - h_res_ref.GetMean()) < (0.2 * h_res_ref.GetMean())):
+            if fit_ref == 0: # and check_fit_peaks(fit_mean, h_res_ref):
                 res_graph_ref.SetPoint(gr_count, pt_mid, h_res_ref.GetFunction("gaus").GetParameter(2))
                 res_graph_ref.SetPointError(gr_count, pt_width, h_res_ref.GetFunction("gaus").GetParError(2))
             else:
