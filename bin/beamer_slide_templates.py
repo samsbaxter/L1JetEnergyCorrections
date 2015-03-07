@@ -84,6 +84,52 @@ r"""
 \end{frame}
 """
 
+six_plot_slide = \
+r"""
+\section{@SLIDE_TITLE}
+\begin{frame}{@SLIDE_TITLE}
+\vspace{-.3cm}
+\begin{columns}
+\begin{column}{0.33\textwidth}
+\begin{center}
+@PLOT1TITLE
+\\
+\scalebox{0.5}{\input{@PLOT1}}
+\\
+@PLOT4TITLE
+\\
+\scalebox{0.5}{\input{@PLOT4}}
+\end{center}
+\end{column}
+
+\begin{column}{0.33\textwidth}
+\begin{center}
+@PLOT2TITLE
+\\
+\scalebox{0.5}{\input{@PLOT2}}
+\\
+@PLOT5TITLE
+\\
+\scalebox{0.5}{\input{@PLOT5}}
+\end{center}
+\end{column}
+
+\begin{column}{0.33\textwidth}
+\begin{center}
+@PLOT3TITLE
+\\
+\scalebox{0.5}{\input{@PLOT3}}
+\\
+@PLOT6TITLE
+\\
+\scalebox{0.5}{\input{@PLOT6}}
+\end{center}
+\end{column}
+\end{columns}
+\end{frame}
+"""
+
+
 def make_slide(slide_temp, titles, plotnames, slidetitle=""):
     """
     Auto make a slide, so no faffing around with replace statements.
