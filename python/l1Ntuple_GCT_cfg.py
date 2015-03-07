@@ -143,22 +143,23 @@ process.TFileService = cms.Service("TFileService",
 )
 
 # process.GlobalTag.globaltag = 'GR_R_52_V7::All'
-process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+# process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+process.GlobalTag.globaltag = cms.string('(PHYS14_ST_V1::All')
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 # readFiles = cms.untracked.vstring()
-readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+# readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
 secFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
-                             fileNames = readFiles,
+                             # fileNames = readFiles,
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-1000to1400_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/0038FD8F-DC8B-E411-881D-0025905A6088.root'),
                              # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
-                             secondaryFileNames = secFiles
-                             )
+                            secondaryFileNames = secFiles
+                            )
 
-# local testing file
 
 ## TTbar samples (server error)
 # readFiles.extend( [

@@ -30,7 +30,9 @@ process.source = cms.Source("PoolSource",
     # secondaryFileNames = cms.untracked.vstring(),
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Fall13dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/tsg_PU40bx25_POSTLS162_V2-v1/00005/02B79593-F47F-E311-8FF6-003048FFD796.root")
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/008B2415-EBDD-E311-B807-20CF3027A564.root")
-    fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+    # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+    # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/00679EAE-098E-E411-9AFC-0025905A6104.root')
     # fileNames = readFiles
     )
 
@@ -67,7 +69,8 @@ process.TFileService = cms.Service("TFileService",
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag.connect = cms.string('frontier://FrontierProd/CMS_COND_31X_GLOBALTAG')
-process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+# process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+process.GlobalTag.globaltag = cms.string('(PHYS14_25_V3::All')
 # process.GlobalTag.globaltag = cms.string('MCRUN2_73_V9::All')
 
 ##############################
@@ -170,7 +173,7 @@ process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 # Store PU info (nvtx, etc)
 ##############################
 process.puInfo = cms.EDAnalyzer("PileupInfo",
-  pileupInfoSource = cms.InputTag("addPileupInfo")
+    pileupInfoSource = cms.InputTag("addPileupInfo")
 )
 
 
