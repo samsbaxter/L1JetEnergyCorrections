@@ -13,8 +13,12 @@ import numpy
 # PT BINS
 ############
 pt_bins = list(numpy.arange(14, 254, 4))
-# wider binning for low stats regions
+# wider binning at higher pt for low stats regions
 pt_bins_wide = list(numpy.concatenate((numpy.arange(14, 50, 4), numpy.arange(50, 270, 20)))) # larger bins at higher pt
+
+# 8 GeV bins for resolution plots
+pt_bins_8 = list(numpy.arange(14,246,8))
+pt_bins_8.append(250)
 
 ############
 # ETA BINS
