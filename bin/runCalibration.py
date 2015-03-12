@@ -78,38 +78,38 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     output_f_hists = output_f.mkdir("Histograms")
 
     # Eta cut string
-    cstr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
+    eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("1./rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , cstr)
+    tree_raw.Draw("1./rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
 
     nb = 500
-    min, max = 0, 500
+    pt_min, pt_max = 0, 500
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)
+    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,200,0,6)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,200,0,6)" % (nb, min, max), cstr)
+    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,200,0,6)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # draw pT^Gen Vs pT^L1
-    tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, min, max, nb, min, max), cstr)
+    tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, pt_min, pt_max, nb, pt_min, pt_max), eta_cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
 
-    # Go through and find histogram bin edges that are cloest to the input pt
+    # Go through and find histogram bin edges that are closest to the input pt
     # bin edges, and store for future use
     ptBins = []
     bin_indices = []
@@ -149,15 +149,18 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         hrsp = h2d_rsp_gen.ProjectionY("prj_ResponseProj_PTBin%d" % (i), bin1, bin2)
         hrsp.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
 
+        pt_cutStr = "pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow)
+        total_cutStr = "%s && %s" % (eta_cutStr, pt_cutStr)
+
         # Plots of pT L1 for given pT Gen bin
-        tree_raw.Draw("pt>>hpt(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
+        tree_raw.Draw("pt>>hpt(200)", total_cutStr)
         hpt = ROOT.gROOT.FindObject("hpt")
         hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
         output_f_hists.WriteTObject(hpt)
 
         # Plots of pT Gen for given pT Gen bin
         if do_genjet_plots:
-            tree_raw.Draw("pt*rsp>>hpt_gen(200)", cstr + " && pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow))
+            tree_raw.Draw("pt*rsp>>hpt_gen(200)", total_cutStr)
             hpt_gen = ROOT.gROOT.FindObject("hpt_gen")
             hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
             output_f_hists.WriteTObject(hpt_gen)
