@@ -125,7 +125,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     gr = ROOT.TGraphErrors() # 1/<rsp> VS ptL1
     gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
-    max_pt = 0
+    max_pt = 0 # maximum pt to perform fit or correction fn
+
     # Iterate over pT^Gen bins, and for each:
     # - Project 2D hist so we have a plot of response for given pT^Gen range
     # - Fit a Gaussian (if possible) to this resp histogram to get <response>
@@ -336,10 +337,13 @@ def main():
     if not do_correction_fit:
         print "Not fitting correction curves"
 
+    # Open input & output files, check
     inputf = ROOT.TFile(args.input, "READ")
     output_f = ROOT.TFile(args.output, "RECREATE")
     print args.input
     print args.output
+    if not inputf or not output_f:
+        raise Exception("Input or output files cannot be opened")
 
     # Setup pt, eta bins for doing calibrations
     ptBins = binning.pt_bins
@@ -365,7 +369,7 @@ def main():
     # Make LUT
     print_lut_screen(fit_params, etaBins)
     dname, fname = os.path.split(sys.argv[2])
-    lut_filename = "LUT_"+fname.replace(".root", ".py").replace("output_", "")
+    lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
     print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
 
 
