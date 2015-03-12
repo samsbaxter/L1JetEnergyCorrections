@@ -238,16 +238,16 @@ def fit_correction(graph, function, fit_min, fit_max):
     Fit response curve with given correction function, within given bounds.
 
     Note that sometime the fit fails oddly - if so, we try raising the lower
-    bound of the fit until it suceeds (sometimes it works at 45, but not 40)
+    bound of the fit until it suceeds (sometimes it works at e.g. 45, but not 40)
 
     Returns parameters of successful fit.
     """
     print "Fitting", fit_min, fit_max
     fit_result = -1
     while (fit_result != 0 and fit_min < fit_max):
-        fit_result = int(graph.Fit(function.GetName(), "", "MR+", fit_min, fit_max))
+        fit_result = int(graph.Fit(function.GetName(), "R", "", fit_min, fit_max))
         print "Fit result:", fit_result, "for fit min", fit_min
-        fit_min += 1
+        fit_min += 0.5
 
     params = []
     for i in range(function.GetNumberFreeParameters()):
