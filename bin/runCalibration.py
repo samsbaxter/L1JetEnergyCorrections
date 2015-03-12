@@ -156,6 +156,11 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         tree_raw.Draw("pt>>hpt(200)", total_cutStr)
         hpt = ROOT.gROOT.FindObject("hpt")
         hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
+
+        if hrsp.GetEntries() <= 0 or hpt.GetEntries() <= 0:
+            print "Skipping as 0 entries"
+            continue
+
         output_f_hists.WriteTObject(hpt)
 
         # Plots of pT Gen for given pT Gen bin
@@ -165,30 +170,31 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
             hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
             output_f_hists.WriteTObject(hpt_gen)
 
-        # Fit Gaussian to response curve
+        # Fit Gaussian to response curve,
+        # but only if we have a sensible number of entries
         fitStatus = -1
-        if hrsp.GetEntries() > 0:
-            fitStatus = int(hrsp.Fit("gaus", "Q", "R", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
+        mean = -999
+        err = -999
+        if hrsp.GetEntries() >= 3:
+            fitStatus = int(hrsp.Fit("gaus", "QRI", "", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
+            mean = hrsp.GetFunction("gaus").GetParameter(1)
+            err = hrsp.GetFunction("gaus").GetParError(1)
         output_f_hists.WriteTObject(hrsp)
 
-        if hpt.GetEntries() < 0 or hrsp.GetEntries() < 0 or fitStatus < 0:
-            continue
-
-        mean = hrsp.GetFunction("gaus").GetParameter(1)
-        err = hrsp.GetFunction("gaus").GetParError(1)
-        # check if fit mean is close to raw mean - if not use raw mean since
-        # we have a bad fit
-        if abs(mean - hrsp.GetMean()) > (hrsp.GetMean()*0.2):
-            print "Fit mean differs to Raw mean:", mean, hrsp.GetMean(), bin1, bin2, absetamin, absetamax
+        # check if we have a bad fit - either fit status != 0, or
+        # fit mean is close to raw mean. in either case not use raw mean
+        if fitStatus != 0 or abs((mean/hrsp.GetMean()) - 1) > 0.2:
+            print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
+                "fit status:", fitStatus, \
+                "bin :", [xlow, xhigh], [absetamin, absetamax]
             mean = hrsp.GetMean()
             err = hrsp.GetMeanError()
-        if err < 0:
-            raise Exception("Error < 0")
 
         print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), \
                "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
 
-        max_pt = hpt.GetMean() if hpt.GetMean() > max_pt else max_pt
+        # add point to response graph vs pt
+        max_pt = max(hpt.GetMean(), max_pt) if grc > 0 and hpt.GetMean() > gr.GetX()[grc-1] else max_pt
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
         if do_genjet_plots:
