@@ -304,7 +304,6 @@ def main():
 
     # Setup pt, eta bins for doing calibrations
     ptBins = binning.pt_bins
-    ptBinsWide = binning.pt_bins_wide # larger bins at higher pt
     etaBins = binning.eta_bins
 
     print "Running over eta bins:", etaBins
@@ -312,13 +311,12 @@ def main():
 
     # Do plots & fitting to get calib consts
     fit_params = []
-    for i,eta in enumerate(etaBins[0:-1]):
+    for i,eta in enumerate(etaBins[:-1]):
         emin = eta
         emax = etaBins[i+1]
-        if emin >= 3.:
-            makeResponseCurves(inputf, output_f, ptBinsWide, emin, emax, fit_params, do_genjet_plots, do_correction_fit)
-        else:
-            makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params, do_genjet_plots, do_correction_fit)
+        if emin >= 3:
+            ptBins = binning.pt_bins_wide # larger bins at higher pt
+        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params, do_genjet_plots, do_correction_fit)
 
 
     # For testing:
