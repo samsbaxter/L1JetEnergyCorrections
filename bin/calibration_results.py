@@ -51,22 +51,27 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
     r.gStyle.SetOptStat("mre")
     # p = r.TGraphErrors(f.Get(plotname).Clone())
     print plotname
-    p = (f.Get(plotname).Clone())
-    p.GetYaxis().SetTitle(ytitle)
-    p.GetXaxis().SetTitle(xtitle)
-    p.SetTitle("")
-    # p.SetMaximum(1.5)
-    # p.SetMinimum(0)
-    # if p.GetMaximum() > 5:
-    #     p.SetMaximum(5)
-    # # if p.GetMinimum() < 5:
-    #     # p.SetMinimum(-5)
-    if not drawfit:
-        p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
-    p.Draw(drawopts)
-    for f in filename:
-        r.gPad.Print(f)
-    r.gPad.Clear()
+    obj = f.Get(plotname)
+    if not obj:
+        return False
+    else:
+        p = obj.Clone()
+        p.GetYaxis().SetTitle(ytitle)
+        p.GetXaxis().SetTitle(xtitle)
+        p.SetTitle("")
+        # p.SetMaximum(1.5)
+        # p.SetMinimum(0)
+        # if p.GetMaximum() > 5:
+        #     p.SetMaximum(5)
+        # # if p.GetMinimum() < 5:
+        #     # p.SetMinimum(-5)
+        if not drawfit:
+            p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
+        p.Draw(drawopts)
+        for f in filename:
+            r.gPad.Print(f)
+        r.gPad.Clear()
+        return True
 
 
 def plot_corr_results(in_name=""):
@@ -112,7 +117,11 @@ def plot_corr_results(in_name=""):
             emin = eta
             emax = etaBins[i+1]
             name = "l1corr_eta_%g_%g" % (emin, emax)
-            plot_to_file(input_file, "l1corr_eta_%g_%g" % (emin, emax), [odir+name+".tex", odir+name+".pdf"], xtitle="<p_{T}^{L1}> [GeV]", ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} >", drawfit=True)
+            plot_to_file(input_file,
+                        "l1corr_eta_%g_%g" % (emin, emax),
+                        [odir+name+".tex", odir+name+".pdf"],
+                        xtitle="<p_{T}^{L1}> [GeV]",
+                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} >", drawfit=True)
             titles.append("$%g <  |\eta| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
             print i
@@ -120,9 +129,9 @@ def plot_corr_results(in_name=""):
             print plotnames
             if (((i+1) % 4 == 0) and (i != 0)) or (i == len(etaBins)-2):
                 print "Writing", emin, emax
-                slidetitle = "Correction value, $0 < p_{T}^{L1} < 500~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 500~\\mathrm{GeV}$"
+                # slidetitle = "Correction value, $0 < p_{T}^{L1} < 500~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 500~\\mathrm{GeV}$"
                 # slidetitle = "Correction value, $0 < p_{T}^{L1} < 250~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 250~\\mathrm{GeV}$"
-                # slidetitle = "Correction value"
+                slidetitle = "Correction value"
                 slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                 titles = []
                 plotnames = []
@@ -177,22 +186,27 @@ def plot_bin_results(in_name=""):
             plotnames = []
             out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
             check_dir_exists(out_dir_eta)
-            if emin >= 3.:
-                ptBins = binning.pt_bins_wide
-            for j, pt in enumerate(ptBins[0:-1]):
+            ptBins = binning.pt_bins if emin < 3 else binning.pt_bins_wide
+            for j, pt in enumerate(ptBins[:-1]):
                 ptmin = pt
                 ptmax = ptBins[j+1]
                 # for each pt bin we have a L1 pt plot, and a response plot w/fit
                 l1name = "L1_pt_genpt_%g_%g" % (ptmin, ptmax)
-                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, l1name), [out_dir_eta+l1name+".tex", out_dir_eta+l1name+".pdf"], xtitle="p_{T}^{L1}", ytitle="", drawfit=True)
-                plotnames.append(out_dir_eta+l1name+".tex")
+                if plot_to_file(input_file,
+                                "eta_%g_%g/Histograms/%s" % (emin, emax, l1name),
+                                [out_dir_eta+l1name+".tex", out_dir_eta+l1name+".pdf"],
+                                xtitle="p_{T}^{L1}", ytitle="", drawfit=True):
+                    plotnames.append(out_dir_eta+l1name+".tex")
 
                 rspname = "Rsp_genpt_%g_%g" % (ptmin, ptmax)
-                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, rspname), [out_dir_eta+rspname+".tex", out_dir_eta+rspname+".pdf"], xtitle="response = p_{T}^{L1}/p_{T}^{Gen}", ytitle="", drawfit=True)
-                plotnames.append(out_dir_eta+rspname+".tex")
+                if plot_to_file(input_file,
+                                "eta_%g_%g/Histograms/%s" % (emin, emax, rspname),
+                                [out_dir_eta+rspname+".tex", out_dir_eta+rspname+".pdf"],
+                                xtitle="response = p_{T}^{L1}/p_{T}^{Gen}", ytitle="", drawfit=True):
+                    plotnames.append(out_dir_eta+rspname+".tex")
 
-                titles.append("$%g < |p_{T}^{Gen}| < %g GeV$" % (ptmin, ptmax))
-                titles.append("")
+                    titles.append("$%g < |p_{T}^{Gen}| < %g GeV$" % (ptmin, ptmax))
+                    titles.append("")
 
                 if (len(plotnames) == 4):
                     print "Writing", emin, emax, ptmin, ptmax
@@ -220,12 +234,14 @@ def compile_pdf(texfile, pdffile, outdir):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
+    parser.add_argument("--detail", action="store_true", help="do all pt bin plots as well (takes much longer!)")
     args = parser.parse_args()
 
     # Plot for each eta bin
     plot_corr_results(in_name=args.input)
+
     # Plots for each pt bin in every eta bin (ie A LOT)
-    # plot_bin_results(in_name=args.input)
+    if args.detail:
+        plot_bin_results(in_name=args.input)
