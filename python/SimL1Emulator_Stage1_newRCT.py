@@ -32,7 +32,8 @@ process.source = cms.Source("PoolSource",
     # fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/008B2415-EBDD-E311-B807-20CF3027A564.root")
     # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
     # fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/00679EAE-098E-E411-9AFC-0025905A6104.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/00679EAE-098E-E411-9AFC-0025905A6104.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-1400to1800_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/0047F5E2-848E-E411-B993-0025905A6076.root')
     # fileNames = readFiles
     )
 
@@ -70,7 +71,7 @@ process.TFileService = cms.Service("TFileService",
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag.connect = cms.string('frontier://FrontierProd/CMS_COND_31X_GLOBALTAG')
 # process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
-process.GlobalTag.globaltag = cms.string('(PHYS14_25_V3::All')
+process.GlobalTag.globaltag = cms.string('PHYS14_25_V3::All')
 # process.GlobalTag.globaltag = cms.string('MCRUN2_73_V9::All')
 
 ##############################
@@ -123,17 +124,26 @@ process.l1ExtraTreeProducer.hfRingsLabel = cms.untracked.InputTag("l1ExtraLayer2
 ##############################
 # Uses modified L1TCaloUpgradeToGCTConverter.cc
 # Hijack the cenJet collection in l1ExtraProducer
-process.simCaloStage1LegacyFormatDigis.InputCollectionPreGtJet = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
-process.l1ExtraLayerPreGt = process.l1ExtraLayer2.clone()
-process.l1ExtraLayerPreGt.centralJetSource = cms.InputTag("simCaloStage1LegacyFormatDigis:preGtJets")
+# process.simCaloStage1LegacyFormatDigis.InputCollectionPreGtJet = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
+# process.l1ExtraLayerPreGt = process.l1ExtraLayer2.clone()
+# process.l1ExtraLayerPreGt.centralJetSource = cms.InputTag("simCaloStage1LegacyFormatDigis:preGtJets")
 
-# Hacky conversion from JetBxCollection to L1JetParticles
+# Conversion from JetBxCollection to L1JetParticles
 process.preGtJetToL1Jet = cms.EDProducer('PreGtJetToL1Jet',
     preGtJetSource = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
 )
 
 # L1Extra TTree - put preGtJets in "cenJet" branch
 process.l1ExtraTreeProducerIntern = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerIntern.nonIsoEmLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.isoEmLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.tauJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.isoTauJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.fwdJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.muonLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.metLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.mhtLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerIntern.hfRingsLabel = cms.untracked.InputTag("")
 process.l1ExtraTreeProducerIntern.cenJetLabel = cms.untracked.InputTag("preGtJetToL1Jet:PreGtJets")
 process.l1ExtraTreeProducerIntern.maxL1Extra = cms.uint32(50)
 
@@ -147,7 +157,7 @@ process.caloStage1Params.jetCalibrationType = cms.string("None")
 process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
     genJetSource = cms.InputTag("ak5GenJets")
 )
-process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducerIntern.clone()
 process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk5:GenJets")
 process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 
@@ -160,11 +170,12 @@ process.load('RecoJets.Configuration.RecoGenJets_cff')
 process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
 
 # Convert ak4 genjets to L1JetParticle objects
-process.genJetToL1JetAk4 = process.genJetToL1JetAk5.clone()
-process.genJetToL1JetAk4.genJetSource = cms.InputTag("ak4GenJets")
+process.genJetToL1JetAk4 = cms.EDProducer("GenJetToL1Jet",
+    genJetSource = cms.InputTag("ak4GenJets")
+)
 
 # Put in another L1ExtraTree as cenJets
-process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducerIntern.clone()
 process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
 process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
@@ -180,9 +191,8 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 process.p1 = cms.Path(
     process.L1TCaloStage1_PPFromRaw
     # +process.simGtDigis
-    +process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
     +process.l1ExtraLayer2
-    +process.l1ExtraLayerPreGt
+    +process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
     +process.antiktGenJets # make ak4GenJets
     +process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
     +process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
