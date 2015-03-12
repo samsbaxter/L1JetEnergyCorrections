@@ -206,7 +206,13 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     # Fit correction function to response vs pT graph, add to list
     if do_correction_fit:
         thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-        min_pt = 20 if absetamin >= 3.0 else 30
+        min_pt = 30
+        # some forward - specific settings
+        if absetamin >= 3.:
+            min_pt = 18
+            thisfit = ROOT.TF1("fitfcneta_%g_%g" % (absetamin, absetamax), "pol1", min_pt, max_pt)
+            # fix_fit_params(thisfit)
+        print "Correction fn fit range:", min_pt, max_pt
         tmp_params = fit_correction(gr, thisfit, min_pt, max_pt)
         fit_params.append(tmp_params)
 
