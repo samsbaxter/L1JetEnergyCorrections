@@ -3,15 +3,15 @@ GCT-specific CRAB3 setup
 """
 
 
-from crab3_cfg import config
-from samples import samples
+from L1Trigger.L1JetEnergyCorrections.crab3_cfg import config
+from L1Trigger.L1JetEnergyCorrections.samples import samples
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "_GCT_newRCT"
+job_append = "_GCT"
 
 # CHANGE ME - select dataset to run over, check it's ok
-dataset = "TTbarFall13PU20bx25"
+dataset = "QCD_Pt-1800_Fall13_PU20bx25"
 
 
 if not dataset in samples.keys():
