@@ -23,6 +23,12 @@ process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 # process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
+process.MessageLogger.suppressWarning = cms.untracked.vstring(
+    "l1ExtraTreeProducer",
+    "l1ExtraTreeProducerGctIntern",
+    "l1ExtraTreeProducerGenAk5",
+    "l1ExtraTreeProducerGenAk4"
+    )
 
 # L1 raw to digi options
 process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(5)
@@ -51,6 +57,15 @@ process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
 )
 # Store in another L1ExtraTree as cenJets
 process.l1ExtraTreeProducerGctIntern = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGctIntern.nonIsoEmLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.isoEmLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.tauJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.isoTauJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.fwdJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.muonLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.metLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.mhtLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeProducerGctIntern.hfRingsLabel = cms.untracked.InputTag("")
 process.l1ExtraTreeProducerGctIntern.cenJetLabel = cms.untracked.InputTag("gctInternJetToL1Jet:GctInternalJets")
 process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
 
@@ -61,7 +76,7 @@ process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
 process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
     genJetSource = cms.InputTag("ak5GenJets")
 )
-process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducerGctIntern.clone()
 process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk5:GenJets")
 process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 
@@ -78,7 +93,7 @@ process.genJetToL1JetAk4 = cms.EDProducer("GenJetToL1Jet",
     genJetSource = cms.InputTag("ak4GenJets")
 )
 # Put in another L1ExtraTree as cenJets
-process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducer.clone()
+process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducerGctIntern.clone()
 process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
 process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 
@@ -147,25 +162,22 @@ process.p = cms.Path(
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree_test.root')
+    fileName = cms.string('L1Tree.root')
 )
 
-# process.GlobalTag.globaltag = 'GR_R_52_V7::All'
-# process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
-process.GlobalTag.globaltag = cms.string('(PHYS14_ST_V1::All')
+process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All')
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 # readFiles = cms.untracked.vstring()
 # readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
-secFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-1000to1400_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/0038FD8F-DC8B-E411-881D-0025905A6088.root'),
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-800to1000_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU20bx25_POSTLS162_V2-v1/00000/00016B69-956E-E311-9FC2-0026189438C4.root')
                              # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
-                            secondaryFileNames = secFiles
                             )
 
 
