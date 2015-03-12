@@ -29,22 +29,37 @@ fitmin = 35. # 45 for central bins, 35 for fwd
 fitmax = 250.
 
 # definition of the response function to fit to get our correction function
-# fitfcn = ROOT.TF1("fitfcn","[0] + [1]/(TMath::Power(TMath::Log10(x),2) + [2]) + [3]*TMath::Exp(-1.*[4]*TMath::Power(TMath::Log10(x)-[5],2))", 20, 250)
+# MAKE SURE IT'S THE SAME ONE THAT IS USED IN THE EMULATOR
 fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", fitmin, fitmax)
-# Better for Stage1
-fitfcn.SetParameter(0, 0.5)
-fitfcn.SetParameter(1, 2)
-fitfcn.SetParameter(2, -0.5)
-fitfcn.SetParameter(3, 0.13)
-fitfcn.SetParameter(4, 0.0)
-fitfcn.SetParameter(5, -6.)
-# Better for GCT
-# fitfcn.SetParameter(0, 0.5)
-# fitfcn.SetParameter(1, 27)
-# fitfcn.SetParameter(2, 8.78)
-# fitfcn.SetParameter(3, 0.13)
-# fitfcn.SetParameter(4, 0.0)
-# fitfcn.SetParameter(5, -11.)
+
+# Some sensible defaults for the fit function
+def stage1_fit_defaults(fitfunc):
+    """Better for Stage1"""
+    fitfunc.SetParameter(0, 0.5)
+    fitfunc.SetParameter(1, 2)
+    fitfunc.SetParameter(2, -0.5)
+    fitfunc.SetParameter(3, 0.13)
+    fitfunc.SetParameter(4, 0.0)
+    fitfunc.SetParameter(5, -6.)
+
+
+def gct_fit_defaults(fitfunc):
+    """Better for GCT"""
+    fitfunc.SetParameter(0, 0.5)
+    fitfunc.SetParameter(1, 27)
+    fitfunc.SetParameter(2, 8.78)
+    fitfunc.SetParameter(3, 0.13)
+    fitfunc.SetParameter(4, 0.0)
+    fitfunc.SetParameter(5, -11.)
+
+
+def fix_fit_params(fitfunc):
+    """Fix so constant line"""
+    fitfunc.FixParameter(1, 0)
+    fitfunc.FixParameter(2, 0)
+    fitfunc.FixParameter(3, 0)
+    fitfunc.FixParameter(4, 0)
+    fitfunc.FixParameter(5, 0)
 
 
 def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
@@ -282,10 +297,19 @@ def main():
                         help="Don't do genjet plots for each pt/eta bin")
     parser.add_argument("--no_correction_fit", action='store_false',
                         help="Don't do fits to correction functions")
+    parser.add_argument("--stage1", action='store_true',
+                        help="Load stage 1 specifics e.g. fit defaults. If not flagged, defaults to GCT.")
     args = parser.parse_args()
 
 
-    # Turn off if you don't want/need them - they slow things down,
+    # Load fit fucntion starting params - important as wrong starting params
+    # can cause fit failures
+    if args.stage1:
+        stage1_fit_defaults(fitfcn)
+    else:
+        gct_fit_defaults(fitfcn)
+
+    # Turn off gen plots if you don't want them - they slow things down,
     # and don't affect determination of correction fn
     do_genjet_plots = args.no_genjet_plots
     if not do_genjet_plots:
