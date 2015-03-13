@@ -38,30 +38,28 @@ for i, ptmin in enumerate(ptbins[:-1]):
 
     # Phys14 AVEPU20 25ns
     key = "QCD_Pt-%dto%d_Phys14_AVE20BX25" % (ptmin, ptmax)
-    dset = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE20BX25_tsg_castor_PHYS14_25_V3-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                    unitsPerJob=50)
-    samples[key] = dset
+    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE20BX25_tsg_castor_PHYS14_25_V3-v1/GEN-SIM-RAW" % (ptmin, ptmax),
+                            unitsPerJob=50)
 
     # Phys14  AVEPU30 50ns
     key = "QCD_Pt-%dto%d_Phys14_AVE30BX50" % (ptmin, ptmax)
-    dset = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                    unitsPerJob=50)
-    samples[key] = dset
+    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/GEN-SIM-RAW" % (ptmin, ptmax),
+                            unitsPerJob=50)
 
     # Fall13 PU20 25ns
     key = "QCD_Pt-%dto%d_Fall13_PU20bx25" % (ptmin, ptmax)
-    dest = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                    unitsPerJob=150)
+    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW" % (ptmin, ptmax),
+                            unitsPerJob=150)
 
     # Fall13 PU40 25ns
     key = "QCD_Pt-%dto%d_Fall13_PU40bx25" % (ptmin, ptmax)
-    dest = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU40bx25_POSTLS162_V2-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                    unitsPerJob=50)
+    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU40bx25_POSTLS162_V2-v1/GEN-SIM-RAW" % (ptmin, ptmax),
+                            unitsPerJob=50)
 
     # Fall13 PU40 50ns
     key = "QCD_Pt-%dto%d_Fall13_PU40bx50" % (ptmin, ptmax)
-    dest = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU40bx50_POSTLS162_V2-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                    unitsPerJob=50)
+    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU40bx50_POSTLS162_V2-v1/GEN-SIM-RAW" % (ptmin, ptmax),
+                            unitsPerJob=50)
 
 # the last 1800 to inf ones
 samples["QCD_Pt-1800_Phys14_AVE20BX25"] = Dataset(inputDataset="/QCD_Pt-1800_Tune4C_13TeV_pythia8/Phys14DR-AVE30BX50_tsg_castor_PHYS14_25_V3-v1/GEN-SIM-RAW",
