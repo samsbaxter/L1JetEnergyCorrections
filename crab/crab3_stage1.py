@@ -1,10 +1,12 @@
 """
 Stage1-specific CRAB3 setup
+
+Run with 'python crab3_stage1.py'
 """
 
 
 from crab3_cfg import config
-from samples import samples, ptbins
+import samples
 from CRABAPI.RawCommand import crabCommand
 
 
@@ -13,12 +15,6 @@ job_append = "Stage1_newRCT"
 
 # CHANGE ME - select dataset(s) to run over
 datasets = []
-
-for i, ptmin in enumerate(ptbins[:-1]):
-    ptmax = ptbins[i+1]
-    datasets.append("QCD_Pt-%dto%d_Phys14_AVE20BX25" % (ptmin, ptmax))
-datasets.append("QCD_Pt-1800_Phys14_AVE20BX25")
-
 
 if __name__ == "__main__":
 
@@ -29,13 +25,13 @@ if __name__ == "__main__":
     config.General.workArea = 'l1ntuple_'+job_append
 
     for dset in datasets:
-        if not dset in samples.keys():
+        if not dset in samples.samples.keys():
             raise KeyError("Wrong dataset name")
 
         # requestName will be used for name of folder inside workArea,
         # and the name of the jobs on monitoring page
         config.General.requestName = dset+"_"+job_append
-        config.Data.inputDataset = samples[dset].inputDataset
-        config.Data.unitsPerJob = samples[dset].unitsPerJob
+        config.Data.inputDataset = samples.samples[dset].inputDataset
+        config.Data.unitsPerJob = samples.samples[dset].unitsPerJob
 
         crabCommand('submit', config=config)
