@@ -279,7 +279,13 @@ void loadCorrectionFunctions(const TString& filename,
             TF1 fitFcn(*fit);
             corrFns.push_back(fitFcn);
         } else {
-            throw invalid_argument(binName.Prepend("No TF1 with name ").Data());
+            // throw invalid_argument(binName.Prepend("No TF1 with name ").Data());
+            // load in flat function if no suitable one is in file
+            TF1 fitFcn(binName, "1");
+            corrFns.push_back(fitFcn);
+            cout << "No correction fn found for eta bin ";
+            cout << etaMin << " - " << etaMax << endl;
+            cout << ": Will not correct jets in this bin" << endl;
         }
     }
     corrFile->Close();
@@ -321,10 +327,12 @@ void correctJets(std::vector<TLorentzVector>& jets,
         TF1 corrFn = corrFns[minItr-etaBins.begin()];
 
         // Get fit range
-        double fitMin(0.), fitMax(0.);
+        double fitMin(0.), fitMax(250.);
         corrFn.GetRange(fitMin, fitMax);
 
         // Now decide if we should apply corrections
+        // Can either use range of fit function, or above some minimum pt
+        // Might get rid of former option - get disjoint pt spectrum
         if (((minPt < 0.) && (jetItr.Pt() > fitMin) && (jetItr.Pt() < fitMax))
             || ((minPt >= 0.) && (jetItr.Pt() >= minPt))) {
             // corrFn.Print();
