@@ -45,12 +45,12 @@ def stage1_fit_defaults(fitfunc):
 
 def gct_fit_defaults(fitfunc):
     """Better for GCT"""
-    fitfunc.SetParameter(0, 0.5)
-    fitfunc.SetParameter(1, 27)
-    fitfunc.SetParameter(2, 8.78)
-    fitfunc.SetParameter(3, 0.13)
-    fitfunc.SetParameter(4, 0.0)
-    fitfunc.SetParameter(5, -11.)
+    fitfunc.SetParameter(0, 0.8)
+    fitfunc.SetParameter(1, 2)
+    fitfunc.SetParameter(2, 1)
+    fitfunc.SetParameter(3, -20)
+    fitfunc.SetParameter(4, 0.01)
+    fitfunc.SetParameter(5, -20)
 
 
 def fix_fit_params(fitfunc):
