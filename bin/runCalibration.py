@@ -177,7 +177,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         mean = -999
         err = -999
         if hrsp.GetEntries() >= 3:
-            fitStatus = int(hrsp.Fit("gaus", "QRI", "", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
+            fitStatus = int(hrsp.Fit("gaus", "QRIE", "", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
             mean = hrsp.GetFunction("gaus").GetParameter(1)
             err = hrsp.GetFunction("gaus").GetParError(1)
         output_f_hists.WriteTObject(hrsp)
