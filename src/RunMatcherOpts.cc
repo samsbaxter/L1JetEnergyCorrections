@@ -74,7 +74,7 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
             po::value<std::string>(&output_)->default_value("pairs.root"),
             "output filename")
         ("correct",
-            po::value<std::string>(&corrFilename_)->default_value(""),
+            po::value<std::string>(&corrFilename_),
             "filename of ROOT file with correction functions. " \
             "By default, no corrections are applied. " \
             "If this is set to anything other than \"\", " \
@@ -111,7 +111,8 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     }
 
     if (vm.count("correct")) {
-        cout << "Will apply corrections from file: " << vm["correct"].as<std::string>() << " to jets with min pT " << vm["corrMinPt"].as<float>() << endl;
+        cout << "Will apply corrections from file: " << vm["correct"].as<std::string>()
+        << " to jets with pT > " << vm["corrMinPt"].as<float>() << endl;
     }
 
 }
