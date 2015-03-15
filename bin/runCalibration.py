@@ -24,13 +24,11 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
-# Note that the actual limits used for fitting are defined further down
-fitmin = 35. # 45 for central bins, 35 for fwd
-fitmax = 250.
 
 # definition of the response function to fit to get our correction function
 # MAKE SURE IT'S THE SAME ONE THAT IS USED IN THE EMULATOR
-fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))", fitmin, fitmax)
+central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
+forward_fit = ROOT.TF1("fitfcn", "pol1")
 
 # Some sensible defaults for the fit function
 def stage1_fit_defaults(fitfunc):
@@ -63,7 +61,7 @@ def fix_fit_params(fitfunc):
 
 
 def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
-                       fit_params, do_genjet_plots, do_correction_fit):
+                        fitfcn, fit_params, do_genjet_plots, do_correction_fit):
     """
     Do all the relevant hists and fitting, for one eta bin.
     """
@@ -126,6 +124,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
     max_pt = 0 # maximum pt to perform fit or correction fn
+    min_pt = 10000 # minimum pt (don't use gr.GetX() cos it cant be converted to list FFS)
 
     # Iterate over pT^Gen bins, and for each:
     # - Project 2D hist so we have a plot of response for given pT^Gen range
@@ -195,7 +194,9 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
                "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
 
         # add point to response graph vs pt
+        # store if new max/min, but only max if pt > pt of previous point
         max_pt = max(hpt.GetMean(), max_pt) if grc > 0 and hpt.GetMean() > gr.GetX()[grc-1] else max_pt
+        min_pt = min(hpt.GetMean(), min_pt)
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
         if do_genjet_plots:
@@ -216,14 +217,20 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     # Fit correction function to response vs pT graph, add to list
     if do_correction_fit:
         thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-        min_pt = 30
+        fit_min = 30
         # some forward - specific settings
         if absetamin >= 3.:
-            min_pt = 18
-            thisfit = ROOT.TF1("fitfcneta_%g_%g" % (absetamin, absetamax), "pol1", min_pt, max_pt)
+            fit_min = 18
             # fix_fit_params(thisfit)
-        print "Correction fn fit range:", min_pt, max_pt
-        tmp_params = fit_correction(gr, thisfit, min_pt, max_pt)
+
+        # calculate minimum of fit range - use default,
+        # but if the minimum x value on the graph is greater than that, use
+        # that value + 10 (to absorb turnover)
+        fit_min = max(fit_min, min_pt+10)
+        print "Correction fn fit range:", fit_min, max_pt
+        tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
+        print_formula(thisfit, tmp_params, "cpp")
+        print_formula(thisfit, tmp_params, "py")
         fit_params.append(tmp_params)
 
     # Save these to file
@@ -246,6 +253,7 @@ def fit_correction(graph, function, fit_min, fit_max):
     print "Fitting", fit_min, fit_max
     fit_result = -1
     while (fit_result != 0 and fit_min < fit_max):
+        function.SetRange(fit_min, fit_max)
         fit_result = int(graph.Fit(function.GetName(), "R", "", fit_min, fit_max))
         print "Fit result:", fit_result, "for fit min", fit_min
         fit_min += 0.5
@@ -257,7 +265,7 @@ def fit_correction(graph, function, fit_min, fit_max):
     return params
 
 
-def print_lut_screen(fit_params, eta_bins):
+def print_fit_screen(fitfunc, fit_params, eta_bins):
     """
     Take fit parameters and print to screen
     """
@@ -271,6 +279,35 @@ def print_lut_screen(fit_params, eta_bins):
         print "Eta bin:", eta, "-", eta_bins[i + 1]
         for j, param in enumerate(fit_params[i]):
             print "\tParameter:", j, "=", param
+
+    # ROOT compatible version
+    print "To use in ROOT:"
+    for i, eta in enumerate(eta_bins[0:-1]):
+        print_formula(fitfunc, fit_params[i], "cpp")
+        print_formula(fitfunc, fit_params[i], "py")
+
+
+def print_formula(formula, params, lang="cpp"):
+    """
+    Print formula to screen so can replicate in ROOT
+
+    Can choose language (py, cpp)
+    """
+
+    rangemin = ROOT.Double() # eurghhhhh - fixes pass by reference
+    rangemax = ROOT.Double()
+    formula.GetRange(rangemin, rangemax)
+
+    name = formula.GetName()
+    print ""
+    if lang.lower() == 'py':
+        print "import ROOT"
+        print '%s = ROOT.TF1("%s", "%s", %g, %g);' % (name, name, formula.GetExpFormula(), rangemin, rangemax)
+    elif lang.lower() == 'cpp':
+        print 'TF1 %s("%s", "%s", %g, %g);' % (name, name, formula.GetExpFormula(), rangemin, rangemax)
+    for i, param in enumerate(params):
+        print "%s.SetParameter(%d, %g)" % (name, i, param)
+    print ""
 
 
 def print_lut_file(fit_params, eta_bins, filename):
@@ -315,15 +352,17 @@ def main():
                         help="Don't do fits to correction functions")
     parser.add_argument("--stage1", action='store_true',
                         help="Load stage 1 specifics e.g. fit defaults. If not flagged, defaults to GCT.")
+    parser.add_argument("--central", action='store_true',
+                        help="Do central eta bins only (eta <= 3)")
+    parser.add_argument("--forward", action='store_true',
+                        help="Do forward eta bins only (eta >= 3)")
     args = parser.parse_args()
 
 
-    # Load fit fucntion starting params - important as wrong starting params
-    # can cause fit failures
     if args.stage1:
-        stage1_fit_defaults(fitfcn)
+        print "Running with Stage1 defaults"
     else:
-        gct_fit_defaults(fitfcn)
+        print "Running with GCT defaults"
 
     # Turn off gen plots if you don't want them - they slow things down,
     # and don't affect determination of correction fn
@@ -340,34 +379,52 @@ def main():
     # Open input & output files, check
     inputf = ROOT.TFile(args.input, "READ")
     output_f = ROOT.TFile(args.output, "RECREATE")
-    print args.input
-    print args.output
+    print "IN:", args.input
+    print "OUT:", args.output
     if not inputf or not output_f:
         raise Exception("Input or output files cannot be opened")
 
-    # Setup pt, eta bins for doing calibrations
-    ptBins = binning.pt_bins
     etaBins = binning.eta_bins
-
     print "Running over eta bins:", etaBins
-    print "Running over pT bins:", ptBins
 
     # Do plots & fitting to get calib consts
     fit_params = []
     for i,eta in enumerate(etaBins[:-1]):
         emin = eta
         emax = etaBins[i+1]
-        if emin >= 3:
-            ptBins = binning.pt_bins_wide # larger bins at higher pt
-        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fit_params, do_genjet_plots, do_correction_fit)
+
+        # whether we're doing a central or forward bin
+        forward_bin = emax > 3
+
+        # skip if doing central or forward only
+        if (args.central and forward_bin) or (args.forward and not forward_bin):
+            continue
+
+        # setup pt bins, wider ones for forward region
+        ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
+        print "Running over pT bins:", ptBins
+
+        # Load fit function & starting params - important as wrong starting params
+        # can cause fit failures
+        fitfunc = central_fit
+        if args.stage1:
+            stage1_fit_defaults(fitfunc)
+        else:
+            gct_fit_defaults(fitfunc)
+
+        if forward_bin:
+            fitfunc = forward_fit
+
+        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fitfunc, fit_params, do_genjet_plots, do_correction_fit)
 
 
     # For testing:
-    # makeResponseCurves(inputf, output_f, ptBins, 0.0, 0.348, fit_params)
-    # makeResponseCurves(inputf, output_f, ptBins, 3.5, 4.0, fit_params)
+    # makeResponseCurves(inputf, output_f, binning.pt_bins, 0, 0.348, fit_params, do_genjet_plots, do_correction_fit)
+    # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 3, 3.5, fit_params, do_genjet_plots, do_correction_fit)
+    # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 4, 4.5, fit_params, do_genjet_plots, do_correction_fit)
 
     # Make LUT
-    print_lut_screen(fit_params, etaBins)
+    print_fit_screen(central_fit, fit_params, etaBins)
     dname, fname = os.path.split(sys.argv[2])
     lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
     print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
