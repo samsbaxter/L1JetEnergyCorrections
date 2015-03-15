@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // SETUP JET MATCHER //
     ///////////////////////
-    double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(500.);
+    double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(1000.);
     double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     std::cout << *matcher << std::endl;
