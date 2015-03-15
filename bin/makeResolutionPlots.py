@@ -71,7 +71,7 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output):
 
     if h_res.GetEntries() > 0:
         peak = h_res.GetBinCenter(h_res.GetMaximumBin())
-        fit_res = h_res.Fit("gaus", "MS", "R", peak - (1. * h_res.GetRMS()), peak + (1. * h_res.GetRMS()))
+        fit_res = h_res.Fit("gaus", "QESR", "R", peak - (1. * h_res.GetRMS()), peak + (1. * h_res.GetRMS()))
         # fit_res = h_res.Fit("gaus", "QMS", "R", h_res.GetMean() - 1. * h_res.GetRMS(), h_res.GetMean() + 1. * h_res.GetRMS())
         # fit_res = h_res.Fit("gaus", "QMS")
         print fit_res.Prob()
@@ -80,9 +80,9 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output):
         width_err = h_res.GetRMSError()
 
         # check fit converged, and is sensible
-        if int(fit_res) == 0: # and check_fit_peaks(fit_res, h_res):
-            width =  fit_res.GetParameter(2)
-            width_err = fit_res.GetParError(2)
+        if fit_res and int(fit_res) == 0: # and check_fit_peaks(fit_res, h_res):
+            width =  fit_res.Parameters()[2]
+            width_err = fit_res.Errors()[2]
         else:
             print "Poor fit to l1 res - using raw values"
 
@@ -172,11 +172,17 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
     res_graph_l1 = ROOT.TGraphErrors()
     res_graph_l1.SetNameTitle("resL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % title)
 
+    res_graph_l1_diff = ROOT.TGraphErrors()
+    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % title)
+
     res_graph_refVsl1 = ROOT.TGraphErrors() # binned in l1 pt
     res_graph_refVsl1.SetNameTitle("resRefL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
 
     res_graph_refVsref = ROOT.TGraphErrors() # binned in ref pt
     res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
+
+    res_graph_refVsref_diff = ROOT.TGraphErrors() # binned in ref pt
+    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
 
     # Now go through pt bins, and plot resolution for each, fit with gaussian,
     # and add width to graph
@@ -189,31 +195,33 @@ def plot_resolution(inputfile, outputfile, ptBins_in, absetamin, absetamax):
         # Plot difference in L1 pT and Ref pT (in bin of L1 pt)
         plot_bin_fit(ptDiff_l1_2d, ptmin, ptmax,
             "%s;E_{T}^{L1} - E_{T}^{Gen} [GeV];N" % title,
-            "ptDiff_l1_%g_%g" % (ptmin, ptmax), res_graph_l1, output_f_hists)
+            "ptDiff_l1_%g_%g" % (ptmin, ptmax), res_graph_l1_diff, output_f_hists)
 
         # Plot difference in L1 pT and Ref pT (in bin of ref pt)
         plot_bin_fit(ptDiff_ref_2d, ptmin, ptmax,
             "%s;E_{T}^{L1} - E_{T}^{Gen} [GeV];N" % title,
-            "ptDiff_ref_%g_%g" % (ptmin, ptmax), res_graph_refVsref, output_f_hists)
+            "ptDiff_ref_%g_%g" % (ptmin, ptmax), res_graph_refVsref_diff, output_f_hists)
 
         # Plot resolution wrt L1 pT & fit
         plot_bin_fit(res_l1_2d, ptmin, ptmax,
             "%s;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1};N" % title,
-            "res_l1_%g_%g" % (ptmin, ptmax), None, output_f_hists)
+            "res_l1_%g_%g" % (ptmin, ptmax), res_graph_l1, output_f_hists)
 
         # Plot ref resolution wrt L1 pT & fit
         plot_bin_fit(res_refVsl1_2d, ptmin, ptmax,
             "%s;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % title,
-            "res_ref_l1_%g_%g" % (ptmin, ptmax), None, output_f_hists)
+            "res_ref_l1_%g_%g" % (ptmin, ptmax), res_graph_refVsl1, output_f_hists)
 
         # Plot ref resolution Vs ref pt
         plot_bin_fit(res_refVsref_2d, ptmin, ptmax,
             "%s;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % title,
-            "res_ref_ref_%g_%g" % (ptmin, ptmax), None, output_f_hists)
+            "res_ref_ref_%g_%g" % (ptmin, ptmax), res_graph_refVsref, output_f_hists)
 
     output_f.WriteTObject(res_graph_l1)
+    output_f.WriteTObject(res_graph_l1_diff)
     output_f.WriteTObject(res_graph_refVsl1)
     output_f.WriteTObject(res_graph_refVsref)
+    output_f.WriteTObject(res_graph_refVsref_diff)
 
 
 ########### MAIN ########################
@@ -236,7 +244,7 @@ def main():
     # Setup pt, eta bins for doing calibrations
     pt_bins = binning.pt_bins_8[:]
     pt_bins_wide = binning.pt_bins_wide[:] # larger bins at higher pt
-    eta_bins = binning.eta_bins[:2]
+    eta_bins = binning.eta_bins[:]
 
     print "Running over eta bins:", eta_bins
     print "Running over pT bins:", pt_bins
@@ -250,7 +258,8 @@ def main():
             ptBins = pt_bins
             if emin >= 3.:  # diff binning for forward region
                 ptBins = binning.pt_bins_wide
-            plot_resolution(inputf, outputf, ptBins[:7], emin, emax)
+            if emax <= 3:
+                plot_resolution(inputf, outputf, ptBins, emin, emax)
     # Do plots for inclusive eta
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
     if args.incl and ((not args.excl and len(eta_bins) >= 2) or (args.excl and len(eta_bins)>2)):
