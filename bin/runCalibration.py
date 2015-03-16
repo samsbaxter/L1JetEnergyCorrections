@@ -12,7 +12,7 @@ Originally by Nick Wardle, modified by Robin Aggleton
 import ROOT
 import sys
 import array
-import numpy
+import numpy as np
 from pprint import pprint
 from itertools import izip
 import os
@@ -124,8 +124,9 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     gr = ROOT.TGraphErrors() # 1/<rsp> VS ptL1
     gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
-    max_pt = 0 # maximum pt to perform fit or correction fn
-    min_pt = 10000 # minimum pt (don't use gr.GetX() cos it cant be converted to list FFS)
+    # max_pt = 0 # maximum pt to perform fit or correction fn
+    # min_pt = 10000 # minimum pt (don't use gr.GetX() cos it cant be converted to list FFS)
+    # max_val = 0 # to find turnover for graph
 
     # Iterate over pT^Gen bins, and for each:
     # - Project 2D hist so we have a plot of response for given pT^Gen range
@@ -196,8 +197,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
         # add point to response graph vs pt
         # store if new max/min, but only max if pt > pt of previous point
-        max_pt = max(hpt.GetMean(), max_pt) if grc > 0 and hpt.GetMean() > gr.GetX()[grc-1] else max_pt
-        min_pt = min(hpt.GetMean(), min_pt)
+        # max_pt = max(hpt.GetMean(), max_pt) if grc > 0 and hpt.GetMean() > gr.GetX()[grc-1] else max_pt
+        # min_pt = min(hpt.GetMean(), min_pt)
         gr.SetPoint(grc, hpt.GetMean(), 1. / mean)
         gr.SetPointError(grc, hpt.GetMeanError(), err)
         if do_genjet_plots:
@@ -224,10 +225,15 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
             fit_min = 18
             # fix_fit_params(thisfit)
 
-        # calculate minimum of fit range - use default,
-        # but if the minimum x value on the graph is greater than that, use
-        # that value + 10 (to absorb turnover)
-        fit_min = max(fit_min, min_pt+10)
+        xarr, yarr = get_xy(gr)
+        # Maxmimum pt for upper range of fit
+        max_pt = max(xarr)
+        # Pt of maximum corr value for lower range of fit - check to make sure
+        # it's not the last point on the graph (if no turnover)
+        max_corr = max(yarr)
+        max_corr_pt = yarr.index(max_corr)
+        fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != max_pt) else fit_min
+
         print "Correction fn fit range:", fit_min, max_pt
         tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
         print_formula(thisfit, tmp_params, "cpp")
@@ -240,6 +246,38 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         outputfile.WriteTObject(thisfit)
     if do_genjet_plots:
         outputfile.WriteTObject(gr_gen)
+
+
+def check_exp(n):
+    """
+    Checks if number has stupidly larger exponent
+
+    Can occur is using buffers - it just fills unused bins with crap
+    """
+
+    from math import fabs, log10, frexp
+    m,e = frexp(n)
+    return fabs(log10(pow(2,e))) > 10
+
+
+def get_xy(graph):
+    """
+    Return lists of x, y points from a graph, because it's such a PITA
+
+    ASSUMES POINTS START FROM INDEX 0!
+    Includes a check to see if any number is ridic (eg if you started from 1)
+    """
+    xpt = graph.GetX()
+    ypt = graph.GetY()
+    N = graph.GetN()
+
+    xarr = [x for x in list(np.ndarray(N,'d',xpt)) if check_exp(x)]
+    yarr = [y for y in list(np.ndarray(N,'d',ypt)) if check_exp(y)]
+
+    if len(xarr) != N or len(yarr) != N:
+        raise Exception("incorrect array size from graph")
+
+    return xarr, yarr
 
 
 def fit_correction(graph, function, fit_min, fit_max):
