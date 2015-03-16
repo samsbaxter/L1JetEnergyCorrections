@@ -386,6 +386,10 @@ def main():
         raise Exception("Input or output files cannot be opened")
 
     etaBins = binning.eta_bins
+    if args.central:
+        etaBins = [eta for eta in etaBins if eta < 3.1]
+    elif args.forward:
+        etaBins = [eta for eta in etaBins if eta > 2.9]
     print "Running over eta bins:", etaBins
 
     # Do plots & fitting to get calib consts
@@ -394,16 +398,11 @@ def main():
         emin = eta
         emax = etaBins[i+1]
 
-        # whether we're doing a central or forward bin
-        forward_bin = emax > 3
-
-        # skip if doing central or forward only
-        if (args.central and forward_bin) or (args.forward and not forward_bin):
-            continue
+        # whether we're doing a central or forward bin (.1 is for rounding err)
+        forward_bin = emax > 3.1
 
         # setup pt bins, wider ones for forward region
         ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
-        print "Running over pT bins:", ptBins
 
         # Load fit function & starting params - important as wrong starting params
         # can cause fit failures
