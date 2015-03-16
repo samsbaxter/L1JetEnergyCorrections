@@ -299,7 +299,7 @@ def print_formula(formula, params, lang="cpp"):
     rangemax = ROOT.Double()
     formula.GetRange(rangemin, rangemax)
 
-    name = formula.GetName()
+    name = formula.GetName().replace(".", "p")
     print ""
     if lang.lower() == 'py':
         print "import ROOT"
