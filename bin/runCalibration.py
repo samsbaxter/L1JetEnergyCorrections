@@ -67,6 +67,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     """
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
+    print "Running over pT bins:", ptBins_in
 
     # Input tree
     tree_raw = inputfile.Get("valid")
