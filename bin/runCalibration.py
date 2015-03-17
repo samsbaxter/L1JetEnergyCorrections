@@ -257,7 +257,7 @@ def check_exp(n):
 
     from math import fabs, log10, frexp
     m,e = frexp(n)
-    return fabs(log10(pow(2,e))) > 10
+    return fabs(log10(pow(2,e))) < 10
 
 
 def get_xy(graph):
