@@ -15,6 +15,9 @@
 // user include files
 #include "JetDrawer.h"
 
+#include "TMath.h"
+#include "TAxis.h"
+
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
@@ -79,14 +82,26 @@ JetDrawer::~JetDrawer()
 // member functions
 //
 
-void JetDrawer::drawAndSave(const TString& filename) {
-    // if (canvas_ != nullptr) delete canvas_;
+
+void JetDrawer::drawGraph() {
     canvas_->cd();
     graph_->Draw("ap");
+    // yes, this crud is real - ROOT is horribly inconsistent
+    // makes me want to tear my eyes out
+    graph_->GetYaxis()->SetRangeUser(-1. * TMath::Pi(), TMath::Pi());
+    graph_->GetXaxis()->SetLimits(-5., 5.);
+    graph_->Draw("ap");
+    canvas_->Update();
     legend_->Draw();
     label_->Draw();
     canvas_->SetTicks();
     canvas_->SetGrid();
+}
+
+
+void JetDrawer::drawAndSave(const TString& filename) {
+    // if (canvas_ != nullptr) delete canvas_;
+    drawGraph();
     if (checkPath(filename.Data())) {
         canvas_->SaveAs(filename);
     }
@@ -96,13 +111,8 @@ void JetDrawer::drawAndSave(const TString& filename) {
 
 void JetDrawer::drawAndSave(TFile* file) {
     // if (canvas_ != nullptr) delete canvas_;
-    canvas_->cd();
-    graph_->Draw("ap");
-    legend_->Draw();
-    label_->Draw();
-    canvas_->SetTicks();
-    canvas_->SetGrid();
     // TODO check file OK
+    drawGraph();
     file->cd();
     canvas_->Write("", TObject::kOverwrite);
     delete canvas_;

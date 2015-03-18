@@ -62,6 +62,11 @@ class JetDrawer
         // ---------- member functions ---------------------------
 
         /**
+         * @brief Draw the internal multigraph on a canvas, with legend, title
+         */
+        virtual void drawGraph();
+
+        /**
          * @brief Draw graph and legend on canvas and save to file
          *
          * @param filename Filepath & name to save canvas as.
