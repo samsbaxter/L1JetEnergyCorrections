@@ -27,11 +27,11 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2()
-ROOT.gROOT.ProcessLine('.L tdrStyle.C')
-ROOT.setTDRStyle()
+# ROOT.gROOT.ProcessLine('.L tdrStyle.C')
+# ROOT.setTDRStyle()
 ROOT.gStyle.SetOptTitle(0);
 ROOT.gStyle.SetOptStat(1);
-ROOT.gROOT.ForceStyle();
+# ROOT.gROOT.ForceStyle();
 
 
 def check_var_stored(tree, var):
