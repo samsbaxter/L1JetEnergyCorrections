@@ -409,7 +409,8 @@ def main(args=sys.argv[1:]):
                         help="list of eta bin INDICES to run over - " \
                         "if unspecified will do all " \
                         "(overrides --central/--forward)" \
-                        "handy for batch mode")
+                        "handy for batch mode" \
+                        "MUST PUT AT VERY END")
     args = parser.parse_args(args=args)
 
     if args.stage1:
@@ -441,7 +442,7 @@ def main(args=sys.argv[1:]):
     if args.etaInd:
         args.etaInd.append(int(args.etaInd[-1])+1) # need upper eta bin edge
         # check eta bins are ok
-        etaBins = list(set(etaBins) & set([etaBins[int(x)] for x in args.etaInd]))
+        etaBins = [etaBins[int(x)] for x in args.etaInd]
     elif args.central:
         etaBins = [eta for eta in etaBins if eta < 3.1]
     elif args.forward:
