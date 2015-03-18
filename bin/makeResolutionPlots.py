@@ -236,6 +236,16 @@ def main():
     parser.add_argument("output", help="output ROOT filename")
     parser.add_argument("--incl", action="store_true", help="Do inclusive eta plots")
     parser.add_argument("--excl", action="store_true", help="Do exclusive eta plots")
+    parser.add_argument("--central", action='store_true',
+                        help="Do central eta bins only (eta <= 3)")
+    parser.add_argument("--forward", action='store_true',
+                        help="Do forward eta bins only (eta >= 3)")
+    parser.add_argument("--etaInd", nargs="+",
+                        help="list of eta bin INDICES to run over - " \
+                        "if unspecified will do all " \
+                        "(overrides --central/--forward)" \
+                        "handy for batch mode" \
+                        "MUST PUT AT VERY END")
     args = parser.parse_args()
 
     inputf = ROOT.TFile(args.input, "READ")
@@ -246,30 +256,38 @@ def main():
     if not inputf or not outputf:
         raise Exception("Couldn't open input or output files")
 
-    # Setup pt, eta bins for doing calibrations
-    pt_bins = binning.pt_bins_8[:]
-    pt_bins_wide = binning.pt_bins_wide[:] # larger bins at higher pt
-    eta_bins = binning.eta_bins[:]
-
-    print "Running over eta bins:", eta_bins
-    print "Running over pT bins:", pt_bins
+    # Setup eta bins
+    etaBins = binning.eta_bins[:]
+    if args.etaInd:
+        args.etaInd.append(int(args.etaInd[-1])+1) # need upper eta bin edge
+        # check eta bins are ok
+        etaBins = [etaBins[int(x)] for x in args.etaInd]
+    elif args.central:
+        etaBins = [eta for eta in etaBins if eta < 3.1]
+    elif args.forward:
+        etaBins = [eta for eta in etaBins if eta > 2.9]
+    print "Running over eta bins:", etaBins
 
     # Do plots for individual eta bins
     if args.excl:
         print "Doing individual eta bins"
-        for i,eta in enumerate(eta_bins[0:-1]):
+        for i,eta in enumerate(etaBins[0:-1]):
             emin = eta
-            emax = eta_bins[i+1]
-            ptBins = pt_bins
-            if emin >= 3.:  # diff binning for forward region
-                ptBins = binning.pt_bins_wide
-            if emax <= 3:
-                plot_resolution(inputf, outputf, ptBins, emin, emax)
+            emax = etaBins[i+1]
+
+            # whether we're doing a central or forward bin (.1 is for rounding err)
+            forward_bin = emax > 3.1
+
+            # setup pt bins, wider ones for forward region
+            ptBins = binning.pt_bins_8 if not forward_bin else binning.pt_bins_wide
+
+            plot_resolution(inputf, outputf, ptBins, emin, emax)
+
     # Do plots for inclusive eta
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
-    if args.incl and ((not args.excl and len(eta_bins) >= 2) or (args.excl and len(eta_bins)>2)):
+    if args.incl and ((not args.excl and len(etaBins) >= 2) or (args.excl and len(etaBins)>2)):
         print "Doing inclusive eta"
-        plot_resolution(inputf, outputf, pt_bins, eta_bins[0], eta_bins[-1])
+        plot_resolution(inputf, outputf, binning.pt_bins, etaBins[0], etaBins[-1])
 
 
 if __name__ == "__main__":
