@@ -303,10 +303,12 @@ def fit_correction(graph, function, fit_min, fit_max):
         print "Fit result:", fit_result, "for fit min", fit_min
         fit_min += 0.5
 
-
     params = []
-    for i in range(function.GetNumberFreeParameters()):
-        params.append(function.GetParameter(i))
+    if fit_result != 0 or function.Eval(80) > 3 or function.Eval(80) < 0.01:
+        print "Couldn't fit"
+    else:
+        for i in range(function.GetNumberFreeParameters()):
+            params.append(function.GetParameter(i))
 
     return params
 
