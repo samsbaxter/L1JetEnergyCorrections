@@ -483,9 +483,11 @@ def main(args=sys.argv[1:]):
 
     # Make LUT
     print_fit_screen(central_fit, fit_params, etaBins)
-    dname, fname = os.path.split(sys.argv[2])
+    dname, fname = os.path.split(args.output)
     lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
-    print_lut_file(fit_params, etaBins, dname+"/"+lut_filename)
+    if not dname:
+        lut_filename = dname + "/" + lut_filename
+    print_lut_file(fit_params, etaBins, lut_filename)
 
 
 if __name__ == "__main__":
