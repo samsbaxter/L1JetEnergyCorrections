@@ -293,7 +293,10 @@ def fit_correction(graph, function, fit_min, fit_max):
     fit_result = -1
     while (fit_result != 0 and fit_min < fit_max):
         function.SetRange(fit_min, fit_max)
-        fit_result = int(graph.Fit(function.GetName(), "R", "", fit_min, fit_max))
+        mode = ""
+        if str(function.GetExpFormula()).startswith("pol"):
+            mode = "F"
+        fit_result = int(graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
         # sanity check - sometimes will have status = 0 even though rubbish
         if function.Eval(80) > 3 or function.Eval(80) < 0.01:
             fit_result = -1
