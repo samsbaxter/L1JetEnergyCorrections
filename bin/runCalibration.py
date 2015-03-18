@@ -90,14 +90,14 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,200,0,6)" % (nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,200,0,6)" % (nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
@@ -178,7 +178,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         mean = -999
         err = -999
         if hrsp.GetEntries() >= 3:
-            fitStatus = int(hrsp.Fit("gaus", "QRIE", "", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
+            fitStatus = int(hrsp.Fit("gaus", "QER", "", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
             mean = hrsp.GetFunction("gaus").GetParameter(1)
             err = hrsp.GetFunction("gaus").GetParError(1)
         output_f_hists.WriteTObject(hrsp)
@@ -486,7 +486,7 @@ def main(args=sys.argv[1:]):
     print_fit_screen(central_fit, fit_params, etaBins)
     dname, fname = os.path.split(args.output)
     lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
-    if not dname:
+    if dname:
         lut_filename = dname + "/" + lut_filename
     print_lut_file(fit_params, etaBins, lut_filename)
 
