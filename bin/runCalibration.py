@@ -257,7 +257,7 @@ def check_exp(n):
 
     from math import fabs, log10, frexp
     m,e = frexp(n)
-    return fabs(log10(pow(2,e))) > 10
+    return fabs(log10(pow(2,e))) < 10
 
 
 def get_xy(graph):
@@ -385,7 +385,8 @@ def print_lut_file(fit_params, eta_bins, filename):
 
 
 ########### MAIN ########################
-def main():
+def main(args=sys.argv[1:]):
+    print args
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
@@ -399,8 +400,12 @@ def main():
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
                         help="Do forward eta bins only (eta >= 3)")
-    args = parser.parse_args()
-
+    parser.add_argument("--etaInd", nargs="+",
+                        help="list of eta bin INDICES to run over - " \
+                        "if unspecified will do all " \
+                        "(overrides --central/--forward)" \
+                        "handy for batch mode")
+    args = parser.parse_args(args=args)
 
     if args.stage1:
         print "Running with Stage1 defaults"
@@ -428,7 +433,11 @@ def main():
         raise Exception("Input or output files cannot be opened")
 
     etaBins = binning.eta_bins
-    if args.central:
+    if args.etaInd:
+        args.etaInd.append(int(args.etaInd[-1])+1) # need upper eta bin edge
+        # check eta bins are ok
+        etaBins = list(set(etaBins) & set([etaBins[int(x)] for x in args.etaInd]))
+    elif args.central:
         etaBins = [eta for eta in etaBins if eta < 3.1]
     elif args.forward:
         etaBins = [eta for eta in etaBins if eta > 2.9]
@@ -462,9 +471,8 @@ def main():
 
     # For testing:
     # makeResponseCurves(inputf, output_f, binning.pt_bins, 0, 0.348, central_fit, fit_params, do_genjet_plots, do_correction_fit)
-    makeResponseCurves(inputf, output_f, binning.pt_bins, 0.695, 1.044, central_fit, fit_params, do_genjet_plots, do_correction_fit)
-    makeResponseCurves(inputf, output_f, binning.pt_bins, 1.044, 1.392, central_fit, fit_params, do_genjet_plots, do_correction_fit
-
+    # makeResponseCurves(inputf, output_f, binning.pt_bins, 0.695, 1.044, central_fit, fit_params, do_genjet_plots, do_correction_fit)
+    # makeResponseCurves(inputf, output_f, binning.pt_bins, 1.044, 1.392, central_fit, fit_params, do_genjet_plots, do_correction_fit)
     # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 3, 3.5, forward_fit, fit_params, do_genjet_plots, do_correction_fit)
     # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 4, 4.5, forward_fit, fit_params, do_genjet_plots, do_correction_fit)
 
