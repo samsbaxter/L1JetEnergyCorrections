@@ -58,14 +58,22 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, div
     output is where you want to write hist + fit to
     divide is flag, wehter to divide the width by the mean pt (default is not)
     """
+
+    # Get average pt value - could be lazy and use midpoint of bin,
+    # or project 2D hist and get average
+    # Lazy:
+    pt_mid = 0.5 * (ptmin + ptmax)
+    pt_width = 0.5 * (ptmax - ptmin)
+
+    # Proper:
+    h_pt = res_2d.ProjectionX("pt_%g_%g" % (ptmin, ptmax))
+    h_pt.GetXaxis().SetRangeUser(ptmin, ptmax)
+    pt_mid = h_pt.GetMean()
+
+    # Projection of res values for given pt range
     # Get bin indices corresponding to physical pt values
     bin_low = res_2d.GetXaxis().FindBin(ptmin)
     bin_high = res_2d.GetXaxis().FindBin(ptmax)-1
-
-    # For graph - get bin middle & width
-    pt_mid = 0.5 * (ptmin + ptmax)
-    pt_width = ptmin - ptmin
-
     h_res = res_2d.ProjectionY(hist_name, bin_low, bin_high)
     h_res.SetTitle(hist_title)
 
@@ -90,8 +98,8 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, div
         if graph:
             count = graph.GetN()
             if divide:
-                width = width/pt_mid
-                width_err = width_err/pt_mid # important
+                width = width / pt_mid
+                width_err = width_err / pt_mid # important
             graph.SetPoint(count, pt_mid, width)
             graph.SetPointError(count, pt_width, width_err)
     else:
