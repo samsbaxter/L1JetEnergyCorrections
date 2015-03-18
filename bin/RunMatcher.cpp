@@ -171,8 +171,8 @@ int main(int argc, char* argv[]) {
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
-        refJetExtraTree.fChain->GetEntry(iEntry);
-        l1JetExtraTree.fChain->GetEntry(iEntry);
+        refJetExtraTree.GetEntry(iEntry);
+        l1JetExtraTree.GetEntry(iEntry);
 
         // Get vectors of ref & L1 jets from trees
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
@@ -204,6 +204,7 @@ int main(int argc, char* argv[]) {
             out_dr = it.refJet().DeltaR(it.l1Jet());
             out_deta = it.refJet().Eta() - it.l1Jet().Eta();
             out_dphi = it.refJet().DeltaPhi(it.l1Jet());
+            out_ptRef = it.refJet().Pt();
             out_etaRef = it.refJet().Eta();
             out_phiRef = it.refJet().Phi();
             out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
