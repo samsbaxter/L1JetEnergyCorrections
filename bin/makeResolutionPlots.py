@@ -162,6 +162,14 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}" % title)
     output_f_hists.WriteTObject(res_l1_2d)
 
+    # TESTING: plot ref/L1 Vs Ref
+    tree_raw.Draw("(pt*rsp)/pt:(pt*rsp)>>corr_2d(60,14,250,20,0,2)", eta_cut + "&&" + pt_cut_all)
+    corr_2d = ROOT.gROOT.FindObject("corr_2d")
+    corr_2d.SetTitle(";E_{T}^{Gen};E_{T}^{Gen}/E_{T}^{L1}")
+    output_f_hists.WriteTObject(corr_2d)
+    prof_corr = corr_2d.ProfileX("",1, -1, "s")
+    output_f_hists.WriteTObject(prof_corr)
+
     # 2D plot of L1-Ref/L1 VS L1
     var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-(pt*rsp))/(pt*rsp)"
     res_min = -2
@@ -296,6 +304,9 @@ def main():
     if args.incl and ((not args.excl and len(etaBins) >= 2) or (args.excl and len(etaBins)>2)):
         print "Doing inclusive eta"
         plot_resolution(inputf, outputf, binning.pt_bins, etaBins[0], etaBins[-1])
+
+    if not args.incl and not args.excl:
+        print "Not doing inclusive or exclusive - you must specify one!"
 
 
 if __name__ == "__main__":
