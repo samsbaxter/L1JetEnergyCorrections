@@ -1,0 +1,27 @@
+Executable = resolution_condor.sh
+Universe = vanilla
+Output = job.$(cluster).$(process).out
+Error = job.$(cluster).$(process).err
+Log = job.$(cluster).$(process).log
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+notify_user = robin.aggleton@bristol.ac.uk
+
+request_cpus = 1
+request_memory = 3GB
+
+# use the ENV that is provided
+getenv = true
+# initialdir = /storage/ra12451/
+
+
+transfer_input_files = binning.py,makeResolutionPlots.py,/storage/ra12451/L1JEC/CMSSW_7_3_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE20BX25/pairs_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ak4_ref14to1000_l10to500.root
+transfer_output_files = res_$(process).root
+
+arguments = "--excl pairs_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ak4_ref14to1000_l10to500.root res_$(process).root --etaInd $(process) "
+
+queue 11
+
+arguments = "--incl pairs_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ak4_ref14to1000_l10to500.root res_$(process).root"
+
+queue
