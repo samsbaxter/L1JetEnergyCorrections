@@ -228,17 +228,20 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         xarr, yarr = get_xy(gr)
         # Maxmimum pt for upper range of fit
         max_pt = max(xarr)
-        # Pt of maximum corr value for lower range of fit - check to make sure
-        # it's not the last point on the graph (if no turnover)
+        # For lower bound of fit, use either fit_min or the pt
+        # of the maximum corr value, whicher is larger.
+        # Check to make sure it's not the last point on the graph
+        # (e.g. if no turnover), in which case just use the default fit_min
         max_corr = max(yarr)
         max_corr_pt = yarr.index(max_corr)
         fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != max_pt) else fit_min
 
         print "Correction fn fit range:", fit_min, max_pt
-        tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
+        fit_graph, tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
         print_formula(thisfit, tmp_params, "cpp")
         print_formula(thisfit, tmp_params, "py")
         fit_params.append(tmp_params)
+        outputfile.WriteTObject(fit_graph)
 
     # Save these to file
     outputfile.WriteTObject(gr)
@@ -280,6 +283,26 @@ def get_xy(graph):
     return xarr, yarr
 
 
+def get_exey(graph):
+    """
+    Return lists of errors on x, y points from a graph, because it's such a PITA
+
+    ASSUMES POINTS START FROM INDEX 0!
+    Includes a check to see if any number is ridic (eg if you started from 1)
+    """
+    expt = graph.GetEX()
+    eypt = graph.GetEY()
+    N = graph.GetN()
+
+    xarr = [x for x in list(np.ndarray(N,'d',expt)) if check_exp(x)]
+    yarr = [y for y in list(np.ndarray(N,'d',eypt)) if check_exp(y)]
+
+    if len(xarr) != N or len(yarr) != N:
+        raise Exception("incorrect array size from graph")
+
+    return xarr, yarr
+
+
 def fit_correction(graph, function, fit_min, fit_max):
     """
     Fit response curve with given correction function, within given bounds.
@@ -290,13 +313,28 @@ def fit_correction(graph, function, fit_min, fit_max):
     Returns parameters of successful fit.
     """
     print "Fitting", fit_min, fit_max
+
+    # Sometimes have 2 points with very diff corr values within a given
+    # pt range due to turnover
+    # To make the fit better/easier, we make a Graph with the subset
+    # of points we want to fit to
+    xarr, yarr = get_xy(graph)
+    min_ind = xarr.index(next(x for x in xarr if x >= fit_min and xarr[xarr.index(x)+1] > x))
+    print "min_ind:", min_ind, "x,y of fit graph:", xarr[min_ind:], yarr[min_ind:]
+    # Do not user graph.RemovePoint()! It doesn't work, and only removes every-other point
+    # Instead make a graph with the bit of array we want
+    exarr, eyarr = get_exey(graph)
+    fit_graph = ROOT.TGraphErrors(len(xarr)-min_ind, np.array(xarr[min_ind:]), np.array(yarr[min_ind:]), np.array(exarr[min_ind:]), np.array(eyarr[min_ind:]))
+    fit_graph.SetName(fit_graph.GetName()+"_fit")
+
+    # Now do the fitting, incrementing the fit min if failure
     fit_result = -1
     while (fit_result != 0 and fit_min < fit_max):
         function.SetRange(fit_min, fit_max)
         mode = ""
         if str(function.GetExpFormula()).startswith("pol"):
             mode = "F"
-        fit_result = int(graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
+        fit_result = int(fit_graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
         # sanity check - sometimes will have status = 0 even though rubbish
         if function.Eval(80) > 3 or function.Eval(80) < 0.01:
             fit_result = -1
@@ -304,13 +342,13 @@ def fit_correction(graph, function, fit_min, fit_max):
         fit_min += 0.5
 
     params = []
-    if fit_result != 0 or function.Eval(80) > 3 or function.Eval(80) < 0.01:
+    if fit_result != 0 or function.Eval(80) > 10 or function.Eval(80) < 0.01:
         print "Couldn't fit"
     else:
         for i in range(function.GetNumberFreeParameters()):
             params.append(function.GetParameter(i))
 
-    return params
+    return fit_graph, params
 
 
 def print_fit_screen(fitfunc, fit_params, eta_bins):
