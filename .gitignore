@@ -7,7 +7,7 @@ __init__.py
 *.pdf
 *.log
 *.out
-
+*.err
 crab_l1ntuple_*/
 dictionary*
 Fall13_TTbar_PU20bx25/
