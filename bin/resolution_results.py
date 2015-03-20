@@ -104,58 +104,63 @@ def multiplot_to_file(plots, outfilename, xtitle="", ytitle="", xlim=None, ylim=
     leg = r.TLegend(0.6, 0.7, 0.88, 0.88)
 
     for plot in plots:
-        plt = (plot["infile"].Get(plot["plotname"]).Clone())
-        # setup container depending on type
-        if not container:
-            hists = ["TH1", "TH2"]
-            graphs = ["TGraph", "TGraphErrors", "TGraphAsymmErrors"]
-            if type(plt).__name__ in hists:
-                container = r.THStack("hstack")
-            elif type(plt).__name__ in graphs:
-                container = r.TMultiGraph()
-        plt.GetXaxis().SetTitle(xtitle)
-        plt.GetXaxis().SetTitleSize(0.06)
-        plt.GetXaxis().SetLabelSize(0.06)
-        plt.GetYaxis().SetTitle(ytitle)
-        plt.GetYaxis().SetTitleSize(0.06)
-        plt.GetYaxis().SetLabelSize(0.06)
-        plt.SetTitle("")
-        plt.SetMarkerSize(0.5)
+        try:
+            plt = (plot["infile"].Get(plot["plotname"]).Clone())
+            # setup container depending on type
+            if not container:
+                hists = ["TH1", "TH2"]
+                graphs = ["TGraph", "TGraphErrors", "TGraphAsymmErrors"]
+                if type(plt).__name__ in hists:
+                    container = r.THStack("hstack")
+                elif type(plt).__name__ in graphs:
+                    container = r.TMultiGraph()
+            plt.GetXaxis().SetTitle(xtitle)
+            plt.GetXaxis().SetTitleSize(0.06)
+            plt.GetXaxis().SetLabelSize(0.06)
+            plt.GetYaxis().SetTitle(ytitle)
+            plt.GetYaxis().SetTitleSize(0.06)
+            plt.GetYaxis().SetLabelSize(0.06)
+            plt.SetTitle("")
+            plt.SetMarkerSize(0.5)
+            if xlim:
+                plt.GetXaxis().SetRangeUser(xlim[0], xlim[1])
+            if ylim:
+                plt.SetMaximum(ylim[1])
+                plt.SetMinimum(ylim[0])
+            if "color" in plot.keys():
+                col = plot["color"]
+                if col != "":
+                    plt.SetLineColor(col)
+                    plt.SetMarkerColor(col)
+                    plt.SetFillColor(col)
+            container.Add(plt)
+            leg_txt = plot["legend_text"] if "legend_text" in plot.keys() else ""
+            leg_sty = plot["legend_style"] if "legend_style" in plot.keys() else ""
+            if leg_txt != "":
+                leg.AddEntry(plt, leg_txt, leg_sty)
+        except ReferenceError:
+            print "Cannot get plot %s from file %s" % (plot["plotname"], plot["infile"].GetName())
+            exit()
+    if container:
+        container.Draw(drawopts)
+        container.GetXaxis().SetTitle(xtitle)
+        container.GetXaxis().SetTitleSize(0.06)
+        container.GetXaxis().SetLabelSize(0.06)
+        container.GetYaxis().SetTitle(ytitle)
+        container.GetYaxis().SetTitleSize(0.06)
+        container.GetYaxis().SetLabelSize(0.06)
         if xlim:
-            plt.GetXaxis().SetRangeUser(xlim[0], xlim[1])
+            container.GetXaxis().SetRangeUser(xlim[0], xlim[1])
         if ylim:
-            plt.SetMaximum(ylim[1])
-            plt.SetMinimum(ylim[0])
-        if "color" in plot.keys():
-            col = plot["color"]
-            if col != "":
-                plt.SetLineColor(col)
-                plt.SetMarkerColor(col)
-                plt.SetFillColor(col)
-        container.Add(plt)
-        leg_txt = plot["legend_text"] if "legend_text" in plot.keys() else ""
-        leg_sty = plot["legend_style"] if "legend_style" in plot.keys() else ""
-        if leg_txt != "":
-            leg.AddEntry(plt, leg_txt, leg_sty)
-
-    container.Draw(drawopts)
-    container.GetXaxis().SetTitle(xtitle)
-    container.GetXaxis().SetTitleSize(0.06)
-    container.GetXaxis().SetLabelSize(0.06)
-    container.GetYaxis().SetTitle(ytitle)
-    container.GetYaxis().SetTitleSize(0.06)
-    container.GetYaxis().SetLabelSize(0.06)
-    if xlim:
-        container.GetXaxis().SetRangeUser(xlim[0], xlim[1])
-    if ylim:
-        container.GetYaxis().SetRangeUser(ylim[0], ylim[1])
-    container.Draw(drawopts)
-    if leg.GetNRows() != 0:
-        leg.Draw()
-    for f in outfilename:
-        r.gPad.Print(f)
-    r.gPad.Clear()
-
+            container.GetYaxis().SetRangeUser(ylim[0], ylim[1])
+        container.Draw(drawopts)
+        if leg.GetNRows() != 0:
+            leg.Draw()
+        for f in outfilename:
+            r.gPad.Print(f)
+        r.gPad.Clear()
+    else:
+        raise Exception("couldn't add plots to container")
 
 def plot_res_results(in_name_pre="", in_name_post=""):
     """
@@ -193,6 +198,7 @@ def plot_res_results(in_name_pre="", in_name_post=""):
     sub = in_stem_pre.replace("res_", "").replace("_", "\_")
     sub += r"\\"
     if in_name_post:
+        sub += "Comparing with: \\"
         sub += in_stem_post.replace("res_", "").replace("_", "\_")
     sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub +"}"
@@ -224,6 +230,7 @@ def plot_res_results(in_name_pre="", in_name_post=""):
             emin = eta
             emax = etaBins[i+1]
 
+            # PLOT - L1 resolution (L1 - ref / L1) as binned by L1 jet pt
             name = "resL1_%g_%g" % (emin, emax)
             pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
             plots = [pre_dict]
@@ -236,7 +243,8 @@ def plot_res_results(in_name_pre="", in_name_post=""):
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
-            name = "resRef_%g_%g" % (emin, emax)
+            # PLOT - ref resolution (L1 - ref / ref) as binned by ref jet pt
+            name = "resRefRef_%g_%g" % (emin, emax)
             pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
             plots = [pre_dict]
             if in_name_post:
@@ -260,6 +268,8 @@ def plot_res_results(in_name_pre="", in_name_post=""):
         # Do the inclusive eta plot
         emin = etaBins[0]
         emax = etaBins[-1]
+
+        # PLOT - L1 resolution (L1 - ref / L1) as binned by L1 jet pt
         name = "resL1_%g_%g" % (emin, emax)
         pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
         plots = [pre_dict]
@@ -272,7 +282,8 @@ def plot_res_results(in_name_pre="", in_name_post=""):
         titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
         plotnames.append(odir+name+".tex")
 
-        name = "resRef_%g_%g" % (emin, emax)
+        # PLOT - ref resolution binned by ref pt
+        name = "resRefRef_%g_%g" % (emin, emax)
         pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
         plots = [pre_dict]
         if in_name_post:
