@@ -1,0 +1,22 @@
+Executable = /storage/ra12451/L1JEC/CMSSW_7_3_0/bin/slc6_amd64_gcc491/RunMatcher
+Universe = vanilla
+Output = match.$(cluster).$(process).out
+Error = match.$(cluster).$(process).err
+Log = match.$(cluster).$(process).log
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+notify_user = robin.aggleton@bristol.ac.uk
+
+request_cpus = 1
+request_memory = 3GB
+
+# use the ENV that is provided
+getenv = true
+# initialdir = /storage/ra12451/
+
+transfer_input_files = /hdfs/user/ra12451/L1Tree_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT.root,/storage/ra12451/L1JEC/CMSSW_7_3_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE20BX25/output_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ref14to1000_l10to500.root
+transfer_output_files = pairs_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ak4_ref14to1000_l10to500_calibrated.root
+
+arguments = "-I L1Tree_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT.root --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --correct output_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ref14to1000_l10to500.root --corrMinPt 0 -O pairs_QCD_50to1400_Phys14_AVE20BX25_Stage1_newRCT_ak4_ref14to1000_l10to500_calibrated.root"
+
+queue
