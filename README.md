@@ -56,7 +56,7 @@ These steps are executed by the following:
 4) Make some plots from these pairs, and calculate calibrations constants, etc. -> [bin/runCalibration.py](bin/runCalibration.py)
 
 ### Produce Ntuples
-See [python/l1Ntuple_GCT_cfg.py](python/l1Ntuple_GCT_cfg.py) and [python/l1Ntuple_Stage1_cfg.py](python/l1Ntuple_Stage1_cfg.py). CRAB3 scripts are in the [crab](crab) folder.
+See [python/l1Ntuple_GCT_cfg.py](python/l1Ntuple_GCT_cfg.py) and [python/l1Ntuple_Stage1_cfg.py](python/SimL1Emulator_Stage1_newRCT.py). CRAB3 scripts are in the [crab](crab) folder.
 
 Both run over GEN-SIM-RAW MC, and utilise the L1Ntuple package with l1Extra collections.
 
