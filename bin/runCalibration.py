@@ -95,7 +95,6 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
-    # rsp here is ref jet pt / l1 jet pt
     tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
@@ -123,9 +122,6 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     gr = ROOT.TGraphErrors() # 1/<rsp> VS ptL1
     gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
-    # max_pt = 0 # maximum pt to perform fit or correction fn
-    # min_pt = 10000 # minimum pt (don't use gr.GetX() cos it cant be converted to list FFS)
-    # max_val = 0 # to find turnover for graph
 
     # Iterate over pT^Gen bins, and for each:
     # - Project 2D hist so we have a plot of response for given pT^Gen range
