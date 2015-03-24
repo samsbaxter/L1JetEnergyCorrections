@@ -28,7 +28,7 @@ ROOT.gStyle.SetOptFit(1111)
 # definition of the response function to fit to get our correction function
 # MAKE SURE IT'S THE SAME ONE THAT IS USED IN THE EMULATOR
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
-forward_fit = ROOT.TF1("fitfcn", "pol1")
+forward_fit = ROOT.TF1("fitfcn", "pol0")
 
 # Some sensible defaults for the fit function
 def stage1_fit_defaults(fitfunc):
@@ -80,7 +80,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("1./rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
@@ -89,21 +89,20 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     pt_min, pt_max = 0, 500
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
-    # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("rsp:pt/rsp>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # draw pT^Gen Vs pT^L1
-    tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, pt_min, pt_max, nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("pt:pt/rsp>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, pt_min, pt_max, nb, pt_min, pt_max), eta_cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
@@ -151,7 +150,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         hrsp = h2d_rsp_gen.ProjectionY("prj_ResponseProj_PTBin%d" % (i), bin1, bin2)
         hrsp.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
 
-        pt_cutStr = "pt*rsp < %g && pt*rsp > %g " % (xhigh, xlow)
+        pt_cutStr = "pt/rsp < %g && pt/rsp > %g " % (xhigh, xlow)
         total_cutStr = "%s && %s" % (eta_cutStr, pt_cutStr)
 
         # Plots of pT L1 for given pT Gen bin
@@ -167,7 +166,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
         # Plots of pT Gen for given pT Gen bin
         if do_genjet_plots:
-            tree_raw.Draw("pt*rsp>>hpt_gen(200)", total_cutStr)
+            tree_raw.Draw("pt/rsp>>hpt_gen(200)", total_cutStr)
             hpt_gen = ROOT.gROOT.FindObject("hpt_gen")
             hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
             output_f_hists.WriteTObject(hpt_gen)
@@ -325,7 +324,7 @@ def fit_correction(graph, function, fit_min, fit_max):
     # Instead make a graph with the bit of array we want
     exarr, eyarr = get_exey(graph)
     fit_graph = ROOT.TGraphErrors(len(xarr)-min_ind, np.array(xarr[min_ind:]), np.array(yarr[min_ind:]), np.array(exarr[min_ind:]), np.array(eyarr[min_ind:]))
-    fit_graph.SetName(fit_graph.GetName()+"_fit")
+    fit_graph.SetName(graph.GetName()+"_fit")
 
     # Now do the fitting, incrementing the fit min if failure
     fit_result = -1
@@ -336,7 +335,7 @@ def fit_correction(graph, function, fit_min, fit_max):
             mode = "F"
         fit_result = int(fit_graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
         # sanity check - sometimes will have status = 0 even though rubbish
-        if function.Eval(80) > 3 or function.Eval(80) < 0.01:
+        if function.Eval(80) > 10 or function.Eval(80) < 0.01:
             fit_result = -1
         print "Fit result:", fit_result, "for fit min", fit_min
         fit_min += 0.5
@@ -521,12 +520,12 @@ def main(args=sys.argv[1:]):
     # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 4, 4.5, forward_fit, fit_params, do_genjet_plots, do_correction_fit)
 
     # Make LUT
-    print_fit_screen(central_fit, fit_params, etaBins)
-    dname, fname = os.path.split(args.output)
-    lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
-    if dname:
-        lut_filename = dname + "/" + lut_filename
-    print_lut_file(fit_params, etaBins, lut_filename)
+    # print_fit_screen(central_fit, fit_params, etaBins)
+    # dname, fname = os.path.split(args.output)
+    # lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
+    # if dname:
+    #     lut_filename = dname + "/" + lut_filename
+    # print_lut_file(fit_params, etaBins, lut_filename)
 
 
 if __name__ == "__main__":

@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     // setup output tree to store raw variable for quick plotting/debugging
     TTree * outTree2 = new TTree("valid", "valid");
     // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
-    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp2(-1.);
+    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
@@ -128,8 +128,8 @@ int main(int argc, char* argv[]) {
     outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
     outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
     outTree2->Branch("phi",    &out_phi,    "phi/Float_t");
-    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = refJet pT/ l1 jet pT (inverted definition)
-    outTree2->Branch("rsp2",   &out_rsp2,   "rsp2/Float_t"); // response = l1 pT/ ref jet pT
+    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree2->Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
     outTree2->Branch("dr",     &out_dr,     "dr/Float_t");
     outTree2->Branch("deta",   &out_deta,   "deta/Float_t");
     outTree2->Branch("dphi",   &out_dphi,   "dphi/Float_t");
@@ -199,8 +199,8 @@ int main(int argc, char* argv[]) {
             out_pt = it.l1Jet().Et();
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();
-            out_rsp = it.refJet().Et()/it.l1Jet().Et();
-            out_rsp2 = it.l1Jet().Et()/it.refJet().Et();
+            out_rsp = it.l1Jet().Et()/it.refJet().Et();
+            out_rsp_inv =  it.refJet().Et()/it.l1Jet().Et();
             out_dr = it.refJet().DeltaR(it.l1Jet());
             out_deta = it.refJet().Eta() - it.l1Jet().Eta();
             out_dphi = it.refJet().DeltaPhi(it.l1Jet());
