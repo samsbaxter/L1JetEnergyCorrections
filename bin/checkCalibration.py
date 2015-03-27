@@ -4,9 +4,8 @@ matched genjet/L1 jet pairs, producing some plots that show off how
 calibrated (or uncalibrated) the jets are.
 
 Usage: see
-python runCalibration -h
+python checkCalibration.py -h
 
-Originally by Nick Wardle, modified by Robin Aggleton
 """
 
 import ROOT

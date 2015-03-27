@@ -4,7 +4,7 @@ matched genjet/L1 jet pairs, plotting interesting things and producing a
 correction function, as well as LUTs to put in CMSSW.
 
 Usage: see
-python runCalibration -h
+python runCalibration.py -h
 
 Originally by Nick Wardle, modified by Robin Aggleton
 """
