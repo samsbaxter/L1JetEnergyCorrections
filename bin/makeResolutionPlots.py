@@ -42,8 +42,11 @@ def check_var_stored(tree, var):
 def check_fit_peaks(fit_res, hist):
     """Check fit ok by comparing peaks"""
     peak = hist.GetBinCenter(hist.GetMaximumBin())
-    return abs(peak - fit_res.GetParameter(1)) < 0.2 * abs(peak)
+    return abs(peak - fit_res.Parameters()[1]) < 0.2 * abs(peak)
 
+def check_fit_width(fit_res, hist):
+    rms = hist.GetRMS()
+    return abs(rms - fit_res.Parameters()[2]) < 0.2 * abs(rms)
 
 def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, divide=False):
     """
@@ -88,7 +91,7 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, div
         width_err = h_res.GetRMSError()
 
         # check fit converged, and is sensible
-        if fit_res and int(fit_res) == 0: # and check_fit_peaks(fit_res, h_res):
+        if fit_res and int(fit_res) == 0 and check_fit_width(fit_res, h_res):
             width =  fit_res.Parameters()[2]
             width_err = fit_res.Errors()[2]
         else:
@@ -138,15 +141,19 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     pt_bin_max = ptBins[-1]
     nbins_et = 4 * (pt_bin_max - pt_bin_min)
 
+    # Ref jet pt from tree - old ones don't store ptRef, so construct from pt/rsp
+    # - or should it be pt * rsp for old style rsp?
+    ptRef = "ptRef" if check_var_stored(tree_raw, "ptRef") else "(pt/rsp)"
+
     # 2d plots of pt difference vs L1 pt
-    var = "ptDiff" if check_var_stored(tree_raw, "ptDiff") else "(pt-(pt*rsp))"
+    var = "ptDiff" if check_var_stored(tree_raw, "ptDiff") else "(pt-%s)" % ptRef
     tree_raw.Draw("%s:pt>>ptDiff_l1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
     ptDiff_l1_2d = ROOT.gROOT.FindObject("ptDiff_l1_2d")
     ptDiff_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen} [GeV]" % title)
     output_f_hists.WriteTObject(ptDiff_l1_2d)
 
     # 2d plots of pt difference vs ref pt
-    tree_raw.Draw("%s:(pt*rsp)>>ptDiff_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
+    tree_raw.Draw("%s:%s>>ptDiff_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
     ptDiff_ref_2d = ROOT.gROOT.FindObject("ptDiff_ref_2d")
     ptDiff_ref_2d.SetTitle("%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen} [GeV]" % title)
     output_f_hists.WriteTObject(ptDiff_ref_2d)
@@ -156,22 +163,14 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     nbins_res = 210
 
     # 2D plot of L1-Ref/L1 VS L1
-    var = "resL1" if check_var_stored(tree_raw, "resL1") else "(pt-(pt*rsp))/pt"  # for old pair files
+    var = "resL1" if check_var_stored(tree_raw, "resL1") else "(pt-%s)/pt" % (ptRef)  # for old pair files
     tree_raw.Draw("%s:pt>>res_l1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_l1_2d = ROOT.gROOT.FindObject("res_l1_2d")
     res_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}" % title)
     output_f_hists.WriteTObject(res_l1_2d)
 
-    # TESTING: plot ref/L1 Vs Ref
-    tree_raw.Draw("(pt*rsp)/pt:(pt*rsp)>>corr_2d(60,14,250,20,0,2)", eta_cut + "&&" + pt_cut_all)
-    corr_2d = ROOT.gROOT.FindObject("corr_2d")
-    corr_2d.SetTitle(";E_{T}^{Gen};E_{T}^{Gen}/E_{T}^{L1}")
-    output_f_hists.WriteTObject(corr_2d)
-    prof_corr = corr_2d.ProfileX("",1, -1, "s")
-    output_f_hists.WriteTObject(prof_corr)
-
-    # 2D plot of L1-Ref/L1 VS L1
-    var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-(pt*rsp))/(pt*rsp)"
+    # 2D plot of L1-Ref/Ref VS L1
+    var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-%s)/%s" % (ptRef, ptRef)
     res_min = -2
     nbins_res = 120
     tree_raw.Draw("%s:pt>>res_refVsl1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
@@ -179,9 +178,9 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_refVsl1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % title)
     output_f_hists.WriteTObject(res_refVsl1_2d)
 
-    # 2D plot of L1-Ref/L1 VS Ref
-    var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-(pt*rsp))/(pt*rsp)"
-    tree_raw.Draw("%s:(pt*rsp)>>res_refVsref_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
+    # 2D plot of L1-Ref/Ref VS Ref
+    var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-%s)/%s" % (ptRef, ptRef)
+    tree_raw.Draw("%s:%s>>res_refVsref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_refVsref_2d = ROOT.gROOT.FindObject("res_refVsref_2d")
     res_refVsref_2d.SetTitle("%s;E_{T}^{Ref} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % title)
     output_f_hists.WriteTObject(res_refVsref_2d)
@@ -206,8 +205,8 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     # and add width to graph
     for i, ptmin in enumerate(ptBins[:-1]):
         ptmax = ptBins[i+1]
-        pt_cut = "pt < %g && pt > %g" % (ptmax, ptmin)
-        pt_cut_ref = "(pt*rsp) < %g && (pt*rsp) > %g" % (ptmax, ptmin)
+        # pt_cut = "pt < %g && pt > %g" % (ptmax, ptmin)
+        # pt_cut_ref = "%s < %g && %s > %g" % (ptRef, ptmax, ptRef, ptmin)
         print "    Doing pt bin: %g - %g" % (ptmin, ptmax)
 
         l1_bin_title = title + ", %g < p_{T}^{L1} < %g" % (ptmin, ptmax)
@@ -303,7 +302,7 @@ def main():
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
     if args.incl and ((not args.excl and len(etaBins) >= 2) or (args.excl and len(etaBins)>2)):
         print "Doing inclusive eta"
-        plot_resolution(inputf, outputf, binning.pt_bins, etaBins[0], etaBins[-1])
+        plot_resolution(inputf, outputf, binning.pt_bins_8, etaBins[0], etaBins[-1])
 
     if not args.incl and not args.excl:
         print "Not doing inclusive or exclusive - you must specify one!"
