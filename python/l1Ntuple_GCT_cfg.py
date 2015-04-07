@@ -27,7 +27,8 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     "l1ExtraTreeProducer",
     "l1ExtraTreeProducerGctIntern",
     "l1ExtraTreeProducerGenAk5",
-    "l1ExtraTreeProducerGenAk4"
+    "l1ExtraTreeProducerGenAk4",
+    "csctfDigis"
     )
 
 # L1 raw to digi options
@@ -84,9 +85,9 @@ process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 # Do ak4 GenJets
 ##############################
 # Need to make ak4, not included in GEN-SIM-RAW
-process.load('RecoJets.Configuration.GenJetParticles_cff')
-process.load('RecoJets.Configuration.RecoGenJets_cff')
-process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
+# process.load('RecoJets.Configuration.GenJetParticles_cff')
+# process.load('RecoJets.Configuration.RecoGenJets_cff')
+# process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
 
 # Convert ak4 genjets to L1JetParticle objects
 process.genJetToL1JetAk4 = cms.EDProducer("GenJetToL1Jet",
@@ -141,7 +142,7 @@ process.prefer("newRCTConfig")
 
 process.p = cms.Path(
     process.RawToDigi
-    +process.antiktGenJets  # for AK4 GenJet
+    # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
     +process.simGctDigis
     +process.l1extraParticles
     +process.gctInternJetToL1Jet
@@ -165,8 +166,9 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string('L1Tree.root')
 )
 
-process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
-# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All')
+# process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
+# process.GlobalTag.globaltag = cms.string('PRE_LS171V9A::All')
+process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
@@ -176,7 +178,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 # readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-800to1000_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU20bx25_POSTLS162_V2-v1/00000/00016B69-956E-E311-9FC2-0026189438C4.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-170to300_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/025271B2-DAA8-E411-BB6E-002590D94F8E.root')
                              # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
                             )
 
