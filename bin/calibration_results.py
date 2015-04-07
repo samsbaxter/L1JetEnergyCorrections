@@ -49,16 +49,22 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
     """
     r.gStyle.SetPaperSize(10.,10.)
     r.gStyle.SetOptStat("mre")
+    r.gStyle.SetOptFit(0101) # MAGIC COMBO FOR PARAMS+ERRORS - ignore the ROOT docs
     # p = r.TGraphErrors(f.Get(plotname).Clone())
     print plotname
     obj = f.Get(plotname)
-    if not obj:
+    obj2 = f.Get(plotname+"_fit")
+    if not obj or not obj2:
         return False
     else:
         p = obj.Clone()
+        p2 = obj2.Clone()
         p.GetYaxis().SetTitle(ytitle)
+        p2.GetYaxis().SetTitle(ytitle)
         p.GetXaxis().SetTitle(xtitle)
+        p2.GetXaxis().SetTitle(xtitle)
         p.SetTitle("")
+        p2.SetTitle("")
         # p.SetMaximum(1.5)
         # p.SetMinimum(0)
         # if p.GetMaximum() > 5:
@@ -68,6 +74,15 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
         if not drawfit:
             p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
         p.Draw(drawopts)
+        p2.Draw(drawopts+"SAME")
+        r.gPad.Update()
+
+        st = p2.FindObject("stats")
+        st.SetFillStyle(0)
+        st.SetX1NDC(0.65)
+        st.SetX2NDC(0.9)
+        st.SetY1NDC(0.65)
+        st.SetY2NDC(0.9)
         for f in filename:
             r.gPad.Print(f)
         r.gPad.Clear()
@@ -121,7 +136,7 @@ def plot_corr_results(in_name=""):
                         "l1corr_eta_%g_%g" % (emin, emax),
                         [odir+name+".tex", odir+name+".pdf"],
                         xtitle="<p_{T}^{L1}> [GeV]",
-                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} >", drawfit=True)
+                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value", drawfit=True)
             titles.append("$%g <  |\eta| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
             print i

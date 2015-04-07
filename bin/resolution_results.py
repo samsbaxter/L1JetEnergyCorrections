@@ -20,8 +20,10 @@ r.gROOT.SetBatch(1)
 
 
 # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
-ptBins = binning.pt_bins
-etaBins = binning.eta_bins
+ptBins = binning.pt_bins_8[20:]
+etaBins = [binning.eta_bins[0], binning.eta_bins[-1]]
+# etaBins = binning.eta_bins[0:2]
+print etaBins
 
 
 def open_root_file(filename):
@@ -54,37 +56,54 @@ def plot_to_file(infile, plotname, outfilename, xtitle="", ytitle="", xlim=None,
     """
     r.gStyle.SetPaperSize(10.,10.)
     r.gStyle.SetOptStat("mre")
-    r.gStyle.SetOptFit(1111)
+    if "Diff:" in plotname:
+        r.gStyle.SetOptStat(0)
+        r.gStyle.SetOptFit(0)
+    else:
+        r.gStyle.SetOptFit(1111)
+    try:
+        plt = (infile.Get(plotname).Clone())
+        plt.GetXaxis().SetTitle(xtitle)
+        # plt.GetXaxis().SetTitleSize(0.06)
+        # plt.GetXaxis().SetLabelSize(0.06)
+        plt.GetYaxis().SetTitle(ytitle)
+        # plt.GetYaxis().SetTitleSize(0.06)
+        # plt.GetYaxis().SetLabelSize(0.06)
+        plt.SetTitle("")
+        plt.SetMarkerSize(0.5)
+        plt.Draw(drawopts)
+        if xlim:
+            plt.GetXaxis().SetRangeUser(xlim[0], xlim[1])
+        if ylim:
+            plt.SetMaximum(ylim[1])
+            plt.SetMinimum(ylim[0])
+        if col != "":
+            plt.SetLineColor(col)
+            plt.SetMarkerColor(col)
+            plt.SetFillColor(col)
+        if plotname.startswith("res"):
+            plt.GetXaxis().SetRangeUser(-2, 4)
+        r.gPad.Update()
+        # if plt.GetMaximum() > 5:
+        #     plt.SetMaximum(5)
+        # # if plt.GetMinimum() < 5:
+        #     # plt.SetMinimum(-5)
+        # if not drawfit:
+        #     r.gStyle.SetOptFit(0)
+        #     plt.GetListOfFunctions().Remove(plt.GetListOfFunctions().At(0))
+        # plt.Draw(drawopts)
 
-    plt = (infile.Get(plotname).Clone())
-    plt.GetXaxis().SetTitle(xtitle)
-    plt.GetXaxis().SetTitleSize(0.06)
-    plt.GetXaxis().SetLabelSize(0.06)
-    plt.GetYaxis().SetTitle(ytitle)
-    plt.GetYaxis().SetTitleSize(0.06)
-    plt.GetYaxis().SetLabelSize(0.06)
-    plt.SetTitle("")
-    plt.SetMarkerSize(0.5)
-    if xlim:
-        plt.GetXaxis().SetRangeUser(xlim[0], xlim[1])
-    if ylim:
-        plt.SetMaximum(ylim[1])
-        plt.SetMinimum(ylim[0])
-    if col != "":
-        plt.SetLineColor(col)
-        plt.SetMarkerColor(col)
-        plt.SetFillColor(col)
-    # if plt.GetMaximum() > 5:
-    #     plt.SetMaximum(5)
-    # # if plt.GetMinimum() < 5:
-    #     # plt.SetMinimum(-5)
-    # if not drawfit:
-    #     r.gStyle.SetOptFit(0)
-    #     plt.GetListOfFunctions().Remove(plt.GetListOfFunctions().At(0))
-    plt.Draw(drawopts)
-    for f in outfilename:
-        r.gPad.Print(f)
-    r.gPad.Clear()
+        # if plotname.startswith("res"):
+        st = plt.FindObject("stats")
+        st.SetX1NDC(0.12)
+        st.SetX2NDC(0.35)
+        for f in outfilename:
+            r.gPad.Print(f)
+        r.gPad.Clear()
+    except ReferenceError:
+        print "Cannot get plot %s" % (plotname)
+        exit()
+
 
 def multiplot_to_file(plots, outfilename, xtitle="", ytitle="", xlim=None, ylim=None, drawfit=True, drawopts=""):
     """
@@ -252,7 +271,7 @@ def plot_res_results(in_name_pre="", in_name_post=""):
                 plots.append(post_dict)
 
             multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
-                xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP", ylim=lim_ref)
+                xtitle="p_{T}^{Gen} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP", ylim=lim_ref)
             titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
             plotnames.append(odir+name+".tex")
 
@@ -350,22 +369,29 @@ def plot_bin_results(in_name=""):
             out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
             check_dir_exists(out_dir_eta)
             if emin >= 3.:
-                ptBins = binning.pt_bins_wide
+                ptBins = binning.pt_bins_8
             else:
-                ptBins = binning.pt_bins
-            for j, pt in enumerate(ptBins[0:-1]):
+                ptBins = binning.pt_bins_8
+            print ptBins
+            for j, pt in enumerate(ptBins[:-1]):
                 ptmin = pt
                 ptmax = ptBins[j+1]
+                print ptmin, ptmax
                 # for each pt bin we have a L1 pt plot, and a response plot w/fit
                 name = "res_l1_%g_%g" % (ptmin, ptmax)
-                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{L1}", ytitle="", drawfit=True)
+                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{L1}", ytitle="", drawfit=True, xlim=[-2,5])
                 plotnames.append(out_dir_eta+name+".tex")
-
-                name = "res_ref_%g_%g" % (ptmin, ptmax)
-                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{Gen}", ytitle="", drawfit=True)
-                plotnames.append(out_dir_eta+name+".tex")
-
                 titles.append("$%g < |p_{T}^{L1}| < %g GeV$" % (ptmin, ptmax))
+
+                # name = "res_ref_ref_%g_%g" % (ptmin, ptmax)
+                # plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{Gen}", ytitle="", drawfit=True, xlim=[-2,5])
+                # plotnames.append(out_dir_eta+name+".tex")
+
+                # Plot pt diff
+                name = "ptDiff_l1_%g_%g" % (ptmin, ptmax)
+                plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="p_{T}^{L1} - p_{T}^{Gen}", ytitle="", drawfit=True, xlim=[-100,50])
+                plotnames.append(out_dir_eta+name+".tex")
+
                 titles.append("")
 
                 if (len(plotnames) == 4):
@@ -376,28 +402,28 @@ def plot_bin_results(in_name=""):
                     plotnames = []
 
         # the inclusive eta bin:
-        emin = eta
-        emax = etaBins[-1]
-        out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
-        check_dir_exists(out_dir_eta)
-        for j, pt in enumerate(ptBins[0:-1]):
-            ptmin = pt
-            ptmax = ptBins[j+1]
-            # for each pt bin we have a L1 pt plot, and a response plot w/fit
-            name = "res_l1_%g_%g" % (ptmin, ptmax)
-            plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{L1}", ytitle="", drawfit=True)
-            plotnames.append(out_dir_eta+name+".tex")
+        # emin = eta
+        # emax = etaBins[-1]
+        # out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
+        # check_dir_exists(out_dir_eta)
+        # for j, pt in enumerate(ptBins[0:-1]):
+        #     ptmin = pt
+        #     ptmax = ptBins[j+1]
+        #     # for each pt bin we have a L1 pt plot, and a response plot w/fit
+        #     name = "res_l1_%g_%g" % (ptmin, ptmax)
+        #     plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{L1}", ytitle="", drawfit=True)
+        #     plotnames.append(out_dir_eta+name+".tex")
 
-            name = "res_ref_%g_%g" % (ptmin, ptmax)
-            plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{Gen}", ytitle="", drawfit=True)
-            plotnames.append(out_dir_eta+name+".tex")
+        #     name = "res_ref_ref_%g_%g" % (ptmin, ptmax)
+        #     plot_to_file(input_file, "eta_%g_%g/Histograms/%s" % (emin, emax, name), [out_dir_eta+name+".tex", out_dir_eta+name+".pdf"], xtitle="(p_{T}^{L1} - p_{T}^{Gen}) / p_{T}^{Gen}", ytitle="", drawfit=True)
+        #     plotnames.append(out_dir_eta+name+".tex")
 
-            titles.append("$%g < p_{T}^{L1} < %g GeV$" % (ptmin, ptmax))
-            titles.append("")
+        #     titles.append("$%g < p_{T}^{L1} < %g GeV$" % (ptmin, ptmax))
+        #     titles.append("")
 
-            print "Writing", emin, emax, ptmin, ptmax
-            slidetitle = "$%g <  |\eta| < %g$" % (emin, emax)
-            slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
+        #     print "Writing", emin, emax, ptmin, ptmax
+        #     slidetitle = "$%g <  |\eta| < %g$" % (emin, emax)
+        #     slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
 
     compile_pdf(main_file, out_name, odir, n=1)
 
@@ -425,12 +451,12 @@ if __name__ == "__main__":
     parser.add_argument("--compare", help="filename to compare to <input> (e.g post-calibration)")
     args = parser.parse_args()
 
-    if args.compare != "":
-        # Plot result for each eta bin & overall, comparing pre and post calib
-        plot_res_results(in_name_pre=args.input, in_name_post=args.compare)
-    else:
-        # Same but no comparison, only 1 file
-        plot_res_results(in_name=args.input)
+    # if args.compare != "":
+    #     # Plot result for each eta bin & overall, comparing pre and post calib
+    #     plot_res_results(in_name_pre=args.input, in_name_post=args.compare)
+    # else:
+    #     # Same but no comparison, only 1 file
+    #     plot_res_results(in_name=args.input)
 
     # Plot each pt bin in every eta bin (i.e. A LOT)
     if args.detail:
