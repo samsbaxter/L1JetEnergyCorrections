@@ -44,7 +44,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     canv = ROOT.TCanvas("c_%g_%g" % (absetamin, absetamax), "", 600, 600)
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,5)" %(absetamin, absetamax) , eta_cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
@@ -88,6 +88,49 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     h2d_gen_l1.Draw("COLZ")
     line_diag.Draw("SAME")
     canv.SaveAs("gen_l1_%g_%g.pdf" % (absetamin, absetamax))
+
+
+def plot_rsp_eta(inputfile, outputfile, eta_bins):
+    """Plot response in bins of eta"""
+
+    gr_rsp_eta = ROOT.TGraphErrors()
+
+    # Input tree
+    tree_raw = inputfile.Get("valid")
+
+    # Output folders
+    output_f = outputfile.GetDirectory('eta_%g_%g' % (eta_bins[0], eta_bins[-1]))
+    output_f_hists = None
+    if not output_f:
+        output_f = outputfile.mkdir('eta_%g_%g' % (eta_bins[0], eta_bins[-1]))
+        output_f_hists = output_f.mkdir("Histograms")
+    else:
+        output_f_hists = output_f.GetDirectory("Histograms")
+
+    for i,eta in enumerate(eta_bins[:-1]):
+        emin = eta
+        emax = eta_bins[i+1]    # Eta cut string
+        eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (emax, emin)
+        # plot response for this eta bin
+        nb_rsp = 100
+        rsp_min, rsp_max = 0, 5
+        tree_raw.Draw("rsp>>h_rsp_%g_%g(%d,%g,%g)" % (emin, emax, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+        h_rsp = ROOT.gROOT.FindObject("h_rsp_%g_%g" % (emin, emax))
+        h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+        output_f_hists.WriteTObject(h_rsp)
+
+        # bit lazy - take mean for now
+        mean = h_rsp.GetMean()
+        err = h_rsp.GetMeanError()
+
+        # add to graph
+        N = gr_rsp_eta.GetN()
+        gr_rsp_eta.SetPoint(N, 0.5 * (emin + emax), mean)
+        gr_rsp_eta.SetPointError(N, 0.5 * (emax - emin), err)
+
+    gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Gen}>")
+    gr_rsp_eta.SetName("gr_rsp_eta_%g_%g" % (eta_bins[0], eta_bins[-1]))
+    output_f.WriteTObject(gr_rsp_eta)
 
 
 ########### MAIN ########################
@@ -137,6 +180,9 @@ def main(args=sys.argv[1:]):
 
     # Do an inclusive plot for all eta bins
     plot_checks(inputf, output_f, etaBins[0], etaBins[-1])
+
+    # Do a respone vs eta graph
+    plot_rsp_eta(inputf, output_f, etaBins)
 
 
 if __name__ == "__main__":
