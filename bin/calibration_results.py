@@ -17,8 +17,6 @@ import beamer_slide_templates as bst
 
 r.PyConfig.IgnoreCommandLineOptions = True
 r.gROOT.SetBatch(1)
-# ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
-ptBins = binning.pt_bins
 etaBins = binning.eta_bins
 
 
@@ -54,7 +52,8 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
     print plotname
     obj = f.Get(plotname)
     obj2 = f.Get(plotname+"_fit")
-    if not obj or not obj2:
+    if not obj or (drawfit and not obj2):
+        print "Can't find", obj
         return False
     else:
         p = obj.Clone()
@@ -230,7 +229,7 @@ def plot_bin_results(in_name=""):
                     titles = []
                     plotnames = []
 
-    compile_pdf(main_file, out_name, odir)
+    # compile_pdf(main_file, out_name, odir)
 
 
 def compile_pdf(texfile, pdffile, outdir):
