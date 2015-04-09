@@ -4,9 +4,8 @@ matched genjet/L1 jet pairs, producing some plots that show off how
 calibrated (or uncalibrated) the jets are.
 
 Usage: see
-python runCalibration -h
+python checkCalibration -h
 
-Originally by Nick Wardle, modified by Robin Aggleton
 """
 
 import ROOT
@@ -45,7 +44,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     canv = ROOT.TCanvas("c_%g_%g" % (absetamin, absetamax), "", 600, 600)
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("1./rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
@@ -64,8 +63,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
         l.SetLineStyle(2)
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
-    # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:rsp*pt>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+    tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
@@ -74,8 +72,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     canv.SaveAs("rsp_gen_%g_%g.pdf" % (absetamin, absetamax))
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
-    # rsp here is ref jet pt / l1 jet pt
-    tree_raw.Draw("1./rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+    tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
@@ -84,7 +81,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     canv.SaveAs("rsp_l1_%g_%g.pdf" % (absetamin, absetamax))
 
     # draw pT^Gen Vs pT^L1
-    tree_raw.Draw("pt:rsp*pt>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), eta_cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
