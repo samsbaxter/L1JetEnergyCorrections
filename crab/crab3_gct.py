@@ -10,7 +10,7 @@ import L1Trigger.L1JetEnergyCorrections.samples as samples
 from CRABAPI.RawCommand import crabCommand
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "GCT_QCDPhys14_v2"
+job_append = "GCT_QCDPhys14_newRCT"
 
 # CHANGE ME - select dataset(s) to run over - must be a list
 datasets = samples.samples_qcd_Phys14_AVE30BX50.keys()

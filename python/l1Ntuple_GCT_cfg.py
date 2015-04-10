@@ -32,8 +32,8 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     )
 
 # L1 raw to digi options
-process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(5)
-process.l1extraParticles.centralBxOnly = cms.bool(False)
+process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+process.l1extraParticles.centralBxOnly = cms.bool(True)
 
 # L1 ntuple producers
 import L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi 
@@ -49,7 +49,19 @@ process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtTriggerMenuLite_cfi")
 # GCT internal jet collection
 ##############################
 # Make GCT internal jet collection
-process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
+# Note, this doens't re-run the RCT emulator, only picks up the regions that
+# were output by RCT when the MC was first made.
+# process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
+
+# This re-runs the RCT emulator with the TPs
+# From Jim B
+# process.load("L1Trigger.L1TCalorimeter.L1TRerunHCALTP_FromRaw_cff")
+process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
+process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
+# process.simRctDigis.hcalDigis = cms.VInputTag( cms.InputTag( 'simHcalTriggerPrimitiveDigis' ) )
+
+process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
+
 process.simGctDigis.writeInternalData = cms.bool(True)
 
 # Convert Gct Internal jets to L1JetParticles
@@ -142,7 +154,9 @@ process.prefer("newRCTConfig")
 
 process.p = cms.Path(
     process.RawToDigi
+    # +process.L1TRerunHCALTP_FromRAW
     # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
+    +process.simRctDigis
     +process.simGctDigis
     +process.l1extraParticles
     +process.gctInternJetToL1Jet
@@ -172,13 +186,14 @@ process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
 # readFiles = cms.untracked.vstring()
 # readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
+                            fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-170to300_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/025271B2-DAA8-E411-BB6E-002590D94F8E.root')
                              # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
                             )
