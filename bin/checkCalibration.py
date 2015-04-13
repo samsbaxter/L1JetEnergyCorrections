@@ -120,8 +120,10 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins):
         output_f_hists.WriteTObject(h_rsp)
 
         # bit lazy - take mean for now
-        mean = h_rsp.GetMean()
-        err = h_rsp.GetMeanError()
+        h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean()-h_rsp.GetRMS(), h_rsp.GetMean()+h_rsp.GetRMS())
+
+        mean = h_rsp.GetFunction("gaus").GetParameter(1)
+        err = h_rsp.GetFunction("gaus").GetParError(1)
 
         # add to graph
         N = gr_rsp_eta.GetN()
@@ -181,7 +183,7 @@ def main(args=sys.argv[1:]):
     # Do an inclusive plot for all eta bins
     plot_checks(inputf, output_f, etaBins[0], etaBins[-1])
 
-    # Do a respone vs eta graph
+    # Do a response vs eta graph
     plot_rsp_eta(inputf, output_f, etaBins)
 
 
