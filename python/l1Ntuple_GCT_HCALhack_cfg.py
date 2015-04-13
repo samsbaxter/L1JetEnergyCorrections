@@ -49,8 +49,17 @@ process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtTriggerMenuLite_cfi")
 ##############################
 # GCT internal jet collection
 ##############################
-# Make GCT internal jet collection
-process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
+
+# HCALhack method:
+process.load("SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff")
+process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
+    # cms.InputTag('hcalDigis'), cms.InputTag('hcalDigis')
+    cms.InputTag("simHcalUnsuppressedDigis"), cms.InputTag("simHcalUnsuppressedDigis")
+)
+process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
+process.simRctDigis.hcalDigis = cms.VInputTag( cms.InputTag( 'simHcalTriggerPrimitiveDigis' ) )
+process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
+
 
 process.simGctDigis.writeInternalData = cms.bool(True)
 
@@ -144,7 +153,9 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 
 process.p = cms.Path(
     process.RawToDigi
+    +process.simHcalTriggerPrimitiveDigis
     # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
+    +process.simRctDigis
     +process.simGctDigis
     +process.l1extraParticles
     +process.gctInternJetToL1Jet
@@ -165,7 +176,7 @@ process.p = cms.Path(
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree.root')
+    fileName = cms.string('L1Tree_hcalHack.root')
 )
 
 # process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
@@ -234,7 +245,7 @@ process.output = cms.OutputModule(
     #     'keep *_ak5GenJets_*_*',
     #     'keep *_ak4GenJets_*_*'
     #     ),
-    fileName = cms.untracked.string('SimGCTEmulator.root')
+    fileName = cms.untracked.string('SimGCTEmulator_hcalHack.root')
     )
 
 process.output_step = cms.EndPath(process.output)
