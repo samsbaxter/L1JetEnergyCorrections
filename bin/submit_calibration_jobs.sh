@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# To submit lots of runCalibration jobs
+# To submit lots of runCalibration jobs on lxbatch system (or any bsub)
+# Splits it up by eta bin
+#
+# Change fdir (dir with the pairs file in it, output will go there)
+# Change fname (pairs file you want to run over)
 
 declare -a etaBins=(
 0
@@ -17,8 +21,8 @@ declare -a etaBins=(
 5.001
 ) 
 
-fdir="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE30BX50/"
-fname="pairs_QCD_Pt-80to120_Phys14_AVE30BX50_GCT_QCDPhys14_newRCT_GCT_ak5_ref14to1000_l10to500.root"
+fdir="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE30BX50_HCALhack/"
+fname="pairs_QCD_Pt-15to1000_Phys14_AVE30BX50_GCT_QCDPhys14_newRCT_HCALhack_GCT_ak5_ref14to1000_l10to500.root"
 
 len=${#etaBins[@]}
 len=$(( len - 1 ))
