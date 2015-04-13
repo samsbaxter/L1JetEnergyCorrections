@@ -31,7 +31,7 @@ samples = {
                                 unitsPerJob=50),
 
     "QCDFlatPhys14BX50": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Phys14DR-Flat20to50BX50_tsg_PHYS14_ST_V1-v2/GEN-SIM-RAW',
-                                unitsPerJob=100)
+                                unitsPerJob=50)
 }
 
 # Add in QCD pt binned samples here easily
