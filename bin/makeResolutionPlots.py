@@ -303,10 +303,10 @@ def main():
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
     if args.incl and ((not args.excl and len(etaBins) >= 2) or (args.excl and len(etaBins)>2)):
         print "Doing inclusive eta"
-        plot_resolution(inputf, outputf, binning.pt_bins, etaBins[0], etaBins[-1])
+        plot_resolution(inputf, outputf, binning.pt_bins_8, etaBins[0], etaBins[-1])
 
     if not args.incl and not args.excl:
-        print "Not doing inclusive or exclusive - you must specify one!"
+        print "Not doing inclusive or exclusive - you must specify at least one!"
 
 
 if __name__ == "__main__":
