@@ -22,3 +22,5 @@ QCD_*
 *.toc
 *.vrb
 crab/*/
+!crab/*.py
+authentication.xml
