@@ -65,9 +65,21 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawfit=
         p.SetTitle(title)
         p2.SetTitle(title)
         if not drawfit:
-            p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
+            p2.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
+        else:
+            fn = p2.GetListOfFunctions().At(0)
+            fn.SetLineWidth(2)
         p.Draw(drawopts)
         p2.Draw(drawopts+"SAME")
+        # draw fit over full range, not just fitted range
+        # if drawfit:
+        #     fn = p2.GetListOfFunctions().At(0)
+        #     fn2 = fn.Clone()
+        #     fn2.SetRange(0,250)
+        #     fn2.SetLineStyle(3)
+        #     fn2.SetLineWidth(2)
+        #     fn2.Draw("SAME")
+        p.Draw(drawopts+"SAME")
         r.gPad.Update()
 
         st = p2.FindObject("stats")
