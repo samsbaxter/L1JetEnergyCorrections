@@ -82,11 +82,12 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawfit=
         p.Draw(drawopts+"SAME")
         r.gPad.Update()
 
+        # Draw fit stats box
         st = p2.FindObject("stats")
         st.SetFillStyle(0)
-        st.SetX1NDC(0.65)
+        st.SetX1NDC(0.6)
         st.SetX2NDC(0.9)
-        st.SetY1NDC(0.65)
+        st.SetY1NDC(0.55)
         st.SetY2NDC(0.9)
         for f in filename:
             r.gPad.Print(f)
