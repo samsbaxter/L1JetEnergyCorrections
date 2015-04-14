@@ -125,15 +125,16 @@ void
 L1GctInternJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
-    using namespace l1extra ;
-    using namespace std ;
+    using namespace l1extra;
+    using namespace std;
 
-    ESHandle< L1CaloGeometry > caloGeomESH ;
-    iSetup.get< L1CaloGeometryRecord >().get( caloGeomESH ) ;
-    const L1CaloGeometry* caloGeom = &( *caloGeomESH ) ;
-    ESHandle< L1CaloEtScale > jetScale ;
-    iSetup.get< L1JetEtScaleRcd >().get( jetScale ) ;
+    ESHandle<L1CaloGeometry> caloGeomESH ;
+    iSetup.get<L1CaloGeometryRecord >().get(caloGeomESH);
+    ESHandle<L1CaloEtScale> jetScale;
+    iSetup.get<L1JetEtScaleRcd>().get(jetScale);
 
+    // cout << *jetScale << endl;
+    // cout << *caloGeom << endl;
 
     // Get the L1GctInternJetDataCollection
     Handle<L1GctInternJetDataCollection> hwGctInternJetCollection;
@@ -142,7 +143,7 @@ L1GctInternJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
         throw cms::Exception("ProductNotValid") << "gctInternJetSource not valid";
     }
 
-    auto_ptr< L1JetParticleCollection > gctInternJetColl( new L1JetParticleCollection );
+    auto_ptr<L1JetParticleCollection> gctInternJetColl(new L1JetParticleCollection);
 
     // Loop over each L1GctInternJetData obj, make a L1JetParticle obj from it
     L1GctInternJetDataCollection::const_iterator gctItr = hwGctInternJetCollection->begin();
@@ -151,23 +152,22 @@ L1GctInternJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
             if (!gctItr->empty() && (gctItr->et() != 0)){
                 // cout << "Jet: " << gctItr->bx() << " : " << gctItr->rank() << " : " << jetScale->et(gctItr->rank()) << " : " << gctItr->et() << " : "  << gctItr->eta() << " : " << gctItr->phi() << endl;
                 gctInternJetColl->push_back(
-                    L1JetParticle(gctInternJetToLorentzVector(*gctItr, *caloGeom, *jetScale),
+                    L1JetParticle(gctInternJetToLorentzVector(*gctItr, *caloGeomESH, *jetScale),
                                   L1JetParticle::JetType::kUndefined,
                                   gctItr->bx())
-                    );
+                );
         }
     }
 
-    OrphanHandle< L1JetParticleCollection > gctInternJetHandle = iEvent.put(gctInternJetColl, "GctInternalJets");
+    OrphanHandle<L1JetParticleCollection> gctInternJetHandle = iEvent.put(gctInternJetColl, "GctInternalJets");
 }
 
 /**
  * @brief Converts info in L1GctInternJetData to LorentzVector
- * @details [long description]
  *
- * @param gctJet Input gctJet
- * @param geom L1CaloGeometry to convert eta and phi into physical values
- * @param scale L1CaloEtScale to convert jet rank into physical ET
+ * @param gctJet Input L1GctInternJet to convert
+ * @param geom L1CaloGeometry obj to convert eta and phi into physical values
+ * @param scale L1CaloEtScale obj to convert jet Et into physical Et
  * @return PolarLorentzVector (aka math::PtEtaPhiMLorentzVector) to use in L1JetParticle ctor
  */
 math::PtEtaPhiMLorentzVector
