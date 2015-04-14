@@ -24,9 +24,11 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
 
-def plot_checks(inputfile, outputfile, absetamin, absetamax):
+def plot_checks(inputfile, outputfile, absetamin, absetamax, save_pdf=False):
     """
-    Do all the relevant hists, for one eta bin.
+    Do all the relevant response 1D and 2D hists, for one eta bin.
+
+    Can optionally save the plots to pdf.
     """
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
@@ -41,8 +43,6 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     # Eta cut string
     eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
 
-    canv = ROOT.TCanvas("c_%g_%g" % (absetamin, absetamax), "", 600, 600)
-
     # Draw response (pT^L1/pT^Gen) for all pt bins
     tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,5)" %(absetamin, absetamax) , eta_cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
@@ -54,44 +54,54 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax):
     nb_rsp = 100
     rsp_min, rsp_max = 0, 5
 
-    # Straight lines - one for y = x (diag) and one for y = 1 (straight)
-    line_diag = ROOT.TLine(0, 0, pt_max, pt_max)
-    line_straight = ROOT.TLine(0, 1, pt_max, 1)
-
-    for l in [line_diag, line_straight]:
-        l.SetLineWidth(2)
-        l.SetLineStyle(2)
-
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
-    h2d_rsp_gen.Draw("COLZ")
-    line_straight.Draw("SAME")
-    canv.SaveAs("rsp_gen_%g_%g.pdf" % (absetamin, absetamax))
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
-    h2d_rsp_l1.Draw("COLZ")
-    line_straight.Draw("SAME")
-    canv.SaveAs("rsp_l1_%g_%g.pdf" % (absetamin, absetamax))
 
-    # draw pT^Gen Vs pT^L1
+    # Draw pT^Gen Vs pT^L1
     tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), eta_cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
-    h2d_gen_l1.Draw("COLZ")
-    line_diag.Draw("SAME")
-    canv.SaveAs("gen_l1_%g_%g.pdf" % (absetamin, absetamax))
+
+    # Save plots as pdf if desired
+    if save_pdf:
+        canv = ROOT.TCanvas("c_%g_%g" % (absetamin, absetamax), "", 600, 600)
+        # One linefor y = x (diag) and one for y = 1 (straight)
+        line_diag = ROOT.TLine(0, 0, pt_max, pt_max)
+        line_straight = ROOT.TLine(0, 1, pt_max, 1)
+
+        for l in [line_diag, line_straight]:
+            l.SetLineWidth(2)
+            l.SetLineStyle(2)
+
+        h2d_rsp_gen.Draw("COLZ")
+        line_straight.Draw("SAME")
+        canv.SaveAs("rsp_gen_%g_%g.pdf" % (absetamin, absetamax))
+
+        h2d_gen_l1.Draw("COLZ")
+        line_diag.Draw("SAME")
+        canv.SaveAs("gen_l1_%g_%g.pdf" % (absetamin, absetamax))
+
+        h2d_rsp_l1.Draw("COLZ")
+        line_straight.Draw("SAME")
+        canv.SaveAs("rsp_l1_%g_%g.pdf" % (absetamin, absetamax))
 
 
 def plot_rsp_eta(inputfile, outputfile, eta_bins):
-    """Plot response in bins of eta"""
+    """Plot graph of response in bins of eta
+
+    If the response hist for each bin exists already, then we use that.
+    If not, we make the hist.
+    """
 
     gr_rsp_eta = ROOT.TGraphErrors()
 
@@ -107,28 +117,36 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins):
     else:
         output_f_hists = output_f.GetDirectory("Histograms")
 
+    # Go through eta bins, get response hist, fit with Gaussian and add to
+    # the overall graph
     for i,eta in enumerate(eta_bins[:-1]):
-        emin = eta
-        emax = eta_bins[i+1]    # Eta cut string
-        eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (emax, emin)
-        # plot response for this eta bin
-        nb_rsp = 100
-        rsp_min, rsp_max = 0, 5
-        tree_raw.Draw("rsp>>h_rsp_%g_%g(%d,%g,%g)" % (emin, emax, nb_rsp, rsp_min, rsp_max), eta_cutStr)
-        h_rsp = ROOT.gROOT.FindObject("h_rsp_%g_%g" % (emin, emax))
-        h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
-        output_f_hists.WriteTObject(h_rsp)
+        absetamin = eta
+        absetamax = eta_bins[i+1]    # Eta cut string
 
-        # bit lazy - take mean for now
-        h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean()-h_rsp.GetRMS(), h_rsp.GetMean()+h_rsp.GetRMS())
+        # Figure out if we've made a response hist already:
+        rsp_name = "hrsp_eta_%g_%g" % (absetamin, absetamax)
+        h_rsp = outputfile.GetDirectory("eta_%g_%g/Histograms" % (absetamin, absetamax)).Get(rsp_name)
+        if not h_rsp:
+            # plot response for this eta bin
+            eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
+            nb_rsp = 100
+            rsp_min, rsp_max = 0, 5
+            tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+            h_rsp = ROOT.gROOT.FindObject(rsp_name)
+            h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+
+        # Fit with Gaussian
+        h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
 
         mean = h_rsp.GetFunction("gaus").GetParameter(1)
         err = h_rsp.GetFunction("gaus").GetParError(1)
 
+        output_f_hists.WriteTObject(h_rsp)
+
         # add to graph
         N = gr_rsp_eta.GetN()
-        gr_rsp_eta.SetPoint(N, 0.5 * (emin + emax), mean)
-        gr_rsp_eta.SetPointError(N, 0.5 * (emax - emin), err)
+        gr_rsp_eta.SetPoint(N, 0.5 * (absetamin + absetamax), mean)
+        gr_rsp_eta.SetPointError(N, 0.5 * (absetamax - absetamin), err)
 
     gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Gen}>")
     gr_rsp_eta.SetName("gr_rsp_eta_%g_%g" % (eta_bins[0], eta_bins[-1]))
@@ -145,12 +163,14 @@ def main(args=sys.argv[1:]):
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
                         help="Do forward eta bins only (eta >= 3)")
+    parser.add_argument("--pdf", action='store_true',
+                        help="Print plots to PDF")
     parser.add_argument("--etaInd", nargs="+",
                         help="list of eta bin INDICES to run over - " \
-                        "if unspecified will do all " \
-                        "(overrides --central/--forward)" \
-                        "handy for batch mode" \
-                        "MUST PUT AT VERY END")
+                        "if unspecified will do all. " \
+                        "This overrides --central/--forward. " \
+                        "Handy for batch mode. " \
+                        "IMPORTANT: MUST PUT AT VERY END")
     args = parser.parse_args(args=args)
 
     # Open input & output files, check
@@ -178,10 +198,10 @@ def main(args=sys.argv[1:]):
         emin = eta
         emax = etaBins[i+1]
 
-        plot_checks(inputf, output_f, emin, emax)
+        plot_checks(inputf, output_f, emin, emax, args.pdf)
 
     # Do an inclusive plot for all eta bins
-    plot_checks(inputf, output_f, etaBins[0], etaBins[-1])
+    plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.pdf)
 
     # Do a response vs eta graph
     plot_rsp_eta(inputf, output_f, etaBins)
