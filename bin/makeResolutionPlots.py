@@ -245,7 +245,8 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
 
 
 ########### MAIN ########################
-def main():
+def main(in_args=sys.argv[1:]):
+    print in_args
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
@@ -257,11 +258,11 @@ def main():
                         help="Do forward eta bins only (eta >= 3)")
     parser.add_argument("--etaInd", nargs="+",
                         help="list of eta bin INDICES to run over - " \
-                        "if unspecified will do all " \
-                        "(overrides --central/--forward)" \
-                        "handy for batch mode" \
-                        "MUST PUT AT VERY END")
-    args = parser.parse_args()
+                        "if unspecified will do all. " \
+                        "This overrides --central/--forward. " \
+                        "Handy for batch mode. " \
+                        "IMPORTANT: MUST PUT AT VERY END")
+    args = parser.parse_args(args=in_args)
 
     inputf = ROOT.TFile(args.input, "READ")
     outputf = ROOT.TFile(args.output, "RECREATE")

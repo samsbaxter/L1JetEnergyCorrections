@@ -154,8 +154,8 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins):
 
 
 ########### MAIN ########################
-def main(args=sys.argv[1:]):
-    print args
+def main(in_args=sys.argv[1:]):
+    print in_args
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
@@ -171,7 +171,7 @@ def main(args=sys.argv[1:]):
                         "This overrides --central/--forward. " \
                         "Handy for batch mode. " \
                         "IMPORTANT: MUST PUT AT VERY END")
-    args = parser.parse_args(args=args)
+    args = parser.parse_args(args=in_args)
 
     # Open input & output files, check
     inputf = ROOT.TFile(args.input, "READ")

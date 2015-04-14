@@ -424,8 +424,8 @@ def print_lut_file(fit_params, eta_bins, filename):
 
 
 ########### MAIN ########################
-def main(args=sys.argv[1:]):
-    print args
+def main(in_args=sys.argv[1:]):
+    print in_args
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
@@ -441,11 +441,11 @@ def main(args=sys.argv[1:]):
                         help="Do forward eta bins only (eta >= 3)")
     parser.add_argument("--etaInd", nargs="+",
                         help="list of eta bin INDICES to run over - " \
-                        "if unspecified will do all " \
-                        "(overrides --central/--forward)" \
-                        "handy for batch mode" \
-                        "MUST PUT AT VERY END")
-    args = parser.parse_args(args=args)
+                        "if unspecified will do all. " \
+                        "This overrides --central/--forward. " \
+                        "Handy for batch mode. " \
+                        "IMPORTANT: MUST PUT AT VERY END")
+    args = parser.parse_args(args=in_args)
 
     if args.stage1:
         print "Running with Stage1 defaults"
@@ -507,14 +507,6 @@ def main(args=sys.argv[1:]):
             fitfunc = forward_fit
 
         makeResponseCurves(inputf, output_f, ptBins, emin, emax, fitfunc, fit_params, do_genjet_plots, do_correction_fit)
-
-
-    # For testing:
-    # makeResponseCurves(inputf, output_f, binning.pt_bins, 0, 0.348, central_fit, fit_params, do_genjet_plots, do_correction_fit)
-    # makeResponseCurves(inputf, output_f, binning.pt_bins, 0.695, 1.044, central_fit, fit_params, do_genjet_plots, do_correction_fit)
-    # makeResponseCurves(inputf, output_f, binning.pt_bins, 1.044, 1.392, central_fit, fit_params, do_genjet_plots, do_correction_fit)
-    # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 3, 3.5, forward_fit, fit_params, do_genjet_plots, do_correction_fit)
-    # makeResponseCurves(inputf, output_f, binning.pt_bins_wide, 4, 4.5, forward_fit, fit_params, do_genjet_plots, do_correction_fit)
 
     # Make LUT
     # print_fit_screen(central_fit, fit_params, etaBins)
