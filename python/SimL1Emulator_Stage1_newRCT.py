@@ -21,7 +21,7 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 # Input/output & standard stuff
 ##############################
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(-1)
     )
 
 # Input source
@@ -71,7 +71,7 @@ process.TFileService = cms.Service("TFileService",
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag.connect = cms.string('frontier://FrontierProd/CMS_COND_31X_GLOBALTAG')
 # process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
-process.GlobalTag.globaltag = cms.string('PHYS14_25_V3::All')
+process.GlobalTag.globaltag = cms.string('PHYS14_25_V3::All') # for Phys14 AVE20BX25
 # process.GlobalTag.globaltag = cms.string('MCRUN2_73_V9::All')
 
 ##############################
@@ -122,12 +122,6 @@ process.l1ExtraTreeProducer.hfRingsLabel = cms.untracked.InputTag("l1ExtraLayer2
 ##############################
 # Do Stage 1 internal jet collection (preGtJets)
 ##############################
-# Uses modified L1TCaloUpgradeToGCTConverter.cc
-# Hijack the cenJet collection in l1ExtraProducer
-# process.simCaloStage1LegacyFormatDigis.InputCollectionPreGtJet = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
-# process.l1ExtraLayerPreGt = process.l1ExtraLayer2.clone()
-# process.l1ExtraLayerPreGt.centralJetSource = cms.InputTag("simCaloStage1LegacyFormatDigis:preGtJets")
-
 # Conversion from JetBxCollection to L1JetParticles
 process.preGtJetToL1Jet = cms.EDProducer('PreGtJetToL1Jet',
     preGtJetSource = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
@@ -165,9 +159,9 @@ process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 # Do ak4 GenJets
 ##############################
 # Need to make ak4, not included in GEN-SIM-RAW
-process.load('RecoJets.Configuration.GenJetParticles_cff')
-process.load('RecoJets.Configuration.RecoGenJets_cff')
-process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
+# process.load('RecoJets.Configuration.GenJetParticles_cff')
+# process.load('RecoJets.Configuration.RecoGenJets_cff')
+# process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
 
 # Convert ak4 genjets to L1JetParticle objects
 process.genJetToL1JetAk4 = cms.EDProducer("GenJetToL1Jet",
@@ -193,7 +187,7 @@ process.p1 = cms.Path(
     # +process.simGtDigis
     +process.l1ExtraLayer2
     +process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
-    +process.antiktGenJets # make ak4GenJets
+    # +process.antiktGenJets # make ak4GenJets
     +process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
     +process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
     +process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
