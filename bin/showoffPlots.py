@@ -1,302 +1,332 @@
-import ROOT
-import sys
-import numpy
-import binning
-
-
 """
-This script produces plots for showing off in notes/presentations, etc
+This script produces plots for showing off in notes/presentations, etc.
+
+Deisgned to be quick! So just pull the histograms, apply some aesthetics, save.
+
+It takes in ROOT files made by:
+- RunMatcher
+- makeResolutionPlots.py
+- checkCalibration.py
+- runCalibration.py
 
 Robin Aggleton
 """
 
-ROOT.TH1.SetDefaultSumw2(True)
-ROOT.gStyle.SetOptFit(0111)
 
-# etaBins = [ 0.0,0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0] #, 3.5, 4.0, 4.5, 5.001]
+import ROOT
+import sys
+import numpy
+import binning
+import argparse
+from subprocess import call
+from subprocess import check_output
+from sys import platform as _platform
+
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+ROOT.TH1.SetDefaultSumw2(True)
+ROOT.gStyle.SetOptFit(0111) # onyl show fit params and errors
+ROOT.gStyle.SetOptStat(0)
+ROOT.gROOT.SetBatch(True)
+
 etaBins = binning.eta_bins
-ptBins_1 = [14,18,22,24]
-ptBins_2 = numpy.arange(28,120,4)
-ptBins = ptBins_1[:]
-ptBins+=list(ptBins_2)
 ptBins = binning.pt_bins
 
-
 # Some common strings
-# Yes globals bad, yada yada
-
 rsp_str = "E_{T}^{L1}/E_{T}^{Gen}"
-etaRef_str = "|#eta^{Gen}|"
-etaL1_str = "|#eta^{L1}|"
-dr_str = "#DeltaR(Gen jet - L1 jet)"
-etL1_str = "E_{T}^{L1}"
-etGen_str = "E_{T}^{Gen}"
+eta_ref_str = "|#eta^{Gen}|"
+eta_l1_str = "|#eta^{L1}|"
+dr_str = "#DeltaR(L1 jet - Gen jet)"
+pt_L1_str = "E_{T}^{L1} [GeV]"
+pt_Gen_str = "E_{T}^{Gen} [GeV]"
+res_l1_str = "(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}"
+pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
 
-def getTree(inFile, treeName):
+
+
+def open_pdf(pdf_filename):
+    """Open a PDF file using system's default PDF viewer."""
+    if _platform.startswith("linux"):
+        # linux
+        call(["xdg-open", pdf_filename])
+    elif _platform == "darwin":
+        # OS X
+        call(["open", pdf_filename])
+    elif _platform == "win32":
+        # Windows
+        call(["start", pdf_filename])
+
+
+def open_root_file(filename, mode="READ"):
+    """Safe way to open ROOT file. Could be improved."""
+    f = ROOT.TFile(filename, mode)
+    if f.IsZombie():
+        raise RuntimeError("Can't open TFile %s" % filename)
+    return f
+
+
+def get_from_file(inFile, obj_name):
+    """Get some object from ROOT file with checks."""
+    obj = inFile.Get(obj_name)
+    print "getting %s" % obj_name
+    if not obj:
+        raise Exception("Can't get object named %s from %s" % (obj_name, inFile.GetName()))
+    return obj
+
+
+def generate_canvas():
+    """Generate a standard TCanvas for all plots"""
+    c = ROOT.TCanvas("c", "")
+    c.SetTicks(1, 1)
+    return c
+
+
+def plot_dR(tree, cut, oDir):
+    """Plot deltaR(L1 - RefJet)"""
+    c = generate_canvas()
+    tree.Draw("dr>>h_dr(100,0,0.8)", cut, "HISTE")
+    h_dr = ROOT.gROOT.FindObject("h_dr")
+    h_dr.SetTitle(";%s;N" % dr_str)
+    c.SaveAs("%s/dr.pdf" % oDir)
+
+
+def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir):
+    """Plot the difference between L1 and ref jet pT, for given L1 pT, eta bin"""
+    hname = "eta_%g_%g/Histograms/ptDiff_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
+    h_diff = get_from_file(res_file, hname)
+    c = generate_canvas()
+    h_diff.Draw()
+    h_diff.SetTitle(";%s;N" % pt_diff_str)
+    c.SaveAs("%s/pt_diff_eta_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+
+
+def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir):
+    """Plot the L1 resolution for given L1 pT, eta bin"""
+    hname = "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
+    h_res = get_from_file(res_file, hname)
+    c = generate_canvas()
+    h_res.Draw()
+    h_res.SetAxisRange(-2, 2, "X")
+    h_res.SetTitle(";%s;N" % res_l1_str)
+    c.SaveAs("%s/res_l1_eta_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+
+
+def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir):
+    """Plot a graph of resolution as a function of L1 eta.
+
+    Can optionally do comparison against another file,
+    in which case res_file1 is treated as before calibration,
+    whilst res_file2 is treated as after calibration.
     """
-    Get TTree from ROOT file
-    """
-    return inFile.Get(treeName)
+    grname = "eta_%g_%g/resL1_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+    gr_1 = get_from_file(res_file1, grname)
+    gr_2 = get_from_file(res_file2, grname) if res_file2 else None
+
+    c = generate_canvas()
+
+    # gr_1.GetYaxis().SetRangeUser(0, 2)
+    # gr_1.GetXaxis().SetLimits(eta_min, eta_max)
+    gr_1.SetMarkerStyle(20)
+
+    if not gr_2:
+        gr_1.Draw("ALP")
+        gr_1.GetXaxis().SetTitleSize(0.04)
+        gr_1.GetYaxis().SetTitleOffset(1)
+        # gr_1.GetYaxis().SetTitleSize(0.04)
+        gr_1.Draw("ALP")
+        c.SaveAs("%s/res_l1_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+    else:
+        mg = ROOT.TMultiGraph()
+        mg.Add(gr_1)
+        gr_2.SetLineColor(ROOT.kRed)
+        gr_2.SetMarkerColor(ROOT.kRed)
+        gr_2.SetMarkerStyle(21)
+        mg.Add(gr_2)
+        mg.Draw("ALP")
+        mg.SetTitle(";%s;%s" % (gr_1.GetXaxis().GetTitle(), gr_1.GetYaxis().GetTitle()))
+        # mg.GetYaxis().SetRangeUser(0,2)
+        # mg.GetXaxis().SetLimits(eta_min, eta_max)
+        mg.GetXaxis().SetTitleSize(0.04)
+        mg.GetXaxis().SetTitleOffset(0.9)
+        # mg.GetYaxis().SetTitleSize(0.04)
+        mg.Draw("ALP")
+        leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
+        leg.AddEntry(gr_1, "Before calibration", "LP")
+        leg.AddEntry(gr_2, "After calibration", "LP")
+        leg.Draw()
+        c.SaveAs("%s/res_l1_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
 
 
-def getDefCanvas():
-    """
-    Get default canvas c1, 'cos I'm lazy
-    """
-    return ROOT.gROOT.FindObject("c1")
-
-
-def plotResponseGeneral(tree):
-    """
-    Plots response VS eta, response Vs dR, dR distr., response distr.
-    Note that "response" is normally E_T(L1) /E_T(Gen), although in ROOT file is
-    1/that...
-    """
-    c = ROOT.TCanvas()
-    c.SetTicks()
-    ROOT.gStyle.SetNumberContours(255);
-    tree.Draw("1./rsp:TMath::Abs(deta-eta)>>rsp_eta(250,0,5,200,0,2","","COLZ")
-    rsp_eta = ROOT.gROOT.FindObject("rsp_eta")
-    rsp_eta.SetTitle(';|#eta^{Gen}|;E_{T}^{L1}/E_{T}^{Gen}')
-    # Draw lines for eta bins
-    lines = []
-    for e in etaBins[1:]:
-        l = ROOT.TLine(e, 0, e, 2)
-        l.SetLineStyle(2)
-        lines.append(l)
-    [l.Draw("SAME") for l in lines]
-    c.SaveAs("rsp_eta.pdf")
-
-    tree.Draw("1./rsp:dr>>rsp_dr(100,0,0.9,100,0,2)","","COLZ")
-    rsp_dr = ROOT.gROOT.FindObject("rsp_dr")
-    rsp_dr.SetTitle(";%s;%s" % (dr_str,rsp_str))
-    c.SaveAs("rsp_dr.pdf")
-
-    dr = rsp_dr.ProjectionX("dr")
-    dr.Sumw2()
-    dr.Rebin(2)
-    dr.Scale(1./dr.Integral())
-    dr.SetTitle(";%s;A.U." % dr_str)
-    dr.Draw("HISTE")
-    c.SaveAs("dr.pdf")
-
-    rsp = rsp_dr.ProjectionY("rsp")
-    rsp.Sumw2()
-    rsp.Scale(1./rsp.Integral())
-    rsp.SetTitle(";%s;A.U" % rsp_str)
-    rsp.Draw("HISTE")
-    c.SaveAs("rsp.pdf")
-
-    tree.Draw("1./rsp:rsp*pt>>rsp_pt(300,0,300,200,0,6)", "TMath::Abs(eta)<0.348 && TMath::Abs(eta)>0","COLZ")
-    rsp_pt = ROOT.gROOT.FindObject("rsp_pt")
-    rsp_pt.SetTitle(";E_{T}^{Gen};E_{T}^{L1}/E_{T}^{Gen}")
-    pt_lines = []
-    for p in ptBins:
-        l = ROOT.TLine(p,0,p,6)
-        l.SetLineStyle(2)
-        pt_lines.append(l)
-    [l.Draw("SAME") for l in pt_lines]
-    c.SaveAs("rsp_pt.pdf")
-
-
-def plot_ET(tree):
-    """
-    Plot comparison of ET^L1 against ET^Gen
-    """
-    c = ROOT.TCanvas()
-    c.SetTicks()
-    tree.Draw("pt:rsp*pt>>pt_ref_l1(300,0,300,300,0,300)", "TMath::Abs(eta)<0.348 && TMath::Abs(eta)>0", "COLZ")
-    pt_ref_l1 = ROOT.gROOT.FindObject("pt_ref_l1")
-    pt_ref_l1.SetTitle(";E_{T}^{Gen};E_{T}^{L1}")
-    pt_lines = []
-    for p in ptBins:
-        l = ROOT.TLine(p,0,p,300)
-        l.SetLineStyle(2)
-        pt_lines.append(l)
-    [l.Draw("SAME") for l in pt_lines]
-    c.SaveAs("pt_ref_l1.pdf")
-
-
-def plot_response_eta_bins(tree):
-    """
-    Plot response for each eta bin
-    """
-    c = ROOT.TCanvas()
-    c.SetTicks()
-    for i, eta in enumerate(etaBins[0:-1]):
-        etamin = eta
-        etamax = etaBins[i+1]
-        cutstr = "TMath::Abs(eta)<%g && TMath::Abs(eta)>%g" %(etamax, etamin)
-        tree.Draw("1./rsp>>rsp_eta_%g_%g(50, 0, 2)" %(etamin, etamax), cutstr, "HISTE")
-        rsp_eta = ROOT.gROOT.FindObject("rsp_eta_%g_%g" %(etamin, etamax))
-        rsp_eta.SetTitle("%.3f < \#eta_{gen}| < %.3f;E_{T}^{L1}/E_{T}^{Gen};Events" %(etamin, etamax))
-        c.SaveAs("rsp_eta_%.3f_%.3f.pdf"%(etamin, etamax))
-
-
-def plot_example_et_bin_response(file, etamin, etamax, ptmin, ptmax):
-    """
-    Plot example ETL1 for ETGen bin, and corresponding resp with fit
-    """
-    c = ROOT.TCanvas()
-    c.SetTicks()
-    print "eta_%s_%s/Histograms/L1_pt_genpt_%s_%s" %(etamin, etamax, ptmin, ptmax)
-    h_ET = file.Get("eta_%s_%s/Histograms/L1_pt_genpt_%s_%s" %(etamin, etamax, ptmin, ptmax)).Clone()
-    h_ET.Rebin(2)
-    h_ET.SetTitle("%s < \#eta_{gen}| < %s, %s < E_{T}^{Gen} < %s GeV;E_{T}^{L1} [GeV];Events" % (etamin, etamax, ptmin, ptmax))
-    h_ET.Draw("HISTE")
-    c.SaveAs("L1_pt_genpt_%s_%s_eta_%s_%s.pdf" %(ptmin, ptmax, etamin, etamax))
-
-    h_rsp = file.Get("eta_%s_%s/Histograms/Rsp_genpt_%s_%s" %(etamin, etamax, ptmin, ptmax)).Clone()
-    h_rsp.SetTitle("Response for %s < \#eta_{gen}| < %s, %s < E_{T}^{Gen} < %s GeV;E_{T}^{L1}/E_{T}^{Gen};Events" %(etamin, etamax, ptmin, ptmax))
-    h_rsp.Draw()
-    c.SaveAs("rsp_%s_%s_eta_%s_%s.pdf" % (ptmin, ptmax, etamin, etamax))
-
-    g_calib = file.Get("l1corr_eta_%s_%s" %(etamin, etamax)).Clone()
-    g_calib.SetTitle(";<E_{T}^{L1}> [GeV]; 1/<E_{T}^{L1}/E_{T}^{Gen}>")
-    g_calib.Draw("APL")
-    c.SaveAs("calib_%s_%s.pdf" %(etamin, etamax))
-
-
-def closure_et(tree, etamin, etamax):
-    """
-    Do closure test as fn of L1 ET
-    """
-    c = ROOT.TCanvas()
-    c.SetTicks()
-    fitfcn = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10((x)),2)+[2])+[3]*exp(-[4]*(log10((x))-[5])*(log10((x))-[5]))", 20, 500)
-    # fitfcn.SetParameter(0, -0.1234)
-    # fitfcn.SetParameter(1, 20.75)
-    # fitfcn.SetParameter(2, 6.708)
-    # fitfcn.SetParameter(3, -0.7638)
-    # fitfcn.SetParameter(4, 0.01114)
-    # fitfcn.SetParameter(5, -5.511)
-
-    fitfcn.SetParameter(0, 0.8357)
-    fitfcn.SetParameter(1, -0.01692)
-    fitfcn.SetParameter(2, -0.9205)
-    fitfcn.SetParameter(3, -15.55)
-    fitfcn.SetParameter(4, 0.01014)
-    fitfcn.SetParameter(5, -24.13)
-
-    corr_pt = str(fitfcn.GetExpFormula("p"))
-    corr_pt = corr_pt.replace("(x)","(pt)")
-    corr_rsp = "(1./rsp)*"+corr_pt
-    corr_pt = "pt*"+corr_pt
-    print corr_pt
-    print corr_rsp
-
-    cutstr = "TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (etamin, etamax)
-
-    gr_uncorr = ROOT.TGraphErrors()
-    gr_corr = ROOT.TGraphErrors()
-    grc = 0
-
-    for i, pt in enumerate(ptBins[0:-1]):
-        ptmin = pt
-        ptmax = ptBins[i+1]
-        print "Doing bin", ptmin, "-", ptmax
-
-        ptcut = "(pt*rsp>%.3f) && (pt*rsp < %.3f)" %(ptmin, ptmax)
-        pt_eta_cut = cutstr+" && " + ptcut
-        print pt_eta_cut
-
-        tree.Draw("pt>>h_uncorr_et_%f_%f(400,0,200)" %(ptmin, ptmax),pt_eta_cut)
-        h_uncorr_et = ROOT.gROOT.FindObject("h_uncorr_et_%f_%f" %(ptmin, ptmax))
-
-        print h_uncorr_et.Integral()
-
-        tree.Draw(corr_pt+">>h_corr_et_%f_%f(400,0,200)" %(ptmin, ptmax),pt_eta_cut)
-        h_corr_et = ROOT.gROOT.FindObject("h_corr_et_%f_%f" %(ptmin, ptmax))
-
-        tree.Draw("1./rsp>>h_uncorr_rsp_%f_%f(500, 0, 5)" %(ptmin, ptmax), pt_eta_cut)
-        h_uncorr_rsp = ROOT.gROOT.FindObject("h_uncorr_rsp_%f_%f" %(ptmin, ptmax))
-
-        tree.Draw(corr_rsp+">>h_corr_rsp_%f_%f(500, 0, 5)" %(ptmin, ptmax), pt_eta_cut )
-        h_corr_rsp = ROOT.gROOT.FindObject("h_corr_rsp_%f_%f" %(ptmin, ptmax))
-
-        if h_uncorr_et.GetEntries() > 0:
-            print h_uncorr_et.GetMean(), h_uncorr_rsp.GetMean()
-            gr_uncorr.SetPoint(grc, h_uncorr_et.GetMean(), h_uncorr_rsp.GetMean())
-            gr_uncorr.SetPointError(grc, h_uncorr_et.GetMeanError(), h_uncorr_rsp.GetMeanError())
-        if h_corr_et.GetEntries() > 0:
-            print h_corr_et.GetMean(), h_corr_rsp.GetMean()
-            gr_corr.SetPoint(grc, h_corr_et.GetMean(), h_corr_rsp.GetMean())
-            gr_corr.SetPointError(grc, h_corr_et.GetMeanError(), h_corr_rsp.GetMeanError())
-
-        grc += 1
-
-    gr_uncorr.SetMarkerStyle(21)
-    gr_uncorr.SetMarkerColor(ROOT.kBlue)
-
-    gr_corr.SetMarkerStyle(22)
-    gr_corr.SetMarkerColor(ROOT.kRed)
-
-    gr_uncorr.GetXaxis().SetTitle(etL1_str)
-    gr_uncorr.GetYaxis().SetTitle(rsp_str)
-    gr_corr.GetXaxis().SetTitle(etL1_str)
-    gr_corr.GetYaxis().SetTitle(rsp_str)
-
-    mg = ROOT.TMultiGraph()
-    mg.Add(gr_uncorr)
-    mg.Add(gr_corr)
-    mg.Draw("AP")
-
-    leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
-    leg.AddEntry(gr_uncorr, "Uncorrected L1" , "p")
-    leg.AddEntry(gr_corr, "Corrected L1" , "p")
-    leg.SetFillColor(0)
-    leg.SetFillStyle(0)
-    leg.SetLineColor(0)
-    leg.SetLineStyle(0)
-    leg.SetLineWidth(2)
-    leg.Draw("SAME")
-
-    label = ROOT.TPaveText(0.1,0.91,0.4,0.96, "NDCNB")
-    label.SetFillStyle(0)
-    label.SetFillColor(0)
-    label.SetLineColor(0)
-    label.SetLineWidth(0)
-    label.SetLineStyle(0)
-    label.AddText("%.3f < |#eta^{Gen}| < %.3f" % (etamin, etamax))
-    label.Draw("SAME")
-
-    xmin = mg.GetHistogram().GetXaxis().GetXmin()  # bloody ridiculous
-    xmax = mg.GetHistogram().GetXaxis().GetXmax()
-    line = ROOT.TLine(xmin, 1, xmax, 1)
+def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir):
+    """Plot l1 pt against ref jet pt, for given L1 eta bin"""
+    hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
+    h2d_gen_l1 = get_from_file(check_file, hname)
+    c = generate_canvas()
+    h2d_gen_l1.Draw("COLZ")
+    line = ROOT.TLine(0, 0, 250, 250)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
-    line.Draw("SAME")
+    line.Draw()
+    c.SaveAs("%s/h2d_gen_l1_%g_%g.pdf" % (oDir, eta_min, eta_max))
 
-    c.SaveAs("closuretest_%.3f_%.3f.pdf"%(etamin, etamax))
 
+def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir):
+    """Plot a graph of response vs L1 eta.
 
-def compare_fits(tree):
+    Can optionally do comparison against another file,
+    in which case check_file1 is treated as before calibration,
+    whilst check_file2 is treated as after calibration.
     """
-    Plot old vs new calibration curves
-    """
-    pass
+    grname = "eta_%g_%g/gr_rsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+    gr_1 = get_from_file(check_file1, grname)
+    gr_2 = get_from_file(check_file2, grname) if check_file2 else None
+
+    c = generate_canvas()
+
+    gr_1.GetYaxis().SetRangeUser(0, 2)
+    gr_1.GetXaxis().SetLimits(eta_min, eta_max)
+    gr_1.SetMarkerStyle(20)
+
+    line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
+    line_plus = ROOT.TLine(eta_min, 1.1, eta_max, 1.1)
+    line_minus = ROOT.TLine(eta_min, 0.9, eta_max, 0.9)
+    line_central.SetLineWidth(2)
+    line_central.SetLineStyle(2)
+    for line in [line_plus, line_minus]:
+        line.SetLineWidth(2)
+        line.SetLineStyle(3)
+
+    if not gr_2:
+        gr_1.Draw("ALP")
+        gr_1.GetXaxis().SetTitleSize(0.04)
+        gr_1.GetYaxis().SetTitleOffset(1)
+        # gr_1.GetYaxis().SetTitleSize(0.04)
+        gr_1.Draw("ALP")
+        [line.Draw() for line in [line_central, line_plus, line_minus]]
+        c.SaveAs("%s/gr_rsp_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+    else:
+        mg = ROOT.TMultiGraph()
+        mg.Add(gr_1)
+        gr_2.SetLineColor(ROOT.kRed)
+        gr_2.SetMarkerColor(ROOT.kRed)
+        gr_2.SetMarkerStyle(21)
+        mg.Add(gr_2)
+        mg.Draw("ALP")
+        mg.SetTitle(";%s;%s" % (gr_1.GetXaxis().GetTitle(), gr_1.GetYaxis().GetTitle()))
+        mg.GetYaxis().SetRangeUser(0,2)
+        mg.GetXaxis().SetLimits(eta_min, eta_max)
+        mg.GetXaxis().SetTitleSize(0.04)
+        mg.GetXaxis().SetTitleOffset(0.9)
+        # mg.GetYaxis().SetTitleSize(0.04)
+        mg.Draw("ALP")
+        leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
+        leg.AddEntry(gr_1, "Before calibration", "LP")
+        leg.AddEntry(gr_2, "After calibration", "LP")
+        leg.Draw()
+        [line.Draw() for line in [line_central, line_plus, line_minus]]
+        c.SaveAs("%s/gr_rsp_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+
+
+def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir):
+    """Plot the response in one pt, eta bin"""
+    hname = "eta_%g_%g/Histograms/Rsp_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
+    h_rsp = get_from_file(calib_file, hname)
+    c = generate_canvas()
+    h_rsp.Draw("HISTE")
+    c.SaveAs("%s/h_rsp_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+
+
+def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir):
+    """Plot the response in one eta bin"""
+    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min)
+    h_rsp = get_from_file(calib_file, hname)
+    c = generate_canvas()
+    h_rsp.Draw("HISTE")
+    c.SaveAs("%s/h_rsp_%g_%g.pdf" % (oDir, eta_min, eta_max))
+
+
+def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir):
+    """Plot the L1 pt in a given ref jet pt bin"""
+    hname = "eta_%g_%g/Histograms/L1_pt_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
+    h_pt = get_from_file(calib_file, hname)
+    c = generate_canvas()
+    h_pt.Draw("HISTE")
+    c.SaveAs("%s/L1_pt_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+
+
+def main(in_args=sys.argv[1:]):
+    print in_args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pairs", help="input ROOT file with matched pairs from RunMatcher")
+
+    parser.add_argument("--res", help="input ROOT file with resolution plots from makeResolutionPlots.py")
+    parser.add_argument("--res2", help="optional: 2nd input ROOT file with resolution plots from makeResolutionPlots.py. " \
+                                        "If you specify this one, then the file specified by --res will be treated as pre-calibration, " \
+                                        "whilst this one will be treated as post-calibration")
+
+    parser.add_argument("--checkcal", help="input ROOT file with calibration check plots from checkCalibration.py")
+    parser.add_argument("--checkcal2", help="optional: 2nd input ROOT file with resolution plots from checkCalibration.py. " \
+                                        "If you specify this one, then the file specified by --checkcal will be treated as pre-calibration, " \
+                                        "whilst this one will be treated as post-calibration")
+
+    parser.add_argument("--calib", help="input ROOT file from output of runCalibration.py")
+
+    parser.add_argument("--oDir", help="Directory to save plots", default=".")
+    parser.add_argument("--format", help="Format for plots (PDF, png, etc)", default="pdf")
+    parser.add_argument("--etaInd", help="list of eta bin index to run over")
+
+    args = parser.parse_args(args=in_args)
+
+    print args
+
+    # Choice eta & pt bin
+    eta_min, eta_max = etaBins[0], etaBins[1]
+    pt_min, pt_max = ptBins[10], ptBins[11]
+
+    if args.etaInd:
+        eta_min, eta_max = etaBins[int(args.etaInd)], etaBins[int(args.etaInd)+1]
+
+    # Do plots with output from RunMatcher
+    if args.pairs:
+        pairs_file = open_root_file(args.pairs)
+        pairs_tree = get_from_file(pairs_file, "valid")
+
+        plot_dR(pairs_tree, cut="", oDir=args.oDir)
+
+        pairs_file.Close()
+
+    # Do plots with output from makeResolutionPlots.py
+    if args.res:
+        res_file = open_root_file(args.res)
+
+        pt_min = binning.pt_bins_8[8]
+        pt_max = binning.pt_bins_8[9]
+        plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
+        plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
+        res_file2 = open_root_file(args.res2) if args.res2 else None
+        plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir)
+
+        res_file.Close()
+
+    # Do plots with output from checkCalibration.py
+    if args.checkcal:
+        check_file = open_root_file(args.checkcal)
+
+        plot_l1_Vs_ref(check_file, eta_min, eta_max, args.oDir)
+        check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
+        plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir)
+
+        check_file.Close()
+
+    # Do plots with output from runCalibration.py
+    if args.calib:
+        calib_file = open_root_file(args.calib)
+
+        plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
+        plot_rsp_eta_bin(calib_file, eta_min, eta_max, args.oDir)
+        plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
+
+        calib_file.Close()
+
 
 if __name__ == "__main__":
-    ROOT.gROOT.SetBatch(True)
-
-    # Get input ROOT files
-    inFilePairs = ROOT.TFile(sys.argv[1], "READ")
-    print sys.argv[1]
-    treePairs = getTree(inFilePairs, "valid")
-    inFileCalib = ROOT.TFile(sys.argv[2], "READ")
-    print sys.argv[2]
-
-    # output_f = ROOT.TFile(sys.argv[2],"RECREATE")
-    # print sys.argv[2]
-    # treeCalib = getTree(inFileCalib, "valid")
-
-    # Turn these on an off as necessary
-    # plotResponseGeneral(treePairs)
-    # plot_ET(treePairs)
-    # plot_response_eta_bins(treePairs)
-    # plot_example_et_bin_response(inFileCalib, '0', '0.348', '82', '86')
-    plot_example_et_bin_response(inFileCalib, '0.348', '0.695', '82', '86')
-    # plot_example_et_bin_response(inFileCalib, '3', '3.5', '82', '86')
-    # for i,eta in enumerate(etaBins[0:-1]):
-    closure_et(treePairs, etaBins[1], etaBins[2])
-    # closure_et(treePairs, eta, etaBins[i+1])
+    main()
