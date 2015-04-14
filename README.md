@@ -78,21 +78,24 @@ This is done in [bin/RunMatcher](bin/RunMatcher.cpp). You can run it easily by d
 Note that the RunMatcher program also includes an option to plot the eta Vs phi for jets to check it's actually working (this utilises the [JetDrawer](interface/JetDrawer) class).
 
 ### Calculate calibration function & LUTs
-This is done by [bin/runCalibration.py](bin/runCalibration.py). For possible options, in `bin` do `python runCalibration.py -h`
+Calculation of calibration functions is done by [bin/runCalibration.py](bin/runCalibration.py), using the ROOT file of matched pairs output by the `RunMatcher` program as input. For possible options, do `python runCalibration.py -h`
+
+To make the LUTs, use the script XXX.
 
 ### Resolution performance
-This is dine by [bin/makeResolutionPlots.py](bin/makeResolutionPlots.py) This takes the ROOT file with matched pairs (i.e. the output from `RunMatcher`, and produces resolution plots stored in a ROOT file. Quantities include `L1 - Ref`, `(L1 - Ref) / L1`, and `(L1 - Ref) / Ref`. For possible options, in `bin` do `python makeResolutionPlots.py -h`
+This is dine by [bin/makeResolutionPlots.py](bin/makeResolutionPlots.py) This takes the ROOT file with matched pairs output by `RunMatcher`, and produces resolution plots stored in a ROOT file. Quantities include `L1 - Ref`, `(L1 - Ref) / L1`, and `(L1 - Ref) / Ref`. For possible options, in `bin` do `python makeResolutionPlots.py -h`
 
 ### Other scripts
-There are several other useful scirpts in `bin` dir. Doing `python <scriptname> -h` should elucidates the possible options.
+There are several other useful scripts in the `bin` dir. Doing `python <scriptname> -h` should elucidates the possible options.
 
-- [calibration_results.py](bin/calibration_results.py) This takes the ROOT file output by `runCalibration.py` and turns it into a couple of PDF presentations with all the plots for all bins. One will have all the correction values and fits, and one will have the individual pt & response plots for each eta and pt bin.
+- [checkCalibration.py](bin/checkCalibrationn.py) This takes the ROOT files of matched pairs output by `RunMatcher` as input, and makes a few plots to check the response of L1 jets against reference jets.
 
-- [resolution_results.py](bin/resolution_results.py) This takes the output file from `makeResolutionPlots.py` and turns it into some beamer presentations. Can do one file by itself, or compare 2 files (e.g. pre and post calibrations). By default, it just plots the various resolution definitions against L1 pT, for each |eta| bin. Can also plot resolution curve & fit for every pt bin as well (very slow).
+- [showoffPlots.py](bin/showoffPlots.py) This takes in ROOT files output by runCalibration / RunMatcher / checkCalibration / makeResolutionPlots, to quicky output interesting PDF plots for use in presentation or similar.
 
-## Editing
+- [calibration_results.py](bin/calibration_results.py) This takes the ROOT file output by `runCalibration.py` and turns it into a couple of PDF presentations with all the plots for all bins. One will have all the correction values and fits, and one will have the individual pt & response plots for each eta and pt bin. NOTE: currently uses lualatex...should probably change this.
 
-Please see [DEV_NOTES](DEV_NOTES.md) for info.
+- [resolution_results.py](bin/resolution_results.py) This takes the output file from `makeResolutionPlots.py` and turns it into some beamer presentations. Can do one file by itself, or compare 2 files (e.g. pre and post calibrations). By default, it just plots the various resolution definitions against L1 pT, for each |eta| bin. Can also plot resolution curve & fit for every pt bin as well (very slow). NOTE: currently uses lualatex...should probably change this.
+
 ```
 # Old instructions for how to compile root with custom objects - ignore for now
 # cd L1Trigger/L1JetEnergyCorrections/interface
