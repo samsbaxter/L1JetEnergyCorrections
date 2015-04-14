@@ -39,7 +39,7 @@ def check_dir_exists(d):
         os.makedirs(opath)
 
 
-def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, drawopts=""):
+def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawfit=True, drawopts=""):
     """
     f is a TFile
     filename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
@@ -62,14 +62,8 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
         p2.GetYaxis().SetTitle(ytitle)
         p.GetXaxis().SetTitle(xtitle)
         p2.GetXaxis().SetTitle(xtitle)
-        p.SetTitle("")
-        p2.SetTitle("")
-        # p.SetMaximum(1.5)
-        # p.SetMinimum(0)
-        # if p.GetMaximum() > 5:
-        #     p.SetMaximum(5)
-        # # if p.GetMinimum() < 5:
-        #     # p.SetMinimum(-5)
+        p.SetTitle(title)
+        p2.SetTitle(title)
         if not drawfit:
             p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
         p.Draw(drawopts)
@@ -131,12 +125,15 @@ def plot_corr_results(in_name=""):
             emin = eta
             emax = etaBins[i+1]
             name = "l1corr_eta_%g_%g" % (emin, emax)
+            bin_title = "%g <  |\eta^{L1}| < %g" % (emin, emax)
             plot_to_file(input_file,
                         "l1corr_eta_%g_%g" % (emin, emax),
                         [odir+name+".tex", odir+name+".pdf"],
                         xtitle="<p_{T}^{L1}> [GeV]",
-                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value", drawfit=True)
-            titles.append("$%g <  |\eta| < %g$" % (emin, emax))
+                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value",
+                        title="",
+                        drawfit=True)
+            titles.append("$%s$" % bin_title)
             plotnames.append(odir+name+".tex")
             print i
             print titles
