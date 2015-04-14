@@ -5,16 +5,16 @@ Run with 'python crab3_stage1.py'
 """
 
 
-from crab3_cfg import config
-import samples
+from L1Trigger.L1JetEnergyCorrections.crab3_cfg import config
+import L1Trigger.L1JetEnergyCorrections.samples as samples
 from CRABAPI.RawCommand import crabCommand
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage1_newRCT"
+job_append = "Stage1_newRCT_QCDPhys14"
 
 # CHANGE ME - select dataset(s) to run over
-datasets = []
+datasets = samples.samples_qcd_Phys14_AVE20BX25.keys()
 
 if __name__ == "__main__":
 

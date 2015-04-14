@@ -17,8 +17,6 @@ import beamer_slide_templates as bst
 
 r.PyConfig.IgnoreCommandLineOptions = True
 r.gROOT.SetBatch(1)
-# ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
-ptBins = binning.pt_bins
 etaBins = binning.eta_bins
 
 
@@ -41,7 +39,7 @@ def check_dir_exists(d):
         os.makedirs(opath)
 
 
-def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, drawopts=""):
+def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawfit=True, drawopts=""):
     """
     f is a TFile
     filename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
@@ -54,7 +52,8 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
     print plotname
     obj = f.Get(plotname)
     obj2 = f.Get(plotname+"_fit")
-    if not obj or not obj2:
+    if not obj or (drawfit and not obj2):
+        print "Can't find", obj
         return False
     else:
         p = obj.Clone()
@@ -63,25 +62,32 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", drawfit=True, draw
         p2.GetYaxis().SetTitle(ytitle)
         p.GetXaxis().SetTitle(xtitle)
         p2.GetXaxis().SetTitle(xtitle)
-        p.SetTitle("")
-        p2.SetTitle("")
-        # p.SetMaximum(1.5)
-        # p.SetMinimum(0)
-        # if p.GetMaximum() > 5:
-        #     p.SetMaximum(5)
-        # # if p.GetMinimum() < 5:
-        #     # p.SetMinimum(-5)
+        p.SetTitle(title)
+        p2.SetTitle(title)
         if not drawfit:
-            p.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
+            p2.GetListOfFunctions().Remove(p.GetListOfFunctions().At(0))
+        else:
+            fn = p2.GetListOfFunctions().At(0)
+            fn.SetLineWidth(2)
         p.Draw(drawopts)
         p2.Draw(drawopts+"SAME")
+        # draw fit over full range, not just fitted range
+        # if drawfit:
+        #     fn = p2.GetListOfFunctions().At(0)
+        #     fn2 = fn.Clone()
+        #     fn2.SetRange(0,250)
+        #     fn2.SetLineStyle(3)
+        #     fn2.SetLineWidth(2)
+        #     fn2.Draw("SAME")
+        p.Draw(drawopts+"SAME")
         r.gPad.Update()
 
+        # Draw fit stats box
         st = p2.FindObject("stats")
         st.SetFillStyle(0)
-        st.SetX1NDC(0.65)
+        st.SetX1NDC(0.6)
         st.SetX2NDC(0.9)
-        st.SetY1NDC(0.65)
+        st.SetY1NDC(0.55)
         st.SetY2NDC(0.9)
         for f in filename:
             r.gPad.Print(f)
@@ -132,12 +138,15 @@ def plot_corr_results(in_name=""):
             emin = eta
             emax = etaBins[i+1]
             name = "l1corr_eta_%g_%g" % (emin, emax)
+            bin_title = "%g <  |\eta^{L1}| < %g" % (emin, emax)
             plot_to_file(input_file,
                         "l1corr_eta_%g_%g" % (emin, emax),
                         [odir+name+".tex", odir+name+".pdf"],
                         xtitle="<p_{T}^{L1}> [GeV]",
-                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value", drawfit=True)
-            titles.append("$%g <  |\eta| < %g$" % (emin, emax))
+                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value",
+                        title="",
+                        drawfit=True)
+            titles.append("$%s$" % bin_title)
             plotnames.append(odir+name+".tex")
             print i
             print titles
@@ -230,7 +239,7 @@ def plot_bin_results(in_name=""):
                     titles = []
                     plotnames = []
 
-    compile_pdf(main_file, out_name, odir)
+    # compile_pdf(main_file, out_name, odir)
 
 
 def compile_pdf(texfile, pdffile, outdir):

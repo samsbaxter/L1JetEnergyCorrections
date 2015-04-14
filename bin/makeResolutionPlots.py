@@ -305,7 +305,7 @@ def main():
         plot_resolution(inputf, outputf, binning.pt_bins_8, etaBins[0], etaBins[-1])
 
     if not args.incl and not args.excl:
-        print "Not doing inclusive or exclusive - you must specify one!"
+        print "Not doing inclusive or exclusive - you must specify at least one!"
 
 
 if __name__ == "__main__":
