@@ -18,6 +18,8 @@ from itertools import izip
 import os
 import argparse
 import binning
+from correction_LUT_plot import print_formula
+
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
@@ -222,8 +224,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
             # fix_fit_params(thisfit)
 
         xarr, yarr = get_xy(gr)
-        # Maxmimum pt for upper range of fit
-        max_pt = max(xarr)
+        max_pt = max(xarr)  # Maxmimum pt for upper range of fit
         # For lower bound of fit, use either fit_min or the pt
         # of the maximum corr value, whicher is larger.
         # Check to make sure it's not the last point on the graph
@@ -234,8 +235,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
         print "Correction fn fit range:", fit_min, max_pt
         fit_graph, tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
-        print_formula(thisfit, tmp_params, "cpp")
-        print_formula(thisfit, tmp_params, "py")
+        print_formula(thisfit, "cpp")
+        print_formula(thisfit, "py")
         fit_params.append(tmp_params)
         outputfile.WriteTObject(fit_graph)
 
@@ -347,82 +348,6 @@ def fit_correction(graph, function, fit_min, fit_max):
     return fit_graph, params
 
 
-def print_fit_screen(fitfunc, fit_params, eta_bins):
-    """
-    Take fit parameters and print to screen
-    """
-    # check
-    if (1 + len(fit_params)) != len(eta_bins):
-        print "ERROR: no. of eta bins in fit_params not same as no. of eta bins in setup"
-        return
-
-    # print to screen
-    for i, eta in enumerate(eta_bins[0:-1]):
-        print "Eta bin:", eta, "-", eta_bins[i + 1]
-        for j, param in enumerate(fit_params[i]):
-            print "\tParameter:", j, "=", param
-
-    # ROOT compatible version
-    print "To use in ROOT:"
-    for i, eta in enumerate(eta_bins[0:-1]):
-        print_formula(fitfunc, fit_params[i], "cpp")
-        print_formula(fitfunc, fit_params[i], "py")
-
-
-def print_formula(formula, params, lang="cpp"):
-    """
-    Print formula to screen so can replicate in ROOT
-
-    Can choose language (py, cpp)
-    """
-
-    rangemin = ROOT.Double() # eurghhhhh - fixes pass by reference
-    rangemax = ROOT.Double()
-    formula.GetRange(rangemin, rangemax)
-
-    name = formula.GetName().replace(".", "p")
-    print ""
-    if lang.lower() == 'py':
-        print "import ROOT"
-        print '%s = ROOT.TF1("%s", "%s", %g, %g);' % (name, name, formula.GetExpFormula(), rangemin, rangemax)
-    elif lang.lower() == 'cpp':
-        print 'TF1 %s("%s", "%s", %g, %g);' % (name, name, formula.GetExpFormula(), rangemin, rangemax)
-    for i, param in enumerate(params):
-        print "%s.SetParameter(%d, %g)" % (name, i, param)
-    print ""
-
-
-def print_lut_file(fit_params, eta_bins, filename):
-    """
-    Take fit parameters and print to file, for use in CMSSW config file
-    """
-    # check
-    if (1 + len(fit_params)) != len(eta_bins):
-        print "ERROR: no. of eta bins in fit_params not same as no. of eta bins in setup"
-        return
-
-    with open(filename, "w") as file:
-        file.write("# put this in your py config file\n")
-        file.write("    PFCoefficients = cms.PSet(\n")
-
-        # non tau bit first
-        for i, bin in enumerate(fit_params):
-            line = "        nonTauJetCalib%i = cms.vdouble(" % i
-            line += ','.join([str("%.3f" % x) for x in fit_params[i]])
-            line += "),\n"
-            file.write(line)
-
-        # tau bit - only central region
-        for i, bin in enumerate(fit_params):
-            if eta_bins[i + 1] <= 3.0:
-                line = "        tauJetCalib%i = cms.vdouble(" % i
-                line += ','.join([str("%.3f" % x) for x in fit_params[i]])
-                line += "),\n"
-                file.write(line)
-
-        file.write("    )\n")
-
-
 ########### MAIN ########################
 def main(in_args=sys.argv[1:]):
     print in_args
@@ -507,14 +432,6 @@ def main(in_args=sys.argv[1:]):
             fitfunc = forward_fit
 
         makeResponseCurves(inputf, output_f, ptBins, emin, emax, fitfunc, fit_params, do_genjet_plots, do_correction_fit)
-
-    # Make LUT
-    # print_fit_screen(central_fit, fit_params, etaBins)
-    # dname, fname = os.path.split(args.output)
-    # lut_filename = fname.replace(".root", ".py").replace("output_", "LUT_")
-    # if dname:
-    #     lut_filename = dname + "/" + lut_filename
-    # print_lut_file(fit_params, etaBins, lut_filename)
 
 
 if __name__ == "__main__":
