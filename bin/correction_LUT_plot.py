@@ -25,6 +25,8 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
 
+etmin, etmax = 0.1, 30
+
 def print_function(function, lang="cpp"):
     """Print TF1 to screen so can replicate in ROOT
 
@@ -50,7 +52,7 @@ def print_function(function, lang="cpp"):
     elif lang.lower() == "numpy":
         print "import numpy as np"
         print "import matplotlib.pyplot as plt"
-        print "et = np.arange(5, 250, 0.1)"
+        print "et = np.arange(%g, %g, 0.1)" % (etmin, etmax)
         for i, param in enumerate(params):
             print "p%d = %f" % (i, param)
         print "def pf_func(et, p0, p1, p2, p3, p4, p5):"
@@ -58,6 +60,7 @@ def print_function(function, lang="cpp"):
         print ""
         print ""
         print "plt.plot(et, pf_func(et, p0, p1, p2, p3, p4, p5), lw=2, color='red')"
+        print "plt.xlabel(r'$E_T$');plt.ylabel('Correction Factor')"
         print "plt.show()"
         # print "plt.savefig('plot.pdf')"
 
@@ -104,13 +107,16 @@ def main(in_args=sys.argv[1:]):
     in_file = ROOT.TFile(args.input)
 
     # Canvas for plotting all fits
-    canv = ROOT.TCanvas("c", "", 2000, 800)
+    canv = ROOT.TCanvas("c", "", 3800, 1200)
     ncols = ((len(binning.eta_bins)-1) / 2) + 1
     canv.Divide(ncols, 2)
 
     line = ROOT.TLine(5, 0, 5, 3)
-    line.SetLineStyle(2)
+    line.SetLineStyle(3)
+    line.SetLineWidth(1)
 
+    line2 = ROOT.TLine(1, 2, 20, 2)
+    line2.SetLineStyle(3)
     all_fit_params = []
 
     for i, etamin in enumerate(binning.eta_bins[:-1]):
@@ -131,12 +137,18 @@ def main(in_args=sys.argv[1:]):
 
         # Print function to canvas
         canv.cd(i+1)
-        fit_func.SetRange(0,250);
+        fit_func.SetRange(etmin, etmax)
         fit_func.SetLineWidth(1)
         fit_func.Draw()
-        line.SetY1(0)
-        line.SetY2(3)
+        line.SetY1(-15)
+        line.SetY2(15)
         line.Draw()
+        corr_10 = fit_func.Eval(10)
+        l2 = line2.Clone()
+        l2.SetY1(corr_10)
+        l2.SetY2(corr_10)
+        print corr_10
+        l2.Draw("SAME")
 
     canv.SaveAs("all_fits.pdf")
     print_lut_file(all_fit_params, binning.eta_bins, args.lut)
