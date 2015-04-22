@@ -36,6 +36,7 @@ process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
 process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
 process.simGctDigisRCT = process.simGctDigis.clone()
+process.simGctDigisRCT.inputLabel = cms.InputTag('simRctDigis')
 
 process.l1extraParticlesRCT = process.l1extraParticles.clone()
 process.l1extraParticlesRCT.centralJetSource = cms.InputTag("simGctDigisRCT","cenJets")
