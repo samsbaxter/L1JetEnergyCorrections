@@ -50,7 +50,7 @@ process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTri
 process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
 # Incase you want to test how the RCT is configured
 # (may need L1TriggerConfig/RCTConfigProducers)
-process.l1RCTParametersTest = cms.EDAnalyzer('L1RCTParametersTester')
+# process.l1RCTParametersTest = cms.EDAnalyzer('L1RCTParametersTester')
 # process.l1RCTChannelMaskTest = cms.EDAnalyzer('L1RCTChannelMaskTester')
 # process.l1RCTOutputScalesTest = cms.EDAnalyzer('L1ScalesTester')
 # process.printGlobalTagL1Rct = cms.Sequence(process.l1RCTParametersTest*process.l1RCTChannelMaskTest*process.l1RCTOutputScalesTest)
@@ -60,47 +60,30 @@ process.l1RCTParametersTest = cms.EDAnalyzer('L1RCTParametersTester')
 process.simGctDigisRCT = process.simGctDigis.clone()
 process.simGctDigisRCT.inputLabel = cms.InputTag('simRctDigis')
 
-
-# L1 ntuple producers
-process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
-# from the unpacker
-process.l1extraParticles.centralBxOnly = cms.bool(True)
-process.l1ExtraTreeProducerRCT = process.l1ExtraTreeProducer.clone()
-# from the TP->RCT->GCT chain
-process.l1extraParticlesRCT = process.l1extraParticles.clone()
-process.l1extraParticlesRCT.centralJetSource = cms.InputTag("simGctDigisRCT","cenJets")
-process.l1extraParticlesRCT.forwardJetSource = cms.InputTag("simGctDigisRCT","fwdJets")
-process.l1ExtraTreeProducerRCT.cenJetLabel = cms.untracked.InputTag("l1extraParticlesRCT:Central")
-process.l1ExtraTreeProducerRCT.fwdJetLabel = cms.untracked.InputTag("l1extraParticlesRCT:Forward")
-
 ##############################
 # New RCT calibs
 ##############################
-from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-process.newRCTConfig = cms.ESSource("PoolDBESSource",
-    CondDBSetup,
-    connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-    DumpStat=cms.untracked.bool(True),
-    toGet = cms.VPSet(
-        cms.PSet(
-           record = cms.string('L1RCTParametersRcd'),
-           tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-        )
-    )
-)
-process.prefer("newRCTConfig")
+# from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+# process.newRCTConfig = cms.ESSource("PoolDBESSource",
+#     CondDBSetup,
+#     connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
+#     DumpStat=cms.untracked.bool(True),
+#     toGet = cms.VPSet(
+#         cms.PSet(
+#            record = cms.string('L1RCTParametersRcd'),
+#            tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
+#         )
+#     )
+# )
+# process.prefer("newRCTConfig")
 
 
 process.p = cms.Path(
     process.RawToDigi
     +process.simHcalTriggerPrimitiveDigis
-    +process.simGctDigis
-    +process.l1extraParticles
-    +process.l1ExtraTreeProducer
     +process.simRctDigis
+    +process.simGctDigis
     +process.simGctDigisRCT
-    +process.l1extraParticlesRCT
-    +process.l1ExtraTreeProducerRCT
     +process.l1RCTParametersTest
     # +process.printGlobalTagL1Rct
 )
@@ -112,7 +95,7 @@ process.p = cms.Path(
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree_test.root')
+    fileName = cms.string('L1Tree.root')
 )
 
 process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
@@ -139,7 +122,7 @@ process.output = cms.OutputModule(
         'keep *_ecalDigis_*_*',
         'keep *_simHcalUnsuppressedDigis_*_*'
         ),
-    fileName = cms.untracked.string('SimGCTEmulator_test.root')
+    fileName = cms.untracked.string('SimGCTEmulator.root')
     )
 
 process.output_step = cms.EndPath(process.output)
