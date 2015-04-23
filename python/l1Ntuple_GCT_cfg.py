@@ -3,7 +3,8 @@ import FWCore.ParameterSet.Config as cms
 """
 Make L1Ntuples from RAW, for use in L1JetEnergyCorrections
 
-Legacy GCT setup
+Legacy GCT setup, using regions from the unpacker
+See other configs if you want to re-run the RCT!
 """
 
 process = cms.Process("L1NTUPLE")
@@ -13,14 +14,12 @@ process.load('Configuration/StandardSequences/Services_cff')
 process.load('FWCore/MessageService/MessageLogger_cfi')
 process.load('Configuration/StandardSequences/SimL1Emulator_cff')
 process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
-# process.load("Configuration.StandardSequences.RawToDigi_cff")
-process.load('Configuration.StandardSequences.L1Reco_cff')
+process.load('Configuration.StandardSequences.L1Reco_cff')  # l1extraParticles from here
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration/StandardSequences/EndOfProcess_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-# process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
@@ -40,10 +39,6 @@ import L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi
 # process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
 
 process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
-process.load("L1TriggerDPG.L1Ntuples.l1RecoTreeProducer_cfi")
-process.load("L1TriggerDPG.L1Ntuples.l1MenuTreeProducer_cfi")
-process.load("L1TriggerDPG.L1Ntuples.l1MuonRecoTreeProducer_cfi")
-process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtTriggerMenuLite_cfi")
 
 
 ##############################
@@ -107,23 +102,6 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
     pileupInfoSource = cms.InputTag("addPileupInfo")
 )
 
-##############################
-# New RCT calibs
-##############################
-# from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-# process.newRCTConfig = cms.ESSource("PoolDBESSource",
-#     CondDBSetup,
-#     connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-#     DumpStat=cms.untracked.bool(True),
-#     toGet = cms.VPSet(
-#         cms.PSet(
-#            record = cms.string('L1RCTParametersRcd'),
-#            tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-#         )
-#     )
-# )
-# process.prefer("newRCTConfig")
-
 ###########################################################
 # Load new GCT jet calibration coefficients - edit the l1GctConfig file
 # accordingly.
@@ -174,7 +152,7 @@ process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 # readFiles = cms.untracked.vstring()
 # readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
