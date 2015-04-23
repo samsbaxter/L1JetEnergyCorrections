@@ -33,7 +33,6 @@ process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 
 # GCT emulator run from RCT emulator
 
-# HACK NUMBER 1 & 2 (a la Mambo no. 5)
 # Remake the HCAL TPs since hcalDigis outputs nothing
 # But make sure you use the unsupressed digis, not the hcalDigis
 process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
@@ -44,7 +43,6 @@ process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
 # Rerun the RCT emulator using the TPs
 process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
 process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
-# HACK NUMBER 3: setup the RCT config properly.
 # The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
 # At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
 process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
@@ -56,7 +54,6 @@ process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
 # process.printGlobalTagL1Rct = cms.Sequence(process.l1RCTParametersTest*process.l1RCTChannelMaskTest*process.l1RCTOutputScalesTest)
 
 # Now rerun the GCT emulator using those re-made regions
-# Wahey, no haxs here.
 process.simGctDigisRCT = process.simGctDigis.clone()
 process.simGctDigisRCT.inputLabel = cms.InputTag('simRctDigis')
 
