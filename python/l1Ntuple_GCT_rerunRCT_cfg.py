@@ -3,7 +3,10 @@ import FWCore.ParameterSet.Config as cms
 """
 Make L1Ntuples from RAW, for use in L1JetEnergyCorrections
 
-Legacy GCT setup
+Legacy GCT setup, re-running the RCT and GCT to include new RCT calibs
+
+Note that there are several hacks in here, after much discussion with HCAL/RCT
+people.
 """
 
 process = cms.Process("L1NTUPLE")
@@ -13,14 +16,12 @@ process.load('Configuration/StandardSequences/Services_cff')
 process.load('FWCore/MessageService/MessageLogger_cfi')
 process.load('Configuration/StandardSequences/SimL1Emulator_cff')
 process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
-# process.load("Configuration.StandardSequences.RawToDigi_cff")
-process.load('Configuration.StandardSequences.L1Reco_cff')
+process.load('Configuration.StandardSequences.L1Reco_cff') # l1extraParticles from here
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration/StandardSequences/EndOfProcess_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-# process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
@@ -32,34 +33,41 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     )
 
 # L1 raw to digi options
-process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
 process.l1extraParticles.centralBxOnly = cms.bool(True)
 
 # L1 ntuple producers
 import L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi 
-# process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
-
 process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
-process.load("L1TriggerDPG.L1Ntuples.l1RecoTreeProducer_cfi")
-process.load("L1TriggerDPG.L1Ntuples.l1MenuTreeProducer_cfi")
-process.load("L1TriggerDPG.L1Ntuples.l1MuonRecoTreeProducer_cfi")
-process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtTriggerMenuLite_cfi")
-
 
 ##############################
 # GCT internal jet collection
 ##############################
-# This re-runs the RCT emulator with the TPs
-process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
-process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
-process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
+# Remake the HCAL TPs since hcalDigis outputs nothing
+# But make sure you use the unsupressed digis, not the hcalDigis
+process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
+    cms.InputTag('simHcalUnsuppressedDigis'),
+    cms.InputTag('simHcalUnsuppressedDigis')
+)
 
+# The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
+# At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
+process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
+
+# Rerun the RCT emulator using the TPs
+process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
+process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
+
+# Rerun the GCT emulator using the RCT regions, including intern collections
+process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
 process.simGctDigis.writeInternalData = cms.bool(True)
+process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
 
 # Convert Gct Internal jets to L1JetParticles
 process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
     gctInternJetSource = cms.InputTag("simGctDigis")
 )
+
 # Store in another L1ExtraTree as cenJets
 process.l1ExtraTreeProducerGctIntern = process.l1ExtraTreeProducer.clone()
 process.l1ExtraTreeProducerGctIntern.nonIsoEmLabel = cms.untracked.InputTag("")
@@ -146,11 +154,12 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 
 process.p = cms.Path(
     process.RawToDigi
-    # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
+    +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
     +process.l1extraParticles
     +process.gctInternJetToL1Jet
+    # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
     +process.genJetToL1JetAk5
     +process.genJetToL1JetAk4
     +process.l1ExtraTreeProducer # standard gctDigis in cenJet coll
@@ -177,16 +186,14 @@ process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 # readFiles = cms.untracked.vstring()
-# readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
                             fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-170to300_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/025271B2-DAA8-E411-BB6E-002590D94F8E.root')
-                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
                             )
 
 
@@ -243,6 +250,6 @@ process.output = cms.OutputModule(
 process.output_step = cms.EndPath(process.output)
 
 process.schedule = cms.Schedule(
-    process.p,
-    process.output_step
+    process.p
+    # process.output_step
     )
