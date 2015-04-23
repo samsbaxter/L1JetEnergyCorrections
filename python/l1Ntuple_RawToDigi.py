@@ -21,9 +21,9 @@ process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
-    "csctfDigis",
-    "l1ExtraTreeProducerRCT",
-    "l1ExtraTreeProducer"
+    "csctfDigis"
+    # "l1ExtraTreeProducerRCT",
+    # "l1ExtraTreeProducer"
     )
 
 process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
