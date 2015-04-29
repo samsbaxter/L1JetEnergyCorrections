@@ -45,12 +45,12 @@ process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimit
 process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
 # The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
 # At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
-process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
+# process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
 # Incase you want to test how the RCT is configured
 # (may need L1TriggerConfig/RCTConfigProducers)
-# process.l1RCTParametersTest = cms.EDAnalyzer('L1RCTParametersTester')
+process.l1RCTParametersTest = cms.EDAnalyzer('L1RCTParametersTester')
 # process.l1RCTChannelMaskTest = cms.EDAnalyzer('L1RCTChannelMaskTester')
-# process.l1RCTOutputScalesTest = cms.EDAnalyzer('L1ScalesTester')
+process.l1RCTOutputScalesTest = cms.EDAnalyzer('L1ScalesTester')
 # process.printGlobalTagL1Rct = cms.Sequence(process.l1RCTParametersTest*process.l1RCTChannelMaskTest*process.l1RCTOutputScalesTest)
 
 # Now rerun the GCT emulator using those re-made regions
@@ -60,28 +60,33 @@ process.simGctDigisRCT.inputLabel = cms.InputTag('simRctDigis')
 ##############################
 # New RCT calibs
 ##############################
-# from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-# process.newRCTConfig = cms.ESSource("PoolDBESSource",
-#     CondDBSetup,
-#     connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-#     DumpStat=cms.untracked.bool(True),
-#     toGet = cms.VPSet(
-#         cms.PSet(
-#            record = cms.string('L1RCTParametersRcd'),
-#            tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-#         )
-#     )
-# )
-# process.prefer("newRCTConfig")
+from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+process.newRCTConfig = cms.ESSource("PoolDBESSource",
+    CondDBSetup,
+    connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
+    DumpStat=cms.untracked.bool(True),
+    toGet = cms.VPSet(
+        cms.PSet(
+           record = cms.string('L1RCTParametersRcd'),
+           tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
+        )
+    )
+)
+process.prefer("newRCTConfig")
 
 
 process.p = cms.Path(
-    process.RawToDigi
+    # process.RawToDigi
+    process.gctDigis
+    +process.ecalDigis
+    +process.ecalPreshowerDigis
+    +process.scalersRawToDigi
     +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
     +process.simGctDigisRCT
     +process.l1RCTParametersTest
+    +process.l1RCTOutputScalesTest
     # +process.printGlobalTagL1Rct
 )
 
@@ -92,14 +97,14 @@ process.p = cms.Path(
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree.root')
+    fileName = cms.string('L1Tree_newRCT.root')
 )
 
 process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 process.source = cms.Source ("PoolSource",
                             fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
@@ -119,7 +124,7 @@ process.output = cms.OutputModule(
         'keep *_ecalDigis_*_*',
         'keep *_simHcalUnsuppressedDigis_*_*'
         ),
-    fileName = cms.untracked.string('SimGCTEmulator.root')
+    fileName = cms.untracked.string('SimGCTEmulator_newRCT.root')
     )
 
 process.output_step = cms.EndPath(process.output)
