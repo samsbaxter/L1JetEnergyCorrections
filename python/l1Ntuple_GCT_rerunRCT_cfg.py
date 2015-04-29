@@ -52,7 +52,7 @@ process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
 
 # The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
 # At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
-process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
+# process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
 
 # Rerun the RCT emulator using the TPs
 process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
@@ -120,19 +120,19 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 ##############################
 # New RCT calibs
 ##############################
-# from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-# process.newRCTConfig = cms.ESSource("PoolDBESSource",
-#     CondDBSetup,
-#     connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-#     DumpStat=cms.untracked.bool(True),
-#     toGet = cms.VPSet(
-#         cms.PSet(
-#            record = cms.string('L1RCTParametersRcd'),
-#            tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-#         )
-#     )
-# )
-# process.prefer("newRCTConfig")
+from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+process.newRCTConfig = cms.ESSource("PoolDBESSource",
+    CondDBSetup,
+    connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
+    DumpStat=cms.untracked.bool(True),
+    toGet = cms.VPSet(
+        cms.PSet(
+           record = cms.string('L1RCTParametersRcd'),
+           tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
+        )
+    )
+)
+process.prefer("newRCTConfig")
 
 ###########################################################
 # Load new GCT jet calibration coefficients - edit the l1GctConfig file
@@ -153,7 +153,11 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 # process.MessageLogger.debugModules = cms.untracked.vstring('l1GctConfigDump')
 
 process.p = cms.Path(
-    process.RawToDigi
+    # process.RawToDigi
+    process.gctDigis
+    +process.ecalDigis
+    +process.ecalPreshowerDigis
+    +process.scalersRawToDigi
     +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
