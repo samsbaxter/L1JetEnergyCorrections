@@ -10,9 +10,9 @@ import L1Trigger.L1JetEnergyCorrections.samples as samples
 from CRABAPI.RawCommand import crabCommand
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "GCT_QCDPhys14_newRCT"
+job_append = "GCT_QCDPhys14_newRCT_HCALhack_v2"
 
-# CHANGE ME - select dataset(s) to run over - must be a list
+# CHANGE ME - select dataset(s) to run over - must be a list of dataset keys
 datasets = samples.samples_qcd_Phys14_AVE30BX50.keys()
 
 if __name__ == "__main__":
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # here into one common directory. That's why we need to set this parameter.
     config.General.workArea = 'l1ntuple_'+job_append
 
-    config.JobType.psetName = '../python/l1Ntuple_GCT_cfg.py'
+    config.JobType.psetName = '../python/l1Ntuple_GCT_rerunRCT_cfg.py'
 
     for dset in datasets:
         if not dset in samples.samples.keys():
