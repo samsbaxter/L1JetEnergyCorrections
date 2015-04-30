@@ -48,7 +48,7 @@ for i, ptmin in enumerate(ptbins[:-1]):
     key = "QCD_Pt-%dto%d_Phys14_AVE30BX50" % (ptmin, ptmax)
     ver = 1 if ptmin > 49 else 2
     samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE30BX50_tsg_castor_PHYS14_ST_V1-v%d/GEN-SIM-RAW" % (ptmin, ptmax, ver),
-                            unitsPerJob=100)
+                            unitsPerJob=50)
 
     # Fall13 PU20 25ns
     key = "QCD_Pt-%dto%d_Fall13_PU20bx25" % (ptmin, ptmax)
