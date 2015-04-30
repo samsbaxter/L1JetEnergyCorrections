@@ -18,7 +18,7 @@ from itertools import izip
 import os
 import argparse
 import binning
-from correction_LUT_plot import print_formula
+from correction_LUT_plot import print_function
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -235,8 +235,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
         print "Correction fn fit range:", fit_min, max_pt
         fit_graph, tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
-        print_formula(thisfit, "cpp")
-        print_formula(thisfit, "py")
+        print_function(thisfit, "cpp")
+        print_function(thisfit, "py")
         fit_params.append(tmp_params)
         outputfile.WriteTObject(fit_graph)
 
