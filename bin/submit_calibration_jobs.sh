@@ -3,8 +3,9 @@
 # To submit lots of runCalibration jobs on lxbatch system (or any bsub)
 # Splits it up by eta bin
 #
-# Change fdir (dir with the pairs file in it, output will go there)
-# Change fname (pairs file you want to run over)
+# Change pairs variable to full path of pairs file you want to run over
+# The output files from runCalibration.py will be made in the same directory
+
 
 declare -a etaBins=(
 0
@@ -21,8 +22,13 @@ declare -a etaBins=(
 5.001
 ) 
 
-fdir="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE30BX50_HCALhack/"
-fname="pairs_QCD_Pt-15to1000_Phys14_AVE30BX50_GCT_QCDPhys14_newRCT_HCALhack_GCT_ak5_ref14to1000_l10to500.root"
+pairs="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE30BX50_newRCT_HCALhack_v2/pairs_QCD_Pt-15to1000_Phys14_AVE30BX50_GCT_QCDPhys14_newRCT_HCALhack_v2_GCT_ak5_ref14to1000_l10to500.root"
+
+fdir=`dirname $pairs`
+fname=`basename $pairs`
+
+echo "Using pairs file $pairs"
+echo "Writing output to directory: $fdir"
 
 len=${#etaBins[@]}
 len=$(( len - 1 ))
@@ -31,11 +37,11 @@ do
     j=$(( i + 1 ))
     etamin=${etaBins[i]}
     etamax=${etaBins[j]}
-	jobname="${etamin}to${etamax}"
+    jobname="${etamin}to${etamax}"
     outname=${fname#pairs_}
     outname=${outname%.root}
-	outname="output_${outname}_${i}.root"
-	echo "$outname"
-	echo "$jobname"
-	bsub -q 8nh -J $jobname "sh calibration_batch.sh --no_genjet_plots ${fdir}/${fname} ${fdir}/${outname} --etaInd ${i}"
+    outname="output_${outname}_${i}.root"
+    echo "$jobname"
+    echo "$outname"
+    bsub -q 8nh -J $jobname "sh calibration_batch.sh --no_genjet_plots ${fdir}/${fname} ${fdir}/${outname} --etaInd ${i}"
 done
