@@ -29,5 +29,5 @@ do
 	outname=${outname%.root}
 	echo "$outname"
 	echo "$jobname"
-	bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${fdir}/${f} -O ${fdir}/pairs_${outname}_GCT_ak5_ref14to1000_l10to500.root"
+	bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${fdir}/${f} -O ${fdir}/pairs_${outname}_GCT_ak5_ref14to1000_l10to500_calibrated_min0.root --correct /afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE30BX50_newRCT_HCALhack_v2/output_QCD_Pt-15to1000_Phys14_AVE30BX50_GCT_QCDPhys14_newRCT_HCALhack_v2_GCT_ak5_ref14to1000_l10to500.root --corrMinPt 0.01"
 done
