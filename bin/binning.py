@@ -19,6 +19,9 @@ pt_bins_wide = list(numpy.concatenate((numpy.arange(14, 50, 4), numpy.arange(50,
 # 8 GeV bins for resolution plots
 pt_bins_8 = list(numpy.arange(14,246,8))
 pt_bins_8.append(250)
+# and wider ones for low stat bins
+pt_bins_8_wide = list(numpy.concatenate((numpy.arange(14,54,8), numpy.arange(54, 242, 20))))
+pt_bins_8_wide.append(250)
 
 ############
 # ETA BINS
