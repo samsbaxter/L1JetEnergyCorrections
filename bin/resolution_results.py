@@ -22,7 +22,7 @@ r.gROOT.SetBatch(1)
 # ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
 ptBins = binning.pt_bins_8[20:]
 etaBins = [binning.eta_bins[0], binning.eta_bins[-1]]
-# etaBins = binning.eta_bins[0:2]
+etaBins = binning.eta_bins[0:8]
 print etaBins
 
 
@@ -451,12 +451,12 @@ if __name__ == "__main__":
     parser.add_argument("--compare", help="filename to compare to <input> (e.g post-calibration)")
     args = parser.parse_args()
 
-    # if args.compare != "":
-    #     # Plot result for each eta bin & overall, comparing pre and post calib
-    #     plot_res_results(in_name_pre=args.input, in_name_post=args.compare)
-    # else:
-    #     # Same but no comparison, only 1 file
-    #     plot_res_results(in_name=args.input)
+    if args.compare != "":
+        # Plot result for each eta bin & overall, comparing pre and post calib
+        plot_res_results(in_name_pre=args.input, in_name_post=args.compare)
+    else:
+        # Same but no comparison, only 1 file
+        plot_res_results(in_name=args.input)
 
     # Plot each pt bin in every eta bin (i.e. A LOT)
     if args.detail:
