@@ -39,7 +39,7 @@ def check_dir_exists(d):
         os.makedirs(opath)
 
 
-def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawfit=True, drawopts=""):
+def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawopts="", drawfit=True, extend_fit=True):
     """
     f is a TFile
     filename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
@@ -72,13 +72,13 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawfit=
         p.Draw(drawopts)
         p2.Draw(drawopts+"SAME")
         # draw fit over full range, not just fitted range
-        # if drawfit:
-        #     fn = p2.GetListOfFunctions().At(0)
-        #     fn2 = fn.Clone()
-        #     fn2.SetRange(0,250)
-        #     fn2.SetLineStyle(3)
-        #     fn2.SetLineWidth(2)
-        #     fn2.Draw("SAME")
+        if drawfit and extend_fit:
+            fn = p2.GetListOfFunctions().At(0)
+            fn2 = fn.Clone()
+            fn2.SetRange(0,250)
+            fn2.SetLineStyle(3)
+            fn2.SetLineWidth(2)
+            fn2.Draw("SAME")
         p.Draw(drawopts+"SAME")
         r.gPad.Update()
 
@@ -139,15 +139,16 @@ def plot_corr_results(in_name=""):
             emax = etaBins[i+1]
             name = "l1corr_eta_%g_%g" % (emin, emax)
             bin_title = "%g <  |\eta^{L1}| < %g" % (emin, emax)
-            plot_to_file(input_file,
+            if plot_to_file(input_file,
                         "l1corr_eta_%g_%g" % (emin, emax),
                         [odir+name+".tex", odir+name+".pdf"],
                         xtitle="<p_{T}^{L1}> [GeV]",
                         ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value",
                         title="",
-                        drawfit=True)
-            titles.append("$%s$" % bin_title)
-            plotnames.append(odir+name+".tex")
+                        drawfit=True,
+                        extend_fit=True):
+                titles.append("$%s$" % bin_title)
+                plotnames.append(odir+name+".tex")
             print i
             print titles
             print plotnames
