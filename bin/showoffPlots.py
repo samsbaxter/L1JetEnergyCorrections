@@ -59,7 +59,7 @@ def open_pdf(pdf_filename):
 def open_root_file(filename, mode="READ"):
     """Safe way to open ROOT file. Could be improved."""
     f = ROOT.TFile(filename, mode)
-    if f.IsZombie():
+    if f.IsZombie() or not f:
         raise RuntimeError("Can't open TFile %s" % filename)
     return f
 
@@ -80,26 +80,26 @@ def generate_canvas():
     return c
 
 
-def plot_dR(tree, cut, oDir):
+def plot_dR(tree, cut, oDir, oFormat="pdf"):
     """Plot deltaR(L1 - RefJet)"""
     c = generate_canvas()
     tree.Draw("dr>>h_dr(100,0,0.8)", cut, "HISTE")
     h_dr = ROOT.gROOT.FindObject("h_dr")
     h_dr.SetTitle(";%s;N" % dr_str)
-    c.SaveAs("%s/dr.pdf" % oDir)
+    c.SaveAs("%s/dr.%s" % (oDir, oFormat))
 
 
-def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir):
+def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the difference between L1 and ref jet pT, for given L1 pT, eta bin"""
     hname = "eta_%g_%g/Histograms/ptDiff_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     h_diff = get_from_file(res_file, hname)
     c = generate_canvas()
     h_diff.Draw()
     h_diff.SetTitle(";%s;N" % pt_diff_str)
-    c.SaveAs("%s/pt_diff_eta_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+    c.SaveAs("%s/pt_diff_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
-def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir):
+def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the L1 resolution for given L1 pT, eta bin"""
     hname = "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     h_res = get_from_file(res_file, hname)
@@ -107,10 +107,10 @@ def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir):
     h_res.Draw()
     h_res.SetAxisRange(-2, 2, "X")
     h_res.SetTitle(";%s;N" % res_l1_str)
-    c.SaveAs("%s/res_l1_eta_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+    c.SaveAs("%s/res_l1_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
-def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir):
+def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot a graph of resolution as a function of L1 eta.
 
     Can optionally do comparison against another file,
@@ -133,7 +133,7 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir):
         gr_1.GetYaxis().SetTitleOffset(1)
         # gr_1.GetYaxis().SetTitleSize(0.04)
         gr_1.Draw("ALP")
-        c.SaveAs("%s/res_l1_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+        c.SaveAs("%s/res_l1_eta_%g_%g.%s" % (oDir, eta_min, eta_max))
     else:
         mg = ROOT.TMultiGraph()
         mg.Add(gr_1)
@@ -153,10 +153,10 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir):
         leg.AddEntry(gr_1, "Before calibration", "LP")
         leg.AddEntry(gr_2, "After calibration", "LP")
         leg.Draw()
-        c.SaveAs("%s/res_l1_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+        c.SaveAs("%s/res_l1_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir):
+def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot l1 pt against ref jet pt, for given L1 eta bin"""
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
     h2d_gen_l1 = get_from_file(check_file, hname)
@@ -166,10 +166,10 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir):
     line.SetLineStyle(2)
     line.SetLineWidth(2)
     line.Draw()
-    c.SaveAs("%s/h2d_gen_l1_%g_%g.pdf" % (oDir, eta_min, eta_max))
+    c.SaveAs("%s/h2d_gen_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir):
+def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta.
 
     Can optionally do comparison against another file,
@@ -202,7 +202,7 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir):
         # gr_1.GetYaxis().SetTitleSize(0.04)
         gr_1.Draw("ALP")
         [line.Draw() for line in [line_central, line_plus, line_minus]]
-        c.SaveAs("%s/gr_rsp_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+        c.SaveAs("%s/gr_rsp_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
     else:
         mg = ROOT.TMultiGraph()
         mg.Add(gr_1)
@@ -223,39 +223,39 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir):
         leg.AddEntry(gr_2, "After calibration", "LP")
         leg.Draw()
         [line.Draw() for line in [line_central, line_plus, line_minus]]
-        c.SaveAs("%s/gr_rsp_eta_%g_%g.pdf" % (oDir, eta_min, eta_max))
+        c.SaveAs("%s/gr_rsp_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir):
+def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one pt, eta bin"""
     hname = "eta_%g_%g/Histograms/Rsp_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     h_rsp = get_from_file(calib_file, hname)
     c = generate_canvas()
     h_rsp.Draw("HISTE")
-    c.SaveAs("%s/h_rsp_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+    c.SaveAs("%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
-def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir):
+def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin"""
     hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min)
     h_rsp = get_from_file(calib_file, hname)
     c = generate_canvas()
     h_rsp.Draw("HISTE")
-    c.SaveAs("%s/h_rsp_%g_%g.pdf" % (oDir, eta_min, eta_max))
+    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir):
+def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the L1 pt in a given ref jet pt bin"""
     hname = "eta_%g_%g/Histograms/L1_pt_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     h_pt = get_from_file(calib_file, hname)
     c = generate_canvas()
     h_pt.Draw("HISTE")
-    c.SaveAs("%s/L1_pt_%g_%g_%g_%g.pdf" % (oDir, eta_min, eta_max, pt_min, pt_max))
+    c.SaveAs("%s/L1_pt_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
 def main(in_args=sys.argv[1:]):
     print in_args
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pairs", help="input ROOT file with matched pairs from RunMatcher")
 
     parser.add_argument("--res", help="input ROOT file with resolution plots from makeResolutionPlots.py")
@@ -300,10 +300,10 @@ def main(in_args=sys.argv[1:]):
 
         pt_min = binning.pt_bins_8[8]
         pt_max = binning.pt_bins_8[9]
-        plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
-        plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
+        plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+        plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
         res_file2 = open_root_file(args.res2) if args.res2 else None
-        plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir)
+        plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
 
         res_file.Close()
 
@@ -311,9 +311,9 @@ def main(in_args=sys.argv[1:]):
     if args.checkcal:
         check_file = open_root_file(args.checkcal)
 
-        plot_l1_Vs_ref(check_file, eta_min, eta_max, args.oDir)
+        plot_l1_Vs_ref(check_file, eta_min, eta_max, args.oDir, args.format)
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
-        plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir)
+        plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir, args.format)
 
         check_file.Close()
 
@@ -321,9 +321,9 @@ def main(in_args=sys.argv[1:]):
     if args.calib:
         calib_file = open_root_file(args.calib)
 
-        plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
-        plot_rsp_eta_bin(calib_file, eta_min, eta_max, args.oDir)
-        plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir)
+        plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+        plot_rsp_eta_bin(calib_file, eta_min, eta_max, args.oDir, args.format)
+        plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
         calib_file.Close()
 
