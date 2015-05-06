@@ -103,6 +103,9 @@ def main(in_args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("lut", help="output LUT filename", default="my_lut.py")
+    parser.add_argument("--cpp", help="print ROOT C++ code to screen", action='store_true')
+    parser.add_argument("--python", help="print PyROOT code to screen", action='store_true')
+    parser.add_argument("--numpy", help="print numpy code to screen", action='store_true')
     args = parser.parse_args(args=in_args)
 
     in_file = ROOT.TFile(args.input)
@@ -120,8 +123,9 @@ def main(in_args=sys.argv[1:]):
     line2.SetLineStyle(3)
     all_fit_params = []
 
-    for i, etamin in enumerate(binning.eta_bins[:-1]):
-        etamax = binning.eta_bins[i+1]
+    etaBins = binning.eta_bins_central
+    for i, (etamin, etamax) in enumerate(izip(etaBins[:-1], etaBins[1:])):
+        print "Eta bin:", etamin, "-", etamax
 
         # get the fitted TF1
         fit_func = in_file.Get("fitfcneta_%g_%g" % (etamin, etamax))
@@ -130,11 +134,17 @@ def main(in_args=sys.argv[1:]):
 
         fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
         all_fit_params.append(fit_params)
+        print "Fit parameters:", fit_params
+        corr_10 = fit_func.Eval(10)
+        print "Fit fn evaluated at 10 GeV:", corr_10
 
         # Print function to screen
-        print_function(fit_func, "cpp")
-        print_function(fit_func, "py")
-        print_function(fit_func, "numpy")
+        if args.cpp:
+            print_function(fit_func, "cpp")
+        if args.python:
+            print_function(fit_func, "py")
+        if args.numpy:
+            print_function(fit_func, "numpy")
 
         # Print function to canvas
         canv.cd(i+1)
@@ -144,15 +154,13 @@ def main(in_args=sys.argv[1:]):
         line.SetY1(-15)
         line.SetY2(15)
         line.Draw()
-        corr_10 = fit_func.Eval(10)
         l2 = line2.Clone()
         l2.SetY1(corr_10)
         l2.SetY2(corr_10)
-        print corr_10
         l2.Draw("SAME")
 
     canv.SaveAs("all_fits.pdf")
-    print_lut_file(all_fit_params, binning.eta_bins, args.lut)
+    print_lut_file(all_fit_params, etaBins, args.lut)
 
 if __name__ == "__main__":
     main()
