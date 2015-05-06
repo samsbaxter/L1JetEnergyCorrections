@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script produces plots for showing off in notes/presentations, etc.
 

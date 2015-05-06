@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script takes as input the output file from RunMatcher, and loops over
 matched genjet/L1 jet pairs, plotting interesting things and producing a

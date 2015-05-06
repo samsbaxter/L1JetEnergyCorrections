@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script pulls the correction functions from the ROOT file 
 output by runCalibration.py, and then:

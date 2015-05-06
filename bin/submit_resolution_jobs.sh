@@ -40,7 +40,7 @@ do
     jobname="${etamin}to${etamax}"
     outname=${fname#pairs_}
     outname=${outname%.root}
-    outname="res_${outname}_${i}.root"
+    outname="res_${outname}_${i}_allfits.root"
     echo "$jobname"
     echo "$outname"
     bsub -q 8nh -J $jobname "sh resolution_batch.sh ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i}"
@@ -48,6 +48,6 @@ done
 
 outname=${fname#pairs_}
 outname=${outname%.root}
-bsub -q 8nh -J allCentral "sh resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_central.root --incl --central"
-bsub -q 8nh -J allForward "sh resolution_batch.sh ${fdir}/${fname} ${fdir}res_${outname}_forward.root --incl --forward"
-bsub -q 8nh -J all "sh resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_all.root --incl"
+bsub -q 8nh -J allCentral "sh resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_central_allfits.root --incl --central"
+bsub -q 8nh -J allForward "sh resolution_batch.sh ${fdir}/${fname} ${fdir}res_${outname}_forward_allfits.root --incl --forward"
+bsub -q 8nh -J all "sh resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_all_allfits.root --incl"

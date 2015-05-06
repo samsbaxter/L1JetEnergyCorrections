@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script takes as input the output file from RunMatcher, and loops over
 matched reference jet/L1 jet pairs, making resolution plots.

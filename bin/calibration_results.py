@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script outputs all the calibration plots in the ROOT file as one long pdf,
 cos TBrowser sucks.
