@@ -352,7 +352,7 @@ def fit_correction(graph, function, fit_min, fit_max):
 ########### MAIN ########################
 def main(in_args=sys.argv[1:]):
     print in_args
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
     parser.add_argument("--no_genjet_plots", action='store_false',

@@ -260,7 +260,7 @@ def compile_pdf(texfile, pdffile, outdir):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("--detail", action="store_true", help="do all pt bin plots as well (takes much longer!)")
     args = parser.parse_args()

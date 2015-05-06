@@ -100,7 +100,7 @@ def print_lut_file(fit_params, eta_bins, filename):
 
 
 def main(in_args=sys.argv[1:]):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("lut", help="output LUT filename", default="my_lut.py")
     args = parser.parse_args(args=in_args)

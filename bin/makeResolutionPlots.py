@@ -252,7 +252,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
 ########### MAIN ########################
 def main(in_args=sys.argv[1:]):
     print in_args
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
     parser.add_argument("--incl", action="store_true", help="Do inclusive eta plots")
