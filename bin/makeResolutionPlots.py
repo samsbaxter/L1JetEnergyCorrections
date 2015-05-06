@@ -38,13 +38,17 @@ def check_var_stored(tree, var):
     """Check to see if TTree has branch with name var"""
     return tree.GetListOfBranches().FindObject(var)
 
+def check_fit_mean(fit_res, hist):
+    """Check fit ok by comparing means - ASSUMES GAUSSIAN"""
+    pass
 
 def check_fit_peaks(fit_res, hist):
-    """Check fit ok by comparing peaks"""
+    """Check fit ok by comparing peaks - ASSUMES GAUSSIAN"""
     peak = hist.GetBinCenter(hist.GetMaximumBin())
     return abs(peak - fit_res.Parameters()[1]) < 0.2 * abs(peak)
 
 def check_fit_width(fit_res, hist):
+    """Check fit ok by comparing widths - ASSUMES GAUSSIAN"""
     rms = hist.GetRMS()
     return abs(rms - fit_res.Parameters()[2]) < 0.2 * abs(rms)
 
@@ -91,7 +95,7 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, div
         width_err = h_res.GetRMSError()
 
         # check fit converged, and is sensible
-        if fit_res and int(fit_res) == 0 and check_fit_width(fit_res, h_res):
+        if fit_res and int(fit_res) == 0: # and check_fit_width(fit_res, h_res):
             width =  fit_res.Parameters()[2]
             width_err = fit_res.Errors()[2]
         else:
