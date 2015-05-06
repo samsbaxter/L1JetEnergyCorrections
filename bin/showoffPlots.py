@@ -21,6 +21,8 @@ import argparse
 from subprocess import call
 from subprocess import check_output
 from sys import platform as _platform
+from itertools import izip
+from common_utils import *
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
@@ -28,7 +30,6 @@ ROOT.gStyle.SetOptFit(0111) # onyl show fit params and errors
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 
-etaBins = binning.eta_bins
 ptBins = binning.pt_bins
 
 # Some common strings
@@ -40,37 +41,6 @@ pt_L1_str = "E_{T}^{L1} [GeV]"
 pt_Gen_str = "E_{T}^{Gen} [GeV]"
 res_l1_str = "(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}"
 pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
-
-
-
-def open_pdf(pdf_filename):
-    """Open a PDF file using system's default PDF viewer."""
-    if _platform.startswith("linux"):
-        # linux
-        call(["xdg-open", pdf_filename])
-    elif _platform == "darwin":
-        # OS X
-        call(["open", pdf_filename])
-    elif _platform == "win32":
-        # Windows
-        call(["start", pdf_filename])
-
-
-def open_root_file(filename, mode="READ"):
-    """Safe way to open ROOT file. Could be improved."""
-    f = ROOT.TFile(filename, mode)
-    if f.IsZombie() or not f:
-        raise RuntimeError("Can't open TFile %s" % filename)
-    return f
-
-
-def get_from_file(inFile, obj_name):
-    """Get some object from ROOT file with checks."""
-    obj = inFile.Get(obj_name)
-    print "getting %s" % obj_name
-    if not obj:
-        raise Exception("Can't get object named %s from %s" % (obj_name, inFile.GetName()))
-    return obj
 
 
 def generate_canvas():
@@ -133,7 +103,7 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
         gr_1.GetYaxis().SetTitleOffset(1)
         # gr_1.GetYaxis().SetTitleSize(0.04)
         gr_1.Draw("ALP")
-        c.SaveAs("%s/res_l1_eta_%g_%g.%s" % (oDir, eta_min, eta_max))
+        c.SaveAs("%s/res_l1_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
     else:
         mg = ROOT.TMultiGraph()
         mg.Add(gr_1)
@@ -153,7 +123,7 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
         leg.AddEntry(gr_1, "Before calibration", "LP")
         leg.AddEntry(gr_2, "After calibration", "LP")
         leg.Draw()
-        c.SaveAs("%s/res_l1_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+        c.SaveAs("%s/res_l1_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
@@ -223,7 +193,7 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"
         leg.AddEntry(gr_2, "After calibration", "LP")
         leg.Draw()
         [line.Draw() for line in [line_central, line_plus, line_minus]]
-        c.SaveAs("%s/gr_rsp_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+        c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
@@ -237,10 +207,13 @@ def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFor
 
 def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin"""
-    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min)
-    h_rsp = get_from_file(calib_file, hname)
+    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+    h_rsp = ROOT.TH1F(get_from_file(calib_file, hname))
+    func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
     h_rsp.Draw("HISTE")
+    if func:
+        func.Draw("SAME")
     c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
@@ -278,12 +251,15 @@ def main(in_args=sys.argv[1:]):
 
     print args
 
+    # Check if directory exists. If not, create it.
+    check_dir_exists_create(args.oDir)
+
     # Choice eta & pt bin
-    eta_min, eta_max = etaBins[0], etaBins[1]
+    eta_min, eta_max = binning.eta_bins[0], binning.eta_bins[1]
     pt_min, pt_max = ptBins[10], ptBins[11]
 
     if args.etaInd:
-        eta_min, eta_max = etaBins[int(args.etaInd)], etaBins[int(args.etaInd)+1]
+        eta_min, eta_max = binning.eta_bins[int(args.etaInd)], binning.eta_bins[int(args.etaInd)+1]
 
     # Do plots with output from RunMatcher
     if args.pairs:
@@ -297,13 +273,19 @@ def main(in_args=sys.argv[1:]):
     # Do plots with output from makeResolutionPlots.py
     if args.res:
         res_file = open_root_file(args.res)
-
-        pt_min = binning.pt_bins_8[8]
-        pt_max = binning.pt_bins_8[9]
-        plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-        plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-        res_file2 = open_root_file(args.res2) if args.res2 else None
-        plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
+        if not args.res2:
+            # if not doing comparison
+            pt_min = binning.pt_bins_8[8]
+            pt_max = binning.pt_bins_8[9]
+            plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+            plot_res_all_pt(res_file, None, eta_min, eta_max, args.oDir, args.format)
+        else:
+            # if doing comparison
+            res_file2 = open_root_file(args.res2)
+            plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
+            for emin, emax in izip(binning.eta_bins_central[:-2], binning.eta_bins_central[1:]):
+                plot_res_all_pt(res_file, res_file2, emin, emax, args.oDir, args.format)
 
         res_file.Close()
 
@@ -312,6 +294,8 @@ def main(in_args=sys.argv[1:]):
         check_file = open_root_file(args.checkcal)
 
         plot_l1_Vs_ref(check_file, eta_min, eta_max, args.oDir, args.format)
+        for emin, emax in izip(binning.eta_bins_central[:-2], binning.eta_bins_central[1:]):
+            plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
         plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir, args.format)
 
