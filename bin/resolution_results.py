@@ -19,9 +19,8 @@ r.PyConfig.IgnoreCommandLineOptions = True
 r.gROOT.SetBatch(1)
 
 
-# ptBins = list(numpy.concatenate((numpy.array([14, 18, 22, 24]), numpy.arange(28, 252, 4)))) # slightly odd binning here - why?
 ptBins = binning.pt_bins_8[20:]
-etaBins = [binning.eta_bins[0], binning.eta_bins[-1]]
+# etaBins = [binning.eta_bins[0], binning.eta_bins[-1]]
 etaBins = binning.eta_bins[0:8]
 print etaBins
 
@@ -284,38 +283,38 @@ def plot_res_results(in_name_pre="", in_name_post=""):
                 titles = []
                 plotnames = []
 
-        # Do the inclusive eta plot
-        emin = etaBins[0]
-        emax = etaBins[-1]
+        # # Do the inclusive eta plot
+        # emin = etaBins[0]
+        # emax = etaBins[-1]
 
-        # PLOT - L1 resolution (L1 - ref / L1) as binned by L1 jet pt
-        name = "resL1_%g_%g" % (emin, emax)
-        pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
-        plots = [pre_dict]
-        if in_name_post:
-            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text=txt_post, legend_style="LPE")
-            plots.append(post_dict)
+        # # PLOT - L1 resolution (L1 - ref / L1) as binned by L1 jet pt
+        # name = "resL1_%g_%g" % (emin, emax)
+        # pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
+        # plots = [pre_dict]
+        # if in_name_post:
+        #     post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text=txt_post, legend_style="LPE")
+        #     plots.append(post_dict)
 
-        multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
-            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", drawfit=True, drawopts="ALP", ylim=lim_l1)
-        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
-        plotnames.append(odir+name+".tex")
+        # multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
+        #     xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{L1}", drawfit=True, drawopts="ALP", ylim=lim_l1)
+        # titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
+        # plotnames.append(odir+name+".tex")
 
-        # PLOT - ref resolution binned by ref pt
-        name = "resRefRef_%g_%g" % (emin, emax)
-        pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
-        plots = [pre_dict]
-        if in_name_post:
-            post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text=txt_post, legend_style="LPE")
-            plots.append(post_dict)
+        # # PLOT - ref resolution binned by ref pt
+        # name = "resRefRef_%g_%g" % (emin, emax)
+        # pre_dict = dict(infile=input_file_pre, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kRed, legend_text=txt_pre, legend_style="LPE")
+        # plots = [pre_dict]
+        # if in_name_post:
+        #     post_dict = dict(infile=input_file_post, plotname="eta_%g_%g/" %(emin, emax)+name, color=r.kBlue, legend_text=txt_post, legend_style="LPE")
+        #     plots.append(post_dict)
 
-        multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
-            xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP", ylim=lim_ref)
-        titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
-        plotnames.append(odir+name+".tex")
+        # multiplot_to_file(plots, outfilename=[odir+name+".tex", odir+name+".pdf"],
+        #     xtitle="p_{T}^{L1} [GeV]", ytitle="(p_{T}^{L1} - p_{T}^{Gen})/ p_{T}^{Gen}", drawfit=True, drawopts="ALP", ylim=lim_ref)
+        # titles.append("$%g <  |\eta^{L1}| < %g$" % (emin, emax))
+        # plotnames.append(odir+name+".tex")
 
-        print "Writing", emin, emax
-        slidetitle = "Resolution comparison pre \\& post calibration (L1 \\& GenJet)"
+        # print "Writing", emin, emax
+        # slidetitle = "Resolution comparison pre \\& post calibration (L1 \\& GenJet)"
         slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
 
     compile_pdf(main_file, out_name, odir)
@@ -369,7 +368,7 @@ def plot_bin_results(in_name=""):
             out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
             check_dir_exists(out_dir_eta)
             if emin >= 3.:
-                ptBins = binning.pt_bins_8
+                ptBins = binning.pt_bins_8_wide
             else:
                 ptBins = binning.pt_bins_8
             print ptBins
@@ -400,6 +399,8 @@ def plot_bin_results(in_name=""):
                     slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                     titles = []
                     plotnames = []
+            slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
+        slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
 
         # the inclusive eta bin:
         # emin = eta
