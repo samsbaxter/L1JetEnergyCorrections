@@ -80,7 +80,7 @@ Note that the RunMatcher program also includes an option to plot the eta Vs phi 
 ### Calculate calibration function & LUTs
 Calculation of calibration functions is done by [bin/runCalibration.py](bin/runCalibration.py), using the ROOT file of matched pairs output by the `RunMatcher` program as input. For possible options, do `python runCalibration.py -h`
 
-To make the LUTs, use the script XXX.
+To make the LUTs, see below.
 
 ### Resolution performance
 This is dine by [bin/makeResolutionPlots.py](bin/makeResolutionPlots.py) This takes the ROOT file with matched pairs output by `RunMatcher`, and produces resolution plots stored in a ROOT file. Quantities include `L1 - Ref`, `(L1 - Ref) / L1`, and `(L1 - Ref) / Ref`. For possible options, in `bin` do `python makeResolutionPlots.py -h`
@@ -104,3 +104,49 @@ There are several other useful scripts in the `bin` dir. Doing `python <scriptna
 # mv dictionary.cpp ../src/
 # cd $CMSSW_BASE/src
 ```
+
+## Making new JEC LUT
+
+**Currently for GCT only**
+
+To apply, need to make a new `L1GctConfigProducers` module. Unfortunately, this also contains other parameters to setup the GCT, which we do _not_ want to change. Therefore the following steps must be followed:
+
+1) Use [checkGctConfig_cfg.py](python/checkGctConfig_cfg.py) to show the current GCT setup in whichever sample you are running over. Make sure to change the Global Tag to match whichever smaple you want to run over. Also ensure that the line
+```
+process.load('l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+```
+is commented out.
+
+2) This will dump the GCT settings to screen (somewhere amongst the other messages). Make a copy of [l1GctConfig_template_cfi.py](python/l1GctConfig_template_cfi.py) and update the parameters to match the printout in the previous step.
+
+3) Now make the LUT to go into the `L1GctConfigProducers`. Use [correction_LUT_plot.py](bin/correction_LUT_plot.py) to run over your output from [bin/runCalibration.py](bin/runCalibration.py) and make a LUT. This script alos allows you to plot the correction functions, to ensure they are sensible, and optionally prints the function to screen in ROOT/PyROOT/numpy formats so you can use them in scripts, etc.
+
+4) Copy the LUT into your `L1GctConfigProducers` setup.
+
+5) Run `scram b -j9` to ensure your new cfi file is recognised.
+
+## Applying new JEC LUT
+
+1) In your L1Ntuple config file, add in line:
+
+```
+process.load('L1Trigger.L1JetEnergyCorrections.my_new_gct_config_cfi')
+```
+
+You will now run with whatever calibrations you derived.
+
+To check they are being applied:
+
+1) the following should be output when running:
+```
+MSG-w L1GctConfig:  (NoModuleName) 07-May-2015 15:56:38 CEST pre-events
+Calibration Style option PF
+%MSG
+```
+
+2) check the L1 Ntuple output jet collections, to ensure the changes are being registered.
+
+### Existing LUTs:
+
+- [l1GctConfig_720_PHYS14_ST_V1_central_cfi](python/l1GctConfig_720_PHYS14_ST_V1_central_cfi): designed for use with GCT in Phys14 AVE30 BX50 samples. **Central eta ( < 3) calibrations only** (due to fault with HF in 720). Derived using CMSSW_7_2_0, on pt-binned QCD samples.
+
