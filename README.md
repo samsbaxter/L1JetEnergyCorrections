@@ -14,7 +14,7 @@ This applies to:
 # For GCT:
 cmsrel CMSSW_7_2_0
 # For Stage 1: check Twiki page
-cmsresl CMSSW_7_3_0
+cmsrel CMSSW_7_3_0
 
 cd CMSSW_7_*_0/src
 cmsenv
@@ -78,12 +78,12 @@ This is done in [bin/RunMatcher](bin/RunMatcher.cpp). You can run it easily by d
 Note that the RunMatcher program also includes an option to plot the eta Vs phi for jets to check it's actually working (this utilises the [JetDrawer](interface/JetDrawer) class).
 
 ### Calculate calibration function & LUTs
-Calculation of calibration functions is done by [bin/runCalibration.py](bin/runCalibration.py), using the ROOT file of matched pairs output by the `RunMatcher` program as input. For possible options, do `python runCalibration.py -h`
+Calculation of calibration functions is done by [bin/runCalibration.py](bin/runCalibration.py), using the ROOT file of matched pairs output by the `RunMatcher` program as input. For possible options, do `python runCalibration.py -h`. Note that the script can be a little time consuming, therefore there is also a bsub script to submit to the LXBATCH system, see [bin/submit_calibration_jobs.sh](bin/submit_calibration_jobs.sh)
 
 To make the LUTs, see below.
 
 ### Resolution performance
-This is dine by [bin/makeResolutionPlots.py](bin/makeResolutionPlots.py) This takes the ROOT file with matched pairs output by `RunMatcher`, and produces resolution plots stored in a ROOT file. Quantities include `L1 - Ref`, `(L1 - Ref) / L1`, and `(L1 - Ref) / Ref`. For possible options, in `bin` do `python makeResolutionPlots.py -h`
+This is done in [bin/makeResolutionPlots.py](bin/makeResolutionPlots.py) This takes the ROOT file with matched pairs output by `RunMatcher`, and produces resolution plots stored in a ROOT file. Quantities include `L1 - Ref`, `(L1 - Ref) / L1`, and `(L1 - Ref) / Ref`. For possible options, in `bin` do `python makeResolutionPlots.py -h`. Note that the script can be a little time consuming, therefore there is also a bsub script to submit to the LXBATCH system, see [bin/submit_resolution_jobs.sh](bin/submit_resolution_jobs.sh)
 
 ### Other scripts
 There are several other useful scripts in the `bin` dir. Doing `python <scriptname> -h` should elucidates the possible options.
