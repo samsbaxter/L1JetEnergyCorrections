@@ -30,23 +30,37 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     "csctfDigis"
     )
 
-# L1 raw to digi options
-process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
-process.l1extraParticles.centralBxOnly = cms.bool(True)
 
 # L1 ntuple producers
 import L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi 
-# process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
-
 process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
 
+##############################
+# Put correct GCT jet collection in L1Extra to ensure it picks up any new calibs
+##############################
+process.l1extraParticles.centralBxOnly = cms.bool(True)
+process.l1extraParticles.tauJetSource = cms.InputTag("simGctDigis","tauJets")
+process.l1extraParticles.etTotalSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.nonIsolatedEmSource = cms.InputTag("simGctDigis","nonIsoEm")
+process.l1extraParticles.htMissSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.etMissSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.produceMuonParticles = cms.bool(False)
+process.l1extraParticles.hfRingEtSumsSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.forwardJetSource = cms.InputTag("simGctDigis","forJets")
+process.l1extraParticles.ignoreHtMiss = cms.bool(False)
+process.l1extraParticles.centralJetSource = cms.InputTag("simGctDigis","cenJets")
+process.l1extraParticles.produceCaloParticles = cms.bool(True)
+process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
+process.l1extraParticles.isolatedEmSource = cms.InputTag("simGctDigis","isoEm")
+process.l1extraParticles.etHadSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.hfRingBitCountsSource = cms.InputTag("simGctDigis")
 
 ##############################
 # GCT internal jet collection
 ##############################
-# Make GCT internal jet collection
+# Make GCT internal jet collection using regions from unpacker
+process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
 process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
-
 process.simGctDigis.writeInternalData = cms.bool(True)
 
 # Convert Gct Internal jets to L1JetParticles
@@ -107,21 +121,10 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 # accordingly.
 # Since it's an ESProducer, no need to put it in process.p
 ###########################################################
-# TODO: check against GlobalTag
-# process.load("L1Trigger.L1JetEnergyCorrections.l1GctConfig_POSTLS162_V2_cfi")
-
-######################################
-# To check GCT config
-# Need to enable in process.p as well
-######################################
-# process.load("L1TriggerConfig.GctConfigProducers.l1GctConfigDump_cfi")
-# process.MessageLogger.cout.placeholder = cms.untracked.bool(False)
-# process.MessageLogger.cout.threshold = cms.untracked.string('DEBUG')
-# process.MessageLogger.cerr.threshold = cms.untracked.string('DEBUG')
-# process.MessageLogger.debugModules = cms.untracked.vstring('l1GctConfigDump')
+process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
-    process.RawToDigi
+    process.gctDigis
     # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
     +process.simGctDigis
     +process.l1extraParticles
@@ -133,7 +136,6 @@ process.p = cms.Path(
     +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
     +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
     +process.puInfo # store nVtx info
-    # +process.l1GctConfigDump # for print GCT config - not needed for production normally
 )
 
 
@@ -152,49 +154,15 @@ process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 # readFiles = cms.untracked.vstring()
-# readFiles = cms.untracked.vstring('file:/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0_pre7/src/L1TriggerDPG/L1Ntuples/test/QCD_GEN_SIM_RAW.root')
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
-                            fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-170to300_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/025271B2-DAA8-E411-BB6E-002590D94F8E.root')
-                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/000AE06B-22A7-E311-BE0F-0025905A6138.root'),
+                            # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
                             )
-
-
-## TTbar samples (server error)
-# readFiles.extend( [
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/040974D0-3A75-E311-B258-002590596484.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/04A84408-3975-E311-9724-002618943856.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/0636E18D-5975-E311-85AB-00261894386A.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU40bx50_POSTLS162_V2-v1/00000/02ECF824-4E75-E311-BB0F-0026189438CE.root'
-#     ])
-
-# readFiles.extend( [
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00D33AA9-326D-E311-AB31-003048678E92.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00E2DAC5-8A6C-E311-A2F6-0025905A610C.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/00FE3096-476D-E311-8608-0026189437FD.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/TT_Tune4C_13TeV-pythia8-tauola/GEN-SIM-RAW/tsg_PU20bx25_POSTLS162_V2-v1/00000/0239DBE7-0D91-E311-A208-003048FFCB96.root'
-#     ])
-
-# QCD flat samples
-# readFiles.extend( [
-#     'root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root',
-#     'root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/0238CDC9-7FDD-E311-97F9-002590D0B0AC.root',
-#     'root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/023975FD-EDDD-E311-BB09-E0CB4E19F9AC.root',
-#     'root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/023B6D4D-D1DD-E311-8DA2-90E6BA19A20B.root'
-#     ])
-
-## QCD samples
-# readFiles.extend( [
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/04351463-4AA7-E311-A764-002618943845.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/046A411C-25A7-E311-9B65-00304867C1BA.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/049CCC9A-4DA7-E311-BFC4-0025905A610A.root',
-#     'root://xrootd.unl.edu//store/mc/Fall13dr/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/castor_tsg_PU40bx50_POSTLS162_V2-v1/00000/04A666AD-41A7-E311-AF99-0025905A60DE.root'
-#     ])
 
 # Only use the following bits if you want the EDM contents output to file as well
 # Handy for debugging
@@ -218,6 +186,6 @@ process.output = cms.OutputModule(
 process.output_step = cms.EndPath(process.output)
 
 process.schedule = cms.Schedule(
-    process.p,
-    process.output_step
+    process.p
+    # process.output_step
     )
