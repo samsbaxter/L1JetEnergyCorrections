@@ -79,11 +79,11 @@ def print_lut_file(fit_params, eta_bins, filename):
 
     with open(filename, "w") as file:
         file.write("# put this in your py config file\n")
-        file.write("    PFCoefficients = cms.PSet(\n")
+        file.write("PFCoefficients = cms.PSet(\n")
 
         # non tau bit first
         for i, bin in enumerate(fit_params):
-            line = "        nonTauJetCalib%i = cms.vdouble(" % i
+            line = "    nonTauJetCalib%i = cms.vdouble(" % i
             line += ','.join([str("%.3f" % x) for x in fit_params[i]])
             line += "),\n"
             file.write(line)
@@ -91,12 +91,12 @@ def print_lut_file(fit_params, eta_bins, filename):
         # tau bit - only central region
         for i, bin in enumerate(fit_params):
             if eta_bins[i + 1] <= 3.0:
-                line = "        tauJetCalib%i = cms.vdouble(" % i
+                line = "    tauJetCalib%i = cms.vdouble(" % i
                 line += ','.join([str("%.3f" % x) for x in fit_params[i]])
                 line += "),\n"
                 file.write(line)
 
-        file.write("    )\n")
+        file.write(")\n")
 
 
 def main(in_args=sys.argv[1:]):
