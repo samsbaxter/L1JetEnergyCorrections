@@ -25,14 +25,16 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
 
-def plot_checks(inputfile, outputfile, absetamin, absetamax, save_pdf=False):
+def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=False):
     """
     Do all the relevant response 1D and 2D hists, for one eta bin.
+
+    Can optionally impose maximum pt cut on L1 jets (to avoid problems with saturation).
 
     Can optionally save the plots to pdf.
     """
 
-    print "Doing eta bin: %g - %g" % (absetamin, absetamax)
+    print "Doing eta bin: %g - %g, max L1 jet pt: %g" % (absetamin, absetamax, max_pt)
 
     # Input tree
     tree_raw = inputfile.Get("valid")
@@ -43,9 +45,13 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, save_pdf=False):
 
     # Eta cut string
     eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
+    # Pt cut string
+    pt_cutStr = "pt < %g" % max_pt
+
+    cutStr = eta_cutStr + " && " + pt_cutStr
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,5)" %(absetamin, absetamax) , eta_cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,5)" % (absetamin, absetamax) , cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
@@ -56,19 +62,19 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, save_pdf=False):
     rsp_min, rsp_max = 0, 5
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
-    tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+    tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
-    tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+    tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # Draw pT^Gen Vs pT^L1
-    tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
@@ -97,7 +103,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, save_pdf=False):
         canv.SaveAs("rsp_l1_%g_%g.pdf" % (absetamin, absetamax))
 
 
-def plot_rsp_eta(inputfile, outputfile, eta_bins):
+def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
     """Plot graph of response in bins of eta
 
     If the response hist for each bin exists already, then we use that.
@@ -129,18 +135,22 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins):
         h_rsp = outputfile.GetDirectory("eta_%g_%g/Histograms" % (absetamin, absetamax)).Get(rsp_name)
         if not h_rsp:
             # plot response for this eta bin
-            eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
+            cutStr = "pt>%g && TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (max_pt, absetamax, absetamin)
             nb_rsp = 100
             rsp_min, rsp_max = 0, 5
-            tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), eta_cutStr)
+            tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
             h_rsp = ROOT.gROOT.FindObject(rsp_name)
             h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
 
         # Fit with Gaussian
-        h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
-
-        mean = h_rsp.GetFunction("gaus").GetParameter(1)
-        err = h_rsp.GetFunction("gaus").GetParError(1)
+        fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
+        if fit_result == 0:
+            mean = h_rsp.GetFunction("gaus").GetParameter(1)
+            err = h_rsp.GetFunction("gaus").GetParError(1)
+        else:
+            print "cannot fit with Gaussian - using raw mean instead"
+            mean = h_rsp.GetMean()
+            err = h_rsp.GetMeanError()
 
         output_f_hists.WriteTObject(h_rsp)
 
@@ -172,6 +182,8 @@ def main(in_args=sys.argv[1:]):
                         "This overrides --central/--forward. " \
                         "Handy for batch mode. " \
                         "IMPORTANT: MUST PUT AT VERY END")
+    parser.add_argument("--maxPt", default=500, type=float,
+                        help="Maximum pT for L1 Jets")
     args = parser.parse_args(args=in_args)
 
     # Open input & output files, check
@@ -199,13 +211,13 @@ def main(in_args=sys.argv[1:]):
         emin = eta
         emax = etaBins[i+1]
 
-        plot_checks(inputf, output_f, emin, emax, args.pdf)
+        plot_checks(inputf, output_f, emin, emax, args.maxPt, args.pdf)
 
     # Do an inclusive plot for all eta bins
-    plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.pdf)
+    plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
 
     # Do a response vs eta graph
-    plot_rsp_eta(inputf, output_f, etaBins)
+    plot_rsp_eta(inputf, output_f, etaBins, args.maxPt, )
 
 
 if __name__ == "__main__":
