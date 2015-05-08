@@ -19,13 +19,13 @@ from CRABAPI.RawCommand import crabCommand
 
 
 # Working area - change me!
-crab_area = 'l1ntuple_GCT_QCDPhys14_newRCT_calibrated_4'
+crab_area = 'l1ntuple_GCT_QCDPhys14_newRCT_uncalibrated_2'
 
 with open('crab_get_hadd.sh', "w") as cmd_file:
 
     # Loop over each dataset
     for f in os.listdir(crab_area):
-        crab_dir = 'l1ntuple_GCT_QCDPhys14_newRCT_calibrated_4/%s/' % f
+        crab_dir = '{0}/{1}/'.format(crab_area, f)
         print crab_dir
         if not os.path.isdir(crab_dir):
             continue
