@@ -1,7 +1,7 @@
 """
 GCT-specific CRAB3 setup
 
-Run with python crab3_gct.py
+Run with 'python crab3_gct.py'
 """
 
 
@@ -12,13 +12,15 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "GCT_QCDPhys14_newRCT_calibrated_4"
+job_append = "GCT_QCDPhys14_newRCT_calibrated_hiPrec"
 
 # CHANGE ME - select dataset(s) to run over - must be a list of dataset keys
 datasets = samples.samples_qcd_Phys14_AVE30BX50.keys()
 datasets.append('TTbarPhys14AVE30BX50')
-datasets.append('QCDFlatPhys14BX50')
+# datasets.append('QCDFlatPhys14BX50')
 # get rid of high pt samples
+datasets.remove('QCD_Pt-600to800_Phys14_AVE30BX50')
+datasets.remove('QCD_Pt-800to1000_Phys14_AVE30BX50')
 datasets.remove('QCD_Pt-1000to1400_Phys14_AVE30BX50')
 datasets.remove('QCD_Pt-1400to1800_Phys14_AVE30BX50')
 datasets.remove('QCD_Pt-1800_Phys14_AVE30BX50')
@@ -42,6 +44,16 @@ if __name__ == "__main__":
         config.General.requestName = dset+"_"+job_append
         config.Data.inputDataset = samples.samples[dset].inputDataset
         config.Data.unitsPerJob = samples.samples[dset].unitsPerJob
+
+        # to restrict total units run over
+        # comment it out to run over all
+        if samples.samples[dset].totalUnits > 0:
+            config.Data.totalUnits = samples.samples[dset].totalUnits
+            print dset
+            print samples.samples[dset].totalUnits
+        else:
+            config.Data.totalUnits = 10000000  # make sure we reset
+
         try:
             crabCommand('submit', config=config)
         except httplib.HTTPException as e:
