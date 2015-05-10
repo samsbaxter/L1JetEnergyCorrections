@@ -49,13 +49,13 @@ def print_function(function, lang="cpp"):
         elif lang.lower() == 'cpp':
             print 'TF1 %s("%s", "%s", %g, %g);' % (name, name, function.GetExpFormula(), rangemin, rangemax)
         for i, param in enumerate(params):
-            print "%s.SetParameter(%d, %g)" % (name, i, param)
+            print "%s.SetParameter(%d, %.8f)" % (name, i, param)
     elif lang.lower() == "numpy":
         print "import numpy as np"
         print "import matplotlib.pyplot as plt"
         print "et = np.arange(%g, %g, 0.1)" % (etmin, etmax)
         for i, param in enumerate(params):
-            print "p%d = %f" % (i, param)
+            print "p%d = %.8f" % (i, param)
         print "def pf_func(et, p0, p1, p2, p3, p4, p5):"
         print "    return p0 + (p1/(np.power(np.log10(et), 2)+p2)) + p3 * np.exp(-1.*p4*np.power(np.log10(et)-p5, 2))"
         print ""
@@ -71,6 +71,11 @@ def print_function(function, lang="cpp"):
 def print_lut_file(fit_params, eta_bins, filename):
     """
     Take fit parameters and print to file, for use in CMSSW config file
+
+    IMPORTANT: high precision is required, particularly if you are using the PF
+    correction function and [3] is large - then precision of [4] in particular
+    is crucial. A change from 3 d.p. to 6 d.p. changes the correction factor
+    from -1.27682 to 2.152 !!!
     """
     # check
     if (1 + len(fit_params)) != len(eta_bins):
@@ -84,7 +89,7 @@ def print_lut_file(fit_params, eta_bins, filename):
         # non tau bit first
         for i, bin in enumerate(fit_params):
             line = "    nonTauJetCalib%i = cms.vdouble(" % i
-            line += ','.join([str("%.3f" % x) for x in fit_params[i]])
+            line += ','.join([str("%.8f" % x) for x in fit_params[i]])
             line += "),\n"
             file.write(line)
 
@@ -92,7 +97,7 @@ def print_lut_file(fit_params, eta_bins, filename):
         for i, bin in enumerate(fit_params):
             if eta_bins[i + 1] <= 3.0:
                 line = "    tauJetCalib%i = cms.vdouble(" % i
-                line += ','.join([str("%.3f" % x) for x in fit_params[i]])
+                line += ','.join([str("%.8f" % x) for x in fit_params[i]])
                 line += "),\n"
                 file.write(line)
 
@@ -123,7 +128,7 @@ def main(in_args=sys.argv[1:]):
     line2.SetLineStyle(3)
     all_fit_params = []
 
-    etaBins = binning.eta_bins_central
+    etaBins = binning.eta_bins_central # CHANGE ME TO INCLUDE FWD
     for i, (etamin, etamax) in enumerate(izip(etaBins[:-1], etaBins[1:])):
         print "Eta bin:", etamin, "-", etamax
 
@@ -161,6 +166,7 @@ def main(in_args=sys.argv[1:]):
 
     canv.SaveAs("all_fits.pdf")
     print_lut_file(all_fit_params, etaBins, args.lut)
+
 
 if __name__ == "__main__":
     main()
