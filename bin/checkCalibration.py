@@ -216,7 +216,8 @@ def main(in_args=sys.argv[1:]):
         plot_checks(inputf, output_f, emin, emax, args.maxPt, args.pdf)
 
     # Do an inclusive plot for all eta bins
-    plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
+    if len(etaBins) > 2:
+        plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
 
     # Do a response vs eta graph
     plot_rsp_eta(inputf, output_f, etaBins, args.maxPt, )
