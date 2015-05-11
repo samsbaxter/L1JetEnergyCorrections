@@ -297,9 +297,11 @@ def main(in_args=sys.argv[1:]):
     if args.checkcal:
         check_file = open_root_file(args.checkcal)
 
-        plot_l1_Vs_ref(check_file, eta_min, eta_max, args.oDir, args.format)
         for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
+            plot_l1_Vs_ref(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
+        plot_l1_Vs_ref(check_file, binning.eta_bins_central[0], binning.eta_bins_central[-1], args.oDir, args.format)
+
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
         plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir, args.format)
 
