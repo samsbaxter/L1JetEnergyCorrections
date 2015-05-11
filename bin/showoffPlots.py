@@ -288,7 +288,7 @@ def main(in_args=sys.argv[1:]):
             # if doing comparison
             res_file2 = open_root_file(args.res2)
             plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
-            for emin, emax in izip(binning.eta_bins_central[:-2], binning.eta_bins_central[1:]):
+            for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
                 plot_res_all_pt(res_file, res_file2, emin, emax, args.oDir, args.format)
 
         res_file.Close()
@@ -298,7 +298,7 @@ def main(in_args=sys.argv[1:]):
         check_file = open_root_file(args.checkcal)
 
         plot_l1_Vs_ref(check_file, eta_min, eta_max, args.oDir, args.format)
-        for emin, emax in izip(binning.eta_bins_central[:-2], binning.eta_bins_central[1:]):
+        for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
         plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir, args.format)
