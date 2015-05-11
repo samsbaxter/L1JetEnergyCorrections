@@ -43,6 +43,9 @@ pt_Gen_str = "E_{T}^{Gen} [GeV]"
 res_l1_str = "(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}"
 pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
 
+compare_1_str = "Old calibration"
+compare_1_str = "2012 calibration"
+comapre_2_str = "New calibration"
 
 def generate_canvas():
     """Generate a standard TCanvas for all plots"""
@@ -121,8 +124,8 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
         # mg.GetYaxis().SetTitleSize(0.04)
         mg.Draw("ALP")
         leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
-        leg.AddEntry(gr_1, "Before calibration", "LP")
-        leg.AddEntry(gr_2, "After calibration", "LP")
+        leg.AddEntry(gr_1, compare_1_str, "LP")
+        leg.AddEntry(gr_2, comapre_2_str, "LP")
         leg.Draw()
         c.SaveAs("%s/res_l1_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
@@ -190,8 +193,8 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"
         # mg.GetYaxis().SetTitleSize(0.04)
         mg.Draw("ALP")
         leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
-        leg.AddEntry(gr_1, "Before calibration", "LP")
-        leg.AddEntry(gr_2, "After calibration", "LP")
+        leg.AddEntry(gr_1, compare_1_str, "LP")
+        leg.AddEntry(gr_2, comapre_2_str, "LP")
         leg.Draw()
         [line.Draw() for line in [line_central, line_plus, line_minus]]
         c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
