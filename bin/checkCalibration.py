@@ -56,8 +56,8 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
 
-    nb_pt = 250
-    pt_min, pt_max = 0, 250
+    nb_pt = 63
+    pt_min, pt_max = 0, 252
     nb_rsp = 100
     rsp_min, rsp_max = 0, 5
 
