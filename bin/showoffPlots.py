@@ -16,7 +16,7 @@ Robin Aggleton
 
 import ROOT
 import sys
-import numpy
+import numpy as np
 import binning
 import argparse
 from subprocess import call
@@ -24,6 +24,7 @@ from subprocess import check_output
 from sys import platform as _platform
 from itertools import izip
 from common_utils import *
+from array import array
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
@@ -49,10 +50,13 @@ comapre_2_str = "New calibration"
 
 def generate_canvas():
     """Generate a standard TCanvas for all plots"""
-    c = ROOT.TCanvas("c", "")
+    c = ROOT.TCanvas("c", "", 1200, 800)
     c.SetTicks(1, 1)
     return c
 
+#############################################
+# PLOTS USING OUTPUT FROM RunMatcher
+#############################################
 
 def plot_dR(tree, cut, oDir, oFormat="pdf"):
     """Plot deltaR(L1 - RefJet)"""
@@ -62,6 +66,9 @@ def plot_dR(tree, cut, oDir, oFormat="pdf"):
     h_dr.SetTitle(";%s;N" % dr_str)
     c.SaveAs("%s/dr.%s" % (oDir, oFormat))
 
+#############################################
+# PLOTS USING OUTPUT FROM makeResolutionPlots
+#############################################
 
 def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the difference between L1 and ref jet pT, for given L1 pT, eta bin"""
@@ -129,6 +136,36 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
         leg.Draw()
         c.SaveAs("%s/res_l1_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
+
+def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
+    """
+    Plot a 2D map of response for each eta, pt bin. Display the <response> from
+    Gaussian fit of response hist in that bin
+
+    Uses the resolution output file, since this plot of rsp & fit for pT(L1) bin,
+    and will be done for pre and post calib, whereas output from runCalibration
+    will generally only be pre calib, and is binned by ref Jet pt
+    """
+    h_2d = ROOT.TH2D("h2d_eta_pt_rsp", ";p_{T}^{L1} [GeV];|#eta^{L1}|",
+                     len(ptBins)-1, array('d', ptBins),
+                     len(etaBins)-1, array('d', etaBins))
+    for eta_ind, (eta_min, eta_max) in enumerate(zip(etaBins[:-1], etaBins[1:]), 1):
+        for pt_ind, (pt_min, pt_max) in enumerate(zip(ptBins[:-1], ptBins[1:]), 1):
+            h_rsp = get_from_file(calib_file, "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max))
+            # we actually use the fit to (L1-Gen)/L1, so we need to * -1 and invert
+            res = h_rsp.GetListOfFunctions().At(0).GetParameter(1)
+            rsp = 1./(1 - res)
+            print rsp
+            h_2d.SetBinContent(pt_ind, eta_ind, rsp)
+    c = generate_canvas()
+    ROOT.gStyle.SetPaintTextFormat(".2f")
+    ROOT.gStyle.SetPalette(53)
+    h_2d.Draw("COLZTEXT")
+    c.SaveAs("%s/h2d_eta_pt_rsp.%s" % (oDir, oFormat))
+
+#############################################
+# PLOTS USING OUTPUT FROM checkCalibration
+#############################################
 
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot l1 pt against ref jet pt, for given L1 eta bin"""
@@ -199,6 +236,9 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"
         [line.Draw() for line in [line_central, line_plus, line_minus]]
         c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
+#############################################
+# PLOTS USING OUTPUT FROM runCalibration
+#############################################
 
 def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one pt, eta bin"""
@@ -284,6 +324,7 @@ def main(in_args=sys.argv[1:]):
             plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
             plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
             plot_res_all_pt(res_file, None, eta_min, eta_max, args.oDir, args.format)
+            plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins_8, args.oDir, args.format)
         else:
             # if doing comparison
             res_file2 = open_root_file(args.res2)
