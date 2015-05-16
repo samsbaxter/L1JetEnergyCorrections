@@ -159,8 +159,9 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
             h_2d.SetBinContent(pt_ind, eta_ind, rsp)
     c = generate_canvas()
     ROOT.gStyle.SetPaintTextFormat(".2f")
-    ROOT.gStyle.SetPalette(53)
+    ROOT.gStyle.SetPalette(56)
     h_2d.Draw("COLZTEXT")
+    h_2d.GetZaxis().SetRangeUser(0,2)
     c.SaveAs("%s/h2d_eta_pt_rsp.%s" % (oDir, oFormat))
 
 #############################################
