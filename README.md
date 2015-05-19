@@ -11,11 +11,8 @@ This applies to:
 ## Installation
 
 ```shell
-# For GCT:
-cmsrel CMSSW_7_2_0
-# For Stage 1: check Twiki page
-cmsrel CMSSW_7_3_0
-
+# To re-run the RCT emulator you MUST use 74X or newer otherwise untold pain
+cmsrel CMSSW_7_4_0
 cd CMSSW_7_*_0/src
 cmsenv
 
@@ -30,10 +27,10 @@ git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEne
 scram b -j9
 # to run unit tests (advised whenever you make changes)
 scram b runtests
-# to make documentation:
+# optional - to make documentation:
 cd L1Trigger/L1JetEnergyCorrections/doc
 doxygen Doxyfile # html documentation in html/index.html
-# optional - to build pdf documentation. Produces latex/refman.pdf
+# to build pdf documentation. Produces latex/refman.pdf
 # cd latex; make
 ```
 
@@ -148,5 +145,5 @@ Calibration Style option PF
 
 ### Existing LUTs:
 
-- [l1GctConfig_720_PHYS14_ST_V1_central_cfi](python/l1GctConfig_720_PHYS14_ST_V1_central_cfi): designed for use with GCT in Phys14 AVE30 BX50 samples. **Central eta ( < 3) calibrations only** (due to fault with HF in 720). Derived using CMSSW_7_2_0, on pt-binned QCD samples.
+- [l1GctConfig_720_PHYS14_ST_V1_central_cfi](python/l1GctConfig_720_PHYS14_ST_V1_central_cfi.py): designed for use with GCT in Phys14 AVE30 BX50 samples. **Central eta ( < 3) calibrations only** (due to fault with HF in 720). Derived using CMSSW_7_2_0, on pt-binned QCD samples.
 
