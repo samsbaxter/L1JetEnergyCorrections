@@ -19,15 +19,19 @@ YOU MUST RUN WITH CMSSW 74X OR NEWER TO PICK UP THE NEW RCT CALIBS.
 # To remake the RCT regions:
 rerun_RCT = True
 
-# To use new RCT calibrations:
+# To use new RCT calibrations (auto enable rerun_RCT):
 new_RCT_calibs = True
+rerun_RCT = rerun_RCT | new_RCT_calibs
+
+# To use new set of GCT calibs
+new_GCT_calibs = False
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
 save_EDM = True
 
 # Things to append to L1Ntuple/EDM filename
-file_append = ""
+file_append = "_Spring15"
 
 process = cms.Process("L1NTUPLE")
 
@@ -79,6 +83,10 @@ process.l1extraParticles.hfRingBitCountsSource = cms.InputTag("simGctDigis")
 ##############################
 # Rerun the GCT for internal jet collection
 ##############################
+process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+# This will actually produce the internal jet collection
+process.simGctDigis.writeInternalData = cms.bool(True)
+
 if rerun_RCT:
     # To pickup new RCT calibrations, we need to remake the regions and pass
     # those new regions to the GCT emulator. To rerun the RCT, we need the ECAL
@@ -106,19 +114,14 @@ if rerun_RCT:
     process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
 
     # Rerun the GCT emulator using the RCT regions, including intern collections
-    process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
-    process.simGctDigis.writeInternalData = cms.bool(True)
-    process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+    process.simGctDigisRCT = process.simGctDigis.clone()
+    process.simGctDigisRCT.inputLabel = cms.InputTag('simRctDigis')
 else:
     # If we don't want to re-run the RCT (i.e use whatever calibs the sample
     # was made with), we can just take the regions from the unpacker, and feed
     # them into the GCT.
     print "*** Not re-running RCT, using regions from the unpacker"
-    process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
-    process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
-
-# This will actually produce the internal jet collection
-process.simGctDigis.writeInternalData = cms.bool(True)
+process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 
 # Convert Gct Internal jets to L1JetParticles
 process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
@@ -142,6 +145,11 @@ process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
 ##############################
 # Do ak5 GenJets
 ##############################
+# Need to make ak5, not included in GEN-SIM-RAW for Spring15 or later
+process.load('RecoJets.Configuration.GenJetParticles_cff')
+process.load('RecoJets.Configuration.RecoGenJets_cff')
+process.antiktGenJets = cms.Sequence(process.genJetParticles * process.ak5GenJets)
+
 # Convert ak5 genjets to L1JetParticle objects, store in another L1ExtraTree as cenJets
 process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
     genJetSource = cms.InputTag("ak5GenJets")
@@ -197,34 +205,40 @@ if new_RCT_calibs:
         process.prefer("newRCTConfig")
 
         file_append += '_newRCT'
+    process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
 
 ###########################################################
 # Load new GCT jet calibration coefficients - edit the l1GctConfig file
 # accordingly.
 # Since it's an ESProducer, no need to put it in process.p
 ###########################################################
-# process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+if new_GCT_calibs:
+    print "*** Using new GCT calibs"
+    file_append += "_newGCT"
+    process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
-    # process.RawToDigi
-    process.gctDigis # unpack regions, TPs, etc
-    +process.ecalDigis
-    +process.ecalPreshowerDigis
-    +process.scalersRawToDigi
+    process.RawToDigi
+    +process.gctDigis # unpack regions, TPs, etc
+    # +process.ecalDigis
+    # +process.ecalPreshowerDigis
+    # +process.scalersRawToDigi
+    # +process.hcalDigis
     +process.simHcalTriggerPrimitiveDigis
-    +process.hcalDigis
     +process.simRctDigis
     +process.simGctDigis
-    +process.l1extraParticles
-    +process.gctInternJetToL1Jet
-    # +process.antiktGenJets  # for AK4 GenJet - not needed in Phys14 samples
-    +process.genJetToL1JetAk5
-    +process.genJetToL1JetAk4
-    +process.l1ExtraTreeProducer # standard gctDigis in cenJet coll
-    +process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
-    +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
-    +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
-    +process.puInfo # store nVtx info
+    +process.simGctDigisRCT
+    # +process.l1extraParticles
+    # +process.gctInternJetToL1Jet
+    # +process.antiktGenJets  # for AK5 GenJet - not needed in Phys14 samples
+    # +process.genJetToL1JetAk5
+    # +process.genJetToL1JetAk4
+    # +process.l1ExtraTreeProducer # standard gctDigis in cenJet coll
+    # +process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
+    # +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
+    # +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
+    # +process.puInfo # store nVtx info
+    +process.l1RCTParametersTest
 )
 
 
@@ -233,26 +247,32 @@ process.p = cms.Path(
 ################################
 
 # output file
+output_filename = 'L1Tree{0}.root'.format(file_append)
+print "*** Writing NTuple to {0}".format(output_filename)
+
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree{0}.root'.format(file_append) )
+    fileName = cms.string(output_filename)
 )
 
-process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
+# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
+process.GlobalTag.globaltag = cms.string('MCRUN2_74_V6::All') # for Spring15 AVE30BX50 sample
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 # readFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
                             # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00355D7E-BCEC-E411-8115-00266CFAE304.root')
                             )
 
 # The following bits can save the EDM contents output to file as well
 # Handy for debugging
+edm_filename = 'SimGCTEmulator{0}.root'.format(file_append)
 process.output = cms.OutputModule(
     "PoolOutputModule",
     # outputCommands = cms.untracked.vstring('keep *'),
@@ -270,12 +290,13 @@ process.output = cms.OutputModule(
         # Keep GCT jets
         'keep *_gctDigis_*_*',
         'keep *_simGctDigis_*_*',
+        'keep *_simGctDigisRCT_*_*',
 
         # Keep GenJets
         'keep *_ak5GenJets_*_*',
         'keep *_ak4GenJets_*_*'
         ),
-    fileName = cms.untracked.string('SimGCTEmulator{0}.root'.format(file_append))
+    fileName = cms.untracked.string(edm_filename)
     )
 
 process.output_step = cms.EndPath(process.output)
@@ -283,4 +304,5 @@ process.output_step = cms.EndPath(process.output)
 process.schedule = cms.Schedule(process.p)
 
 if save_EDM:
+    print "*** Writing EDM to {0}".format(edm_filename)
     process.schedule.append(process.output_step)
