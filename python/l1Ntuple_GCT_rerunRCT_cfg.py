@@ -1,13 +1,33 @@
 import FWCore.ParameterSet.Config as cms
 
 """
-Make L1Ntuples from RAW, for use in L1JetEnergyCorrections
+Make L1Ntuples from RAW, for use in L1JetEnergyCorrections.
 
-Legacy GCT setup, re-running the RCT and GCT to include new RCT calibs
+Legacy GCT setup, with option to re-run the RCT to include new RCT calibs.
+Produces GCT internal jet collection with finer granularity & no filtering
+to do calibrations properly.
 
 Note that there are several hacks in here, after much discussion with HCAL/RCT
 people.
+
+YOU MUST RUN WITH CMSSW 74X OR NEWER TO PICK UP THE NEW RCT CALIBS.
 """
+
+##############################
+# Some handy options
+##############################
+# To remake the RCT regions:
+rerun_RCT = True
+
+# To use new RCT calibrations:
+new_RCT_calibs = True
+
+# To save the EDM content as well:
+# (WARNING: DON'T do this for big production - will be HUGE)
+save_EDM = True
+
+# Things to append to L1Ntuple/EDM filename
+file_append = ""
 
 process = cms.Process("L1NTUPLE")
 
@@ -57,28 +77,48 @@ process.l1extraParticles.etHadSource = cms.InputTag("simGctDigis")
 process.l1extraParticles.hfRingBitCountsSource = cms.InputTag("simGctDigis")
 
 ##############################
-# GCT internal jet collection
+# Rerun the GCT for internal jet collection
 ##############################
-# Remake the HCAL TPs since hcalDigis outputs nothing
-# But make sure you use the unsupressed digis, not the hcalDigis
-process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
-process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
-    cms.InputTag('simHcalUnsuppressedDigis'),
-    cms.InputTag('simHcalUnsuppressedDigis')
-)
+if rerun_RCT:
+    # To pickup new RCT calibrations, we need to remake the regions and pass
+    # those new regions to the GCT emulator. To rerun the RCT, we need the ECAL
+    # and HCAL TPs. Unfortunately, there is a bug in the hcalDigis module (until
+    # 7_3_5?) that doesn't unpack correctly, so you have to remake them.
+    print "*** Re-running RCT"
+    file_append += "_rerunRCT"
 
-# The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
-# At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
-# process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
+    # Remake the HCAL TPs since hcalDigis outputs nothing
+    # But make sure you use the unsupressed digis, not the hcalDigis
+    process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+    process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
+        cms.InputTag('simHcalUnsuppressedDigis'),
+        cms.InputTag('simHcalUnsuppressedDigis')
+    )
 
-# Rerun the RCT emulator using the TPs
-process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
-process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
+    # The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
+    # At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
+    # process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
 
-# Rerun the GCT emulator using the RCT regions, including intern collections
-process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
+    # Rerun the RCT emulator using the TPs
+    # If the hcalDigis bug is fixed, then instead use:
+    # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
+    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
+    process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
+
+    # Rerun the GCT emulator using the RCT regions, including intern collections
+    process.simGctDigis.inputLabel = cms.InputTag('simRctDigis')
+    process.simGctDigis.writeInternalData = cms.bool(True)
+    process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+else:
+    # If we don't want to re-run the RCT (i.e use whatever calibs the sample
+    # was made with), we can just take the regions from the unpacker, and feed
+    # them into the GCT.
+    print "*** Not re-running RCT, using regions from the unpacker"
+    process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+    process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
+
+# This will actually produce the internal jet collection
 process.simGctDigis.writeInternalData = cms.bool(True)
-process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
 
 # Convert Gct Internal jets to L1JetParticles
 process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
@@ -137,34 +177,42 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 ##############################
 # New RCT calibs
 ##############################
-from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-process.newRCTConfig = cms.ESSource("PoolDBESSource",
-    CondDBSetup,
-    connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-    DumpStat=cms.untracked.bool(True),
-    toGet = cms.VPSet(
-        cms.PSet(
-           record = cms.string('L1RCTParametersRcd'),
-           tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
+if new_RCT_calibs:
+    if not rerun_RCT:
+        print "!!! Cannot use new RCT calibs - you need to enable 'rerun_RCT'"
+    else:
+        print "*** Using new RCT calibs"
+        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+        process.newRCTConfig = cms.ESSource("PoolDBESSource",
+            CondDBSetup,
+            connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
+            DumpStat=cms.untracked.bool(True),
+            toGet = cms.VPSet(
+                cms.PSet(
+                   record = cms.string('L1RCTParametersRcd'),
+                   tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
+                )
+            )
         )
-    )
-)
-process.prefer("newRCTConfig")
+        process.prefer("newRCTConfig")
+
+        file_append += '_newRCT'
 
 ###########################################################
 # Load new GCT jet calibration coefficients - edit the l1GctConfig file
 # accordingly.
 # Since it's an ESProducer, no need to put it in process.p
 ###########################################################
-process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+# process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
     # process.RawToDigi
-    process.gctDigis
+    process.gctDigis # unpack regions, TPs, etc
     +process.ecalDigis
     +process.ecalPreshowerDigis
     +process.scalersRawToDigi
     +process.simHcalTriggerPrimitiveDigis
+    +process.hcalDigis
     +process.simRctDigis
     +process.simGctDigis
     +process.l1extraParticles
@@ -186,47 +234,53 @@ process.p = cms.Path(
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('L1Tree_rerunRCT.root')
+    fileName = cms.string('L1Tree{0}.root'.format(file_append) )
 )
 
-# process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
-# process.GlobalTag.globaltag = cms.string('PRE_LS171V9A::All')
 process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 # readFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
-                            fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
+                            # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
                             )
 
-# Only use the following bits if you want the EDM contents output to file as well
+# The following bits can save the EDM contents output to file as well
 # Handy for debugging
 process.output = cms.OutputModule(
     "PoolOutputModule",
-    outputCommands = cms.untracked.vstring('keep *'),
-    # outputCommands = cms.untracked.vstring(
-    #     'drop *',
+    # outputCommands = cms.untracked.vstring('keep *'),
+    outputCommands = cms.untracked.vstring(
+        'drop *',
 
-    #     # Keep GCT jets
-    #     'keep *_gctDigis_*_*',
-    #     'keep *_simGctDigis_*_*',
+        # Keep TPs
+        'keep *_simHcalTriggerPrimitiveDigis_*_*',
+        'keep *_hcalDigis_*_*',
+        'keep *_ecalDigis_*_*',
 
-    #     # Keep GenJets
-    #     'keep *_ak5GenJets_*_*',
-    #     'keep *_ak4GenJets_*_*'
-    #     ),
-    fileName = cms.untracked.string('SimGCTEmulator_rerunRCT.root')
+        # Keep RCT regions
+        'keep *_simRctDigis_*_*',
+
+        # Keep GCT jets
+        'keep *_gctDigis_*_*',
+        'keep *_simGctDigis_*_*',
+
+        # Keep GenJets
+        'keep *_ak5GenJets_*_*',
+        'keep *_ak4GenJets_*_*'
+        ),
+    fileName = cms.untracked.string('SimGCTEmulator{0}.root'.format(file_append))
     )
 
 process.output_step = cms.EndPath(process.output)
 
-process.schedule = cms.Schedule(
-    process.p
-    # process.output_step
-    )
+process.schedule = cms.Schedule(process.p)
+
+if save_EDM:
+    process.schedule.append(process.output_step)
