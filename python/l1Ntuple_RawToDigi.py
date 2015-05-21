@@ -45,7 +45,12 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 
 ##############################
 # Rerun the GCT for internal jet collection
+# We will actually use 2 instances of the GCT emulator here for comparison:
+#
+# - simGctDigis runs over regions from the unpacker (gctDigis)
+# - simGctDigisRCT runs over regions from running the RCT emulator again (simRctDigis)
 ##############################
+
 process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
 
 # This will actually produce the internal jet collection
@@ -66,8 +71,7 @@ process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
     cms.InputTag('simHcalUnsuppressedDigis')
 )
 
-# The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
-# At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
+# Use this if you want to test a RCTLuts file that isn't in CondDB
 # process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
 
 # Rerun the RCT emulator using the TPs
@@ -104,13 +108,13 @@ file_append += '_newRCT'
 process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
 
 process.p = cms.Path(
-    # process.RawToDigi
-    process.gctDigis # unpack regions, TPs, etc
-    +process.ecalDigis
-    +process.ecalPreshowerDigis
-    +process.scalersRawToDigi
-    +process.hcalDigis
-    +process.simHcalTriggerPrimitiveDigis
+    process.RawToDigi
+    +process.gctDigis # unpack regions, TPs, etc
+    # +process.ecalDigis
+    # +process.ecalPreshowerDigis
+    # +process.scalersRawToDigi
+    # +process.hcalDigis
+    # +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
     +process.simGctDigisRCT
