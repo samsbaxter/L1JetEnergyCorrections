@@ -108,12 +108,12 @@ file_append += '_newRCT'
 process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
 
 process.p = cms.Path(
-    process.RawToDigi
-    +process.gctDigis # unpack regions, TPs, etc
-    # +process.ecalDigis
-    # +process.ecalPreshowerDigis
-    # +process.scalersRawToDigi
-    # +process.hcalDigis
+    # process.RawToDigi
+    process.gctDigis # unpack regions, TPs, etc
+    +process.ecalDigis
+    +process.ecalPreshowerDigis
+    +process.scalersRawToDigi
+    +process.hcalDigis
     # +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
