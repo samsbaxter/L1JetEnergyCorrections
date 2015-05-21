@@ -1,17 +1,4 @@
-void regionsTPs() {
-    /**
-     * Plot RCT regions, ECAL/HCAL trigger primitives, and GCT jets. For debugging.
-     *
-     * Have to use C++ as we need the FWLite to access the objects. No PyROOT ):
-     * Now compatible with ROOT6. You have to forward declare any hists that you
-     * Draw() to if you want to modfiy/call them later (didn't have to in ROOT5)
-     */
-
-     // EDM input file
-
-    TString filename("SimGCTEmulator_Spring15_caloStage1RCTLuts_default_rerunRCT.root");
-    // TString filename("SimGCTEmulator_Spring15_default_rerunRCT.root");
-    // TString filename("SimGCTEmulator_Spring15_rerunRCT_newRCT.root");
+void makePlots(TString filename) {
 
     TFile f(filename, "READ");
     TTree * Events = (TTree*)f.Get("Events");
@@ -34,30 +21,30 @@ void regionsTPs() {
     Events->SetAlias("CaloEmCands_gctDigis", "L1CaloEmCands_gctDigis__L1NTUPLE.obj");
     Events->SetAlias("CaloEmCands_simRctDigis", "L1CaloEmCands_simRctDigis__L1NTUPLE.obj");
 
-    TCanvas * c = new TCanvas("c", "", 1400, 900);
-    c->Divide(2,2);
+    TCanvas * c1 = new TCanvas("c1", "", 1400, 900);
+    c1->Divide(2,2);
     // L1CaloRegion: 2D plot of eta vs phi, bin content = region et (from unpacker)
-    c->cd(1);
+    c1->cd(1);
     gPad->SetTicks(1,1);
     TH2F * h_gctRegions = new TH2F("h_gctRegions","CaloRegions from gctDigis;caloRegions_gctDigis.gctEta();caloRegions_gctDigis.gctPhi()", 22, 0, 22, 18, 0, 18);
     Events->Draw("caloRegions_gctDigis.gctPhi():caloRegions_gctDigis.gctEta()>>h_gctRegions", "caloRegions_gctDigis.et()", "COLZTEXT");
 
     // L1CaloRegion: 2D plot of eta vs phi, bin content = region pt (from RCT emulator)
-    c->cd(2);
+    c1->cd(2);
     gPad->SetTicks(1,1);
     TH2F * h_simRctRegions = new TH2F("h_simRctRegions","CaloRegions from simRctDigis;caloRegions_simRctDigis.gctEta();caloRegions_simRctDigis.gctPhi()", 22, 0, 22, 18, 0, 18);
     Events->Draw("caloRegions_simRctDigis.gctPhi():caloRegions_simRctDigis.gctEta()>>h_simRctRegions", "caloRegions_simRctDigis.et()", "COLZTEXT");
 
     // EM region rank from unpacker
-    c->cd(3);
+    c1->cd(3);
     gPad->SetTicks(1,1);
     Events->Draw("CaloEmCands_gctDigis.rank()>>h_emGct(12,0,12)", "CaloEmCands_gctDigis.rank()>0");
     // EM region rank from RCT emulator
-    c->cd(4);
+    c1->cd(4);
     gPad->SetTicks(1,1);
     Events->Draw("CaloEmCands_simRctDigis.rank()>>h_emRct(12,0,12)", "CaloEmCands_simRctDigis.rank()>0");
 
-    c->SaveAs("regions"+file_app+".pdf");
+    c1->SaveAs("regions"+file_app+".pdf");
 
     //////////////
     // Draw TPs //
@@ -161,4 +148,34 @@ void regionsTPs() {
     c3->SaveAs("gct_vs_rct_jets"+file_app+".pdf");
 
     f.Close();
+    delete c1;
+    delete c2;
+    delete c3;
 }
+
+void regionsTPs() {
+    /**
+     * Plot RCT regions, ECAL/HCAL trigger primitives, and GCT jets. For debugging.
+     *
+     * Have to use C++ as we need the FWLite to access the objects. No PyROOT ):
+     * Now compatible with ROOT6. You have to forward declare any hists that you
+     * Draw() to if you want to modfiy/call them later (didn't have to in ROOT5)
+     */
+
+    // EDM input filename(s)
+    // TString filename("SimGCTEmulator_Spring15_caloStage1RCTLuts_default_rerunRCT.root");
+    // TString filename("SimGCTEmulator_Spring15_default_rerunRCT.root");
+    // TString filename("SimGCTEmulator_Spring15_rerunRCT_newRCT.root");
+
+    // Note: this will almost certainly not work in ROOT5, given it uses a templated obj.
+    std::vector<TString> filenames;
+    filenames.push_back("SimGCTEmulator_Spring15_caloStage1RCTLuts_default_rerunRCT.root");
+    filenames.push_back("SimGCTEmulator_Spring15_default_rerunRCT.root");
+    filenames.push_back("SimGCTEmulator_Spring15_rerunRCT_newRCT.root");
+
+    for (int i = 0; i < filenames.size(); i++){
+        makePlots(filenames.at(i));
+    }
+}
+
+
