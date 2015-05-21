@@ -65,11 +65,11 @@ file_append += "_rerunRCT"
 # Remake the HCAL TPs since hcalDigis outputs nothing in CMSSW earlier than 735
 # (NOT CHECKED PRECISELY WHICH VERSION, certainly works in 740)
 # But make sure you use the unsupressed digis, not the hcalDigis
-process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
-process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
-    cms.InputTag('simHcalUnsuppressedDigis'),
-    cms.InputTag('simHcalUnsuppressedDigis')
-)
+# process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+# process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
+#     cms.InputTag('simHcalUnsuppressedDigis'),
+#     cms.InputTag('simHcalUnsuppressedDigis')
+# )
 
 # Use this if you want to test a RCTLuts file that isn't in CondDB
 # process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
