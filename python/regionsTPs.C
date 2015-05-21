@@ -1,5 +1,5 @@
 void makePlots(TString filename) {
-
+    cout << "Running over " << filename << endl;
     TFile f(filename, "READ");
     TTree * Events = (TTree*)f.Get("Events");
     cout << Events->GetEntries() << " entries" << endl;
@@ -125,8 +125,9 @@ void makePlots(TString filename) {
 
     // GCT Internal jets
     c3->cd(3);
-    TH1F * h_gct_cenJetsIntern = new TH1F("h_gct_cenJetsIntern", "GCT cen jets internal;jet.raw();", 250, 0, 12000000);
-    TH1F * h_rct_cenJetsIntern = new TH1F("h_rct_cenJetsIntern", "GCT cen jets internal;jet.raw();", 250, 0, 12000000);
+    gPad->SetLogy();
+    TH1F * h_gct_cenJetsIntern = new TH1F("h_gct_cenJetsIntern", "GCT internal jets;jet.raw();", 250, 0, 12000000);
+    TH1F * h_rct_cenJetsIntern = new TH1F("h_rct_cenJetsIntern", "GCT internal jets;jet.raw();", 250, 0, 12000000);
     Events->Draw("L1GctInternJetDatas_simGctDigis__L1NTUPLE.obj.raw()>>h_gct_cenJetsIntern", "L1GctInternJetDatas_simGctDigis__L1NTUPLE.obj.raw()>0");
     Events->Draw("L1GctInternJetDatas_simGctDigisRCT__L1NTUPLE.obj.raw()>>h_rct_cenJetsIntern", "L1GctInternJetDatas_simGctDigisRCT__L1NTUPLE.obj.raw()>0");
     h_rct_cenJetsIntern->SetLineStyle(2);
@@ -135,16 +136,6 @@ void makePlots(TString filename) {
     h_rct_cenJetsIntern->Draw("SAME");
     l_jets.Draw();
 
-    // c3->cd(4);
-    // gPad->SetTicks(1,1);
-    // TH1F * h_gct_fwdJetsIntern = new TH1F("h_gct_fwdJetsIntern", "GCT fwd jets internal", 250, 0, 20000);
-    // TH1F * h_rct_fwdJetsIntern = new TH1F("h_rct_fwdJetsIntern", "GCT fwd jets internal", 250, 0, 20000);
-    // Events->Draw("L1GctJetCands_simGctDigis_forJets_L1NTUPLE.obj.raw()>>h_gct_fwdJetsIntern", "L1GctJetCands_gctDigis_forJets_L1NTUPLE.obj.raw()>0");
-    // Events->Draw("L1GctJetCands_simGctDigisRCT_forJets_L1NTUPLE.obj.raw()>>h_rct_fwdJetsIntern", "L1GctJetCands_simGctDigisRCT_forJets_L1NTUPLE.obj.raw()>0");
-    // h_rct_fwdJetsIntern->SetLineStyle(2);
-    // h_rct_fwdJetsIntern->SetLineColor(kRed);
-    // h_gct_fwdJetsIntern->Draw();
-    // h_rct_fwdJetsIntern->Draw("SAME");
     c3->SaveAs("gct_vs_rct_jets"+file_app+".pdf");
 
     f.Close();
