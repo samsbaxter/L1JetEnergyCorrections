@@ -10,7 +10,7 @@ to do calibrations properly.
 Note that there are several hacks in here, after much discussion with HCAL/RCT
 people.
 
-YOU MUST RUN WITH CMSSW 74X OR NEWER TO PICK UP THE NEW RCT CALIBS.
+YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 """
 
 ##############################
@@ -23,12 +23,19 @@ rerun_RCT = True
 new_RCT_calibs = True
 rerun_RCT = rerun_RCT | new_RCT_calibs
 
+# To dump RCT parameters for testing purposes:
+dump_RCT = True
+
 # To use new set of GCT calibs
-new_GCT_calibs = False
+# new_GCT_calibs = False
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
 save_EDM = True
+
+# Global tag (note, you must ensure it matches input file)
+# gt = 'MCRUN2_74_V6'  # for Spring15 AVE30BX50 sample
+gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
 
 # Things to append to L1Ntuple/EDM filename
 file_append = "_Spring15"
@@ -91,27 +98,23 @@ if rerun_RCT:
     # To pickup new RCT calibrations, we need to remake the regions and pass
     # those new regions to the GCT emulator. To rerun the RCT, we need the ECAL
     # and HCAL TPs. Unfortunately, there is a bug in the hcalDigis module (until
-    # 7_3_5?) that doesn't unpack correctly, so you have to remake them.
-    print "*** Re-running RCT"
+    # 7_3_5?) that doesn't unpack correctly, so you may have to remake them.
+    # print "*** Re-running RCT"
     file_append += "_rerunRCT"
 
     # Remake the HCAL TPs since hcalDigis outputs nothing in CMSSW earlier than 735
     # (NOT CHECKED PRECISELY WHICH VERSION, cerntainly works in 740)
     # But make sure you use the unsupressed digis, not the hcalDigis
-    process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
-    process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
-        cms.InputTag('simHcalUnsuppressedDigis'),
-        cms.InputTag('simHcalUnsuppressedDigis')
-    )
-
-    # The GlobalTag DOES NOT setup the RCT params - you have to load the cff *manually*
-    # At least, as of 23/4/15 this is the case. Check with Maria Cepeda/Mike Mulhearn
-    # process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
+    # process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+    # process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
+    #     cms.InputTag('simHcalUnsuppressedDigis'),
+    #     cms.InputTag('simHcalUnsuppressedDigis')
+    # )
 
     # Rerun the RCT emulator using the TPs
-    # If the hcalDigis bug is fixed, then instead use:
-    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
+    # If the hcalDigis is empty (pre 740), then instead use:
     # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
+    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
     process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
 
     # Rerun the GCT emulator using the RCT regions, including intern collections
@@ -162,7 +165,7 @@ process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 ##############################
 # Do ak4 GenJets
 ##############################
-# Need to make ak4, not included in GEN-SIM-RAW
+# Need to make ak4, not included in GEN-SIM-RAW for earlier than Phys14
 # process.load('RecoJets.Configuration.GenJetParticles_cff')
 # process.load('RecoJets.Configuration.RecoGenJets_cff')
 # process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
@@ -187,36 +190,26 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 # New RCT calibs
 ##############################
 if new_RCT_calibs:
-    if not rerun_RCT:
-        print "!!! Cannot use new RCT calibs - you need to enable 'rerun_RCT'"
-    else:
-        print "*** Using new RCT calibs"
-        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        process.newRCTConfig = cms.ESSource("PoolDBESSource",
-            CondDBSetup,
-            connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-            DumpStat=cms.untracked.bool(True),
-            toGet = cms.VPSet(
-                cms.PSet(
-                   record = cms.string('L1RCTParametersRcd'),
-                   tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-                )
-            )
-        )
-        process.prefer("newRCTConfig")
-
-        file_append += '_newRCT'
-    process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
+    print "*** Using new RCT calibs"
+    process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
+    from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+    # Format: map{(record,label):(tag,connection),...}
+    recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
+    process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
+    file_append += '_newnewRCT'
+else:
+    process.GlobalTag.globaltag = cms.string(gt+'::All')
 
 ###########################################################
 # Load new GCT jet calibration coefficients - edit the l1GctConfig file
 # accordingly.
 # Since it's an ESProducer, no need to put it in process.p
 ###########################################################
-if new_GCT_calibs:
-    print "*** Using new GCT calibs"
-    file_append += "_newGCT"
-    process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+# if new_GCT_calibs:
+#     print "*** Using new GCT calibs"
+#     file_append += "_newGCT"
+#     process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+
 
 process.p = cms.Path(
     # process.RawToDigi
@@ -225,7 +218,7 @@ process.p = cms.Path(
     +process.ecalPreshowerDigis
     +process.scalersRawToDigi
     +process.hcalDigis
-    +process.simHcalTriggerPrimitiveDigis
+    # +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
     +process.simGctDigisRCT
@@ -239,9 +232,11 @@ process.p = cms.Path(
     # +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
     # +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
     # +process.puInfo # store nVtx info
-    +process.l1RCTParametersTest
 )
 
+if dump_RCT:
+    process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
+    process.p += process.l1RCTParametersTest
 
 ################################
 # Job options for filenames, etc
@@ -255,10 +250,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(output_filename)
 )
 
-# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
-process.GlobalTag.globaltag = cms.string('MCRUN2_74_V6::All') # for Spring15 AVE30BX50 sample
-
-SkipEvent = cms.untracked.vstring('ProductNotFound')
+# SkipEvent = cms.untracked.vstring('ProductNotFound')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
@@ -268,8 +260,10 @@ process.source = cms.Source ("PoolSource",
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
                             # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/60000/08ABF6F2-C0ED-E411-9597-0025905A60A8.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
                             )
+
 
 # The following bits can save the EDM contents output to file as well
 # Handy for debugging
