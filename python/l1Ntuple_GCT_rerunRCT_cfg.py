@@ -95,7 +95,8 @@ if rerun_RCT:
     print "*** Re-running RCT"
     file_append += "_rerunRCT"
 
-    # Remake the HCAL TPs since hcalDigis outputs nothing
+    # Remake the HCAL TPs since hcalDigis outputs nothing in CMSSW earlier than 735
+    # (NOT CHECKED PRECISELY WHICH VERSION, cerntainly works in 740)
     # But make sure you use the unsupressed digis, not the hcalDigis
     process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
     process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
@@ -109,8 +110,8 @@ if rerun_RCT:
 
     # Rerun the RCT emulator using the TPs
     # If the hcalDigis bug is fixed, then instead use:
-    # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
-    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
+    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
+    # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
     process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
 
     # Rerun the GCT emulator using the RCT regions, including intern collections
@@ -218,12 +219,12 @@ if new_GCT_calibs:
     process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
-    process.RawToDigi
-    +process.gctDigis # unpack regions, TPs, etc
-    # +process.ecalDigis
-    # +process.ecalPreshowerDigis
-    # +process.scalersRawToDigi
-    # +process.hcalDigis
+    # process.RawToDigi
+    process.gctDigis # unpack regions, TPs, etc
+    +process.ecalDigis
+    +process.ecalPreshowerDigis
+    +process.scalersRawToDigi
+    +process.hcalDigis
     +process.simHcalTriggerPrimitiveDigis
     +process.simRctDigis
     +process.simGctDigis
@@ -267,7 +268,7 @@ process.source = cms.Source ("PoolSource",
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
                             # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00355D7E-BCEC-E411-8115-00266CFAE304.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/60000/08ABF6F2-C0ED-E411-9597-0025905A60A8.root')
                             )
 
 # The following bits can save the EDM contents output to file as well

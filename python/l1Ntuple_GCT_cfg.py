@@ -121,7 +121,7 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 # accordingly.
 # Since it's an ESProducer, no need to put it in process.p
 ###########################################################
-process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+# process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
     process.gctDigis
@@ -150,7 +150,8 @@ process.TFileService = cms.Service("TFileService",
 
 # process.GlobalTag.globaltag = cms.string('POSTLS162_V2::All')
 # process.GlobalTag.globaltag = cms.string('PRE_LS171V9A::All')
-process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
+# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
+process.GlobalTag.globaltag = cms.string('MCRUN2_74_V6::All') # for Phys14 AVE30BX50 sample
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 
@@ -161,7 +162,9 @@ process.source = cms.Source ("PoolSource",
                              # fileNames = readFiles,
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
                             # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/0013D0D5-B9EC-E411-983E-0025905A48E4.root')
+
                             )
 
 # Only use the following bits if you want the EDM contents output to file as well
