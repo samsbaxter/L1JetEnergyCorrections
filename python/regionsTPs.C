@@ -38,10 +38,12 @@ void makePlots(TString filename) {
     // EM region rank from unpacker
     c1->cd(3);
     gPad->SetTicks(1,1);
+    TH1I * h_emGct = new TH1I("h_emGct", "CaloEmCands_gctDigis.rank();CaloEmCands_gctDigis.rank();", 12, 0, 12);
     Events->Draw("CaloEmCands_gctDigis.rank()>>h_emGct(12,0,12)", "CaloEmCands_gctDigis.rank()>0");
     // EM region rank from RCT emulator
     c1->cd(4);
     gPad->SetTicks(1,1);
+    TH1I * h_emRct = new TH1I("h_emRct", "CaloEmCands_simRctDigis.rank();CaloEmCands_simRctDigis.rank();", 12, 0, 12);
     Events->Draw("CaloEmCands_simRctDigis.rank()>>h_emRct(12,0,12)", "CaloEmCands_simRctDigis.rank()>0");
 
     c1->SaveAs("regions"+file_app+".pdf");
