@@ -24,22 +24,26 @@ new_RCT_calibs = True
 rerun_RCT = rerun_RCT | new_RCT_calibs
 
 # To dump RCT parameters for testing purposes:
-dump_RCT = True
+dump_RCT = False
 
 # To use new set of GCT calibs
 # new_GCT_calibs = False
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
-save_EDM = True
+save_EDM = False
 
 # Global tag (note, you must ensure it matches input file)
-gt = 'MCRUN2_74_V6'  # for Spring15 AVE30BX50 sample
-# gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
+# gt = 'MCRUN2_74_V6'  # for Spring15 AVE30BX50 sample
+gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
 
 # Things to append to L1Ntuple/EDM filename
-file_append = "_Spring15"
-# file_append = "_Phys14"
+file_append = ""
+
+if gt == 'MCRUN2_74_V6':
+    file_append += "_Spring15"
+elif gt == 'PHYS14_ST_V1':
+    file_append += "_Phys14"
 
 process = cms.Process("L1NTUPLE")
 
@@ -72,21 +76,21 @@ process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
 # Put correct GCT jet collection in L1Extra to ensure it picks up any new calibs
 ##############################
 process.l1extraParticles.centralBxOnly = cms.bool(True)
-process.l1extraParticles.tauJetSource = cms.InputTag("simGctDigis","tauJets")
-process.l1extraParticles.etTotalSource = cms.InputTag("simGctDigis")
-process.l1extraParticles.nonIsolatedEmSource = cms.InputTag("simGctDigis","nonIsoEm")
-process.l1extraParticles.htMissSource = cms.InputTag("simGctDigis")
-process.l1extraParticles.etMissSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.tauJetSource = cms.InputTag("simGctDigisRCT","tauJets")
+process.l1extraParticles.etTotalSource = cms.InputTag("simGctDigisRCT")
+process.l1extraParticles.nonIsolatedEmSource = cms.InputTag("simGctDigisRCT","nonIsoEm")
+process.l1extraParticles.htMissSource = cms.InputTag("simGctDigisRCT")
+process.l1extraParticles.etMissSource = cms.InputTag("simGctDigisRCT")
 process.l1extraParticles.produceMuonParticles = cms.bool(False)
-process.l1extraParticles.hfRingEtSumsSource = cms.InputTag("simGctDigis")
-process.l1extraParticles.forwardJetSource = cms.InputTag("simGctDigis","forJets")
+process.l1extraParticles.hfRingEtSumsSource = cms.InputTag("simGctDigisRCT")
+process.l1extraParticles.forwardJetSource = cms.InputTag("simGctDigisRCT","forJets")
 process.l1extraParticles.ignoreHtMiss = cms.bool(False)
-process.l1extraParticles.centralJetSource = cms.InputTag("simGctDigis","cenJets")
+process.l1extraParticles.centralJetSource = cms.InputTag("simGctDigisRCT","cenJets")
 process.l1extraParticles.produceCaloParticles = cms.bool(True)
 process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
-process.l1extraParticles.isolatedEmSource = cms.InputTag("simGctDigis","isoEm")
-process.l1extraParticles.etHadSource = cms.InputTag("simGctDigis")
-process.l1extraParticles.hfRingBitCountsSource = cms.InputTag("simGctDigis")
+process.l1extraParticles.isolatedEmSource = cms.InputTag("simGctDigisRCT","isoEm")
+process.l1extraParticles.etHadSource = cms.InputTag("simGctDigisRCT")
+process.l1extraParticles.hfRingBitCountsSource = cms.InputTag("simGctDigisRCT")
 
 ##############################
 # Rerun the GCT for internal jet collection
@@ -100,7 +104,7 @@ if rerun_RCT:
     # those new regions to the GCT emulator. To rerun the RCT, we need the ECAL
     # and HCAL TPs. Unfortunately, there is a bug in the hcalDigis module (until
     # 7_3_5?) that doesn't unpack correctly, so you may have to remake them.
-    # print "*** Re-running RCT"
+    print "*** Re-running RCT"
     file_append += "_rerunRCT"
 
     # Remake the HCAL TPs since hcalDigis outputs nothing in CMSSW earlier than 735
@@ -126,11 +130,11 @@ else:
     # was made with), we can just take the regions from the unpacker, and feed
     # them into the GCT.
     print "*** Not re-running RCT, using regions from the unpacker"
-process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
+    process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 
 # Convert Gct Internal jets to L1JetParticles
 process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
-    gctInternJetSource = cms.InputTag("simGctDigis")
+    gctInternJetSource = cms.InputTag("simGctDigisRCT")
 )
 
 # Store in another L1ExtraTree as cenJets
@@ -197,7 +201,7 @@ if new_RCT_calibs:
     # Format: map{(record,label):(tag,connection),...}
     recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
-    file_append += '_newnewRCT'
+    file_append += '_newRCTv2'
 else:
     process.GlobalTag.globaltag = cms.string(gt+'::All')
 
@@ -221,7 +225,7 @@ process.p = cms.Path(
     *process.hcalDigis
     *process.simHcalTriggerPrimitiveDigis
     *process.simRctDigis
-    *process.simGctDigis
+    # *process.simGctDigis
     *process.simGctDigisRCT
     *process.l1extraParticles
     *process.gctInternJetToL1Jet
@@ -253,7 +257,7 @@ process.TFileService = cms.Service("TFileService",
 
 # SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Some default testing files
 if gt == 'PHYS14_ST_V1':

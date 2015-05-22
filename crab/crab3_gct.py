@@ -12,7 +12,7 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "GCT_QCDPhys14_newRCT_calibrated_hiPrec"
+job_append = "GCT_QCDPhys14_newRCTv2"
 
 # CHANGE ME - select dataset(s) to run over - must be a list of dataset keys
 datasets = samples.samples_qcd_Phys14_AVE30BX50.keys()
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # here into one common directory. That's why we need to set this parameter.
     config.General.workArea = 'l1ntuple_'+job_append
 
-    config.JobType.psetName = '../python/l1Ntuple_GCT_cfg.py'
+    config.JobType.psetName = '../python/l1Ntuple_GCT_rerunRCT_cfg.py'
 
     # Run through datasets once to check all fine
     for dset in datasets:
