@@ -27,7 +27,7 @@ rerun_RCT = rerun_RCT | new_RCT_calibs
 dump_RCT = False
 
 # To use new set of GCT calibs
-# new_GCT_calibs = False
+new_GCT_calibs = True
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
@@ -117,7 +117,7 @@ if rerun_RCT:
     )
 
     # Rerun the RCT emulator using the TPs
-    # If the hcalDigis is empty (pre 740), then instead use:
+    # If the hcalDigis is empty (MC made pre 740), then instead use:
     process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
     # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
     process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
@@ -150,6 +150,27 @@ process.l1ExtraTreeProducerGctIntern.mhtLabel = cms.untracked.InputTag("")
 process.l1ExtraTreeProducerGctIntern.hfRingsLabel = cms.untracked.InputTag("")
 process.l1ExtraTreeProducerGctIntern.cenJetLabel = cms.untracked.InputTag("gctInternJetToL1Jet:GctInternalJets")
 process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
+
+##############################
+# Put correct GCT jet collection in L1Extra to ensure it picks up any new calibs
+##############################
+gct_source = 'simGctDigisRCT' if rerun_RCT else 'simGctDigis'
+process.l1extraParticles.centralBxOnly = cms.bool(True)
+process.l1extraParticles.tauJetSource = cms.InputTag(gct_source,"tauJets")
+process.l1extraParticles.etTotalSource = cms.InputTag(gct_source)
+process.l1extraParticles.nonIsolatedEmSource = cms.InputTag(gct_source,"nonIsoEm")
+process.l1extraParticles.htMissSource = cms.InputTag(gct_source)
+process.l1extraParticles.etMissSource = cms.InputTag(gct_source)
+process.l1extraParticles.produceMuonParticles = cms.bool(False)
+process.l1extraParticles.hfRingEtSumsSource = cms.InputTag(gct_source)
+process.l1extraParticles.forwardJetSource = cms.InputTag(gct_source,"forJets")
+process.l1extraParticles.ignoreHtMiss = cms.bool(False)
+process.l1extraParticles.centralJetSource = cms.InputTag(gct_source,"cenJets")
+process.l1extraParticles.produceCaloParticles = cms.bool(True)
+process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
+process.l1extraParticles.isolatedEmSource = cms.InputTag(gct_source,"isoEm")
+process.l1extraParticles.etHadSource = cms.InputTag(gct_source)
+process.l1extraParticles.hfRingBitCountsSource = cms.InputTag(gct_source)
 
 ##############################
 # Do ak5 GenJets
@@ -210,10 +231,10 @@ else:
 # accordingly.
 # Since it's an ESProducer, no need to put it in process.p
 ###########################################################
-# if new_GCT_calibs:
-#     print "*** Using new GCT calibs"
-#     file_append += "_newGCT"
-#     process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+if new_GCT_calibs:
+    print "*** Using new GCT calibs"
+    file_append += "_newGCT"
+    process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi')
 
 
 process.p = cms.Path(
@@ -257,7 +278,7 @@ process.TFileService = cms.Service("TFileService",
 
 # SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 # Some default testing files
 if gt == 'PHYS14_ST_V1':
