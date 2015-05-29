@@ -22,7 +22,10 @@ declare -a etaBins=(
 5.001
 ) 
 
-pairs="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_2_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Phys14_AVE30BX50_newRCT_HCALhack_v2/pairs_QCD_Pt-15to1000_Phys14_AVE30BX50_GCT_QCDPhys14_newRCT_HCALhack_v2_GCT_ak5_ref14to1000_l10to500.root"
+pairs="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDPhys14_newRCTv2/pairs_QCD_Pt-15to600_Phys14_AVE30BX50_GCT_QCDPhys14_newRCTv2_GCT_ak5_ref14to1000_l10to500.root"
+
+# update the CMSSW area in the batch script
+sed -i s@CMSSW_.*\/src@${CMSSW_VERSION}/src@g calibration_batch.sh
 
 fdir=`dirname $pairs`
 fname=`basename $pairs`
@@ -40,7 +43,7 @@ do
     jobname="${etamin}to${etamax}"
     outname=${fname#pairs_}
     outname=${outname%.root}
-    outname="output_${outname}_${i}.root"
+    outname="output_${outname}_${i}_742.root"
     echo "$jobname"
     echo "$outname"
     bsub -q 8nh -J $jobname "sh calibration_batch.sh --no_genjet_plots ${fdir}/${fname} ${fdir}/${outname} --etaInd ${i}"
