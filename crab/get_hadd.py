@@ -19,16 +19,21 @@ from glob import glob
 import os
 import stat
 from CRABAPI.RawCommand import crabCommand
+import sys
 
 
-def get_hadd():
+def get_hadd(in_args=sys.argv[1:]):
     """
     Loops through crab working area, and for each dataset outputs commands to
     get the files and hadd them, and putting them in sensible place.
     """
 
     # Working area - change me!
-    crab_area = 'l1ntuple_GCT_QCDPhys14_newRCT_calibrated_hiPrec'
+    # crab_area = 'l1ntuple_GCT_QCDPhys14_newRCT_calibrated_hiPrec'
+    if len(in_args) == 1:
+        crab_area = in_args[0]
+
+    crab_area = crab_area.rstrip('/')  # important!
 
     # Write commands to file
     cmd_filename = 'crab_get_hadd.sh'
@@ -52,17 +57,23 @@ def get_hadd():
             if os.path.isfile(output_path):
                 print "Skipping as output file already exists"
                 continue
+            # if output directory doens't exists, add a command to make it
+            if not os.path.isdir('../'+out_dir):
+                print 'Making dir ../'+out_dir
+                os.mkdir('../'+out_dir)
+                # cmd_file.write('mkdir ../'+out_dir)
 
             # can either do datasets that are completely finished, or only
             # take a fraction of completed jobs
+            completed = False
+            fraction = 0.9
             res_status = crabCommand('status', crab_dir)
-            completed = True
             n_jobs = len(res_status['jobs'])
             job_ids = []
             if completed:
                 n_jobs_to_get = n_jobs
             else:
-                n_jobs_to_get = int(round(n_jobs/5.0))
+                n_jobs_to_get = int(round(fraction*n_jobs))
 
             # Get the requisite number of jobs, making sure they completed
             for i in range(1, n_jobs+1):
