@@ -163,8 +163,8 @@ def main(in_args=sys.argv[1:]):
         l2.SetY1(corr_10)
         l2.SetY2(corr_10)
         l2.Draw("SAME")
-
-    canv.SaveAs("all_fits.pdf")
+    out_dir = os.path.dirname(args.lut)
+    canv.SaveAs(out_dir+"/all_fits.pdf")
     print_lut_file(all_fit_params, etaBins, args.lut)
 
 
