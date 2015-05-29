@@ -37,7 +37,7 @@ process.MessageLogger.cerr.threshold = cms.untracked.string('DEBUG')
 process.MessageLogger.debugModules = cms.untracked.vstring('l1GctConfigDump')
 
 # Load in your new config here to check post-calibration config
-# process.load('l1GctConfig_720_PHYS14_ST_V1_central_cfi')
+process.load('l1GctConfig_742_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
     # process.RawToDigi
@@ -63,6 +63,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
 secFiles = cms.untracked.vstring()
 process.source = cms.Source ("PoolSource",
-                             fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root'),
+                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root'),
+                             fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-50to80_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001AA0E6-C58A-E411-9634-0025905A60D6.root'),
                              secondaryFileNames = secFiles
                              )
