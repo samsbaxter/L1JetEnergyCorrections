@@ -152,11 +152,14 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
     for eta_ind, (eta_min, eta_max) in enumerate(zip(etaBins[:-1], etaBins[1:]), 1):
         for pt_ind, (pt_min, pt_max) in enumerate(zip(ptBins[:-1], ptBins[1:]), 1):
             h_rsp = get_from_file(calib_file, "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max))
-            # we actually use the fit to (L1-Gen)/L1, so we need to * -1 and invert
-            res = h_rsp.GetListOfFunctions().At(0).GetParameter(1)
-            rsp = 1./(1 - res)
-            print rsp
-            h_2d.SetBinContent(pt_ind, eta_ind, rsp)
+            if h_rsp.GetEntries() > 0:
+                # we actually use the fit to (L1-Gen)/L1, so we need to * -1 and invert
+                res = h_rsp.GetListOfFunctions().At(0).GetParameter(1)
+                rsp = 1./(1 - res)
+                print rsp
+                h_2d.SetBinContent(pt_ind, eta_ind, rsp)
+            else:
+                h_2d.SetBinContent(pt_ind, eta_ind, 0)
     c = generate_canvas()
     ROOT.gStyle.SetPaintTextFormat(".2f")
     ROOT.gStyle.SetPalette(56)
