@@ -11,9 +11,10 @@ This applies to:
 ## Installation
 
 ```shell
-# To re-run the RCT emulator you MUST use 74X or newer otherwise untold pain
-cmsrel CMSSW_7_4_0
-cd CMSSW_7_*_0/src
+# To re-run the RCT emulator you MUST use 742 or newer otherwise untold pain
+# And check it has Boost v1.57 or newer
+cmsrel CMSSW_7_4_2
+cd CMSSW_7_4_2/src
 cmsenv
 
 # Stage 1 emulator - do this first
@@ -53,7 +54,7 @@ These steps are executed by the following:
 4) Make some plots from these pairs, and calculate calibrations constants, etc. -> [bin/runCalibration.py](bin/runCalibration.py)
 
 ### Produce Ntuples
-See [python/l1Ntuple_GCT_cfg.py](python/l1Ntuple_GCT_cfg.py) and [python/l1Ntuple_Stage1_cfg.py](python/SimL1Emulator_Stage1_newRCT.py). CRAB3 scripts are in the [crab](crab) folder.
+See [python/l1Ntuple_GCT_rerunRCT_cfg.py](python/l1Ntuple_GCT_rerunRCT_cfg.py) and [python/l1Ntuple_Stage1_cfg.py](python/SimL1Emulator_Stage1_newRCT.py). CRAB3 scripts are in the [crab](crab) folder.
 
 Both run over GEN-SIM-RAW MC, and utilise the L1Ntuple package with l1Extra collections.
 
@@ -68,6 +69,8 @@ Note that at the moment, we hijack the cenJet collection of L1ExtraTree for our 
 *This is the only stage which is emulator-specific.* Beyond this step, the output format is the same whether you are dealing with GCT or Stage1/2.
 
 There is also a module to store pileup info (such as number of verticies) in the output ntuples, [PileupInfo](plugins/PileupInfo.cc).
+
+*Note:* a full set of Ntuples + pairs files for binned QCD is **big**: about 50 GB
 
 ### Produce matching jet pairs
 This is done in [bin/RunMatcher](bin/RunMatcher.cpp). You can run it easily by doing `RunMatcher <options>`. For options, do `RunMatcher --help`. As a minimum, you need an input Ntuple and output filename.
