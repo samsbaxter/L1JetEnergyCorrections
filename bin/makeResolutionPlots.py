@@ -160,7 +160,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     # 2d plots of pt difference vs ref pt
     tree_raw.Draw("%s:%s>>ptDiff_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
     ptDiff_ref_2d = ROOT.gROOT.FindObject("ptDiff_ref_2d")
-    ptDiff_ref_2d.SetTitle("%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen} [GeV]" % title)
+    ptDiff_ref_2d.SetTitle("%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen} [GeV]" % title)
     output_f_hists.WriteTObject(ptDiff_ref_2d)
 
     res_min = -5
@@ -187,7 +187,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-%s)/%s" % (ptRef, ptRef)
     tree_raw.Draw("%s:%s>>res_refVsref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_refVsref_2d = ROOT.gROOT.FindObject("res_refVsref_2d")
-    res_refVsref_2d.SetTitle("%s;E_{T}^{Ref} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % title)
+    res_refVsref_2d.SetTitle("%s;E_{T}^{Gen} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % title)
     output_f_hists.WriteTObject(res_refVsref_2d)
 
     # Graphs to hold resolution for all pt bins
@@ -201,10 +201,10 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_graph_refVsl1.SetNameTitle("resRefL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
 
     res_graph_refVsref = ROOT.TGraphErrors() # binned in ref pt
-    res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
+    res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
 
     res_graph_refVsref_diff = ROOT.TGraphErrors() # binned in ref pt
-    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
+    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
 
     # Now go through pt bins, and plot resolution for each, fit with gaussian,
     # and add width to graph
