@@ -17,17 +17,17 @@ YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 # Some handy options
 ##############################
 # To remake the RCT regions:
-rerun_RCT = True
+rerun_RCT = False
 
 # To use new RCT calibrations (auto enable rerun_RCT):
-new_RCT_calibs = True
+new_RCT_calibs = False
 rerun_RCT = rerun_RCT | new_RCT_calibs
 
 # To dump RCT parameters for testing purposes:
 dump_RCT = False
 
 # To use new set of GCT calibs
-new_GCT_calibs = True
+new_GCT_calibs = False
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
@@ -38,7 +38,7 @@ save_EDM = False
 gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
 
 # Things to append to L1Ntuple/EDM filename
-file_append = ""
+file_append = "_uncalibrated"
 
 if gt == 'MCRUN2_74_V6':
     file_append += "_Spring15"
@@ -71,26 +71,6 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 # L1 ntuple producers
 import L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi 
 process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
-
-##############################
-# Put correct GCT jet collection in L1Extra to ensure it picks up any new calibs
-##############################
-process.l1extraParticles.centralBxOnly = cms.bool(True)
-process.l1extraParticles.tauJetSource = cms.InputTag("simGctDigisRCT","tauJets")
-process.l1extraParticles.etTotalSource = cms.InputTag("simGctDigisRCT")
-process.l1extraParticles.nonIsolatedEmSource = cms.InputTag("simGctDigisRCT","nonIsoEm")
-process.l1extraParticles.htMissSource = cms.InputTag("simGctDigisRCT")
-process.l1extraParticles.etMissSource = cms.InputTag("simGctDigisRCT")
-process.l1extraParticles.produceMuonParticles = cms.bool(False)
-process.l1extraParticles.hfRingEtSumsSource = cms.InputTag("simGctDigisRCT")
-process.l1extraParticles.forwardJetSource = cms.InputTag("simGctDigisRCT","forJets")
-process.l1extraParticles.ignoreHtMiss = cms.bool(False)
-process.l1extraParticles.centralJetSource = cms.InputTag("simGctDigisRCT","cenJets")
-process.l1extraParticles.produceCaloParticles = cms.bool(True)
-process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
-process.l1extraParticles.isolatedEmSource = cms.InputTag("simGctDigisRCT","isoEm")
-process.l1extraParticles.etHadSource = cms.InputTag("simGctDigisRCT")
-process.l1extraParticles.hfRingBitCountsSource = cms.InputTag("simGctDigisRCT")
 
 ##############################
 # Rerun the GCT for internal jet collection
@@ -133,8 +113,9 @@ else:
     process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 
 # Convert Gct Internal jets to L1JetParticles
+gct_source = 'simGctDigisRCT' if rerun_RCT else 'simGctDigis'
 process.gctInternJetToL1Jet = cms.EDProducer('L1GctInternJetToL1Jet',
-    gctInternJetSource = cms.InputTag("simGctDigisRCT")
+    gctInternJetSource = cms.InputTag(gct_source)
 )
 
 # Store in another L1ExtraTree as cenJets
@@ -154,7 +135,6 @@ process.l1ExtraTreeProducerGctIntern.maxL1Extra = cms.uint32(50)
 ##############################
 # Put correct GCT jet collection in L1Extra to ensure it picks up any new calibs
 ##############################
-gct_source = 'simGctDigisRCT' if rerun_RCT else 'simGctDigis'
 process.l1extraParticles.centralBxOnly = cms.bool(True)
 process.l1extraParticles.tauJetSource = cms.InputTag(gct_source,"tauJets")
 process.l1extraParticles.etTotalSource = cms.InputTag(gct_source)
@@ -235,31 +215,47 @@ if new_GCT_calibs:
     print "*** Using new GCT calibs"
     file_append += "_newGCT"
     process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi')
+    # process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_uncalibrated_cfi')
 
-
-process.p = cms.Path(
-    # process.RawToDigi
-    process.gctDigis # unpack regions, TPs, etc
-    *process.ecalDigis
-    *process.ecalPreshowerDigis
-    *process.scalersRawToDigi
-    *process.hcalDigis
-    *process.simHcalTriggerPrimitiveDigis
-    *process.simRctDigis
-    # *process.simGctDigis
-    *process.simGctDigisRCT
-    *process.l1extraParticles
-    *process.gctInternJetToL1Jet
-    *process.antiktGenJets  # for AK5 GenJet - not needed in Phys14 samples
-    *process.genJetToL1JetAk5
-    *process.genJetToL1JetAk4
-    *process.l1ExtraTreeProducer # standard gctDigis in cenJet coll
-    *process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
-    *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
-    *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
-    *process.puInfo # store nVtx info
-)
-
+if rerun_RCT:
+    process.p = cms.Path(
+        # process.RawToDigi
+        process.gctDigis # unpack regions, TPs, etc
+        *process.ecalDigis
+        *process.ecalPreshowerDigis
+        *process.scalersRawToDigi
+        *process.hcalDigis
+        *process.simHcalTriggerPrimitiveDigis
+        *process.simRctDigis
+        # *process.simGctDigis
+        *process.simGctDigisRCT
+        *process.l1extraParticles
+        *process.gctInternJetToL1Jet
+        *process.antiktGenJets  # for AK5 GenJet - not needed in Phys14 samples
+        *process.genJetToL1JetAk5
+        *process.genJetToL1JetAk4
+        *process.l1ExtraTreeProducer # standard gctDigis in cenJet coll
+        *process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
+        *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
+        *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
+        *process.puInfo # store nVtx info
+    )
+else:
+    process.p = cms.Path(
+        # process.RawToDigi
+        process.gctDigis # unpack regions, TPs, etc
+        *process.simGctDigis
+        *process.l1extraParticles
+        *process.gctInternJetToL1Jet
+        *process.antiktGenJets  # for AK5 GenJet - not needed in Phys14 samples
+        *process.genJetToL1JetAk5
+        *process.genJetToL1JetAk4
+        *process.l1ExtraTreeProducer # standard gctDigis in cenJet coll
+        *process.l1ExtraTreeProducerGctIntern # gctInternal jets in cenJet coll
+        *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet coll
+        *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet coll
+        *process.puInfo # store nVtx info
+    )
 if dump_RCT:
     process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
     process.p *= process.l1RCTParametersTest
@@ -278,10 +274,11 @@ process.TFileService = cms.Service("TFileService",
 
 # SkipEvent = cms.untracked.vstring('ProductNotFound')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 # Some default testing files
 if gt == 'PHYS14_ST_V1':
+    # readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/AVE30BX50_tsg_PHYS14_ST_V1-v1/00000/00AA2E62-2C8A-E411-9390-0025905A60B4.root')
     readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
 elif gt == 'MCRUN2_74_V6':
     readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')

@@ -12,10 +12,10 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "GCT_QCDFlatPhys14_newRCTv2_calibrated"
+job_append = "GCT_oldcalibrated"
 
 # CHANGE ME - select dataset(s) to run over - must be a list of dataset keys
-datasets = ['QCDFlatPhys14BX50']
+datasets = ['TTbarPhys14AVE30BX50']
 # datasets = samples.samples_qcd_Phys14_AVE30BX50.keys()
 # datasets.append('TTbarPhys14AVE30BX50')
 # # datasets.append('QCDFlatPhys14BX50')
