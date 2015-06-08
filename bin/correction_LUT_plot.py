@@ -18,6 +18,7 @@ from itertools import izip
 import os
 import argparse
 import binning
+from common_utils import *
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -104,6 +105,80 @@ def print_lut_file(fit_params, eta_bins, filename):
         file.write(")\n")
 
 
+def plot_correction_map(corr_fn, filename="correction_map.pdf"):
+    """Make plot of pt before Vs after to show mapping"""
+
+    # jet pTs, pre calibration
+    min_pre = 4
+    max_pre = 52
+    jet_pt_pre = np.arange(min_pre, max_pre, 0.5)
+
+    # Post calibration
+    jet_pt_post = np.array([pt * corr_fn.Eval(pt) for pt in jet_pt_pre])
+
+    # Make coloured blocks to show the GCT bins
+    blocks = []  # for persistence otherwise garbabe collected
+    gct_bins = np.arange(4, 16 + (18*4), 4)
+    for i, pt in enumerate(gct_bins):
+        if pt+4 < jet_pt_post[0] or pt > jet_pt_post[-1]:
+            continue
+        b = ROOT.TBox(min_pre, pt, max_pre, pt+4)
+        col = 30 if i % 2 else 38
+        b.SetFillColor(col)
+        b.SetLineStyle(0)
+        blocks.append(b)
+
+    # Plot
+    c = ROOT.TCanvas("c","", 800, 800)
+    c.SetTicks(1, 1)
+    c.SetGrid(1, 1)
+    gr = ROOT.TGraph(len(jet_pt_pre), jet_pt_pre, jet_pt_post)
+    gr.SetMarkerColor(ROOT.kRed)
+    gr.SetTitle("Input jets at 0.5 GeV intervals;p_{T}^{pre};p_{T}^{post}")
+    gr.SetMarkerStyle(2)
+    gr.Draw("AP")
+    [b.Draw() for b in blocks]
+    gr.Draw("P")
+    # Some helpful lines
+    # For pT_in = 30
+    l30x = ROOT.TLine(30, gr.GetYaxis().GetXmin(), 30, 30*corr_fn.Eval(30))
+    l30x.SetLineStyle(2)
+    l30x.Draw()
+    l30y = ROOT.TLine(0, 30*corr_fn.Eval(30), 30, 30*corr_fn.Eval(30))
+    l30y.SetLineStyle(2)
+    l30y.Draw()
+    # For pT_in = 30
+    l5x = ROOT.TLine(5, gr.GetYaxis().GetXmin(), 5, 5*corr_fn.Eval(5))
+    l5x.SetLineStyle(2)
+    l5x.Draw()
+    l5y = ROOT.TLine(0, 5*corr_fn.Eval(5), 5, 5*corr_fn.Eval(5))
+    l5y.SetLineStyle(2)
+    l5y.Draw()
+    c.SaveAs(filename)
+
+    corr_fn.Eval(5)
+    # Make hists of pre & post occupancy
+    h_pre = ROOT.TH1D("h_pre", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
+    h_post = ROOT.TH1D("h_post", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
+
+    for pt in jet_pt_pre:
+        h_pre.Fill(pt)
+
+    for pt in jet_pt_post:
+        h_post.Fill(pt)
+
+    h_post.SetLineColor(ROOT.kRed)
+    h_pre.Draw("HIST")
+    h_post.Draw("SAMEHIST")
+
+    leg = ROOT.TLegend(0.7, 0.7, 0.8, 0.8)
+    leg.SetFillColor(ROOT.kWhite)
+    leg.AddEntry(h_pre, "Pre", "L")
+    leg.AddEntry(h_post, "Post", "L")
+    leg.Draw()
+    c.SaveAs(filename.replace('correction_map', 'occupancy_map'))
+
+
 def main(in_args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
@@ -113,10 +188,11 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--numpy", help="print numpy code to screen", action='store_true')
     args = parser.parse_args(args=in_args)
 
-    in_file = ROOT.TFile(args.input)
+    in_file = open_root_file(args.input)
+    out_dir = os.path.dirname(args.lut)
 
     # Canvas for plotting all fits
-    canv = ROOT.TCanvas("c", "", 3800, 1200)
+    canv = ROOT.TCanvas("canv", "", 3800, 1200)
     ncols = ((len(binning.eta_bins)-1) / 2) + 1
     canv.Divide(ncols, 2)
 
@@ -133,7 +209,7 @@ def main(in_args=sys.argv[1:]):
         print "Eta bin:", etamin, "-", etamax
 
         # get the fitted TF1
-        fit_func = in_file.Get("fitfcneta_%g_%g" % (etamin, etamax))
+        fit_func = get_from_file(in_file, "fitfcneta_%g_%g" % (etamin, etamax))
         if not fit_func:
             raise Exception("Couldn't get fit function fitfcneta_%g_%g" % (etamin, etamax))
 
@@ -163,10 +239,12 @@ def main(in_args=sys.argv[1:]):
         l2.SetY1(corr_10)
         l2.SetY2(corr_10)
         l2.Draw("SAME")
-    out_dir = os.path.dirname(args.lut)
+
+        # Plot function mapping
+        plot_correction_map(fit_func, out_dir+"/correction_map_%g_%g.pdf" % (etamin, etamax))
+
     canv.SaveAs(out_dir+"/all_fits.pdf")
     print_lut_file(all_fit_params, etaBins, args.lut)
-
 
 if __name__ == "__main__":
     main()
