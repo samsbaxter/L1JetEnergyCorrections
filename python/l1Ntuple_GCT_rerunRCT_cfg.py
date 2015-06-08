@@ -7,8 +7,8 @@ Legacy GCT setup, with option to re-run the RCT to include new RCT calibs.
 Produces GCT internal jet collection with finer granularity & no filtering
 to do calibrations properly.
 
-Note that there are several hacks in here, after much discussion with HCAL/RCT
-people.
+Please check the switches below. You can rerun the RCT, add in new RCT or GCT calibs,
+save the EDM collections for debugging, and dump RCT params.
 
 YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 """
@@ -28,6 +28,8 @@ dump_RCT = False
 
 # To use new set of GCT calibs
 new_GCT_calibs = False
+gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_uncalibrated_cfi' # no calibrations
+gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi' # newest calibs
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
@@ -38,12 +40,16 @@ save_EDM = False
 gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
 
 # Things to append to L1Ntuple/EDM filename
-file_append = "_uncalibrated"
+# (if using new RCT calibs, this gets auto added)
+file_append = ""
 
+# Add in a filename appendix here for your GlobalTag if you want.
 if gt == 'MCRUN2_74_V6':
     file_append += "_Spring15"
 elif gt == 'PHYS14_ST_V1':
     file_append += "_Phys14"
+else:
+    file_append += "_"+gt
 
 process = cms.Process("L1NTUPLE")
 
@@ -87,8 +93,8 @@ if rerun_RCT:
     print "*** Re-running RCT"
     file_append += "_rerunRCT"
 
-    # Remake the HCAL TPs since hcalDigis outputs nothing in CMSSW earlier than 735
-    # (NOT CHECKED PRECISELY WHICH VERSION, cerntainly works in 740)
+    # Remake the HCAL TPs since hcalDigis outputs nothing in MC made with CMSSW
+    # earlier than 735 (not sure exactly which version, certainly works in Spring15)
     # But make sure you use the unsupressed digis, not the hcalDigis
     process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
     process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
@@ -214,8 +220,7 @@ else:
 if new_GCT_calibs:
     print "*** Using new GCT calibs"
     file_append += "_newGCT"
-    process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi')
-    # process.load('L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_uncalibrated_cfi')
+    process.load(gct_calibs_file)
 
 if rerun_RCT:
     process.p = cms.Path(
@@ -227,7 +232,6 @@ if rerun_RCT:
         *process.hcalDigis
         *process.simHcalTriggerPrimitiveDigis
         *process.simRctDigis
-        # *process.simGctDigis
         *process.simGctDigisRCT
         *process.l1extraParticles
         *process.gctInternJetToL1Jet
