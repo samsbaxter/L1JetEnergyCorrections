@@ -28,8 +28,8 @@ from array import array
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
-ROOT.gStyle.SetOptFit(0111) # onyl show fit params and errors
-ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetOptFit(1) # only show fit params and errors
+# ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 
 ptBins = binning.pt_bins
@@ -41,7 +41,7 @@ eta_l1_str = "|#eta^{L1}|"
 dr_str = "#DeltaR(L1 jet - Gen jet)"
 pt_L1_str = "E_{T}^{L1} [GeV]"
 pt_Gen_str = "E_{T}^{Gen} [GeV]"
-res_l1_str = "(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}"
+res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{Gen})/<E_{T}^{L1}>"
 pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
 
 compare_1_str = "Old calibration"
@@ -76,7 +76,11 @@ def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"
     h_diff = get_from_file(res_file, hname)
     c = generate_canvas()
     h_diff.Draw()
-    h_diff.SetTitle(";%s;N" % pt_diff_str)
+    h_diff.SetMaximum(h_diff.GetMaximum()*1.2)
+    # h_diff.SetLineWidth(2)
+    func = h_diff.GetListOfFunctions().At(0)
+    func.SetLineWidth(1)
+    h_diff.SetTitle("%g < |#eta^{L1}| < %g, %g < p_{T}^{L1} < %g;%s;N" % (eta_min, eta_max, pt_min, pt_max, pt_diff_str))
     c.SaveAs("%s/pt_diff_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
@@ -98,7 +102,7 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
     in which case res_file1 is treated as before calibration,
     whilst res_file2 is treated as after calibration.
     """
-    grname = "eta_%g_%g/resL1_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+    grname = "eta_%g_%g/resL1_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
     gr_1 = get_from_file(res_file1, grname)
     gr_2 = get_from_file(res_file2, grname) if res_file2 else None
 
@@ -112,9 +116,10 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
         gr_1.Draw("ALP")
         gr_1.GetXaxis().SetTitleSize(0.04)
         gr_1.GetYaxis().SetTitleOffset(1)
-        # gr_1.GetYaxis().SetTitleSize(0.04)
+        gr_1.GetYaxis().SetRangeUser(0, gr_1.GetYaxis().GetXmax())
         gr_1.Draw("ALP")
-        c.SaveAs("%s/res_l1_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+        gr_1.GetYaxis().SetTitle(res_l1_str)
+        c.SaveAs("%s/res_l1_eta_%g_%g_diff.%s" % (oDir, eta_min, eta_max, oFormat))
     else:
         mg = ROOT.TMultiGraph()
         mg.Add(gr_1)
@@ -129,12 +134,14 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
         mg.GetXaxis().SetTitleSize(0.04)
         mg.GetXaxis().SetTitleOffset(0.9)
         # mg.GetYaxis().SetTitleSize(0.04)
+        mg.GetYaxis().SetTitle(res_l1_str)
+        mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax())
         mg.Draw("ALP")
         leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
         leg.AddEntry(gr_1, compare_1_str, "LP")
         leg.AddEntry(gr_2, comapre_2_str, "LP")
         leg.Draw()
-        c.SaveAs("%s/res_l1_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
+        c.SaveAs("%s/res_l1_eta_%g_%g_diff_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
@@ -323,18 +330,21 @@ def main(in_args=sys.argv[1:]):
         res_file = open_root_file(args.res)
         if not args.res2:
             # if not doing comparison
-            pt_min = binning.pt_bins_8[8]
-            pt_max = binning.pt_bins_8[9]
-            plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-            plot_res_all_pt(res_file, None, eta_min, eta_max, args.oDir, args.format)
-            plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins_8, args.oDir, args.format)
+            # pt_min = binning.pt_bins_8[8]
+            # pt_max = binning.pt_bins_8[9]
+            for pt_min, pt_max in izip(binning.pt_bins[0:4], binning.pt_bins[1:5]):
+                plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+            # plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+            for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
+                plot_res_all_pt(res_file, None, emin, emax, args.oDir, args.format)
+            plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins, args.oDir, args.format)
         else:
             # if doing comparison
             res_file2 = open_root_file(args.res2)
-            plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
+            # plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
             for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
                 plot_res_all_pt(res_file, res_file2, emin, emax, args.oDir, args.format)
+            plot_res_all_pt(res_file, res_file2, binning.eta_bins_central[0], binning.eta_bins_central[-1], args.oDir, args.format)
 
         res_file.Close()
 
