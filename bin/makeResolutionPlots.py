@@ -64,7 +64,7 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, div
     hist_name is name of resultant hist
     graph is TGraphErrors object to add point to, adds new point at (pt, width)
     output is where you want to write hist + fit to
-    divide is flag, wehter to divide the width by the mean pt (default is not)
+    divide is flag, whether to divide the width by the mean pt (default is False)
     """
 
     # Get average pt value - could be lazy and use midpoint of bin,
@@ -140,7 +140,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     # This is *much* faster than just making all the plots individually
     diff_min = -200
     diff_max = 200
-    nbins_diff = 400
+    nbins_diff = 200
 
     pt_bin_min = ptBins[0]
     pt_bin_max = ptBins[-1]
@@ -195,7 +195,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_graph_l1.SetNameTitle("resL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % title)
 
     res_graph_l1_diff = ROOT.TGraphErrors()
-    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % title)
+    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/<E_{T}^{L1}>" % title)
 
     res_graph_refVsl1 = ROOT.TGraphErrors() # binned in l1 pt
     res_graph_refVsl1.SetNameTitle("resRefL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
@@ -204,7 +204,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
 
     res_graph_refVsref_diff = ROOT.TGraphErrors() # binned in ref pt
-    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
+    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/<E_{T}^{Gen}>" % title)
 
     # Now go through pt bins, and plot resolution for each, fit with gaussian,
     # and add width to graph
@@ -300,7 +300,8 @@ def main(in_args=sys.argv[1:]):
             forward_bin = emax > 3.1
 
             # setup pt bins, wider ones for forward region
-            ptBins = binning.pt_bins_8 if not forward_bin else binning.pt_bins_8_wide
+            # ptBins = binning.pt_bins_8 if not forward_bin else binning.pt_bins_8_wide
+            ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
 
             plot_resolution(inputf, outputf, ptBins, emin, emax)
 
@@ -308,8 +309,8 @@ def main(in_args=sys.argv[1:]):
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
     if args.incl and ((not args.excl and len(etaBins) >= 2) or (args.excl and len(etaBins)>2)):
         print "Doing inclusive eta"
-        ptBins = binning.pt_bins_8 if not etaBins[0] > 2.9 else binning.pt_bins_8_wide
-        plot_resolution(inputf, outputf, binning.pt_bins_8, etaBins[0], etaBins[-1])
+        # ptBins = binning.pt_bins if not etaBins[0] > 2.9 else binning.pt_bins_wide
+        plot_resolution(inputf, outputf, binning.pt_bins, etaBins[0], etaBins[-1])
 
     if not args.incl and not args.excl:
         print "Not doing inclusive or exclusive - you must specify at least one!"
