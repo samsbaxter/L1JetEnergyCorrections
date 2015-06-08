@@ -71,9 +71,6 @@ file_append += "_rerunRCT"
 #     cms.InputTag('simHcalUnsuppressedDigis')
 # )
 
-# Use this if you want to test a RCTLuts file that isn't in CondDB
-# process.load('L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff')
-
 # Rerun the RCT emulator using the TPs
 # If the hcalDigis bug isn't fixed, then instead use:
 # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
@@ -91,20 +88,19 @@ process.simGctDigis.inputLabel = cms.InputTag('gctDigis')
 # New RCT calibs
 ##############################
 print "*** Using new RCT calibs"
-from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-process.newRCTConfig = cms.ESSource("PoolDBESSource",
-    CondDBSetup,
-    connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-    DumpStat=cms.untracked.bool(True),
-    toGet = cms.VPSet(
-        cms.PSet(
-           record = cms.string('L1RCTParametersRcd'),
-           tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-        )
-    )
-)
-process.prefer("newRCTConfig")
-file_append += '_newRCT'
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+# Format: map{(record,label):(tag,connection),...}
+recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
+# process.GlobalTag = GlobalTag(process.GlobalTag, 'MCRUN2_74_V6', recordOverrides)
+process.GlobalTag = GlobalTag(process.GlobalTag, 'PHYS14_ST_V1', recordOverrides)
+file_append += '_newnewRCT'
+
+# Only use these if not using new RCT calibs
+# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
+# process.GlobalTag.globaltag = cms.string('MCRUN2_74_V6::All') # for Spring15 AVE30BX50 sample
+
+# Dump RCT params
 process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
 
 process.p = cms.Path(
@@ -134,10 +130,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(output_filename)
 )
 
-# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
-process.GlobalTag.globaltag = cms.string('MCRUN2_74_V6::All') # for Spring15 AVE30BX50 sample
-
-SkipEvent = cms.untracked.vstring('ProductNotFound')
+# SkipEvent = cms.untracked.vstring('ProductNotFound')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
@@ -147,7 +140,8 @@ process.source = cms.Source ("PoolSource",
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
                             # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
                             # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
-                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/60000/08ABF6F2-C0ED-E411-9597-0025905A60A8.root')
+                            fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
+                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/60000/08ABF6F2-C0ED-E411-9597-0025905A60A8.root')
                             )
 
 # The following bits can save the EDM contents output to file as well
