@@ -1,3 +1,6 @@
+"""
+This dumps the RCT configuration.
+"""
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
@@ -15,23 +18,11 @@ process.source = cms.Source(
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 )
 
-from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-process.newRCTConfig = cms.ESSource("PoolDBESSource",
-     CondDBSetup,
-     # Using prep database, presumably by the time the tag is in production, it will be in a global tag.
-     connect = cms.string('frontier://FrontierPrep/CMS_COND_L1T'),
-     # This is optional, just prints some info about reading the tag
-     DumpStat=cms.untracked.bool(True),
-     toGet = cms.VPSet(
-         cms.PSet(
-             record = cms.string('L1RCTParametersRcd'),
-             tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV1')
-         )
-     )
-)
-# This tells the EventSetup to pick this record over whatever is in the global tag.
-process.prefer("newRCTConfig") 
-
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+# Format: map{(record,label):(tag,connection),...}
+recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
+process.GlobalTag = GlobalTag(process.GlobalTag, 'PHYS14_ST_V1', recordOverrides)
 
 process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
 
