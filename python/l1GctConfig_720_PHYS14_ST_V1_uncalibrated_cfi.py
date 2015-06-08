@@ -29,7 +29,7 @@ L1GctConfigProducers = cms.ESProducer("L1GctConfigProducers",
 
     # The CalibrationStyle should be "None", "PiecewiseCubic", "Simple" or "PF"
     # "PowerSeries", "ORCAStyle" are also available, but not recommended
-    CalibrationStyle = cms.string('PF'),
+    CalibrationStyle = cms.string('None'),
     PFCoefficients = cms.PSet(
         nonTauJetCalib0 = cms.vdouble(1.000,0.000,0.000,0.000,0.000,0.000),
         nonTauJetCalib1 = cms.vdouble(1.000,0.000,0.000,0.000,0.000,0.000),
