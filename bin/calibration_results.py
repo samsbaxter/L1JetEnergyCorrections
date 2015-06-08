@@ -18,7 +18,7 @@ import beamer_slide_templates as bst
 
 r.PyConfig.IgnoreCommandLineOptions = True
 r.gROOT.SetBatch(1)
-etaBins = binning.eta_bins
+etaBins = binning.eta_bins_central
 
 
 def open_root_file(filename):

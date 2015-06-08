@@ -22,7 +22,7 @@ r.gROOT.SetBatch(1)
 
 ptBins = binning.pt_bins_8[20:]
 # etaBins = [binning.eta_bins[0], binning.eta_bins[-1]]
-etaBins = binning.eta_bins[0:8]
+etaBins = binning.eta_bins_central
 print etaBins
 
 
