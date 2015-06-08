@@ -57,16 +57,18 @@ def check_dir_exists_create(filepath):
 #
 def open_root_file(filename, mode="READ"):
     """Safe way to open ROOT file. Could be improved."""
+    if not check_file_exists(filename):
+        raise RuntimeError("No such file %s" % filename)
     f = ROOT.TFile(filename, mode)
     if f.IsZombie() or not f:
         raise RuntimeError("Can't open TFile %s" % filename)
     return f
 
 
-def get_from_file(inFile, obj_name):
+def get_from_file(tfile, obj_name):
     """Get some object from ROOT TFile with checks."""
-    obj = inFile.Get(obj_name)
+    obj = tfile.Get(obj_name)
     print "getting %s" % obj_name
     if not obj:
-        raise Exception("Can't get object named %s from %s" % (obj_name, inFile.GetName()))
+        raise Exception("Can't get object named %s from %s" % (obj_name, tfile.GetName()))
     return obj
