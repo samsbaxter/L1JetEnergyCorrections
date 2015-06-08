@@ -28,7 +28,7 @@ samples = {
                                       unitsPerJob=50, totalUnits=-1),
 
     "TTbarPhys14AVE30BX50": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Phys14DR-AVE30BX50_tsg_PHYS14_ST_V1-v1/GEN-SIM-RAW',
-                                    unitsPerJob=50, totalUnits=600),
+                                    unitsPerJob=25, totalUnits=600),
 
     "TTbarFall13PU20bx25": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Fall13dr-tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW',
                                     unitsPerJob=100, totalUnits=-1),
@@ -37,7 +37,10 @@ samples = {
                                 unitsPerJob=50, totalUnits=-1),
 
     "QCDFlatPhys14BX50": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Phys14DR-Flat20to50BX50_tsg_PHYS14_ST_V1-v2/GEN-SIM-RAW',
-                                unitsPerJob=50, totalUnits=-1)
+                                unitsPerJob=50, totalUnits=-1),
+
+    "NeutrinoGunPhys14BX50": Dataset(inputDataset='/Neutrino_Pt-2to20_gun/Phys14DR-AVE30BX50_tsg_PHYS14_ST_V1-v1/GEN-SIM-RAW',
+                                    unitsPerJob=35, totalUnits=560)
 }
 
 # Add in QCD pt binned samples here easily
