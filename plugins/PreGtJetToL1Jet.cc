@@ -132,7 +132,7 @@ PreGtJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     ESHandle< L1CaloGeometry > caloGeomESH ;
     iSetup.get< L1CaloGeometryRecord >().get( caloGeomESH ) ;
-    const L1CaloGeometry* caloGeom = &( *caloGeomESH ) ;
+    // const L1CaloGeometry* caloGeom = &( *caloGeomESH ) ;
 
     ESHandle< L1CaloEtScale > jetScale ;
     iSetup.get< L1JetEtScaleRcd >().get( jetScale ) ;
@@ -157,11 +157,7 @@ PreGtJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         for( ; jetItr != jetEnd ; ++jetItr) {
             if (jetItr->et() != 0) {
                 // cout << "Jet: " << jetItr->bx() << " : " << jetItr->rank() << " : " << jetScale->et(jetItr->rank()) << " : " << jetItr->et() << " : "  << jetItr->eta() << " : " << jetItr->phi() << endl;
-                jetColl->push_back(
-                    L1JetParticle(JetToLorentzVector(*jetItr, *caloGeom, *jetScale),
-                                  L1JetParticle::JetType::kUndefined,
-                                  itBX)
-                    );
+                jetColl->push_back(L1JetParticle(jetItr->p4(), L1JetParticle::JetType::kUndefined, itBX));
             }
         }
     }
