@@ -162,8 +162,11 @@ process.p = cms.Path(
     *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
     )
-process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
-process.p *= process.l1RCTParametersTest
+
+# for testing RCT
+# process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
+# process.p *= process.l1RCTParametersTest
+
 ##############################
 # Input/output & standard stuff
 ##############################
