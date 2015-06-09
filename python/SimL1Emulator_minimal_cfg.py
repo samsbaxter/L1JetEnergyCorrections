@@ -66,7 +66,7 @@ process.l1ExtraLayer2 = l1ExtraLayer2
 process.caloStage1Params.jetCalibrationType = cms.string("None")
 
 ##############################
-# New RCT calibs
+# New RCT calibs - GlobalTag set here
 ##############################
 print "*** Using new RCT calibs"
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
@@ -204,7 +204,6 @@ process.output = cms.OutputModule(
         'keep *_ak4GenJets_*_*',
 
         # Keep collectsions from Stage1
-        'keep *_*_*_L1TEMULATION',
         'keep l1tJetBXVector_*_*_*',
         'keep L1GctJetCands_*_*_*',
         'keep l1extraL1JetParticles_*_*_*'

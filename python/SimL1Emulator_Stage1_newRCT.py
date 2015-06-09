@@ -171,7 +171,7 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 )
 
 ##############################
-# New RCT calibs
+# New RCT calibs - GlobalTag is set here
 ##############################
 if new_RCT_calibs:
     print "*** Using new RCT calibs"
@@ -249,7 +249,6 @@ process.output = cms.OutputModule(
         'keep *_ak4GenJets_*_*',
 
         # Keep collections from Stage1
-        'keep *_*_*_L1TEMULATION',
         'keep l1tJetBXVector_*_*_*',
         'keep L1GctJetCands_*_*_*',
         'keep l1extraL1JetParticles_*_*_*'
