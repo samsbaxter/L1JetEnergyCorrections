@@ -17,10 +17,10 @@ YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 # Some handy options
 ##############################
 # To remake the RCT regions:
-rerun_RCT = False
+rerun_RCT = True
 
 # To use new RCT calibrations (auto enable rerun_RCT):
-new_RCT_calibs = False
+new_RCT_calibs = True
 rerun_RCT = rerun_RCT | new_RCT_calibs
 
 # To dump RCT parameters for testing purposes:
@@ -51,6 +51,7 @@ elif gt == 'PHYS14_ST_V1':
 else:
     file_append += "_"+gt
 
+###################################################################
 process = cms.Process("L1NTUPLE")
 
 # import of standard configurations
@@ -210,6 +211,7 @@ if new_RCT_calibs:
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
     file_append += '_newRCTv2'
 else:
+    print "*** Using whatever RCT calibs the sample was made with"
     process.GlobalTag.globaltag = cms.string(gt+'::All')
 
 ###########################################################
@@ -282,20 +284,16 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 # Some default testing files
 if gt == 'PHYS14_ST_V1':
-    # readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/AVE30BX50_tsg_PHYS14_ST_V1-v1/00000/00AA2E62-2C8A-E411-9390-0025905A60B4.root')
-    readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/AVE30BX50_tsg_PHYS14_ST_V1-v1/00000/00AA2E62-2C8A-E411-9390-0025905A60B4.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
 elif gt == 'MCRUN2_74_V6':
-    readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+else:
+    raise RuntimeError("No file to use with GT: %s" % gt)
 
 process.source = cms.Source ("PoolSource",
-                             fileNames = readFiles
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat20to50_POSTLS170_V5-v1/00000/02029D87-36DE-E311-B786-20CF3027A56B.root')
-                            # fileNames = cms.untracked.vstring('file:QCD_Pt-80to120_Phys14_AVE30BX50.root')
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/001CB7A6-E28A-E411-B76F-0025905A611C.root')
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
-                            # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+                             fileNames = fileNames
                             )
-
 
 # The following bits can save the EDM contents output to file as well
 # Handy for debugging
