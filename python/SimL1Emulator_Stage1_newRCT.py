@@ -177,12 +177,14 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 # Some default testing files
 if gt == 'PHYS14_25_V3':
-    readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/004DD38A-2B8E-E411-8E4F-003048FFD76E.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/004DD38A-2B8E-E411-8E4F-003048FFD76E.root')
 elif gt == 'MCRUN2_74_V6':
-    readFiles = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+else:
+    raise RuntimeError("No file to use with GT: %s" % gt)
 
 process.source = cms.Source("PoolSource",
-                            fileNames = readFiles
+                            fileNames = fileNames
                             )
 
 edm_filename = 'SimStage1Emulator{0}.root'.format(file_append)
@@ -206,6 +208,7 @@ process.output = cms.OutputModule(
         'keep *_ak5GenJets_*_*',
         'keep *_ak4GenJets_*_*',
 
+        # Keep collections from Stage1
         'keep *_*_*_L1TEMULATION',
         'keep l1tJetBXVector_*_*_*',
         'keep L1GctJetCands_*_*_*',
