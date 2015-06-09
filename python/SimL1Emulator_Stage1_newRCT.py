@@ -10,7 +10,7 @@ YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 import FWCore.ParameterSet.Config as cms
 
 # To use new RCT calibrations (default in MC is 2012):
-new_RCT_calibs = False
+new_RCT_calibs = True
 
 # To dump RCT parameters for testing purposes:
 dump_RCT = True
@@ -40,7 +40,7 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.Geometry.GeometryIdeal_cff')
-# process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
+process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
 
 # Select the Message Logger output you would like to see:
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -54,12 +54,43 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 ##############################
 # Load up Stage 1 emulator
 ##############################
-process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff')
+
+# This is messy, because the standard sequence
+# process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff')
+# overrides whatever new RCT calibrations you want to use
+# (from L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff import * is the offending line)
+# So we have to:
+# - remake HCAL TPs due to it being broken in MC older than Spring15
+# - rerun RCT with the regions
+# - pass the regions to Stage 1 and run that
+
+process.load('L1Trigger.L1TCalorimeter.caloStage1Params_cfi')
+
+# Remake the HCAL TPs since hcalDigis outputs nothing in MC made with CMSSW
+# earlier than 735 (not sure exactly which version, certainly works in Spring15)
+# But make sure you use the unsupressed digis, not the hcalDigis
 process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
 process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
     cms.InputTag('simHcalUnsuppressedDigis'),
     cms.InputTag('simHcalUnsuppressedDigis')
 )
+
+# Rerun the RCT emulator using the TPs
+from Configuration.StandardSequences.SimL1Emulator_cff import simRctDigis
+process.simRctDigis = simRctDigis
+# If the hcalDigis is empty (MC made pre 740), then use:
+process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
+# If it's fixed, use:
+# process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
+process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
+
+# Load up the Stage 1 parts
+process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_cff')
+from L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff import l1ExtraLayer2
+process.l1ExtraLayer2 = l1ExtraLayer2
+
+# Turn off any existing stage 1 calibrations
+process.caloStage1Params.jetCalibrationType = cms.string("None")
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
@@ -79,9 +110,6 @@ process.l1ExtraTreeProducer.hfRingsLabel = cms.untracked.InputTag("l1ExtraLayer2
 ##############################
 # Do Stage 1 internal jet collection (preGtJets)
 ##############################
-# Turn off any existing stage 1 calibrations
-process.caloStage1Params.jetCalibrationType = cms.string("None")
-
 # Conversion from JetBxCollection to L1JetParticles
 process.preGtJetToL1Jet = cms.EDProducer('PreGtJetToL1Jet',
     preGtJetSource = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
@@ -158,7 +186,12 @@ else:
     process.GlobalTag.globaltag = cms.string(gt+'::All')
 
 process.p = cms.Path(
-    process.L1TCaloStage1_PPFromRaw
+    # process.L1TCaloStage1_PPFromRaw
+    process.ecalDigis # ecal unpacker
+    *process.hcalDigis # hacl unpacker
+    *process.simHcalTriggerPrimitiveDigis # remake hcal TPs
+    *process.simRctDigis # remake regions
+    *process.L1TCaloStage1 # run Stage1
     *process.l1ExtraLayer2
     *process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
     # *process.antiktGenJets # make ak4GenJets - not needed in Phys14
