@@ -9,8 +9,11 @@ YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 
 import FWCore.ParameterSet.Config as cms
 
-# To use new RCT calibrations (default in samples is 2012):
-new_RCT_calibs = True
+# To use new RCT calibrations (default in MC is 2012):
+new_RCT_calibs = False
+
+# To dump RCT parameters for testing purposes:
+dump_RCT = True
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
@@ -101,7 +104,7 @@ process.l1ExtraTreeProducerIntern.maxL1Extra = cms.uint32(50)
 ##############################
 # Do ak5 GenJets
 ##############################
-# Need to make ak5, not included in GEN-SIM-RAW
+# Need to make ak5, not included in GEN-SIM-RAW for Spring15 onwards
 # process.load('RecoJets.Configuration.GenJetParticles_cff')
 # process.load('RecoJets.Configuration.RecoGenJets_cff')
 # process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak5GenJets)
@@ -117,7 +120,7 @@ process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 ##############################
 # Do ak4 GenJets
 ##############################
-# Need to make ak4, not included in GEN-SIM-RAW
+# Need to make ak4, not included in GEN-SIM-RAW before Phys14
 # process.load('RecoJets.Configuration.GenJetParticles_cff')
 # process.load('RecoJets.Configuration.RecoGenJets_cff')
 # process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak4GenJets)
@@ -151,22 +154,26 @@ if new_RCT_calibs:
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
     file_append += '_newRCTv2'
 else:
+    print "*** Using whatever RCT calibs the sample was made with"
     process.GlobalTag.globaltag = cms.string(gt+'::All')
 
-process.p1 = cms.Path(
+process.p = cms.Path(
     process.L1TCaloStage1_PPFromRaw
-    +process.l1ExtraLayer2
-    +process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
-    # +process.antiktGenJets # make ak4GenJets - not needed in Phys14
-    +process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
-    +process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
-    +process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
-    +process.l1ExtraTreeProducerIntern # ditto but with preGtJets in cenJet branch
-    +process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
-    +process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
-    +process.puInfo # store nVtx info
+    *process.l1ExtraLayer2
+    *process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
+    # *process.antiktGenJets # make ak4GenJets - not needed in Phys14
+    *process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
+    *process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
+    *process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
+    *process.l1ExtraTreeProducerIntern # ditto but with preGtJets in cenJet branch
+    *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
+    *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
+    *process.puInfo # store nVtx info
     )
 
+if dump_RCT:
+    process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
+    process.p *= process.l1RCTParametersTest
 
 ##############################
 # Input/output & standard stuff
@@ -227,7 +234,7 @@ process.TFileService = cms.Service("TFileService",
 
 process.output_step = cms.EndPath(process.output)
 
-process.schedule = cms.Schedule(process.p1)
+process.schedule = cms.Schedule(process.p)
 
 if save_EDM:
     print "*** Writing EDM to {0}".format(edm_filename)
