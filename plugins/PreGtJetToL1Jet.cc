@@ -32,9 +32,6 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
-#include "CondFormats/L1TObjects/interface/L1CaloGeometry.h"
-#include "CondFormats/DataRecord/interface/L1CaloGeometryRecord.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/L1Trigger/interface/L1JetParticle.h"
@@ -44,8 +41,6 @@
 #include "DataFormats/L1Trigger/interface/Jet.h"
 
 
-#include "CondFormats/L1TObjects/interface/L1CaloEtScale.h"
-#include "CondFormats/DataRecord/interface/L1JetEtScaleRcd.h"
 //
 // class declaration
 //
@@ -59,10 +54,6 @@ class PreGtJetToL1Jet : public edm::EDProducer {
 
     private:
         virtual void produce(edm::Event&, const edm::EventSetup&) override;
-        math::PtEtaPhiMLorentzVector JetToLorentzVector(
-            const l1t::Jet& jet,
-            const L1CaloGeometry& geom,
-            const L1CaloEtScale& scale);
 
         // virtual void beginJob() override;
         // virtual void endJob() override;
@@ -130,13 +121,6 @@ PreGtJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     using namespace l1extra ;
     using namespace std ;
 
-    ESHandle< L1CaloGeometry > caloGeomESH ;
-    iSetup.get< L1CaloGeometryRecord >().get( caloGeomESH ) ;
-    // const L1CaloGeometry* caloGeom = &( *caloGeomESH ) ;
-
-    ESHandle< L1CaloEtScale > jetScale ;
-    iSetup.get< L1JetEtScaleRcd >().get( jetScale ) ;
-
     // Get the JetBxCollection
     Handle<l1t::JetBxCollection> preGtJetCollection;
     iEvent.getByToken(preGtJetToken_, preGtJetCollection);
@@ -156,38 +140,12 @@ PreGtJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         l1t::JetBxCollection::const_iterator jetEnd = preGtJetCollection->end(itBX);
         for( ; jetItr != jetEnd ; ++jetItr) {
             if (jetItr->et() != 0) {
-                // cout << "Jet: " << jetItr->bx() << " : " << jetItr->rank() << " : " << jetScale->et(jetItr->rank()) << " : " << jetItr->et() << " : "  << jetItr->eta() << " : " << jetItr->phi() << endl;
                 jetColl->push_back(L1JetParticle(jetItr->p4(), L1JetParticle::JetType::kUndefined, itBX));
             }
         }
     }
 
     OrphanHandle< L1JetParticleCollection > preGtJetHandle = iEvent.put(jetColl, "PreGtJets");
-}
-
-/**
- * @brief Converts info in Jet to LorentzVector
- * @details [long description]
- *
- * @param jet Input Jet
- * @param geom L1CaloGeometry to convert eta and phi into physical values
- * @param scale L1CaloEtScale to convert jet rank into physical ET
- * @return PolarLorentzVector (aka math::PtEtaPhiMLorentzVector) to use in L1JetParticle ctor
- */
-math::PtEtaPhiMLorentzVector
-PreGtJetToL1Jet::JetToLorentzVector(const l1t::Jet& jet,
-                                   const L1CaloGeometry& geom,
-                                   const L1CaloEtScale& scale) {
-    double et = jet.et();
-    double eta = jet.eta();
-    double phi = jet.phi();
-    // double et2 = jet.hwPt() * scale.linearLsb(); // pre calibration + compression
-    // double eta2 = geom.etaBinCenter(jet.regionId());
-    // double phi2 = geom.emJetPhiBinCenter(jet.regionId());
-    double mass = 0.;
-    // std::cout << et << " : "  << eta << " : " << phi << std::endl;
-    // std::cout << et2 << " : "  << eta2 << " : " << phi2 << std::endl;
-    return math::PtEtaPhiMLorentzVector(et, eta, phi, mass);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
