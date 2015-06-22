@@ -27,8 +27,7 @@ rerun_RCT = rerun_RCT | new_RCT_calibs
 dump_RCT = False
 
 # To use new set of GCT calibs
-new_GCT_calibs = False
-gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_720_PHYS14_ST_V1_uncalibrated_cfi' # no calibrations
+new_GCT_calibs = True
 gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi' # newest calibs
 
 # To save the EDM content as well:
@@ -38,18 +37,14 @@ save_EDM = False
 # Global tag (note, you must ensure it matches input file)
 # gt = 'MCRUN2_74_V6'  # for Spring15 AVE30BX50 sample
 gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
+# gt = 'MCRUN2_74_V8'  # for Spring14 NeutrinoGun sample for laura
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
 file_append = ""
 
-# Add in a filename appendix here for your GlobalTag if you want.
-if gt == 'MCRUN2_74_V6':
-    file_append += "_Spring15"
-elif gt == 'PHYS14_ST_V1':
-    file_append += "_Phys14"
-else:
-    file_append += "_"+gt
+# Add in a filename appendix here for your GlobalTag.
+file_append += "_"+gt
 
 ###################################################################
 process = cms.Process("L1NTUPLE")
@@ -76,8 +71,7 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     )
 
 # L1 ntuple producers
-import L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi 
-process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
+process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
 
 ##############################
 # Rerun the GCT for internal jet collection
@@ -278,7 +272,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(output_filename)
 )
 
-# SkipEvent = cms.untracked.vstring('ProductNotFound')
+process.options = cms.untracked.PSet(SkipEvent = cms.untracked.vstring('ProductNotFound'))
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
@@ -288,11 +282,13 @@ if gt == 'PHYS14_ST_V1':
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
 elif gt == 'MCRUN2_74_V6':
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+elif gt == 'MCRUN2_74_V8' or gt == 'POSTLS170_V7':
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/Flat20to50_BX50_POSTLS170_V7-v1/00000/006E14BB-1125-E411-A566-00266CFFA25C.root')
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
 
 process.source = cms.Source ("PoolSource",
-                             fileNames = fileNames
+                             fileNames=fileNames
                             )
 
 # The following bits can save the EDM contents output to file as well

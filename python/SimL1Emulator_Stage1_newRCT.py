@@ -20,17 +20,14 @@ dump_RCT = True
 save_EDM = True
 
 # Global tag (note, you must ensure it matches input file)
-gt = 'PHYS14_25_V3'  # for Phys14 AVE30BX50 sample
+gt = 'PHYS14_25_V2'  # for Phys14 AVE30BX50 sample
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
 file_append = "_Stage1"
 
-# Add in a filename appendix here for your GlobalTag if you want.
-if gt == 'PHYS14_25_V3':
-    file_append += "_Phys14"
-else:
-    file_append += "_" + gt
+# Add in a filename appendix here for your GlobalTag.
+file_append += "_" + gt
 
 ###################################################################
 process = cms.Process('L1NTUPLE')
@@ -95,7 +92,8 @@ process.caloStage1Params.jetCalibrationType = cms.string("None")
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
 ##############################
-process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
+# process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
+process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
 process.l1ExtraTreeProducer.nonIsoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:NonIsolated")
 process.l1ExtraTreeProducer.isoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:Isolated")
 process.l1ExtraTreeProducer.tauJetLabel = cms.untracked.InputTag("l1ExtraLayer2:Tau")
@@ -128,6 +126,16 @@ process.l1ExtraTreeProducerIntern.mhtLabel = cms.untracked.InputTag("")
 process.l1ExtraTreeProducerIntern.hfRingsLabel = cms.untracked.InputTag("")
 process.l1ExtraTreeProducerIntern.cenJetLabel = cms.untracked.InputTag("preGtJetToL1Jet:PreGtJets")
 process.l1ExtraTreeProducerIntern.maxL1Extra = cms.uint32(50)
+
+##############################
+# Alternate way of getting Stage 1 preGtJet collection using new NTuples
+# But still need a L1UpgradeTree to access it afterwards
+##############################
+# process.load("L1Trigger.L1TNtuples.l1UpgradeTreeProducer_cfi")
+# process.l1UpgradeTreeProducer.egLabel = cms.untracked.InputTag("")
+# process.l1UpgradeTreeProducer.tauLabel = cms.untracked.InputTag("")
+# process.l1UpgradeTreeProducer.muonLabel = cms.untracked.InputTag("")
+# process.l1UpgradeTreeProducer.jetLabel = cms.untracked.InputTag("simCaloStage1FinalDigis:preGtJets")
 
 ##############################
 # Do ak5 GenJets
@@ -202,6 +210,7 @@ process.p = cms.Path(
     *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
     *process.puInfo # store nVtx info
+    *process.l1UpgradeTreeProducer
     )
 
 if dump_RCT:
@@ -216,7 +225,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 # Input source
 
 # Some default testing files
-if gt == 'PHYS14_25_V3':
+if gt in ['PHYS14_25_V3', 'PHYS14_25_V2', 'MCRUN2_74_V8']:
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/004DD38A-2B8E-E411-8E4F-003048FFD76E.root')
 elif gt == 'MCRUN2_74_V6':
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
@@ -251,7 +260,8 @@ process.output = cms.OutputModule(
         # Keep collections from Stage1
         'keep l1tJetBXVector_*_*_*',
         'keep L1GctJetCands_*_*_*',
-        'keep l1extraL1JetParticles_*_*_*'
+        'keep l1extraL1JetParticles_*_*_*',
+        'keep *_l1ExtraLayer2_*_*'
     ),
     fileName = cms.untracked.string(edm_filename)
 )

@@ -19,8 +19,10 @@ cmsenv
 
 # Stage 1 emulator - do this first
 git cms-addpkg L1Trigger/L1TCalorimeter
-# L1Ntuples package - see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1TriggerDPGNtupleProduction
-git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
+# L1Ntuples package - see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideL1TNtuples
+git remote add cms-l1t-offline git@github.com:cms-l1t-offline/cmssw.git
+git fetch cms-l1t-offline
+git checkout cms-l1t-offline/l1t-ntuple-dev L1Trigger/L1TNtuples
 # This package
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
 
@@ -127,6 +129,8 @@ is commented out.
 
 ## Applying new JEC LUT
 
+**Currently for GCT only**
+
 1) In your L1Ntuple config file, add in line:
 
 ```
@@ -148,5 +152,11 @@ Calibration Style option PF
 
 ### Existing LUTs:
 
-- [l1GctConfig_720_PHYS14_ST_V1_central_cfi](python/l1GctConfig_720_PHYS14_ST_V1_central_cfi.py): designed for use with GCT in Phys14 AVE30 BX50 samples. **Central eta ( < 3) calibrations only** (due to fault with HF in 720). Derived using CMSSW_7_2_0, on pt-binned QCD samples.
+### Random notes:
+
+- For all CMSSW releases up to and including 7_4_X, there is a bug in the standard Stage 1 emulator sequence that auto loads the old RCT LUTs: https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_2/L1Trigger/L1TCalorimeter/python/L1TCaloStage1_PPFromRaw_cff.py#L9 To get around this, basically copy and paste that file's contents wihtout that line...sigh. Should be fixed in 7_5_X though.
+
+- For new RCT calibs, use 7_4_2 or better - check with https://twiki.cern.ch/twiki/bin/viewauth/CMS/RCTCalibrationTP
+
+- **ALWAYS** double check with the `l1RCTParametersTest` module that you are running the correct RCT calibs - if in doubt, check with Laura/Maria/Aaron
 
