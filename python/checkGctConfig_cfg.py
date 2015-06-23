@@ -19,12 +19,16 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration/StandardSequences/EndOfProcess_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cff')
-process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-# L1 raw to digi options
-process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+# Old GlobalTags
+# process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-process.l1extraParticles.centralBxOnly = cms.bool(True)
+# New Global Tags
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+
+# process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
+process.GlobalTag.globaltag = cms.string('GR_P_V56') # for Phys14 AVE30BX50 sample
 
 ######################################
 # Testing - check GCT config
@@ -37,11 +41,9 @@ process.MessageLogger.cerr.threshold = cms.untracked.string('DEBUG')
 process.MessageLogger.debugModules = cms.untracked.vstring('l1GctConfigDump')
 
 # Load in your new config here to check post-calibration config
-process.load('l1GctConfig_742_PHYS14_ST_V1_central_cfi')
+# process.load('l1GctConfig_742_PHYS14_ST_V1_central_cfi')
 
 process.p = cms.Path(
-    # process.RawToDigi
-    # +process.simGctDigis
     process.l1GctConfigDump # for print GCT config - not needed for production normally
 )
 
@@ -54,8 +56,6 @@ process.p = cms.Path(
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string('gctDumpConfig.root')
 )
-
-process.GlobalTag.globaltag = cms.string('PHYS14_ST_V1::All') # for Phys14 AVE30BX50 sample
 
 SkipEvent = cms.untracked.vstring('ProductNotFound')
 

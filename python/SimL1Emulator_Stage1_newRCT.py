@@ -34,7 +34,6 @@ process = cms.Process('L1NTUPLE')
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
-process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.Geometry.GeometryIdeal_cff')
 process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
@@ -191,6 +190,7 @@ if new_RCT_calibs:
     file_append += '_newRCTv2'
 else:
     print "*** Using whatever RCT calibs the sample was made with"
+    process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
     process.GlobalTag.globaltag = cms.string(gt+'::All')
 
 process.p = cms.Path(
@@ -210,7 +210,7 @@ process.p = cms.Path(
     *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
     *process.puInfo # store nVtx info
-    *process.l1UpgradeTreeProducer
+    # *process.l1UpgradeTreeProducer
     )
 
 if dump_RCT:
