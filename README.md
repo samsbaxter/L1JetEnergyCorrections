@@ -37,6 +37,8 @@ doxygen Doxyfile # html documentation in html/index.html
 # cd latex; make
 ```
 
+- **WARNING:** in CMSSW_7_4_5 and later, `L1RCTProducer` uses the new AMC13 FED IDs for HF. So if you run over Spring15 MC or earlier, you'll need to change the FEDs back, or end up with nothing in the HF: https://github.com/cms-sw/cmssw/commit/8b127a6660bdb557ccc2241db022687d3c2936d0
+
 ## Basic concept
 
 The following is a conceptual outline of the method that is used to calibrate jet energies.
@@ -157,6 +159,8 @@ Calibration Style option PF
 - For all CMSSW releases up to and including 7_4_X, there is a bug in the standard Stage 1 emulator sequence that auto loads the old RCT LUTs: https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_2/L1Trigger/L1TCalorimeter/python/L1TCaloStage1_PPFromRaw_cff.py#L9 To get around this, basically copy and paste that file's contents wihtout that line...sigh. Should be fixed in 7_5_X though.
 
 - For new RCT calibs, use 7_4_2 or better - check with https://twiki.cern.ch/twiki/bin/viewauth/CMS/RCTCalibrationTP
+
+- **WARNING:** in CMSSW_7_4_5 and later, the L1RCTProducer uses the new AMC13 FED IDs for HF. So if you run over Spring15 MC or ealrier, you'll need to change the FEDs back, or end up with nothing in the HF: https://github.com/cms-sw/cmssw/commit/8b127a6660bdb557ccc2241db022687d3c2936d0
 
 - **ALWAYS** double check with the `l1RCTParametersTest` module that you are running the correct RCT calibs - if in doubt, check with Laura/Maria/Aaron
 
