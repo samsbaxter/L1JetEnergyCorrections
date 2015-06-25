@@ -44,7 +44,7 @@ samples = {
 }
 
 # Add in QCD pt binned samples here easily
-ptbins = [15, 30, 50, 80, 120, 170, 300, 470, 600]
+ptbins = [15, 30, 50, 80, 120, 170, 300, 470, 600, 800, 1000]
 for i, ptmin in enumerate(ptbins[:-1]):
     ptmax = ptbins[i+1]
 
