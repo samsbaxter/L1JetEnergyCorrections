@@ -44,12 +44,22 @@ samples = {
 }
 
 # Add in QCD pt binned samples here easily
-ptbins = [15, 30, 50, 80, 120, 170, 300, 470, 600, 800, 1000, 1400, 1800]
+ptbins = [15, 30, 50, 80, 120, 170, 300, 470, 600]
 for i, ptmin in enumerate(ptbins[:-1]):
     ptmax = ptbins[i+1]
 
+    # Spring15 AVEPU20 25ns
+    key = "QCD_Pt-%dto%d_Spring15_AVE20BX25" % (ptmin, ptmax)
+    ver = "-v1"
+    if ptmin == 80:
+        ver = "-v2"
+    elif ptmin == 15:
+        ver = "_ext1-v1"
+    samples[key] = Dataset(inputDataset="/QCD_Pt_%dto%d_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7%s/GEN-SIM-RAW" % (ptmin, ptmax, ver),
+                            unitsPerJob=50, totalUnits=-1)
+
     # Spring15 AVEPU30 50ns
-    key = "QCD_Pt-%dto%d_Spring15_AVE30BX50"
+    key = "QCD_Pt-%dto%d_Spring15_AVE30BX50" % (ptmin, ptmax)
     samples[key] = Dataset(inputDataset="/QCD_Pt_%dto%d_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW" % (ptmin, ptmax),
                             unitsPerJob=50, totalUnits=-1)
 
@@ -62,7 +72,7 @@ for i, ptmin in enumerate(ptbins[:-1]):
     # manually set totalUnits for smaller jobs
     totUnits = 20 * 50
     key = "QCD_Pt-%dto%d_Phys14_AVE30BX50" % (ptmin, ptmax)
-    ver = 1 if ptmin > 49 else 2  # the lwoest pt sets are v2 not v1
+    ver = 1 if ptmin > 49 else 2  # the lowest pt sets are v2 not v1
     samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE30BX50_tsg_castor_PHYS14_ST_V1-v%d/GEN-SIM-RAW" % (ptmin, ptmax, ver),
                             unitsPerJob=50, totalUnits=totUnits)
 
@@ -95,7 +105,8 @@ samples["QCD_Pt-1800_Fall13_PU40bx50"] = Dataset(inputDataset="/QCD_Pt-1800_Tune
                                                     unitsPerJob=150, totalUnits=-1)
 
 # adhoc mini samples for diff QCD sets
-samples_qcd_Spring15_AVE20BX50 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Spring15_AVE30BX50", k))
+samples_qcd_Spring15_AVE20BX25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Spring15_AVE20BX25", k))
+samples_qcd_Spring15_AVE30BX50 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Spring15_AVE30BX50", k))
 samples_qcd_Phys14_AVE20BX25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Phys14_AVE20BX25", k))
 samples_qcd_Phys14_AVE30BX50 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Phys14_AVE30BX50", k))
 samples_qcd_Fall13_PU20bx25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Fall13_PU20bx25", k))
