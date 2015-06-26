@@ -17,10 +17,10 @@ YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 # Some handy options
 ##############################
 # To remake the RCT regions:
-rerun_RCT = True
+rerun_RCT = False
 
 # To use new RCT calibrations (auto enable rerun_RCT):
-new_RCT_calibs = True
+new_RCT_calibs = False
 rerun_RCT = rerun_RCT | new_RCT_calibs
 
 # To dump RCT parameters for testing purposes:
