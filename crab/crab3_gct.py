@@ -12,7 +12,7 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "TTbarSpring15_GCT_oldRCT_oldGCT"
+job_append = "TTbarSpring15_GCT_newRCTv2_newGCT"
 
 # CHANGE ME - select dataset(s) to run over - must be a list of dataset keys
 datasets = ['TTbarSpring15AVE30BX50']

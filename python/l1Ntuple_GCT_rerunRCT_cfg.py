@@ -17,17 +17,17 @@ YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
 # Some handy options
 ##############################
 # To remake the RCT regions:
-rerun_RCT = False
+rerun_RCT = True
 
 # To use new RCT calibrations (auto enable rerun_RCT):
-new_RCT_calibs = False
+new_RCT_calibs = True
 rerun_RCT = rerun_RCT | new_RCT_calibs
 
 # To dump RCT parameters for testing purposes:
 dump_RCT = False
 
 # To use new set of GCT calibs
-new_GCT_calibs = False
+new_GCT_calibs = True
 gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi' # newest calibs
 
 # To save the EDM content as well:
