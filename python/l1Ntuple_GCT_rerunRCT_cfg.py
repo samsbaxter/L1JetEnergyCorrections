@@ -27,7 +27,7 @@ rerun_RCT = rerun_RCT | new_RCT_calibs
 dump_RCT = False
 
 # To use new set of GCT calibs
-new_GCT_calibs = True
+new_GCT_calibs = False
 gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi' # newest calibs
 
 # To save the EDM content as well:
@@ -35,13 +35,13 @@ gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1
 save_EDM = False
 
 # Global tag (note, you must ensure it matches input file)
-# gt = 'MCRUN2_74_V6'  # for Spring15 AVE30BX50 sample
-gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
+gt = 'MCRUN2_74_V8'  # for Spring15 AVE30BX50 sample
+# gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
 # gt = 'MCRUN2_74_V8'  # for Spring14 NeutrinoGun sample for laura
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
-file_append = ""
+file_append = "_GCT"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_"+gt
@@ -91,16 +91,16 @@ if rerun_RCT:
     # Remake the HCAL TPs since hcalDigis outputs nothing in MC made with CMSSW
     # earlier than 735 (not sure exactly which version, certainly works in Spring15)
     # But make sure you use the unsupressed digis, not the hcalDigis
-    process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
-    process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
-        cms.InputTag('simHcalUnsuppressedDigis'),
-        cms.InputTag('simHcalUnsuppressedDigis')
-    )
+    # process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+    # process.simHcalTriggerPrimitiveDigis.inputLabel = cms.VInputTag(
+    #     cms.InputTag('simHcalUnsuppressedDigis'),
+    #     cms.InputTag('simHcalUnsuppressedDigis')
+    # )
 
     # Rerun the RCT emulator using the TPs
     # If the hcalDigis is empty (MC made pre 740), then instead use:
-    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
-    # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
+    # process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('simHcalTriggerPrimitiveDigis'))
+    process.simRctDigis.hcalDigis = cms.VInputTag(cms.InputTag('hcalDigis'))
     process.simRctDigis.ecalDigis = cms.VInputTag(cms.InputTag('ecalDigis', 'EcalTriggerPrimitives' ))
 
     # Rerun the GCT emulator using the RCT regions, including intern collections
@@ -226,7 +226,7 @@ if rerun_RCT:
         *process.ecalPreshowerDigis
         *process.scalersRawToDigi
         *process.hcalDigis
-        *process.simHcalTriggerPrimitiveDigis
+        # *process.simHcalTriggerPrimitiveDigis
         *process.simRctDigis
         *process.simGctDigisRCT
         *process.l1extraParticles
@@ -272,9 +272,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(output_filename)
 )
 
-process.options = cms.untracked.PSet(SkipEvent = cms.untracked.vstring('ProductNotFound'))
+process.options = cms.untracked.PSet(SkipEvent = cms.untracked.vstring('ProductNotFound'),
+                                     wantSummary = cms.untracked.bool(True))
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(2))
 
 # Some default testing files
 if gt == 'PHYS14_ST_V1':
@@ -282,8 +283,9 @@ if gt == 'PHYS14_ST_V1':
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
 elif gt == 'MCRUN2_74_V6':
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
-elif gt == 'MCRUN2_74_V8' or gt == 'POSTLS170_V7':
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/Flat20to50_BX50_POSTLS170_V7-v1/00000/006E14BB-1125-E411-A566-00266CFFA25C.root')
+elif gt in ['MCRUN2_74_V8', 'MCRUN2_74_V9A']:
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/0091E666-98F2-E411-A2AF-002590596498.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/Flat20to50_BX50_POSTLS170_V7-v1/00000/006E14BB-1125-E411-A566-00266CFFA25C.root')
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
 

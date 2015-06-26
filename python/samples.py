@@ -25,7 +25,7 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
 samples = {
 
     "TTbarSpring15AVE30BX50": Dataset(inputDataset='/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
-                                      unitsPerJob=50, totalUnits=-1),
+                                      unitsPerJob=25, totalUnits=-1),
 
     "TTbarPhys14AVE30BX50": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Phys14DR-AVE30BX50_tsg_PHYS14_ST_V1-v1/GEN-SIM-RAW',
                                     unitsPerJob=25, totalUnits=600),
