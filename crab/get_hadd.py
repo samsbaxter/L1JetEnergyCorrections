@@ -2,12 +2,12 @@
 
 """
 This script goes through all the datasets in one set of crab jobs, and for each:
-1) gets the job IDs for the firxt X% of jobs.
-2) does crab getouput on thos job IDs
+1) gets the job IDs for the first X% of jobs.
+2) does crab getouput on those job IDs
 3) hadd these output files and put them in a sensible directory
 4) remove old files
 
-Writes out all the necessary commands to a file, crab_get_hadd.sh,
+Writes out all the necessary commands to a file, crab_get_hadd_<timestamp>.sh,
 so you can check it over BEFORE running it.
 
 Must be run in L1JetEnergyCorrections/crab directory.
@@ -20,6 +20,7 @@ import os
 import stat
 from CRABAPI.RawCommand import crabCommand
 import sys
+from time import strftime
 
 
 def get_hadd(in_args=sys.argv[1:]):
@@ -36,7 +37,7 @@ def get_hadd(in_args=sys.argv[1:]):
     crab_area = crab_area.rstrip('/')  # important!
 
     # Write commands to file
-    cmd_filename = 'crab_get_hadd.sh'
+    cmd_filename = 'crab_get_hadd_%s.sh' % (strftime("%H%M%S"))
     with open(cmd_filename, "w") as cmd_file:
 
         # Loop over each dataset
@@ -50,7 +51,11 @@ def get_hadd(in_args=sys.argv[1:]):
             # first get suitable output directory & file names
             # will put output dir in directory above this (assumes we're in L1JetEnergyCorrections/crab)
             # check to see if file already exists - in which case we skip this dataset
-            out_dir = crab_dir.split("/")[0].replace("l1ntuple_GCT_", "")
+            if "GCT" in crab_dir:
+                # out_dir = crab_dir.split("/")[0].replace("l1ntuple_GCT_", "")
+                out_dir = crab_dir.split("/")[0].replace("l1ntuple_", "")
+            elif "Stage1" in crab_dir:
+                out_dir = crab_dir.split("/")[0].replace("l1ntuple_Stage1_", "")
             out_file = crab_dir.split("/")[1].replace("crab_", "L1Tree_")
             out_file += ".root"
             output_path = "../{0}/{1}".format(out_dir, out_file)
@@ -66,7 +71,7 @@ def get_hadd(in_args=sys.argv[1:]):
             # can either do datasets that are completely finished, or only
             # take a fraction of completed jobs
             completed = False
-            fraction = 0.9
+            fraction = 0.5
             res_status = crabCommand('status', crab_dir)
             n_jobs = len(res_status['jobs'])
             job_ids = []
@@ -75,19 +80,20 @@ def get_hadd(in_args=sys.argv[1:]):
             else:
                 n_jobs_to_get = int(round(fraction*n_jobs))
 
-            # Get the requisite number of jobs, making sure they completed
+            # Get the requisite number of jobs (or more), making sure they completed
             for i in range(1, n_jobs+1):
                 if res_status['jobs'][str(i)]['State'] == 'finished':
                     job_ids.append(str(i))
                 if len(job_ids) == n_jobs_to_get:
                     break
-            if len(job_ids) != n_jobs_to_get:
+
+            if len(job_ids) < n_jobs_to_get:
                 print "Not enough jobs finished! - skipping"
                 print "Need %d jobs, only found %d " % (n_jobs_to_get, len(job_ids))
                 continue
 
             # Get the output from the jobs
-            print "Getting files %s from %s" % (job_ids, crab_dir)
+            print "Getting %d files %s from %s" % (len(job_ids), job_ids, crab_dir)
             # wish I could use the CRAB API here but doesn't like --jobids option
             # res_get = crabCommand('getoutput', crab_dir, '--jobids %s' % (','.join(job_ids)))
             crab_get_cmd = 'crab getoutput --jobids {0} {1}'.format(','.join(job_ids), crab_dir)
