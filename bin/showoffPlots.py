@@ -330,13 +330,16 @@ def main(in_args=sys.argv[1:]):
         res_file = open_root_file(args.res)
         if not args.res2:
             # if not doing comparison
-            # pt_min = binning.pt_bins_8[8]
-            # pt_max = binning.pt_bins_8[9]
-            for pt_min, pt_max in izip(binning.pt_bins[0:4], binning.pt_bins[1:5]):
-                plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-            # plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+            pt_min = binning.pt_bins[10]
+            pt_max = binning.pt_bins[11]
+            # for the first 4 bins - troublesome
+            # for pt_min, pt_max in izip(binning.pt_bins[0:4], binning.pt_bins[1:5]):
+            plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+
             for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
                 plot_res_all_pt(res_file, None, emin, emax, args.oDir, args.format)
+
             plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins, args.oDir, args.format)
         else:
             # if doing comparison
@@ -352,13 +355,13 @@ def main(in_args=sys.argv[1:]):
     if args.checkcal:
         check_file = open_root_file(args.checkcal)
 
-        for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
+        for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
             plot_l1_Vs_ref(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
-        plot_l1_Vs_ref(check_file, binning.eta_bins_central[0], binning.eta_bins_central[-1], args.oDir, args.format)
+        plot_l1_Vs_ref(check_file, binning.eta_bins[0], binning.eta_bins[-1], args.oDir, args.format)
 
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
-        plot_rsp_eta(check_file, check_file2, 0, 3, args.oDir, args.format)
+        plot_rsp_eta(check_file, check_file2, binning.eta_bins[0], binning.eta_bins[-1], args.oDir, args.format)
 
         check_file.Close()
 
