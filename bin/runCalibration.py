@@ -420,7 +420,8 @@ def main(in_args=sys.argv[1:]):
         forward_bin = emax > 3.1
 
         # setup pt bins, wider ones for forward region
-        ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
+        # ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
+        ptBins = binning.pt_bins
 
         # Load fit function & starting params - important as wrong starting params
         # can cause fit failures
