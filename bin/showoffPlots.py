@@ -44,13 +44,22 @@ pt_Gen_str = "E_{T}^{Gen} [GeV]"
 res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{Gen})/<E_{T}^{L1}>"
 pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
 
-compare_1_str = "Old calibration"
-compare_1_str = "2012 calibration"
-comapre_2_str = "New calibration"
+# compare_1_str = "Old calibration"
+# compare_1_str = "2012 RCT calibration, 2012 GCT calibration (GCT jets)"
+# compare_2_str = "New RCT calibration, 2012 GCT calibration (GCT jets)"
+# compare_3_str = "New RCT calibration, new GCT calibration (GCT jets)"
 
-def generate_canvas():
+# compare_1_str = "2012 RCT calibration (GCT internal jets)"
+# compare_2_str = "New RCT calibration (GCT internal jets)"
+
+compare_1_str = "Spring15"
+compare_2_str = "Phys14"
+
+plot_title = "TTbar 50ns, new RCT calibrations"
+
+def generate_canvas(title=""):
     """Generate a standard TCanvas for all plots"""
-    c = ROOT.TCanvas("c", "", 1200, 800)
+    c = ROOT.TCanvas("c", title, 1200, 800)
     c.SetTicks(1, 1)
     return c
 
@@ -191,7 +200,7 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     c.SaveAs("%s/h2d_gen_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"):
+def plot_rsp_eta(check_file1, check_file2, check_file3, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta.
 
     Can optionally do comparison against another file,
@@ -201,8 +210,9 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"
     grname = "eta_%g_%g/gr_rsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
     gr_1 = get_from_file(check_file1, grname)
     gr_2 = get_from_file(check_file2, grname) if check_file2 else None
+    gr_3 = get_from_file(check_file3, grname) if check_file3 else None
 
-    c = generate_canvas()
+    c = generate_canvas(plot_title)
 
     gr_1.GetYaxis().SetRangeUser(0, 2)
     gr_1.GetXaxis().SetLimits(eta_min, eta_max)
@@ -232,6 +242,10 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"
         gr_2.SetMarkerColor(ROOT.kRed)
         gr_2.SetMarkerStyle(21)
         mg.Add(gr_2)
+        # gr_3.SetLineColor(ROOT.kBlue)
+        # gr_3.SetMarkerColor(ROOT.kBlue)
+        # gr_3.SetMarkerStyle(22)
+        # mg.Add(gr_3)
         mg.Draw("ALP")
         mg.SetTitle(";%s;%s" % (gr_1.GetXaxis().GetTitle(), gr_1.GetYaxis().GetTitle()))
         mg.GetYaxis().SetRangeUser(0,2)
@@ -240,9 +254,12 @@ def plot_rsp_eta(check_file1, check_file2, eta_min, eta_max, oDir, oFormat="pdf"
         mg.GetXaxis().SetTitleOffset(0.9)
         # mg.GetYaxis().SetTitleSize(0.04)
         mg.Draw("ALP")
-        leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
+        mg.GetHistogram().SetTitle(plot_title)
+        leg = ROOT.TLegend(0.5, 0.67, 0.87, 0.87) # top right
+        # leg = ROOT.TLegend(0.4, 0.17, 0.87, 0.37) # bottom right
         leg.AddEntry(gr_1, compare_1_str, "LP")
-        leg.AddEntry(gr_2, comapre_2_str, "LP")
+        leg.AddEntry(gr_2, compare_2_str, "LP")
+        # leg.AddEntry(gr_3, compare_3_str, "LP")
         leg.Draw()
         [line.Draw() for line in [line_central, line_plus, line_minus]]
         c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
@@ -295,6 +312,7 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--checkcal2", help="optional: 2nd input ROOT file with resolution plots from checkCalibration.py. " \
                                         "If you specify this one, then the file specified by --checkcal will be treated as pre-calibration, " \
                                         "whilst this one will be treated as post-calibration")
+    parser.add_argument("--checkcal3", help="yet another calibration check file")
 
     parser.add_argument("--calib", help="input ROOT file from output of runCalibration.py")
 
@@ -353,15 +371,18 @@ def main(in_args=sys.argv[1:]):
 
     # Do plots with output from checkCalibration.py
     if args.checkcal:
+
+        etaBins = binning.eta_bins
         check_file = open_root_file(args.checkcal)
 
-        for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+        for emin, emax in izip(etaBins[:-1], etaBins[1:]):
             plot_l1_Vs_ref(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
-        plot_l1_Vs_ref(check_file, binning.eta_bins[0], binning.eta_bins[-1], args.oDir, args.format)
+        plot_l1_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
 
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
-        plot_rsp_eta(check_file, check_file2, binning.eta_bins[0], binning.eta_bins[-1], args.oDir, args.format)
+        check_file3 = open_root_file(args.checkcal3) if args.checkcal3 else None
+        plot_rsp_eta(check_file, check_file2, check_file3, etaBins[0], etaBins[-1], args.oDir, args.format)
 
         check_file.Close()
 
