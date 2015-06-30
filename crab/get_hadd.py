@@ -30,30 +30,29 @@ def get_hadd(in_args=sys.argv[1:]):
     """
 
     # Working area - change me!
-    # crab_area = 'l1ntuple_GCT_QCDPhys14_newRCT_calibrated_hiPrec'
     if len(in_args) == 1:
         crab_area = in_args[0]
 
     crab_area = crab_area.rstrip('/')  # important!
 
-    # Write commands to file
-    cmd_filename = 'crab_get_hadd_%s.sh' % (strftime("%H%M%S"))
-    with open(cmd_filename, "w") as cmd_file:
+    # Loop over each dataset
+    for f in os.listdir(crab_area):
 
-        # Loop over each dataset
-        for f in os.listdir(crab_area):
+        crab_dir = '{0}/{1}/'.format(crab_area, f)
+        print 'Doing dir:', crab_dir
+        if not os.path.isdir(crab_dir):
+            continue
+        cmd_filename = 'crab_get_hadd_%s.sh' % (strftime("%H%M%S"))
 
-            crab_dir = '{0}/{1}/'.format(crab_area, f)
-            print 'Doing dir:', crab_dir
-            if not os.path.isdir(crab_dir):
-                continue
+        # Write commands to file
+        with open(cmd_filename, "w") as cmd_file:
 
             # first get suitable output directory & file names
             # will put output dir in directory above this (assumes we're in L1JetEnergyCorrections/crab)
             # check to see if file already exists - in which case we skip this dataset
             if "GCT" in crab_dir:
-                # out_dir = crab_dir.split("/")[0].replace("l1ntuple_GCT_", "")
-                out_dir = crab_dir.split("/")[0].replace("l1ntuple_", "")
+                out_dir = crab_dir.split("/")[0].replace("l1ntuple_GCT_", "")
+                # out_dir = crab_dir.split("/")[0].replace("l1ntuple_", "")
             elif "Stage1" in crab_dir:
                 out_dir = crab_dir.split("/")[0].replace("l1ntuple_Stage1_", "")
             out_file = crab_dir.split("/")[1].replace("crab_", "L1Tree_")
@@ -62,16 +61,18 @@ def get_hadd(in_args=sys.argv[1:]):
             if os.path.isfile(output_path):
                 print "Skipping as output file already exists"
                 continue
+
             # if output directory doens't exists, add a command to make it
             if not os.path.isdir('../'+out_dir):
                 print 'Making dir ../'+out_dir
                 os.mkdir('../'+out_dir)
-                # cmd_file.write('mkdir ../'+out_dir)
 
             # can either do datasets that are completely finished, or only
             # take a fraction of completed jobs
+            # strict = do *exactly* the fraction of jobs, and no more
             completed = False
-            fraction = 0.5
+            fraction = 0.9
+            strict = False
             res_status = crabCommand('status', crab_dir)
             n_jobs = len(res_status['jobs'])
             job_ids = []
@@ -84,7 +85,7 @@ def get_hadd(in_args=sys.argv[1:]):
             for i in range(1, n_jobs+1):
                 if res_status['jobs'][str(i)]['State'] == 'finished':
                     job_ids.append(str(i))
-                if len(job_ids) == n_jobs_to_get:
+                if strict and (len(job_ids) == n_jobs_to_get):
                     break
 
             if len(job_ids) < n_jobs_to_get:
@@ -114,10 +115,10 @@ def get_hadd(in_args=sys.argv[1:]):
             cmd_file.write(rm_cmd)
             cmd_file.write('\n')
 
-    # make file executable
-    st = os.stat(cmd_filename)
-    os.chmod(cmd_filename, st.st_mode | stat.S_IEXEC)
-    print "Commands written to %s" % cmd_filename
+        # make file executable
+        st = os.stat(cmd_filename)
+        os.chmod(cmd_filename, st.st_mode | stat.S_IEXEC)
+        print "Commands written to %s" % cmd_filename
 
 
 if __name__ == '__main__':
