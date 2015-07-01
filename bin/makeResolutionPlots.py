@@ -303,14 +303,14 @@ def main(in_args=sys.argv[1:]):
             # ptBins = binning.pt_bins_8 if not forward_bin else binning.pt_bins_8_wide
             ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
 
-            plot_resolution(inputf, outputf, ptBins, emin, emax)
+            plot_resolution(inputf, outputf, ptBins[4:], emin, emax)
 
     # Do plots for inclusive eta
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin
     if args.incl and ((not args.excl and len(etaBins) >= 2) or (args.excl and len(etaBins)>2)):
         print "Doing inclusive eta"
         # ptBins = binning.pt_bins if not etaBins[0] > 2.9 else binning.pt_bins_wide
-        plot_resolution(inputf, outputf, binning.pt_bins, etaBins[0], etaBins[-1])
+        plot_resolution(inputf, outputf, binning.pt_bins[4:], etaBins[0], etaBins[-1])
 
     if not args.incl and not args.excl:
         print "Not doing inclusive or exclusive - you must specify at least one!"
