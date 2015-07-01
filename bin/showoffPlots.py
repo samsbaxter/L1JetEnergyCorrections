@@ -49,13 +49,25 @@ pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
 # compare_2_str = "New RCT calibration, 2012 GCT calibration (GCT jets)"
 # compare_3_str = "New RCT calibration, new GCT calibration (GCT jets)"
 
+plot_labels = [
+    #"New RCT calibration, 2012 GCT calibration (GCT jets), Phys14",
+    #"New RCT calibration, 2012 GCT calibration (GCT jets), Spring15"
+     "2012 RCT calibration, 2012 GCT calibratiion, Spring15",
+     "New RCT calibration, 2012 GCT calibration, Spring15",
+     "New RCT calibration, new GCT calibration, Spring15"
+    ]
+plot_colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, 8]
+plot_markers = [20, 21, 22, 23]
+
 # compare_1_str = "2012 RCT calibration (GCT internal jets)"
 # compare_2_str = "New RCT calibration (GCT internal jets)"
 
-compare_1_str = "Spring15"
-compare_2_str = "Phys14"
+# compare_1_str = "New RCT + 2012 GCT"
+# compare_2_str = "New RCT + new RCT"
 
-plot_title = "TTbar 50ns, new RCT calibrations"
+plot_title = "QCD 50ns"
+plot_title = "TTbar 50ns, GCT jets"
+
 
 def generate_canvas(title=""):
     """Generate a standard TCanvas for all plots"""
@@ -104,7 +116,7 @@ def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="p
     c.SaveAs("%s/res_l1_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
-def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf"):
+def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot a graph of resolution as a function of L1 eta.
 
     Can optionally do comparison against another file,
@@ -112,45 +124,30 @@ def plot_res_all_pt(res_file1, res_file2, eta_min, eta_max, oDir, oFormat="pdf")
     whilst res_file2 is treated as after calibration.
     """
     grname = "eta_%g_%g/resL1_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
-    gr_1 = get_from_file(res_file1, grname)
-    gr_2 = get_from_file(res_file2, grname) if res_file2 else None
+
+    graphs = [get_from_file(f, grname) for f in res_files if f]
 
     c = generate_canvas()
 
-    # gr_1.GetYaxis().SetRangeUser(0, 2)
-    # gr_1.GetXaxis().SetLimits(eta_min, eta_max)
-    gr_1.SetMarkerStyle(20)
+    leg = ROOT.TLegend(0.34, 0.56, 0.87, 0.87)
 
-    if not gr_2:
-        gr_1.Draw("ALP")
-        gr_1.GetXaxis().SetTitleSize(0.04)
-        gr_1.GetYaxis().SetTitleOffset(1)
-        gr_1.GetYaxis().SetRangeUser(0, gr_1.GetYaxis().GetXmax())
-        gr_1.Draw("ALP")
-        gr_1.GetYaxis().SetTitle(res_l1_str)
-        c.SaveAs("%s/res_l1_eta_%g_%g_diff.%s" % (oDir, eta_min, eta_max, oFormat))
-    else:
-        mg = ROOT.TMultiGraph()
-        mg.Add(gr_1)
-        gr_2.SetLineColor(ROOT.kRed)
-        gr_2.SetMarkerColor(ROOT.kRed)
-        gr_2.SetMarkerStyle(21)
-        mg.Add(gr_2)
-        mg.Draw("ALP")
-        mg.SetTitle(";%s;%s" % (gr_1.GetXaxis().GetTitle(), gr_1.GetYaxis().GetTitle()))
-        # mg.GetYaxis().SetRangeUser(0,2)
-        # mg.GetXaxis().SetLimits(eta_min, eta_max)
-        mg.GetXaxis().SetTitleSize(0.04)
-        mg.GetXaxis().SetTitleOffset(0.9)
-        # mg.GetYaxis().SetTitleSize(0.04)
-        mg.GetYaxis().SetTitle(res_l1_str)
-        mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax())
-        mg.Draw("ALP")
-        leg = ROOT.TLegend(0.6, 0.67, 0.87, 0.87)
-        leg.AddEntry(gr_1, compare_1_str, "LP")
-        leg.AddEntry(gr_2, comapre_2_str, "LP")
-        leg.Draw()
-        c.SaveAs("%s/res_l1_eta_%g_%g_diff_compare.%s" % (oDir, eta_min, eta_max, oFormat))
+    mg = ROOT.TMultiGraph()
+    for i, g in enumerate(graphs):
+        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else ROOT.kBlack)
+        mg.Add(g)
+        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+
+    mg.Draw("ALP")
+    mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
+    mg.GetXaxis().SetTitleSize(0.04)
+    mg.GetXaxis().SetTitleOffset(0.9)
+    mg.GetYaxis().SetTitle(res_l1_str)
+    mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax())
+    mg.Draw("ALP")
+    leg.Draw()
+    c.SaveAs("%s/res_l1_eta_%g_%g_diff_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
@@ -200,7 +197,7 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     c.SaveAs("%s/h2d_gen_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_rsp_eta(check_file1, check_file2, check_file3, eta_min, eta_max, oDir, oFormat="pdf"):
+def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta.
 
     Can optionally do comparison against another file,
@@ -208,15 +205,24 @@ def plot_rsp_eta(check_file1, check_file2, check_file3, eta_min, eta_max, oDir, 
     whilst check_file2 is treated as after calibration.
     """
     grname = "eta_%g_%g/gr_rsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
-    gr_1 = get_from_file(check_file1, grname)
-    gr_2 = get_from_file(check_file2, grname) if check_file2 else None
-    gr_3 = get_from_file(check_file3, grname) if check_file3 else None
+
+    graphs = [get_from_file(f, grname) for f in check_files if f]
 
     c = generate_canvas(plot_title)
 
-    gr_1.GetYaxis().SetRangeUser(0, 2)
-    gr_1.GetXaxis().SetLimits(eta_min, eta_max)
-    gr_1.SetMarkerStyle(20)
+    # leg = ROOT.TLegend(0.4, 0.7, 0.87, 0.87) # top right
+    leg = ROOT.TLegend(0.34, 0.15, 0.87, 0.4) # bottom right
+
+    mg = ROOT.TMultiGraph()
+
+    for i, g in enumerate(graphs):
+        g.GetYaxis().SetRangeUser(0, 2)
+        g.GetXaxis().SetLimits(eta_min, eta_max)
+        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
+        mg.Add(g)
+        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
     line_plus = ROOT.TLine(eta_min, 1.1, eta_max, 1.1)
@@ -227,42 +233,19 @@ def plot_rsp_eta(check_file1, check_file2, check_file3, eta_min, eta_max, oDir, 
         line.SetLineWidth(2)
         line.SetLineStyle(3)
 
-    if not gr_2:
-        gr_1.Draw("ALP")
-        gr_1.GetXaxis().SetTitleSize(0.04)
-        gr_1.GetYaxis().SetTitleOffset(1)
-        # gr_1.GetYaxis().SetTitleSize(0.04)
-        gr_1.Draw("ALP")
-        [line.Draw() for line in [line_central, line_plus, line_minus]]
-        c.SaveAs("%s/gr_rsp_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
-    else:
-        mg = ROOT.TMultiGraph()
-        mg.Add(gr_1)
-        gr_2.SetLineColor(ROOT.kRed)
-        gr_2.SetMarkerColor(ROOT.kRed)
-        gr_2.SetMarkerStyle(21)
-        mg.Add(gr_2)
-        # gr_3.SetLineColor(ROOT.kBlue)
-        # gr_3.SetMarkerColor(ROOT.kBlue)
-        # gr_3.SetMarkerStyle(22)
-        # mg.Add(gr_3)
-        mg.Draw("ALP")
-        mg.SetTitle(";%s;%s" % (gr_1.GetXaxis().GetTitle(), gr_1.GetYaxis().GetTitle()))
-        mg.GetYaxis().SetRangeUser(0,2)
-        mg.GetXaxis().SetLimits(eta_min, eta_max)
-        mg.GetXaxis().SetTitleSize(0.04)
-        mg.GetXaxis().SetTitleOffset(0.9)
-        # mg.GetYaxis().SetTitleSize(0.04)
-        mg.Draw("ALP")
-        mg.GetHistogram().SetTitle(plot_title)
-        leg = ROOT.TLegend(0.5, 0.67, 0.87, 0.87) # top right
-        # leg = ROOT.TLegend(0.4, 0.17, 0.87, 0.37) # bottom right
-        leg.AddEntry(gr_1, compare_1_str, "LP")
-        leg.AddEntry(gr_2, compare_2_str, "LP")
-        # leg.AddEntry(gr_3, compare_3_str, "LP")
-        leg.Draw()
-        [line.Draw() for line in [line_central, line_plus, line_minus]]
-        c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
+    mg.Draw("ALP")
+    mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
+    mg.GetYaxis().SetRangeUser(0,2)
+    mg.GetXaxis().SetLimits(eta_min, eta_max)
+    mg.GetXaxis().SetTitleSize(0.04)
+    mg.GetXaxis().SetTitleOffset(0.9)
+    # mg.GetYaxis().SetTitleSize(0.04)
+    mg.Draw("ALP")
+    mg.GetHistogram().SetTitle(plot_title)
+
+    leg.Draw()
+    [line.Draw() for line in [line_central, line_plus, line_minus]]
+    c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
 
 #############################################
 # PLOTS USING OUTPUT FROM runCalibration
@@ -307,6 +290,7 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--res2", help="optional: 2nd input ROOT file with resolution plots from makeResolutionPlots.py. " \
                                         "If you specify this one, then the file specified by --res will be treated as pre-calibration, " \
                                         "whilst this one will be treated as post-calibration")
+    parser.add_argument("--res3", help="optional: 3rd input file for resolution plots")
 
     parser.add_argument("--checkcal", help="input ROOT file with calibration check plots from checkCalibration.py")
     parser.add_argument("--checkcal2", help="optional: 2nd input ROOT file with resolution plots from checkCalibration.py. " \
@@ -328,7 +312,7 @@ def main(in_args=sys.argv[1:]):
     check_dir_exists_create(args.oDir)
 
     # Choice eta & pt bin
-    eta_min, eta_max = binning.eta_bins[0], binning.eta_bins[1]
+    eta_min, eta_max = binning.eta_bins[0], binning.eta_bins_central[-1]
     pt_min, pt_max = ptBins[10], ptBins[11]
 
     if args.etaInd:
@@ -348,31 +332,40 @@ def main(in_args=sys.argv[1:]):
         res_file = open_root_file(args.res)
         if not args.res2:
             # if not doing comparison
-            pt_min = binning.pt_bins[10]
-            pt_max = binning.pt_bins[11]
+#            pt_min = binning.pt_bins[10]
+#            pt_max = binning.pt_bins[11]
             # for the first 4 bins - troublesome
             # for pt_min, pt_max in izip(binning.pt_bins[0:4], binning.pt_bins[1:5]):
-            plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+#            plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+#            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
-            for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
-                plot_res_all_pt(res_file, None, emin, emax, args.oDir, args.format)
+            # exclusive eta graphs
+#            for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
+#                plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
 
-            plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins, args.oDir, args.format)
+            # inclusive eta graph
+            plot_res_all_pt([res_file], eta_min, eta_max, args.oDir, args.format)
+
+            # plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins, args.oDir, args.format)
         else:
             # if doing comparison
-            res_file2 = open_root_file(args.res2)
+            res_files = [res_file]
+            if args.res2:
+                res_files.append(open_root_file(args.res2))
+            if args.res3:
+                res_files.append(open_root_file(args.res3))
             # plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
-            for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
-                plot_res_all_pt(res_file, res_file2, emin, emax, args.oDir, args.format)
-            plot_res_all_pt(res_file, res_file2, binning.eta_bins_central[0], binning.eta_bins_central[-1], args.oDir, args.format)
+#            for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+#                plot_res_all_pt(res_files, emin, emax, args.oDir, args.format)
+
+            plot_res_all_pt(res_files, binning.eta_bins[0], binning.eta_bins_central[-1], args.oDir, args.format)
 
         res_file.Close()
 
     # Do plots with output from checkCalibration.py
     if args.checkcal:
 
-        etaBins = binning.eta_bins
+        etaBins = binning.eta_bins_central
         check_file = open_root_file(args.checkcal)
 
         for emin, emax in izip(etaBins[:-1], etaBins[1:]):
@@ -382,7 +375,7 @@ def main(in_args=sys.argv[1:]):
 
         check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
         check_file3 = open_root_file(args.checkcal3) if args.checkcal3 else None
-        plot_rsp_eta(check_file, check_file2, check_file3, etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_rsp_eta([check_file, check_file2, check_file3], etaBins[0], etaBins[-1], args.oDir, args.format)
 
         check_file.Close()
 
