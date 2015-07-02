@@ -5,6 +5,7 @@ import os
 from subprocess import call
 from subprocess import check_output
 from sys import platform as _platform
+import numpy as np
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -72,3 +73,56 @@ def get_from_file(tfile, obj_name):
     if not obj:
         raise Exception("Can't get object named %s from %s" % (obj_name, tfile.GetName()))
     return obj
+
+
+def check_exp(n):
+    """
+    Checks if number has stupidly larger exponent
+
+    Can occur is using buffers - it just fills unused bins with crap
+    """
+
+    from math import fabs, log10, frexp
+    m,e = frexp(n)
+    return fabs(log10(pow(2,e))) < 10
+
+
+def get_xy(graph):
+    """
+    Return lists of x, y points from a graph, because it's such a PITA
+
+    ASSUMES POINTS START FROM INDEX 0!
+    Includes a check to see if any number is ridic (eg if you started from 1)
+    """
+    xpt = graph.GetX()
+    ypt = graph.GetY()
+    N = graph.GetN()
+
+    xarr = [x for x in list(np.ndarray(N,'d',xpt)) if check_exp(x)]
+    yarr = [y for y in list(np.ndarray(N,'d',ypt)) if check_exp(y)]
+
+    if len(xarr) != N or len(yarr) != N:
+        raise Exception("incorrect array size from graph")
+
+    return xarr, yarr
+
+
+def get_exey(graph):
+    """
+    Return lists of errors on x, y points from a graph, because it's such a PITA
+
+    ASSUMES POINTS START FROM INDEX 0!
+    Includes a check to see if any number is ridic (eg if you started from 1)
+    """
+    expt = graph.GetEX()
+    eypt = graph.GetEY()
+    N = graph.GetN()
+
+    xarr = [x for x in list(np.ndarray(N,'d',expt)) if check_exp(x)]
+    yarr = [y for y in list(np.ndarray(N,'d',eypt)) if check_exp(y)]
+
+    if len(xarr) != N or len(yarr) != N:
+        raise Exception("incorrect array size from graph")
+
+    return xarr, yarr
+

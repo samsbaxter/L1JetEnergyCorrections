@@ -20,6 +20,7 @@ import os
 import argparse
 import binning
 from correction_LUT_plot import print_function
+from common_utils import check_exp, get_xy, get_xy
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -248,58 +249,6 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         outputfile.WriteTObject(thisfit)
     if do_genjet_plots:
         outputfile.WriteTObject(gr_gen)
-
-
-def check_exp(n):
-    """
-    Checks if number has stupidly larger exponent
-
-    Can occur is using buffers - it just fills unused bins with crap
-    """
-
-    from math import fabs, log10, frexp
-    m,e = frexp(n)
-    return fabs(log10(pow(2,e))) < 10
-
-
-def get_xy(graph):
-    """
-    Return lists of x, y points from a graph, because it's such a PITA
-
-    ASSUMES POINTS START FROM INDEX 0!
-    Includes a check to see if any number is ridic (eg if you started from 1)
-    """
-    xpt = graph.GetX()
-    ypt = graph.GetY()
-    N = graph.GetN()
-
-    xarr = [x for x in list(np.ndarray(N,'d',xpt)) if check_exp(x)]
-    yarr = [y for y in list(np.ndarray(N,'d',ypt)) if check_exp(y)]
-
-    if len(xarr) != N or len(yarr) != N:
-        raise Exception("incorrect array size from graph")
-
-    return xarr, yarr
-
-
-def get_exey(graph):
-    """
-    Return lists of errors on x, y points from a graph, because it's such a PITA
-
-    ASSUMES POINTS START FROM INDEX 0!
-    Includes a check to see if any number is ridic (eg if you started from 1)
-    """
-    expt = graph.GetEX()
-    eypt = graph.GetEY()
-    N = graph.GetN()
-
-    xarr = [x for x in list(np.ndarray(N,'d',expt)) if check_exp(x)]
-    yarr = [y for y in list(np.ndarray(N,'d',eypt)) if check_exp(y)]
-
-    if len(xarr) != N or len(yarr) != N:
-        raise Exception("incorrect array size from graph")
-
-    return xarr, yarr
 
 
 def fit_correction(graph, function, fit_min, fit_max):
