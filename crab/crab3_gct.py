@@ -12,11 +12,11 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "TTbarSpring15_GCT_newRCTv2_newGCT"
+job_append = "GCT_QCDFlatSpring15_BX50_newRCTv2"
 
 # CHANGE ME - select dataset(s) to run over - must be a list of dataset keys
-datasets = ['TTbarSpring15AVE30BX50']
-# datasets = samples.samples_qcd_Phys14_AVE30BX50.keys()
+datasets = ['QCDFlatSpring15BX50']
+# datasets = samples.samples_qcd_Spring15_AVE30BX50.keys()
 # datasets.append('TTbarPhys14AVE30BX50')
 # # datasets.append('QCDFlatPhys14BX50')
 # # get rid of high pt samples
@@ -58,5 +58,5 @@ if __name__ == "__main__":
         try:
             crabCommand('submit', config=config)
         except httplib.HTTPException as e:
-            print "Cannot submit dataset %s - are you sure it is right?" % d
+            print "Cannot submit dataset %s - are you sure it is right?" % dset
             raise

@@ -27,7 +27,7 @@ rerun_RCT = rerun_RCT | new_RCT_calibs
 dump_RCT = False
 
 # To use new set of GCT calibs
-new_GCT_calibs = True
+new_GCT_calibs = False
 gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1_newRCTv2_central_cfi' # newest calibs
 
 # To save the EDM content as well:
@@ -275,16 +275,20 @@ process.TFileService = cms.Service("TFileService",
 process.options = cms.untracked.PSet(SkipEvent = cms.untracked.vstring('ProductNotFound'),
                                      wantSummary = cms.untracked.bool(True))
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(2))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Some default testing files
 if gt == 'PHYS14_ST_V1':
     # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/AVE30BX50_tsg_PHYS14_ST_V1-v1/00000/00AA2E62-2C8A-E411-9390-0025905A60B4.root')
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE30BX50_tsg_castor_PHYS14_ST_V1-v1/00000/008671F0-508B-E411-8D9D-003048FFCC2C.root')
 elif gt == 'MCRUN2_74_V6':
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat_10_50_50ns_tsg_MCRUN2_74_V6-v1/00000/00529081-1EF1-E411-9BA2-0026189438EF.root')
 elif gt in ['MCRUN2_74_V8', 'MCRUN2_74_V9A']:
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/0091E666-98F2-E411-A2AF-002590596498.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat_10_50_50ns_tsg_MCRUN2_74_V6-v1/00000/0089240C-F1F0-E411-BFDC-00266CF27130.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/Flat_10_50_50ns_tsg_MCRUN2_74_V6-v1/00000/00529081-1EF1-E411-9BA2-0026189438EF.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/00D772EF-41F3-E411-90EF-0025907FD242.root')
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/GEN-SIM-RAW/AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/00000/0091E666-98F2-E411-A2AF-002590596498.root')
     # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Spring14dr/Neutrino_Pt-2to20_gun/GEN-SIM-RAW/Flat20to50_BX50_POSTLS170_V7-v1/00000/006E14BB-1125-E411-A566-00266CFFA25C.root')
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
