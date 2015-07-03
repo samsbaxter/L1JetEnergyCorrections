@@ -19,7 +19,7 @@ declare -a etaBins=(
 3.5
 4.0
 4.5
-5.001
+5
 ) 
 
 pairs="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDPhys14_newRCTv2/pairs_QCD_Pt-15to600_Phys14_AVE30BX50_GCT_QCDPhys14_newRCTv2_GCT_ak5_ref14to1000_l10to500.root"

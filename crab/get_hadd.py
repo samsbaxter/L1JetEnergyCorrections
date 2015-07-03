@@ -36,8 +36,8 @@ def get_hadd(in_args=sys.argv[1:]):
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("crab_dir", help='Working area')
-    # parser.add_argument("--completed", action='store_true',
-        # help="Only make command file if all jobs have finished successfully")
+    parser.add_argument("--completed", action='store_true',
+        help="Only make command file if all jobs have finished successfully")
     parser.add_argument("--fraction", type=float, default=0.9,
         help="Specify fraction of jobs that must have finished successfully. " \
              "--completed overrides this option. Note that if a larger " \
@@ -61,6 +61,7 @@ def get_hadd(in_args=sys.argv[1:]):
 
         # Write commands to file
         with open(cmd_filename, "w") as cmd_file:
+            cmd_file.write("#!/bin/bash\n")
 
             # first get suitable output directory & file names
             # will put output dir in directory above this (assumes we're in L1JetEnergyCorrections/crab)
@@ -109,12 +110,25 @@ def get_hadd(in_args=sys.argv[1:]):
                 continue
 
             # Get the output from the jobs
+            # check that there are actually that many files - if not, repeat several times
+            # if still haven't got all the files, then quit with an error
             print "Getting %d files %s from %s" % (len(job_ids), job_ids, crab_dir)
             # wish I could use the CRAB API here but doesn't like --jobids option
             # res_get = crabCommand('getoutput', crab_dir, '--jobids %s' % (','.join(job_ids)))
-            crab_get_cmd = 'crab getoutput --jobids {0} {1}'.format(','.join(job_ids), crab_dir)
+            cmd_file.write("reps=10\n")
+            cmd_file.write("while [ $(ls %s/results/*.root | wc -l) -lt %d ] && [ $reps -gt 0 ]\n" % (crab_dir , len(job_ids)))
+            cmd_file.write("do\n")
+            crab_get_cmd = '\tcrab getoutput --jobids {0} {1}\n'.format(','.join(job_ids), crab_dir)
             cmd_file.write(crab_get_cmd)
-            cmd_file.write('\n')
+            # cmd_file.write('\n')
+            cmd_file.write('\treps=$(($reps-1))\n')
+            cmd_file.write("done\n")
+
+            cmd_file.write("if [ $(ls %s/results/*.root | wc -l) -lt %d ]\n" % (crab_dir , len(job_ids)))
+            cmd_file.write("then\n")
+            cmd_file.write('\techo "Could not get all files. Please check! Exiting."\n')
+            cmd_file.write('\texit 1\n')
+            cmd_file.write("fi\n")
 
             # hadd the files
             if not os.path.isdir("../"+out_dir):
