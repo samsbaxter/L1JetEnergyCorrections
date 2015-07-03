@@ -20,7 +20,7 @@ import os
 import argparse
 import binning
 from correction_LUT_plot import print_function
-from common_utils import check_exp, get_xy, get_xy
+from common_utils import check_exp, get_xy, get_exey
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -155,7 +155,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         total_cutStr = "%s && %s" % (eta_cutStr, pt_cutStr)
 
         # Plots of pT L1 for given pT Gen bin
-        tree_raw.Draw("pt>>hpt(200)", total_cutStr)
+        tree_raw.Draw("pt>>hpt(600, 0, 300)", total_cutStr)
         hpt = ROOT.gROOT.FindObject("hpt")
         hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
 
@@ -223,7 +223,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         fit_min = 30
         # some forward - specific settings
         if absetamin >= 3.:
-            fit_min = 18
+            fit_min = 20
             # fix_fit_params(thisfit)
 
         xarr, yarr = get_xy(gr)
