@@ -26,6 +26,7 @@
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
 #include "L1ExtraTree.h"
+#include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
 #include "SortFilterEmulator.h"
@@ -79,6 +80,9 @@ int main(int argc, char* argv[]) {
     L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
     L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
 
+    // TTree that holds PileupInfo
+    PileupInfoTree puInfoTree(opts.inputFilename());
+
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
@@ -124,6 +128,7 @@ int main(int argc, char* argv[]) {
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
+    float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
 
     outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
     outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
@@ -139,6 +144,8 @@ int main(int argc, char* argv[]) {
     outTree2->Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
     outTree2->Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
     outTree2->Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    outTree2->Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
+    outTree2->Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
 
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
@@ -167,12 +174,19 @@ int main(int argc, char* argv[]) {
 
         // jentry is the entry # in the current Tree
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry);
+        Long64_t jentry2 = l1JetExtraTree.LoadTree(iEntry);
         if (jentry < 0) break;
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
         refJetExtraTree.GetEntry(iEntry);
         l1JetExtraTree.GetEntry(iEntry);
+
+        // get pileup quantities
+        // note these get stored once per pair of matched jets NOT once per event
+        puInfoTree.GetEntry(iEntry);
+        out_trueNumInteractions = puInfoTree.trueNumInteractions();
+        out_numPUVertices = puInfoTree.numPUVertices();
 
         // Get vectors of ref & L1 jets from trees
         std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
@@ -212,6 +226,7 @@ int main(int argc, char* argv[]) {
             out_resRef = out_ptDiff/it.refJet().Et();
             outTree2->Fill();
         }
+
 
         // debugging plot - plots eta vs phi of jets
         if (iEntry < opts.drawNumber()) {

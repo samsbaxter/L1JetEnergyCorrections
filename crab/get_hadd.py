@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 """
-This script goes through all the datasets in one set of crab jobs, and for each:
-1) gets the job IDs for the first X% of jobs.
+This script goes through all the datasets in one set of crab jobs, and for
+each makes a shell script that:
+
+1) gets the job IDs for successfully finished jobs IDs
 2) does crab getouput on those job IDs
 3) hadd these output files and put them in a sensible directory
 4) remove old files
@@ -11,9 +13,12 @@ Writes out all the necessary commands to a file, crab_get_hadd_<timestamp>.sh,
 so you can check it over BEFORE running it.
 
 Must be run in L1JetEnergyCorrections/crab directory.
+
+For various options (such as only get a fraction of jobs), use --help/-h
 """
 
 
+import argparse
 import subprocess
 from glob import glob
 import os
@@ -29,11 +34,21 @@ def get_hadd(in_args=sys.argv[1:]):
     get the files and hadd them, and putting them in sensible place.
     """
 
-    # Working area - change me!
-    if len(in_args) == 1:
-        crab_area = in_args[0]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("crab_dir", help='Working area')
+    # parser.add_argument("--completed", action='store_true',
+        # help="Only make command file if all jobs have finished successfully")
+    parser.add_argument("--fraction", type=float, default=0.9,
+        help="Specify fraction of jobs that must have finished successfully. " \
+             "--completed overrides this option. Note that if a larger " \
+             "fraction of jobs have finished successfully, " \
+             "they will also be retrieved (to avoid this, use --strict).")
+    parser.add_argument("--strict", action='store_true',
+        help="If using --fraction, this ensures that exactly that fraction " \
+             "of jobs are retrieved.")
+    args = parser.parse_args(args=in_args)
 
-    crab_area = crab_area.rstrip('/')  # important!
+    crab_area = args.crab_dir.rstrip('/')  # important!
 
     # Loop over each dataset
     for f in os.listdir(crab_area):
@@ -70,9 +85,9 @@ def get_hadd(in_args=sys.argv[1:]):
             # can either do datasets that are completely finished, or only
             # take a fraction of completed jobs
             # strict = do *exactly* the fraction of jobs, and no more
-            completed = False
-            fraction = 0.9
-            strict = False
+            completed = args.completed
+            fraction = args.fraction
+            strict = args.strict
             res_status = crabCommand('status', crab_dir)
             n_jobs = len(res_status['jobs'])
             job_ids = []

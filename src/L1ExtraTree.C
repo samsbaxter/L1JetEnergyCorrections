@@ -200,44 +200,6 @@ void L1ExtraTree::Show(Long64_t entry)
 }
 
 
-void L1ExtraTree::Loop()
-{
-//   In a ROOT session, you can do:
-//      Root > .L L1ExtraTree.C
-//      Root > L1ExtraTree t
-//      Root > t.GetEntry(12); // Fill t data members with entry number 12
-//      Root > t.Show();       // Show values of entry 12
-//      Root > t.Show(16);     // Read and show values of entry 16
-//      Root > t.Loop();       // Loop on all entries
-//
-
-//     This is the loop skeleton where:
-//    jentry is the global entry number in the chain
-//    ientry is the entry number in the current Tree
-//  Note that the argument to GetEntry must be:
-//    jentry for TChain::GetEntry
-//    ientry for TTree::GetEntry and TBranch::GetEntry
-//
-//       To read only selected branches, Insert statements like:
-// METHOD1:
-//    fChain->SetBranchStatus("*",0);  // disable all branches
-//    fChain->SetBranchStatus("branchname",1);  // activate branchname
-// METHOD2: replace line
-//    fChain->GetEntry(jentry);       //read all branches
-//by  b_branchname->GetEntry(ientry); //read only this branch
-    if (fChain == 0) return;
-
-    Long64_t nentries = fChain->GetEntriesFast();
-
-    Long64_t nbytes = 0, nb = 0;
-    for (Long64_t jentry=0; jentry<nentries;jentry++) {
-        Long64_t ientry = LoadTree(jentry);
-        if (ientry < 0) break;
-        nb = fChain->GetEntry(jentry);   nbytes += nb;
-    }
-}
-
-
 std::vector<TLorentzVector> L1ExtraTree::makeTLorentzVectors(TString branchName) const {
     // Make vector of TLorentzVectors from branches with stem branchName
     TString etBranchName  = branchName+"Et";

@@ -141,12 +141,6 @@ public :
     virtual Bool_t   Notify();
 
     /**
-     * @brief Loop skeleton
-     * @details Don't use me - just for reference
-     */
-    virtual void     Loop();
-
-    /**
      * @brief Prints contents of entry
      * @details If entry not specified, print current entry
      *
