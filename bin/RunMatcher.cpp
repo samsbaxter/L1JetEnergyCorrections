@@ -176,6 +176,7 @@ int main(int argc, char* argv[]) {
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry);
         Long64_t jentry2 = l1JetExtraTree.LoadTree(iEntry);
         if (jentry < 0) break;
+        if (jentry2 < 0) break;
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
