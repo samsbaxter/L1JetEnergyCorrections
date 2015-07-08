@@ -116,7 +116,10 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     eta_cut = ROOT.TCut("TMath::Abs(eta)<%g && TMath::Abs(eta) > %g" % (absetamax, absetamin))
 
     # PU cut string
-    pu_cut = ROOT.TCut("numPUVertices > %g && numPUVertices < %g" % (pu_min, pu_max))
+    if hasattr(tree_raw, "numPUVertices"):
+        pu_cut = ROOT.TCut("numPUVertices > %g && numPUVertices < %g" % (pu_min, pu_max))
+    else:
+        pu_cut = ROOT.TCut("")
 
     # Total cut
     total_cut = eta_cut && pu_cut
