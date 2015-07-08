@@ -24,3 +24,6 @@ QCD_*
 crab/*/
 !crab/*.py
 authentication.xml
+*.txt
+core.*
+jobFiles
