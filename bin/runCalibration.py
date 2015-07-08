@@ -103,6 +103,7 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     """
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
+    print "Doing PU range: %g - %g" %(pu_min, pu_max)
     print "Running over pT bins:", ptBins_in
 
     # Input tree
@@ -122,7 +123,9 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         pu_cut = ROOT.TCut("")
 
     # Total cut
-    total_cut = eta_cut && pu_cut
+    total_cut = ROOT.TCut(eta_cut)
+    total_cut += pu_cut  # need to use += and not && cos TCut all fubar
+    print total_cut
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
     tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax), total_cut)
@@ -193,7 +196,10 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
         # cut on ref jet pt
         pt_cut = ROOT.TCut("ptRef < %g && ptRef > %g " % (xhigh, xlow))
-        total_cut = total_cut && pt_cut
+        total_cut = ROOT.TCut(eta_cut)
+        total_cut += pu_cut
+        total_cut += pt_cut
+        print total_cut
 
         # Plots of pT L1 for given pT Gen bin
         tree_raw.Draw("pt>>hpt(600, 0, 300)", total_cut)
@@ -435,7 +441,7 @@ def main(in_args=sys.argv[1:]):
         # if forward_bin:
             # fitfunc = forward_fit
 
-        makeCorrectionCurves(inputf, output_f, ptBins, emin, emax, fitfunc, do_genjet_plots, do_correction_fit)
+        makeCorrectionCurves(inputf, output_f, ptBins, emin, emax, fitfunc, do_genjet_plots, do_correction_fit, args.PUmin, args.PUmax)
 
 
 if __name__ == "__main__":
