@@ -115,10 +115,11 @@ def get_hadd(in_args=sys.argv[1:]):
             print "Getting %d files %s from %s" % (len(job_ids), job_ids, crab_dir)
             # wish I could use the CRAB API here but doesn't like --jobids option
             # res_get = crabCommand('getoutput', crab_dir, '--jobids %s' % (','.join(job_ids)))
+            crab_get_cmd = '\tcrab getoutput --jobids {0} {1}\n'.format(','.join(job_ids), crab_dir)
+            cmd_file.write(crab_get_cmd)
             cmd_file.write("reps=10\n")
             cmd_file.write("while [ $(ls %s/results/*.root | wc -l) -lt %d ] && [ $reps -gt 0 ]\n" % (crab_dir , len(job_ids)))
             cmd_file.write("do\n")
-            crab_get_cmd = '\tcrab getoutput --jobids {0} {1}\n'.format(','.join(job_ids), crab_dir)
             cmd_file.write(crab_get_cmd)
             # cmd_file.write('\n')
             cmd_file.write('\treps=$(($reps-1))\n')
