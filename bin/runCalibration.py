@@ -65,9 +65,41 @@ def fix_fit_params(fitfunc):
 
 
 def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
-                        fitfcn, fit_params, do_genjet_plots, do_correction_fit):
+                        fitfcn, do_genjet_plots, do_correction_fit,
+                        pu_min, pu_max):
     """
     Do all the relevant hists and fitting, for one eta bin.
+
+    Briefly: make plots of L1 jet pT, and response (= l1/gen) for each genjet pt bin.
+    Then find the mean L1 jet pT for the pt bin.
+    Then fit a Gaussian to each response histogram, and get the mean.
+    Plot 1/fitted mean Vs mean L1 pT.
+    Then fit with given function, and return parameters.
+    All of these plots are stored in the TFile, outputfile.
+
+    Returns parameters of succeful fit.
+
+    inputfile: TFile. Must contain TTree named "valid", full of pair quantities.
+
+    outputfile: TFile. To store output histograms.
+
+    ptBins_in: list. Edges of pt bins used to divide up correction curve.
+
+    absetamin: float. Lower edge of eta bin, must be >= 0.
+
+    absetamax: float. Upper edge of eta bin, must be > 0.
+
+    fitfcn: TF1. Function to fit for correction curve.
+
+    do_genjet_plots: bool. Whether to make plots for reference jets. Not used
+        in calcualtion of correction curve, but handy for debugging.
+
+    do_correction_fit: bool. Whether to actually fit the correction curve.
+
+    pu_min: float. Cut on minimum number of PU vertices.
+
+    pu_max: float. Cut on maximum number of PU vertices.
+
     """
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
