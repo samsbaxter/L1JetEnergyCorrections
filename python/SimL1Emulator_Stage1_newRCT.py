@@ -28,7 +28,7 @@ gt = 'MCRUN2_74_V9' # for SPring15 AVE20BX25
 file_append = "_Stage1"
 
 # Add in a filename appendix here for your GlobalTag.
-file_append += "_" + gt
+file_append += "_noPUS_" + gt
 
 ###################################################################
 process = cms.Process('L1NTUPLE')
@@ -104,6 +104,9 @@ process.l1ExtraLayer2.muonSource = cms.InputTag("simGmtDigis")
 
 # Turn off any existing stage 1 calibrations
 process.caloStage1Params.jetCalibrationType = cms.string("None")
+
+# Turn off PUS
+process.caloStage1Params.regionPUSType = cms.string("None")
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
@@ -238,7 +241,7 @@ if dump_RCT:
 ##############################
 # Input/output & standard stuff
 ##############################
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Input source
 
