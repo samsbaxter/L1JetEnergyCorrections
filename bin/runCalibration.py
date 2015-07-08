@@ -113,10 +113,16 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     output_f_hists = output_f.mkdir("Histograms")
 
     # Eta cut string
-    eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
+    eta_cut = ROOT.TCut("TMath::Abs(eta)<%g && TMath::Abs(eta) > %g" % (absetamax, absetamin))
+
+    # PU cut string
+    pu_cut = ROOT.TCut("numPUVertices > %g && numPUVertices < %g" % (pu_min, pu_max))
+
+    # Total cut
+    total_cut = eta_cut && pu_cut
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax) , eta_cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax), total_cut)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
@@ -125,19 +131,19 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     pt_min, pt_max = 0, 500
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
-    tree_raw.Draw("rsp:pt/rsp>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), total_cut)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
     h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
-    tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), total_cut)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # draw pT^L1 Vs pT^Gen
-    tree_raw.Draw("pt:pt/rsp>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, pt_min, pt_max, nb, pt_min, pt_max), eta_cutStr)
+    tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, pt_min, pt_max, nb, pt_min, pt_max), total_cut)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
@@ -183,11 +189,11 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         hrsp.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
 
         # cut on ref jet pt
-        pt_cutStr = "pt/rsp < %g && pt/rsp > %g " % (xhigh, xlow)
-        total_cutStr = "%s && %s" % (eta_cutStr, pt_cutStr)
+        pt_cut = ROOT.TCut("ptRef < %g && ptRef > %g " % (xhigh, xlow))
+        total_cut = total_cut && pt_cut
 
         # Plots of pT L1 for given pT Gen bin
-        tree_raw.Draw("pt>>hpt(600, 0, 300)", total_cutStr)
+        tree_raw.Draw("pt>>hpt(600, 0, 300)", total_cut)
         hpt = ROOT.gROOT.FindObject("hpt")
         hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
 
@@ -199,7 +205,7 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
         # Plots of pT Gen for given pT Gen bin
         if do_genjet_plots:
-            tree_raw.Draw("pt/rsp>>hpt_gen(200)", total_cutStr)
+            tree_raw.Draw("ptRef>>hpt_gen(200)", total_cut)
             hpt_gen = ROOT.gROOT.FindObject("hpt_gen")
             hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
             output_f_hists.WriteTObject(hpt_gen)
