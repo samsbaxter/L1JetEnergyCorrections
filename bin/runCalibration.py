@@ -64,9 +64,9 @@ def fix_fit_params(fitfunc):
     fitfunc.FixParameter(5, 0)
 
 
-def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
-                        fitfcn, do_genjet_plots, do_correction_fit,
-                        pu_min, pu_max):
+def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
+                         fitfcn, do_genjet_plots, do_correction_fit,
+                         pu_min, pu_max):
     """
     Do all the relevant hists and fitting, for one eta bin.
 
@@ -432,7 +432,7 @@ def main(in_args=sys.argv[1:]):
         # if forward_bin:
             # fitfunc = forward_fit
 
-        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fitfunc, do_genjet_plots, do_correction_fit)
+        makeCorrectionCurves(inputf, output_f, ptBins, emin, emax, fitfunc, do_genjet_plots, do_correction_fit)
 
 
 if __name__ == "__main__":
