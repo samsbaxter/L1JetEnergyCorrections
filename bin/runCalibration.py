@@ -256,6 +256,8 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
     # Fit correction function to response vs pT graph, add to list
+    fit_params = []
+
     if do_correction_fit:
         thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
         fit_min = 30
@@ -275,11 +277,11 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != max_pt) else fit_min
 
         print "Correction fn fit range:", fit_min, max_pt
-        fit_graph, tmp_params = fit_correction(gr, thisfit, fit_min, max_pt)
+        fit_graph, fit_params = fit_correction(gr, thisfit, fit_min, max_pt)
         print_function(thisfit, "cpp")
         print_function(thisfit, "py")
-        fit_params.append(tmp_params)
         outputfile.WriteTObject(fit_graph)
+
 
     # Save these to file
     outputfile.WriteTObject(gr)
@@ -288,12 +290,14 @@ def makeResponseCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
     if do_genjet_plots:
         outputfile.WriteTObject(gr_gen)
 
+    return fit_params
+
 
 def fit_correction(graph, function, fit_min, fit_max):
     """
     Fit response curve with given correction function, within given bounds.
 
-    Note that sometime the fit fails oddly - if so, we try raising the lower
+    Note that sometime the fit fails - if so, we try raising the lower
     bound of the fit until it suceeds (sometimes it works at e.g. 45, but not 40)
 
     Returns parameters of successful fit.
@@ -353,6 +357,14 @@ def main(in_args=sys.argv[1:]):
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
                         help="Do forward eta bins only (eta >= 3)")
+    parser.add_argument("--PUmin", type=float, default=0,
+                        help="Minimum number of PU vertices (refers to *actual* " \
+                             "number of PU vertices in the event, not the centre " \
+                             "of of the Poisson distribution)")
+    parser.add_argument("--PUmax", type=float, default=120,
+                        help="Maximum number of PU vertices (refers to *actual* " \
+                             "number of PU vertices in the event, not the centre " \
+                             "of of the Poisson distribution)")
     parser.add_argument("--etaInd", nargs="+",
                         help="list of eta bin INDICES to run over - " \
                         "if unspecified will do all. " \
@@ -398,7 +410,6 @@ def main(in_args=sys.argv[1:]):
     print "Running over eta bins:", etaBins
 
     # Do plots & fitting to get calib consts
-    fit_params = []
     for i,eta in enumerate(etaBins[:-1]):
         emin = eta
         emax = etaBins[i+1]
@@ -421,7 +432,7 @@ def main(in_args=sys.argv[1:]):
         # if forward_bin:
             # fitfunc = forward_fit
 
-        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fitfunc, fit_params, do_genjet_plots, do_correction_fit)
+        makeResponseCurves(inputf, output_f, ptBins, emin, emax, fitfunc, do_genjet_plots, do_correction_fit)
 
 
 if __name__ == "__main__":
