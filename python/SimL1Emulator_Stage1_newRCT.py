@@ -105,9 +105,6 @@ process.l1ExtraLayer2.muonSource = cms.InputTag("simGmtDigis")
 # Turn off any existing stage 1 calibrations
 process.caloStage1Params.jetCalibrationType = cms.string("None")
 
-# Turn off PUS
-process.caloStage1Params.regionPUSType = cms.string("None")
-
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
 ##############################
