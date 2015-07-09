@@ -18,13 +18,14 @@ do
     fdir=$(dirname $f)
     filename=$(basename $f)
 	jobname=${filename#L1Tree_}
-	jobname=${jobname%_Spring15_*.root}
+	jobname=${jobname%.root}
 	outname=${filename#L1Tree_}
 	outname=${outname%.root}
-	echo "$outname"
-	echo "$jobname"
-    # bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${fdir}/${f} -O ${fdir}/pairs_${outname}_preGt_ak4_ref14to1000_l10to500.root --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern"
-    # bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${fdir}/${f} -O ${fdir}/pairs_${outname}_preGt_ak5_ref14to1000_l10to500.root --refDir l1ExtraTreeProducerGenAk5 --l1Dir l1ExtraTreeProducerIntern"
-    bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${f} -O ${fdir}/pairs_${outname}_GCT_ak5_ref14to1000_l10to500.root --l1Dir l1ExtraTreeProducer --l1Branches cenJet tauJet fwdJet"
-	bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${f} -O ${fdir}/pairs_${outname}_GCTintern_ak5_ref14to1000_l10to500.root"
+    echo "$fdir"
+    echo "$outname"
+    echo "$jobname"
+    # bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${f} -O ${fdir}/pairs_${outname}_preGt_ak4_ref14to1000_l10to500.root --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern"
+    bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${f} -O ${fdir}/pairs_${outname}_preGt_ak5_ref14to1000_l10to500.root --refDir l1ExtraTreeProducerGenAk5 --l1Dir l1ExtraTreeProducerIntern"
+    # bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${f} -O ${fdir}/pairs_${outname}_GCT_ak5_ref14to1000_l10to500_1M.root --l1Dir l1ExtraTreeProducer --l1Branches cenJet tauJet fwdJet -N 1000000"
+	# bsub -q 8nh -J $jobname "sh matcher_batch.sh -I ${f} -O ${fdir}/pairs_${outname}_GCTintern_ak5_ref14to2000_l10to2000.root"
 done
