@@ -13,6 +13,7 @@ This applies to:
 ```shell
 # To re-run the RCT emulator you MUST use 742 or newer otherwise untold pain
 # And check it has Boost v1.57 or newer
+# Also need Python 2.7 or newer for argparse module
 cmsrel CMSSW_7_4_2
 cd CMSSW_7_4_2/src
 cmsenv
