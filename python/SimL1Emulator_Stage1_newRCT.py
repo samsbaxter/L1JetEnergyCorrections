@@ -28,7 +28,7 @@ gt = 'MCRUN2_74_V9' # for SPring15 AVE20BX25
 file_append = "_Stage1"
 
 # Add in a filename appendix here for your GlobalTag.
-file_append += "_noPUS_" + gt
+file_append += "_" + gt
 
 ###################################################################
 process = cms.Process('L1NTUPLE')
