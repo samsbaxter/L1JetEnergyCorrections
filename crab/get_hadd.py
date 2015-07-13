@@ -69,11 +69,11 @@ def get_hadd(in_args=sys.argv[1:]):
         # first get suitable output directory & file names
         # will put output dir in directory above this (assumes we're in L1JetEnergyCorrections/crab)
         # check to see if file already exists - in which case we skip this dataset
-        if "GCT" in crab_dir:
-            out_dir = crab_dir.split("/")[0].replace("l1ntuple_GCT_", "")
-            # out_dir = crab_dir.split("/")[0].replace("l1ntuple_", "")
-        elif "Stage1" in crab_dir:
-            out_dir = crab_dir.split("/")[0].replace("l1ntuple_Stage1_", "")
+        # if "GCT" in crab_dir:
+        #     out_dir = crab_dir.split("/")[0].replace("l1ntuple_GCT_", "")
+        # elif "Stage1" in crab_dir:
+        #     out_dir = crab_dir.split("/")[0].replace("l1ntuple_Stage1_", "")
+        out_dir = crab_dir.split("/")[0].replace("l1ntuple_", "")
         out_file = crab_dir.split("/")[1].replace("crab_", "L1Tree_")
         out_file += ".root"
         output_path = "../{0}/{1}".format(out_dir, out_file)
@@ -148,6 +148,8 @@ def get_hadd(in_args=sys.argv[1:]):
             hadd_cmd = "hadd -f {0} {1}".format(output_path, crab_dir+"/results/L1Tree*.root")
             cmd_file.write(hadd_cmd)
             cmd_file.write('\n')
+
+            print "Will make output file %s" % output_path
 
             # Remove the crab output files
             rm_cmd = 'rm {0}/results/*.root'.format(crab_dir)
