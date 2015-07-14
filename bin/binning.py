@@ -27,5 +27,6 @@ pt_bins_8_wide.append(250)
 # ETA BINS
 ############
 eta_bins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
+eta_bins_all = [-5, -4.5, -4.0, -3.5, -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348, 0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
 eta_bins_central = [eta for eta in eta_bins if eta < 3.1]
 eta_bins_forward = [eta for eta in eta_bins if eta > 2.9]

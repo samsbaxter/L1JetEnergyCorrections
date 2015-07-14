@@ -26,6 +26,7 @@ from itertools import izip
 from common_utils import *
 from array import array
 
+
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
 ROOT.gStyle.SetOptFit(1) # only show fit params and errors
@@ -35,14 +36,16 @@ ROOT.gROOT.SetBatch(True)
 ptBins = binning.pt_bins
 
 # Some common strings
-rsp_str = "E_{T}^{L1}/E_{T}^{Gen}"
-eta_ref_str = "|#eta^{Gen}|"
+rsp_str = "E_{T}^{L1}/E_{T}^{Ref}"
+eta_str = "#eta"
+eta_ref_str = "|#eta^{Ref}|"
 eta_l1_str = "|#eta^{L1}|"
-dr_str = "#DeltaR(L1 jet - Gen jet)"
+dr_str = "#DeltaR(L1 jet - Ref jet)"
+pt_str = "E_{T}[GeV]"
 pt_L1_str = "E_{T}^{L1} [GeV]"
-pt_Gen_str = "E_{T}^{Gen} [GeV]"
-res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{Gen})/<E_{T}^{L1}>"
-pt_diff_str = "E_{T}^{L1} - E_{T}^{Gen} [GeV]"
+pt_Ref_str = "E_{T}^{Ref} [GeV]"
+res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{Ref})/<E_{T}^{L1}>"
+pt_diff_str = "E_{T}^{L1} - E_{T}^{Ref} [GeV]"
 
 # compare_1_str = "Old calibration"
 # compare_1_str = "2012 RCT calibration, 2012 GCT calibration (GCT jets)"
@@ -79,13 +82,89 @@ def generate_canvas(title=""):
 # PLOTS USING OUTPUT FROM RunMatcher
 #############################################
 
-def plot_dR(tree, cut, oDir, oFormat="pdf"):
+def plot_dR(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     """Plot deltaR(L1 - RefJet)"""
     c = generate_canvas()
-    tree.Draw("dr>>h_dr(100,0,0.8)", cut, "HISTE")
+    tree.Draw("dr>>h_dr(40,0,0.8)", cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (eta_min, eta_max), "HISTE")
     h_dr = ROOT.gROOT.FindObject("h_dr")
-    h_dr.SetTitle(";%s;N" % dr_str)
-    c.SaveAs("%s/dr.%s" % (oDir, oFormat))
+    h_dr.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, dr_str))
+    c.SaveAs("%s/dr_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
+def plot_pt_l1(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
+    """Plot pT(L1)"""
+    c = generate_canvas()
+    tree.Draw("pt>>h_pt(63,0,252)", cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (eta_min, eta_max), "HISTE")
+    h_pt = ROOT.gROOT.FindObject("h_pt")
+    h_pt.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, pt_L1_str))
+    c.SaveAs("%s/pt_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
+def plot_eta_l1(tree, oDir, cut="1", oFormat="pdf"):
+    """Plot eta(L1)"""
+    c = generate_canvas()
+    h_eta = ROOT.TH1D("h_eta", "%s;%s;N" % (cut, eta_l1_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    tree.Draw("eta>>h_eta", cut, "HISTE")
+    c.SaveAs("%s/eta_l1.%s" % (oDir, oFormat))
+
+
+def plot_pt_ref(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
+    """Plot pT(Reference)"""
+    c = generate_canvas()
+    tree.Draw("ptRef>>h_pt(63,0,252)", cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (eta_min, eta_max), "HISTE")
+    h_pt = ROOT.gROOT.FindObject("h_pt")
+    h_pt.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, pt_Ref_str))
+    c.SaveAs("%s/pt_ref_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
+def plot_eta_ref(tree, oDir, cut="1", oFormat="pdf"):
+    """Plot eta(Reference)"""
+    c = generate_canvas()
+    h_eta = ROOT.TH1D("h_eta", "%s;%s;N" % (cut, eta_ref_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    tree.Draw("etaRef>>h_eta", cut, "HISTE")
+    c.SaveAs("%s/eta_ref.%s" % (oDir, oFormat))
+
+
+def plot_pt_both(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
+    """Plot pt(Reference) and pt(L1) on same plot"""
+    c = generate_canvas()
+    total_cut = cut + " && TMath::Abs(eta) > %g && TMath::Abs(eta) < %g" % (eta_min, eta_max)
+    h_pt_l1 = ROOT.TH1D("h_pt_l1", "%s;%s;N" % (total_cut, pt_str), 63, 0, 252)
+    h_pt_ref = ROOT.TH1D("h_pt_ref", "%s;%s;N" % (total_cut, pt_str), 63, 0, 252)
+    tree.Draw("pt>>h_pt_l1", cut + " && TMath::Abs(eta) > %g && TMath::Abs(eta) < %g" % (eta_min, eta_max), "HISTE")
+    tree.Draw("ptRef>>h_pt_ref", cut + " && TMath::Abs(eta) > %g && TMath::Abs(eta) < %g" % (eta_min, eta_max), "HISTE")
+    h_pt_ref.SetLineColor(ROOT.kRed)
+    stack = ROOT.THStack("st", "")
+    stack.Add(h_pt_l1)
+    stack.Add(h_pt_ref)
+    stack.Draw("NOSTACK HISTE")
+    print total_cut
+    stack.GetHistogram().SetTitle("%s;%s;N" % (total_cut, pt_str))
+    c.SetTitle(total_cut)
+    leg = ROOT.TLegend(0.7, 0.7, 0.88, 0.88)
+    leg.AddEntry(0, "|#eta|: %g - %g" %(eta_min, eta_max), "")
+    leg.AddEntry(h_pt_l1, "L1", "L")
+    leg.AddEntry(h_pt_ref, "Ref", "L")
+    leg.Draw()
+    c.SaveAs("%s/pt_both_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
+def plot_eta_both(tree, oDir, cut="1", oFormat="pdf"):
+    """Plot eta(Reference) and eta(L1) on same plot"""
+    c = generate_canvas()
+    h_eta_l1 = ROOT.TH1D("h_eta_l1", "%s;%s;N" % (cut, eta_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    h_eta_ref = ROOT.TH1D("h_eta_ref", "%s;%s;N" % (cut, eta_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    tree.Draw("eta>>h_eta_l1", cut, "HISTE")
+    tree.Draw("etaRef>>h_eta_ref", cut, "HISTE")
+    h_eta_ref.SetLineColor(ROOT.kRed)
+    h_eta_l1.Draw("HISTE")
+    h_eta_ref.Draw("HISTE SAME")
+    leg = ROOT.TLegend(0.7, 0.7, 0.88, 0.88)
+    leg.AddEntry(h_eta_l1, "L1", "L")
+    leg.AddEntry(h_eta_ref, "Ref", "L")
+    leg.Draw()
+    c.SaveAs("%s/eta_both.%s" % (oDir, oFormat))
+
 
 #############################################
 # PLOTS USING OUTPUT FROM makeResolutionPlots
@@ -323,7 +402,20 @@ def main(in_args=sys.argv[1:]):
         pairs_file = open_root_file(args.pairs)
         pairs_tree = get_from_file(pairs_file, "valid")
 
-        plot_dR(pairs_tree, cut="", oDir=args.oDir)
+        # eta binned
+        for emin, emax in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+            plot_dR(pairs_tree, eta_min=emin, eta_max=emax, cut="1", oDir=args.oDir)
+            plot_pt_both(pairs_tree, eta_min=emin, eta_max=emax, cut="1", oDir=args.oDir)
+
+        plot_dR(pairs_tree, eta_min=0, eta_max=5, cut="1", oDir=args.oDir)  # all eta
+        plot_pt_both(pairs_tree, eta_min=0, eta_max=5, cut="1", oDir=args.oDir)  # all eta
+        plot_eta_both(pairs_tree, oDir=args.oDir)  # all eta
+
+        plot_dR(pairs_tree, eta_min=0, eta_max=3, cut="1", oDir=args.oDir)  # central
+        plot_pt_both(pairs_tree, eta_min=0, eta_max=3, cut="1", oDir=args.oDir)  # central
+
+        plot_dR(pairs_tree, eta_min=3, eta_max=5, cut="1", oDir=args.oDir)  # forward
+        plot_pt_both(pairs_tree, eta_min=3, eta_max=5, cut="1", oDir=args.oDir)  # forward
 
         pairs_file.Close()
 
