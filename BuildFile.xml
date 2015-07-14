@@ -15,9 +15,9 @@
 <use name="boost_filesystem"/>
 <use name="cppunit"/>
 <include_path path="interface"/>
-<!-- <include_path path="../../L1TriggerDPG/L1Ntuples/macros"/>
-<include_path path="../../L1TriggerDPG/L1Ntuples/interface"/>
- -->
+<!-- <use name="L1TriggerDPG/L1Ntuples"/>
+<include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/> -->
+<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
 <export>
   <lib name="L1TriggerL1JetEnergyCorrections"/>
 </export>

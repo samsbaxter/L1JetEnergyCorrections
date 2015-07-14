@@ -7,6 +7,8 @@
 <use name="boost_program_options"/>
 <use name="boost_filesystem"/>
 <include_path path="../interface"/>
+<!-- <use name="L1TriggerDPG/L1Ntuples"/> -->
+<!-- <include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/> -->
+<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
 <bin name="RunMatcher" file="RunMatcher.cpp"/>
-<!-- <include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/>
-<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/> -->
+<bin name="RunMatcherData" file="RunMatcherData.cpp"/>
