@@ -208,7 +208,8 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
 
     c = generate_canvas()
 
-    leg = ROOT.TLegend(0.34, 0.56, 0.87, 0.87)
+    # leg = ROOT.TLegend(0.34, 0.56, 0.87, 0.87)
+    leg = ROOT.TLegend(0.6, 0.7, 0.87, 0.87)
 
     mg = ROOT.TMultiGraph()
     for i, g in enumerate(graphs):
@@ -216,7 +217,8 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
         g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else ROOT.kBlack)
         mg.Add(g)
-        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+        # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+        leg.AddEntry(g, "|#eta|: %g - %g" % (eta_min, eta_max), "LP")
 
     mg.Draw("ALP")
     mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
@@ -226,7 +228,8 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax())
     mg.Draw("ALP")
     leg.Draw()
-    c.SaveAs("%s/res_l1_eta_%g_%g_diff_compare.%s" % (oDir, eta_min, eta_max, oFormat))
+    append = "_compare" if len(res_files) > 1 else ""
+    c.SaveAs("%s/res_l1_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
 def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
@@ -268,13 +271,43 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
     h2d_gen_l1 = get_from_file(check_file, hname)
     c = generate_canvas()
-    h2d_gen_l1.SetTitle("%g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
+    h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
     line = ROOT.TLine(0, 0, 250, 250)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
     line.Draw()
     c.SaveAs("%s/h2d_gen_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
+def plot_rsp_Vs_l1(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
+    """Plot response (l1/ref) Vs l1 pt"""
+    hname = "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max)
+    h2d_rsp_l1_orig = get_from_file(check_file, hname)
+    h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1,2,"hnew")
+    c = generate_canvas()
+    h2d_rsp_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_l1_str, rsp_str))
+    h2d_rsp_l1.Draw("COLZ")
+    line = ROOT.TLine(0, 1, 250, 1)
+    line.SetLineStyle(2)
+    line.SetLineWidth(2)
+    line.Draw()
+    c.SaveAs("%s/h2d_rsp_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
+def plot_rsp_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
+    """Plot response (l1/ref) Vs ref pt"""
+    hname = "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max)
+    h2d_rsp_ref_orig = get_from_file(check_file, hname)
+    h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1,2,"hnew")
+    c = generate_canvas()
+    h2d_rsp_ref.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
+    h2d_rsp_ref.Draw("COLZ")
+    line = ROOT.TLine(0, 1, 250, 1)
+    line.SetLineStyle(2)
+    line.SetLineWidth(2)
+    line.Draw()
+    c.SaveAs("%s/h2d_rsp_ref_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
@@ -302,7 +335,7 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
         g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
         mg.Add(g)
-        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+        # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
     line_plus = ROOT.TLine(eta_min, 1.1, eta_max, 1.1)
@@ -323,9 +356,10 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
     mg.Draw("ALP")
     mg.GetHistogram().SetTitle(plot_title)
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
-    c.SaveAs("%s/gr_rsp_eta_%g_%g_compare.%s" % (oDir, eta_min, eta_max, oFormat))
+    append = "_compare" if len(graphs) > 1 else ""
+    c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 #############################################
 # PLOTS USING OUTPUT FROM runCalibration
@@ -392,7 +426,7 @@ def main(in_args=sys.argv[1:]):
     check_dir_exists_create(args.oDir)
 
     # Choice eta & pt bin
-    eta_min, eta_max = binning.eta_bins[0], binning.eta_bins_central[-1]
+    eta_min, eta_max = binning.eta_bins[0], binning.eta_bins[-1]
     pt_min, pt_max = ptBins[10], ptBins[11]
 
     if args.etaInd:
@@ -433,13 +467,14 @@ def main(in_args=sys.argv[1:]):
 #            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
             # exclusive eta graphs
-#            for emin, emax in izip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
-#                plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
+            for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+               plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
 
             # inclusive eta graph
             plot_res_all_pt([res_file], eta_min, eta_max, args.oDir, args.format)
 
-            # plot_eta_pt_rsp_2d(res_file, binning.eta_bins_central, binning.pt_bins, args.oDir, args.format)
+            # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
+
         else:
             # if doing comparison
             res_files = [res_file]
@@ -464,11 +499,17 @@ def main(in_args=sys.argv[1:]):
         for emin, emax in izip(etaBins[:-1], etaBins[1:]):
             plot_l1_Vs_ref(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
-        plot_l1_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
+            plot_rsp_Vs_l1(check_file, emin, emax, args.oDir, args.format)
+            plot_rsp_Vs_ref(check_file, emin, emax, args.oDir, args.format)
 
-        check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
-        check_file3 = open_root_file(args.checkcal3) if args.checkcal3 else None
-        plot_rsp_eta([check_file, check_file2, check_file3], etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_l1_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_rsp_Vs_l1(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_rsp_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
+
+        # check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
+        # check_file3 = open_root_file(args.checkcal3) if args.checkcal3 else None
+        # plot_rsp_eta([check_file, check_file2, check_file3], etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_rsp_eta([check_file], etaBins[0], etaBins[-1], args.oDir, args.format)
 
         check_file.Close()
 
