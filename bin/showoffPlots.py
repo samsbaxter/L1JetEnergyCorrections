@@ -42,8 +42,8 @@ eta_ref_str = "|#eta^{Ref}|"
 eta_l1_str = "|#eta^{L1}|"
 dr_str = "#DeltaR(L1 jet - Ref jet)"
 pt_str = "E_{T}[GeV]"
-pt_L1_str = "E_{T}^{L1} [GeV]"
-pt_Ref_str = "E_{T}^{Ref} [GeV]"
+pt_l1_str = "E_{T}^{L1} [GeV]"
+pt_ref_str = "E_{T}^{Ref} [GeV]"
 res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{Ref})/<E_{T}^{L1}>"
 pt_diff_str = "E_{T}^{L1} - E_{T}^{Ref} [GeV]"
 
@@ -70,7 +70,7 @@ plot_markers = [20, 21, 22, 23]
 
 plot_title = "QCD 50ns"
 plot_title = "TTbar 50ns, GCT jets"
-
+plot_title = "Data, run 251252"
 
 def generate_canvas(title=""):
     """Generate a standard TCanvas for all plots"""
@@ -96,7 +96,7 @@ def plot_pt_l1(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     c = generate_canvas()
     tree.Draw("pt>>h_pt(63,0,252)", cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (eta_min, eta_max), "HISTE")
     h_pt = ROOT.gROOT.FindObject("h_pt")
-    h_pt.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, pt_L1_str))
+    h_pt.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, pt_l1_str))
     c.SaveAs("%s/pt_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
@@ -113,7 +113,7 @@ def plot_pt_ref(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     c = generate_canvas()
     tree.Draw("ptRef>>h_pt(63,0,252)", cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g" % (eta_min, eta_max), "HISTE")
     h_pt = ROOT.gROOT.FindObject("h_pt")
-    h_pt.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, pt_Ref_str))
+    h_pt.SetTitle(cut + "&& TMath::Abs(eta)>%g && TMath::Abs(eta)<%g;%s;N" % (eta_min, eta_max, pt_ref_str))
     c.SaveAs("%s/pt_ref_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
@@ -268,6 +268,7 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
     h2d_gen_l1 = get_from_file(check_file, hname)
     c = generate_canvas()
+    h2d_gen_l1.SetTitle("%g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
     line = ROOT.TLine(0, 0, 250, 250)
     line.SetLineStyle(2)
@@ -457,7 +458,7 @@ def main(in_args=sys.argv[1:]):
     # Do plots with output from checkCalibration.py
     if args.checkcal:
 
-        etaBins = binning.eta_bins_central
+        etaBins = binning.eta_bins
         check_file = open_root_file(args.checkcal)
 
         for emin, emax in izip(etaBins[:-1], etaBins[1:]):
