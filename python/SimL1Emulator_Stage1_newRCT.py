@@ -20,6 +20,7 @@ dump_RCT = False
 save_EDM = False
 
 # Global tag (note, you must ensure it matches input file)
+# You don't need the "::All"!
 # gt = 'PHYS14_25_V2'  # for Phys14 AVE30BX50 sample
 gt = 'MCRUN2_74_V9' # for SPring15 AVE20BX25
 
@@ -38,6 +39,8 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.Geometry.GeometryIdeal_cff')
 process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 # Select the Message Logger output you would like to see:
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -108,8 +111,8 @@ process.caloStage1Params.jetCalibrationType = cms.string("None")
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
 ##############################
-# process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
-process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
+process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
+# process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
 process.l1ExtraTreeProducer.nonIsoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:NonIsolated")
 process.l1ExtraTreeProducer.isoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:Isolated")
 process.l1ExtraTreeProducer.tauJetLabel = cms.untracked.InputTag("l1ExtraLayer2:Tau")
@@ -199,16 +202,13 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 ##############################
 if new_RCT_calibs:
     print "*** Using new RCT calibs"
-    process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
-    from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
     # Format: map{(record,label):(tag,connection),...}
     recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
     file_append += '_newRCTv2'
 else:
     print "*** Using whatever RCT calibs the sample was made with"
-    process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-    process.GlobalTag.globaltag = cms.string(gt+'::All')
+    process.GlobalTag.globaltag = cms.string(gt)
 
 process.p = cms.Path(
     # process.L1TCaloStage1_PPFromRaw
