@@ -51,9 +51,12 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     cutStr = eta_cutStr + " && " + pt_cutStr
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,5)" % (absetamin, absetamax) , cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax) , cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
-    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
+    fit_result = hrsp_eta.Fit("gaus", "QER", "", hrsp_eta.GetMean() - hrsp_eta.GetRMS(), hrsp_eta.GetMean() + hrsp_eta.GetRMS())
+    # mean = hrsp_eta.GetFunction("gaus").GetParameter(1)
+    # err = hrsp_eta.GetFunction("gaus").GetParError(1)
     output_f_hists.WriteTObject(hrsp_eta)
 
     nb_pt = 63
@@ -64,19 +67,19 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
-    h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_gen.SetTitle(";p_{T}^{Ref} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
-    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # Draw pT^Gen Vs pT^L1
     tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
-    h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
+    h2d_gen_l1.SetTitle(";p_{T}^{Ref} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
 
     # Save plots as pdf if desired
@@ -140,7 +143,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
             rsp_min, rsp_max = 0, 5
             tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
             h_rsp = ROOT.gROOT.FindObject(rsp_name)
-            h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+            h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
 
         # Fit with Gaussian
         fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
@@ -161,7 +164,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
         gr_rsp_eta.SetPoint(N, 0.5 * (absetamin + absetamax), mean)
         gr_rsp_eta.SetPointError(N, 0.5 * (absetamax - absetamin), err)
 
-    gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Gen}>")
+    gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Ref}>")
     gr_rsp_eta.SetName("gr_rsp_eta_%g_%g" % (eta_bins[0], eta_bins[-1]))
     output_f.WriteTObject(gr_rsp_eta)
 

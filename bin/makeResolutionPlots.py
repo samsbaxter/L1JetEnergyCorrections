@@ -154,13 +154,13 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     var = "ptDiff" if check_var_stored(tree_raw, "ptDiff") else "(pt-%s)" % ptRef
     tree_raw.Draw("%s:pt>>ptDiff_l1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
     ptDiff_l1_2d = ROOT.gROOT.FindObject("ptDiff_l1_2d")
-    ptDiff_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen} [GeV]" % title)
+    ptDiff_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref} [GeV]" % title)
     output_f_hists.WriteTObject(ptDiff_l1_2d)
 
     # 2d plots of pt difference vs ref pt
     tree_raw.Draw("%s:%s>>ptDiff_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
     ptDiff_ref_2d = ROOT.gROOT.FindObject("ptDiff_ref_2d")
-    ptDiff_ref_2d.SetTitle("%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen} [GeV]" % title)
+    ptDiff_ref_2d.SetTitle("%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Ref} [GeV]" % title)
     output_f_hists.WriteTObject(ptDiff_ref_2d)
 
     res_min = -5
@@ -171,7 +171,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     var = "resL1" if check_var_stored(tree_raw, "resL1") else "(pt-%s)/pt" % (ptRef)  # for old pair files
     tree_raw.Draw("%s:pt>>res_l1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_l1_2d = ROOT.gROOT.FindObject("res_l1_2d")
-    res_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1}" % title)
+    res_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{L1}" % title)
     output_f_hists.WriteTObject(res_l1_2d)
 
     # 2D plot of L1-Ref/Ref VS L1
@@ -180,31 +180,31 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     nbins_res = 120
     tree_raw.Draw("%s:pt>>res_refVsl1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_refVsl1_2d = ROOT.gROOT.FindObject("res_refVsl1_2d")
-    res_refVsl1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % title)
+    res_refVsl1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{Ref}" % title)
     output_f_hists.WriteTObject(res_refVsl1_2d)
 
     # 2D plot of L1-Ref/Ref VS Ref
     var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-%s)/%s" % (ptRef, ptRef)
     tree_raw.Draw("%s:%s>>res_refVsref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_res, res_min, res_max), eta_cut + "&&" + pt_cut_all)
     res_refVsref_2d = ROOT.gROOT.FindObject("res_refVsref_2d")
-    res_refVsref_2d.SetTitle("%s;E_{T}^{Gen} [GeV];(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen}" % title)
+    res_refVsref_2d.SetTitle("%s;E_{T}^{Ref} [GeV];(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{Ref}" % title)
     output_f_hists.WriteTObject(res_refVsref_2d)
 
     # Graphs to hold resolution for all pt bins
     res_graph_l1 = ROOT.TGraphErrors()
-    res_graph_l1.SetNameTitle("resL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{L1}" % title)
+    res_graph_l1.SetNameTitle("resL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{L1}" % title)
 
     res_graph_l1_diff = ROOT.TGraphErrors()
-    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/<E_{T}^{L1}>" % title)
+    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref}/<E_{T}^{L1}>" % title)
 
     res_graph_refVsl1 = ROOT.TGraphErrors() # binned in l1 pt
-    res_graph_refVsl1.SetNameTitle("resRefL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
+    res_graph_refVsl1.SetNameTitle("resRefL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{Ref}" % title)
 
     res_graph_refVsref = ROOT.TGraphErrors() # binned in ref pt
-    res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/E_{T}^{Gen}" % title)
+    res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{Ref}" % title)
 
     res_graph_refVsref_diff = ROOT.TGraphErrors() # binned in ref pt
-    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Gen} [GeV];E_{T}^{L1} - E_{T}^{Gen}/<E_{T}^{Gen}>" % title)
+    res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Ref}/<E_{T}^{Ref}>" % title)
 
     # Now go through pt bins, and plot resolution for each, fit with gaussian,
     # and add width to graph
@@ -215,31 +215,31 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
         print "    Doing pt bin: %g - %g" % (ptmin, ptmax)
 
         l1_bin_title = title + ", %g < p_{T}^{L1} < %g" % (ptmin, ptmax)
-        ref_bin_title = title + ", %g < p_{T}^{Gen} < %g" % (ptmin, ptmax)
+        ref_bin_title = title + ", %g < p_{T}^{Ref} < %g" % (ptmin, ptmax)
 
         # Plot difference in L1 pT and Ref pT (in bin of L1 pt)
         plot_bin_fit(ptDiff_l1_2d, ptmin, ptmax,
-            "%s;E_{T}^{L1} - E_{T}^{Gen} [GeV];N" % l1_bin_title,
+            "%s;E_{T}^{L1} - E_{T}^{Ref} [GeV];N" % l1_bin_title,
             "ptDiff_l1_%g_%g" % (ptmin, ptmax), res_graph_l1_diff, output_f_hists, divide=True)
 
         # Plot difference in L1 pT and Ref pT (in bin of ref pt)
         plot_bin_fit(ptDiff_ref_2d, ptmin, ptmax,
-            "%s;E_{T}^{L1} - E_{T}^{Gen} [GeV];N" % ref_bin_title,
+            "%s;E_{T}^{L1} - E_{T}^{Ref} [GeV];N" % ref_bin_title,
             "ptDiff_ref_%g_%g" % (ptmin, ptmax), res_graph_refVsref_diff, output_f_hists, divide=True)
 
         # Plot resolution wrt L1 pT & fit
         plot_bin_fit(res_l1_2d, ptmin, ptmax,
-            "%s;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{L1};N" % l1_bin_title,
+            "%s;(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{L1};N" % l1_bin_title,
             "res_l1_%g_%g" % (ptmin, ptmax), res_graph_l1, output_f_hists)
 
         # Plot ref resolution wrt L1 pT & fit
         plot_bin_fit(res_refVsl1_2d, ptmin, ptmax,
-            "%s;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % l1_bin_title,
+            "%s;(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{Ref};N" % l1_bin_title,
             "res_ref_l1_%g_%g" % (ptmin, ptmax), res_graph_refVsl1, output_f_hists)
 
         # Plot ref resolution Vs ref pt
         plot_bin_fit(res_refVsref_2d, ptmin, ptmax,
-            "%s;(E_{T}^{L1} - E_{T}^{Gen})/E_{T}^{Gen};N" % ref_bin_title,
+            "%s;(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{Ref};N" % ref_bin_title,
             "res_ref_ref_%g_%g" % (ptmin, ptmax), res_graph_refVsref, output_f_hists)
 
     output_f.WriteTObject(res_graph_l1)
