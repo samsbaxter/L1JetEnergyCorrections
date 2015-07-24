@@ -475,7 +475,9 @@ def main(in_args=sys.argv[1:]):
                plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
 
             # inclusive eta graph
-            plot_res_all_pt([res_file], eta_min, eta_max, args.oDir, args.format)
+            plot_res_all_pt([res_file], 0, 3, args.oDir, args.format)
+            plot_res_all_pt([res_file], 0, 5, args.oDir, args.format)
+            plot_res_all_pt([res_file], 3, 5, args.oDir, args.format)
 
             # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
 
