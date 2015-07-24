@@ -266,6 +266,18 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
 # PLOTS USING OUTPUT FROM checkCalibration
 #############################################
 
+def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
+    """Plot the response in one eta bin"""
+    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+    h_rsp = get_from_file(calib_file, hname)
+    func = h_rsp.GetListOfFunctions().At(0)
+    c = generate_canvas()
+    h_rsp.Draw("HISTE")
+    if func:
+        func.Draw("SAME")
+    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot l1 pt against ref jet pt, for given L1 eta bin"""
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
@@ -374,18 +386,6 @@ def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFor
     c.SaveAs("%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
-def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
-    """Plot the response in one eta bin"""
-    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
-    h_rsp = ROOT.TH1F(get_from_file(calib_file, hname))
-    func = h_rsp.GetListOfFunctions().At(0)
-    c = generate_canvas()
-    h_rsp.Draw("HISTE")
-    if func:
-        func.Draw("SAME")
-    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
-
-
 def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the L1 pt in a given ref jet pt bin"""
     hname = "eta_%g_%g/Histograms/L1_pt_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
@@ -414,13 +414,17 @@ def main(in_args=sys.argv[1:]):
 
     parser.add_argument("--calib", help="input ROOT file from output of runCalibration.py")
 
-    parser.add_argument("--oDir", help="Directory to save plots", default=".")
+    parser.add_argument("--oDir", help="Directory to save plots. Default is $PWD.", default=".")
     parser.add_argument("--format", help="Format for plots (PDF, png, etc)", default="pdf")
     parser.add_argument("--etaInd", help="list of eta bin index to run over")
 
     args = parser.parse_args(args=in_args)
 
     print args
+
+    if args.oDir == ".":
+        print "Warning: I'm going to make these plots here!"
+        print "If you want to put them somewhere specific, use --oDir"
 
     # Check if directory exists. If not, create it.
     check_dir_exists_create(args.oDir)
