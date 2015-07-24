@@ -22,7 +22,11 @@ declare -a etaBins=(
 5
 ) 
 
-pairs="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDPhys14_newRCTv2/pairs_QCD_Pt-15to600_Phys14_AVE30BX50_GCT_QCDPhys14_newRCTv2_GCT_ak5_ref14to1000_l10to500.root"
+pairs="/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/pairs_QCD_Pt-30to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak5_ref14to1000_l10to500.root"
+
+# PU cuts. Optional
+PUmin=0
+PUmax=120
 
 # update the CMSSW area in the batch script
 sed -i s@CMSSW_.*\/src@${CMSSW_VERSION}/src@g calibration_batch.sh
@@ -43,8 +47,10 @@ do
     jobname="${etamin}to${etamax}"
     outname=${fname#pairs_}
     outname=${outname%.root}
-    outname="output_${outname}_${i}_742.root"
+    outname="output_${outname}_${i}.root"
+    # outname="output_${outname}_PU${PUmin}to${PUmax}_${i}.root"  # if you want a filename with PU cuts
     echo "$jobname"
     echo "$outname"
     bsub -q 8nh -J $jobname "sh calibration_batch.sh --no_genjet_plots ${fdir}/${fname} ${fdir}/${outname} --etaInd ${i}"
+    # bsub -q 8nh -J $jobname "sh calibration_batch.sh --no_genjet_plots ${fdir}/${fname} ${fdir}/${outname} --PUmin ${PUmin} --PUmax ${PUmax} --etaInd ${i}"  # if you want a PU cut applied
 done
