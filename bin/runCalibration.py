@@ -370,7 +370,7 @@ def main(in_args=sys.argv[1:]):
                         help="Minimum number of PU vertices (refers to *actual* " \
                              "number of PU vertices in the event, not the centre " \
                              "of of the Poisson distribution)")
-    parser.add_argument("--PUmax", type=float, default=120,
+    parser.add_argument("--PUmax", type=float, default=1200,
                         help="Maximum number of PU vertices (refers to *actual* " \
                              "number of PU vertices in the event, not the centre " \
                              "of of the Poisson distribution)")
