@@ -29,7 +29,6 @@
 #include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
-#include "SortFilterEmulator.h"
 #include "L1Ntuple.h"
 
 using std::cout;
@@ -42,6 +41,10 @@ bool checkTriggerFired(std::vector<TString> hlt, const TString& selection);
 std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
                                                 std::vector<double> eta,
                                                 std::vector<double> phi);
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi,
+                                                std::vector<int> bx);
 
 
 /**
@@ -147,16 +150,12 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // for (unsigned j = 0; j < event->hlt.size(); j++){
-        //     cout << event->hlt[j] << endl;
-        // }
-
         // Get vectors of ref & L1 jets from trees
-        // etCorr?
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors(recoJetTree->et, recoJetTree->eta, recoJetTree->phi);
-        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1JetTree->cenJetEt, l1JetTree->cenJetEta, l1JetTree->cenJetPhi);
-        std::vector<TLorentzVector> fwdJets  = makeTLorentzVectors(l1JetTree->fwdJetEt, l1JetTree->fwdJetEta, l1JetTree->fwdJetPhi);
-        std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi);
+        // Note that we only want BX = 0 (the collision)
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors(recoJetTree->etCorr, recoJetTree->eta, recoJetTree->phi);
+        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1JetTree->cenJetEt, l1JetTree->cenJetEta, l1JetTree->cenJetPhi, l1JetTree->cenJetBx);
+        std::vector<TLorentzVector> fwdJets  = makeTLorentzVectors(l1JetTree->fwdJetEt, l1JetTree->fwdJetEta, l1JetTree->fwdJetPhi, l1JetTree->fwdJetBx);
+        std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi, l1JetTree->tauJetBx);
         l1Jets.insert(l1Jets.end(), fwdJets.begin(), fwdJets.end());
         l1Jets.insert(l1Jets.end(), tauJets.begin(), tauJets.end());
         // cout << "# refJets: " << refJets.size() << endl;
@@ -250,6 +249,7 @@ bool checkTriggerFired(std::vector<TString> hlt, const TString& selection) {
     return false;
 }
 
+
 /**
  * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
  *
@@ -268,8 +268,38 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
         TLorentzVector v;
-        v.SetPtEtaPhiM(et[i], eta[i], phi[i], 0);
+        v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
         vecs.push_back(v);
+    }
+    return vecs;
+}
+
+
+/**
+ * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
+ * Also includes requirement that BX = 0.
+ *
+ * @param et [description]
+ * @param eta [description]
+ * @param phi [description]
+ * @param bx [description]
+ * @return [description]
+ */
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi,
+                                                std::vector<int> bx) {
+    // check all same size
+    if (et.size() != eta.size() || et.size() != phi.size()) {
+        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+    }
+    std::vector<TLorentzVector> vecs;
+    for (unsigned i = 0; i < et.size(); i++) {
+        if (bx.at(i) == 0) {
+            TLorentzVector v;
+            v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
+            vecs.push_back(v);
+        }
     }
     return vecs;
 }
