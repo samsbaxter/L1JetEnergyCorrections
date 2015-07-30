@@ -64,19 +64,19 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
-    h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_gen.SetTitle(";p_{T}^{Ref} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
-    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # Draw pT^Gen Vs pT^L1
     tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), cutStr)
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
-    h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
+    h2d_gen_l1.SetTitle(";p_{T}^{Ref} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
 
     # Save plots as pdf if desired
@@ -140,7 +140,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
             rsp_min, rsp_max = 0, 5
             tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
             h_rsp = ROOT.gROOT.FindObject(rsp_name)
-            h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+            h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
 
         # Fit with Gaussian
         fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
@@ -161,7 +161,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
         gr_rsp_eta.SetPoint(N, 0.5 * (absetamin + absetamax), mean)
         gr_rsp_eta.SetPointError(N, 0.5 * (absetamax - absetamin), err)
 
-    gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Gen}>")
+    gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Ref}>")
     gr_rsp_eta.SetName("gr_rsp_eta_%g_%g" % (eta_bins[0], eta_bins[-1]))
     output_f.WriteTObject(gr_rsp_eta)
 
@@ -172,6 +172,8 @@ def main(in_args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
+    parser.add_argument("--incl", action="store_true", help="Do inclusive eta plots")
+    parser.add_argument("--excl", action="store_true", help="Do exclusive eta plots")
     parser.add_argument("--central", action='store_true',
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
