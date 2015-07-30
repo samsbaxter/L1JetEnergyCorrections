@@ -29,7 +29,6 @@
 #include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
-#include "SortFilterEmulator.h"
 #include "L1Ntuple.h"
 
 using std::cout;
@@ -38,10 +37,14 @@ namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
 TString getSuffixFromDirectory(const TString& dir);
-bool checkTriggerFired(std::vector<TString> hlt, const TString& selection);
+// bool checkTriggerFired(std::vector<TString> hlt, const TString& selection);
 std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
                                                 std::vector<double> eta,
                                                 std::vector<double> phi);
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi,
+                                                std::vector<int> bx);
 
 
 /**
@@ -50,7 +53,10 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
  * python/l1Ntuple_cfg.py. Can also optionally apply correction functions, and
  * emulate the GCT/Stage 1 by sorting & keeping top 4 cen & fwd jets.
  *
- * @author Robin Aggleton, Nov 2014
+ * This version is for running on data, when you want to take L1 jets from the
+ * L1Extra collection, and reference jets from the RecoTree.
+ *
+ * @author Robin Aggleton, Nov 2015
  */
 int main(int argc, char* argv[]) {
 
@@ -138,25 +144,16 @@ int main(int argc, char* argv[]) {
             cout << "Entry: " << iEntry << endl;
         }
 
-        // Check HLT bit
-        // if (!checkTriggerFired(event->hlt, "HLT_ZeroBias_v1")) {
-        //     continue;
-        // }
-
         if (std::find(event->hlt.begin(), event->hlt.end(), "HLT_ZeroBias_v1") == event->hlt.end()) {
             continue;
         }
 
-        // for (unsigned j = 0; j < event->hlt.size(); j++){
-        //     cout << event->hlt[j] << endl;
-        // }
-
         // Get vectors of ref & L1 jets from trees
-        // etCorr?
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors(recoJetTree->et, recoJetTree->eta, recoJetTree->phi);
-        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1JetTree->cenJetEt, l1JetTree->cenJetEta, l1JetTree->cenJetPhi);
-        std::vector<TLorentzVector> fwdJets  = makeTLorentzVectors(l1JetTree->fwdJetEt, l1JetTree->fwdJetEta, l1JetTree->fwdJetPhi);
-        std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi);
+        // Note that we only want BX = 0 (the collision)
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors(recoJetTree->etCorr, recoJetTree->eta, recoJetTree->phi);
+        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1JetTree->cenJetEt, l1JetTree->cenJetEta, l1JetTree->cenJetPhi, l1JetTree->cenJetBx);
+        std::vector<TLorentzVector> fwdJets  = makeTLorentzVectors(l1JetTree->fwdJetEt, l1JetTree->fwdJetEta, l1JetTree->fwdJetPhi, l1JetTree->fwdJetBx);
+        std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi, l1JetTree->tauJetBx);
         l1Jets.insert(l1Jets.end(), fwdJets.begin(), fwdJets.end());
         l1Jets.insert(l1Jets.end(), tauJets.begin(), tauJets.end());
         // cout << "# refJets: " << refJets.size() << endl;
@@ -242,13 +239,14 @@ TString getSuffixFromDirectory(const TString& dir) {
  *
  * @return [description]
  */
-bool checkTriggerFired(std::vector<TString> hlt, const TString& selection) {
-    for (const auto& hltItr: hlt) {
-        if (*hltItr == selection)
-            return true;
-    }
-    return false;
-}
+// bool checkTriggerFired(std::vector<TString> hlt, const TString& selection) {
+//     for (const auto& hltItr: hlt) {
+//         if (*hltItr == selection)
+//             return true;
+//     }
+//     return false;
+// }
+
 
 /**
  * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
@@ -268,8 +266,38 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
         TLorentzVector v;
-        v.SetPtEtaPhiM(et[i], eta[i], phi[i], 0);
+        v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
         vecs.push_back(v);
+    }
+    return vecs;
+}
+
+
+/**
+ * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
+ * Also includes requirement that BX = 0.
+ *
+ * @param et [description]
+ * @param eta [description]
+ * @param phi [description]
+ * @param bx [description]
+ * @return [description]
+ */
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi,
+                                                std::vector<int> bx) {
+    // check all same size
+    if (et.size() != eta.size() || et.size() != phi.size()) {
+        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+    }
+    std::vector<TLorentzVector> vecs;
+    for (unsigned i = 0; i < et.size(); i++) {
+        if (bx.at(i) == 0) {
+            TLorentzVector v;
+            v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
+            vecs.push_back(v);
+        }
     }
     return vecs;
 }
