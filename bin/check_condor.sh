@@ -15,4 +15,4 @@ eval `scramv1 runtime -sh`
 cd ../..
 ls
 echo $@
-python condor_wrapper.py output $@
+python condor_wrapper.py check $@

@@ -8,11 +8,11 @@ echo "I got the following parameters: $@"
 # source CMSSW env
 . $VO_CMS_SW_DIR/cmsset_default.sh
 # get CMSSW
-VER=CMSSW_7_3_0
+VER=CMSSW_7_4_2
 scramv1 project CMSSW $VER
 cd $VER/src/
 eval `scramv1 runtime -sh`
 cd ../..
 ls
 echo $@
-python makeResolutionPlots.py $@
+python condor_wrapper.py res $@

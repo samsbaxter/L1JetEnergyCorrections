@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Script to run RunMatcher on worker node of HTCondor.
 
@@ -6,14 +8,14 @@ we need to manipulate the user's args to pull the specified output file,
 replace it with our own, then copy the local output to wherever the user specified.
 """
 
-#!/usr/bin/env python
-
 import sys
 from subprocess import call
 
 # Grab user-defined output filename and replace it with some temp filename
 in_args = sys.argv[1:]
 outfile = ''
+
+print in_args
 
 ind1 = 0
 for i, p in enumerate(in_args):

@@ -1,0 +1,22 @@
+hdfsdir = /hdfs/user/ra12451/L1JEC/ 
+
+Executable = calibration_condor.sh
+Universe = vanilla
+Output = calibration.$(cluster).$(process).out
+Error = calibration.$(cluster).$(process).err
+Log = calibration.$(cluster).$(process).log
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+notify_user = robin.aggleton@bristol.ac.uk
+
+request_cpus = 1
+request_memory = 500
+request_disk = 30000000
+
+# use the ENV that is provided
+getenv = true
+transfer_input_files = /users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/bin/runCalibration.py, /users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/bin/binning.py, /users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/bin/condor_wrapper.py, /users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/bin/correction_LUT_plot.py, /users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/bin/common_utils.py
+initialdir = $(hdfsdir)
+
+arguments = python runCalibration.py --no_genjet_plots /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/TTbarSpring15_GCT_newRCTv2_newGCT/pairs_TTbarSpring15AVE30BX50_TTbarSpring15_GCT_newRCTv2_newGCT_GCT_ak5_ref14to1000_l10to500.root /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/TTbarSpring15_GCT_newRCTv2_newGCT/output_TTbarSpring15AVE30BX50_TTbarSpring15_GCT_newRCTv2_newGCT_GCT_ak5_ref14to1000_l10to500_7_test.root --etaInd 7
+queue

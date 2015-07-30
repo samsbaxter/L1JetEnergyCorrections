@@ -15,7 +15,7 @@ getenv = true
 # initialdir = /storage/ra12451/
 
 
-transfer_input_files = binning.py,makeResolutionPlots.py,/storage/ra12451/L1JEC/CMSSW_7_3_0/src/L1Trigger/L1JetEnergyCorrections/QCD_Spring14_Flat20to50/pairs_QCD_Spring14_Flat20to50_GCT_ak5_ref14to1000_l10to500.root
+transfer_input_files = binning.py,makeResolutionPlots.py,/users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCD_Spring14_Flat20to50/pairs_QCD_Spring14_Flat20to50_GCT_ak5_ref14to1000_l10to500.root
 transfer_output_files = res_$(process).root
 
 #arguments = "--excl pairs_QCD_Spring14_Flat20to50_GCT_ak5_ref14to1000_l10to500_calibrated_pol0.root res_$(process).root --etaInd $(process) "
