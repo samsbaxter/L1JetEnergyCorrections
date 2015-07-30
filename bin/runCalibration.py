@@ -36,17 +36,7 @@ forward_fit = ROOT.TF1("fitfcn", "pol0")
 
 # Some sensible defaults for the fit function
 def stage1_fit_defaults(fitfunc):
-    """Better for Stage1"""
-    fitfunc.SetParameter(0, 0.5)
-    fitfunc.SetParameter(1, 2)
-    fitfunc.SetParameter(2, -0.5)
-    fitfunc.SetParameter(3, 0.13)
-    fitfunc.SetParameter(4, 0.0)
-    fitfunc.SetParameter(5, -6.)
-
-
-def gct_fit_defaults(fitfunc):
-    """Better for GCT"""
+    """Better initial starting params for Stage1"""
     fitfunc.SetParameter(0, 1)
     fitfunc.SetParameter(1, 5)
     fitfunc.SetParameter(2, 1)
@@ -54,6 +44,22 @@ def gct_fit_defaults(fitfunc):
     fitfunc.SetParameter(4, 0.01)
     fitfunc.SetParameter(5, -20)
 
+
+def gct_fit_defaults(fitfunc):
+    """Better intiial starting params for GCT"""
+    fitfunc.SetParameter(0, 1)
+    fitfunc.SetParameter(1, 5)
+    fitfunc.SetParameter(2, 1)
+    fitfunc.SetParameter(3, -25)
+    fitfunc.SetParameter(4, 0.01)
+    fitfunc.SetParameter(5, -20)
+    # trick HF fit
+    # fitfunc.SetParameter(0, 1.4527287)
+    # fitfunc.SetParameter(1, 0.4516129)
+    # fitfunc.SetParameter(2, -6.2951576)
+    # fitfunc.SetParameter(3, 6129032.0)
+    # fitfunc.SetParameter(4, 0.075557264)
+    # fitfunc.SetParameter(5, -13.548387)
 
 def fix_fit_params(fitfunc):
     """Fix so constant line"""
@@ -202,7 +208,7 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         print total_cut
 
         # Plots of pT L1 for given pT Gen bin
-        tree_raw.Draw("pt>>hpt(600, 0, 300)", total_cut)
+        tree_raw.Draw("pt>>hpt(1000, 0, 500)", total_cut)
         hpt = ROOT.gROOT.FindObject("hpt")
         hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
 
@@ -232,7 +238,7 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         output_f_hists.WriteTObject(hrsp)
 
         # check if we have a bad fit - either fit status != 0, or
-        # fit mean is close to raw mean. in either case not use raw mean
+        # fit mean is not close to raw mean. in either case use raw mean
         if fitStatus != 0 or abs((mean/hrsp.GetMean()) - 1) > 0.2:
             print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
                 "fit status:", fitStatus, \
@@ -281,8 +287,9 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         # of the maximum corr value, whicher is larger.
         # Check to make sure it's not the last point on the graph
         # (e.g. if no turnover), in which case just use the default fit_min
-        max_corr = max(yarr)
-        max_corr_pt = yarr.index(max_corr)
+        max_corr = max(yarr[:len(yarr)/2])
+        max_corr_ind = yarr.index(max_corr)
+        max_corr_pt = xarr[max_corr_ind]
         fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != max_pt) else fit_min
 
         print "Correction fn fit range:", fit_min, max_pt
@@ -307,47 +314,71 @@ def fit_correction(graph, function, fit_min, fit_max):
     Fit response curve with given correction function, within given bounds.
 
     Note that sometime the fit fails - if so, we try raising the lower
-    bound of the fit until it suceeds (sometimes it works at e.g. 45, but not 40)
+    bound of the fit until it suceeds (sometimes it works at e.g. 45, but not 40).
+    If that fails, then we lower the upper bound and try fitting whilst raising
+    the lower bound again.
 
     Returns parameters of successful fit.
     """
     print "Fitting", fit_min, fit_max
 
-    # Sometimes have 2 points with very diff corr values within a given
+    # Sometimes have 2 points with very different correction values within a given
     # pt range due to turnover
-    # To make the fit better/easier, we make a Graph with the subset
-    # of points we want to fit to
+    # To make the fit better/easier, we make a Graph with the subset of points we want to fit to
     xarr, yarr = get_xy(graph)
     min_ind = xarr.index(next(x for x in xarr if x >= fit_min and xarr[xarr.index(x)+1] > x))
     print "min_ind:", min_ind, "x,y of fit graph:", xarr[min_ind:], yarr[min_ind:]
+
+    # For HF, the upper end flicks up, ruining the fit. Remove these points:
+    max_ind = 0
+    starting_ind = len(yarr)/2
+    for i, y in enumerate(yarr[starting_ind:]):
+        if yarr[i + 1 + starting_ind] > y:
+            max_ind = i + starting_ind + 1
+            break
+    print "max_ind:", max_ind, "x,y of fit graph:", xarr[min_ind:max_ind], yarr[min_ind:max_ind]
+
     # Do not user graph.RemovePoint()! It doesn't work, and only removes every-other point
     # Instead make a graph with the bit of array we want
     exarr, eyarr = get_exey(graph)
-    fit_graph = ROOT.TGraphErrors(len(xarr)-min_ind, np.array(xarr[min_ind:]), np.array(yarr[min_ind:]), np.array(exarr[min_ind:]), np.array(eyarr[min_ind:]))
+    fit_graph = ROOT.TGraphErrors(max_ind-min_ind, np.array(xarr[min_ind:max_ind]), np.array(yarr[min_ind:max_ind]), np.array(exarr[min_ind:max_ind]), np.array(eyarr[min_ind:max_ind]))
     fit_graph.SetName(graph.GetName()+"_fit")
 
     # Now do the fitting, incrementing the fit min if failure
     fit_result = -1
-    while (fit_result != 0 and fit_min < fit_max):
-        function.SetRange(fit_min, fit_max)
-        mode = ""
-        if str(function.GetExpFormula()).startswith("pol"):
-            mode = "F"
-        fit_result = int(fit_graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
-        # sanity check - sometimes will have status = 0 even though rubbish
-        if function.Eval(80) > 10 or function.Eval(80) < 0.01:
-            fit_result = -1
-        print "Fit result:", fit_result, "for fit min", fit_min
-        fit_min += 0.5
+
+    orig_fit_min, orig_fit_max = fit_min, fit_max
+
+    while fit_max > orig_fit_min + 10:
+        fit_min = orig_fit_min
+        while fit_min < fit_max:
+            function.SetRange(fit_min, fit_max)
+            mode = ""
+            if str(function.GetExpFormula()).startswith("pol"):
+                mode = "F"
+            fit_result = int(fit_graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
+            # sanity check - sometimes will have status = 0 even though rubbish
+            if function.Eval(50) > 10 or function.Eval(50) < 0.01:
+                fit_result = -1
+            print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
+            if fit_result == 0:
+                break
+            else:
+                fit_min += 0.5
+        if fit_result == 0:
+            break
+
+        fit_max -= 0.5
 
     params = []
-    if fit_result != 0 or function.Eval(80) > 10 or function.Eval(80) < 0.01:
+    if fit_result != 0 or function.Eval(50) > 10 or function.Eval(50) < 0.01:
         print "Couldn't fit"
     else:
         for i in range(function.GetNumberFreeParameters()):
             params.append(function.GetParameter(i))
 
     return fit_graph, params
+
 
 
 ########### MAIN ########################
