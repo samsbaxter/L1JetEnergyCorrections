@@ -66,13 +66,28 @@ def open_root_file(filename, mode="READ"):
     return f
 
 
+def exists_in_file(tfile, obj_name):
+    """Check if object exists in TFile.
+
+    Also handles directory structure, e.g. histograms/central/pt_1
+    """
+    parts = obj_name.split("/")
+    current_obj = tfile
+    for p in parts:
+        if current_obj.GetListOfKeys().Contains(p):
+            current_obj = current_obj.Get(p)
+        else:
+            return False
+    return True
+
+
 def get_from_file(tfile, obj_name):
     """Get some object from ROOT TFile with checks."""
-    obj = tfile.Get(obj_name)
     print "getting %s" % obj_name
-    if not obj:
+    if not exists_in_file(tfile, obj_name):
         raise Exception("Can't get object named %s from %s" % (obj_name, tfile.GetName()))
-    return obj
+    else:
+        return tfile.Get(obj_name)
 
 
 def check_exp(n):
