@@ -93,8 +93,6 @@ int main(int argc, char* argv[]) {
         outDir += "/";
     }
 
-    std::vector<MatchedPair> matchResults; // holds results from one event
-
     // setup output tree to store raw variable for quick plotting/debugging
     TTree * outTree2 = new TTree("valid", "valid");
     // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
@@ -166,10 +164,9 @@ int main(int argc, char* argv[]) {
         // cout << "# l1Jets: " << l1Jets.size() << endl;
 
         // Pass jets to matcher, do matching
-        matchResults.clear();
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
-        matchResults = matcher->getMatchingPairs();
+        std::vector<MatchedPair> matchResults = matcher->getMatchingPairs();
         // matcher->printMatches(); // for debugging
 
         // store L1 & ref jet variables in tree
