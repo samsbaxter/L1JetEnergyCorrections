@@ -35,9 +35,10 @@ gct_calibs_file = 'L1Trigger.L1JetEnergyCorrections.l1GctConfig_742_PHYS14_ST_V1
 save_EDM = False
 
 # Global tag (note, you must ensure it matches input file)
+# You don't need the "::All"!
+# gt = 'MCRUN2_74_V9'  # for RelVal sample
 gt = 'MCRUN2_74_V8'  # for Spring15 AVE30BX50 sample
 # gt = 'PHYS14_ST_V1'  # for Phys14 AVE30BX50 sample
-# gt = 'MCRUN2_74_V8'  # for Spring14 NeutrinoGun sample for laura
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
@@ -59,7 +60,8 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration/StandardSequences/EndOfProcess_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cff')
-process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
+from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
@@ -71,7 +73,8 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     )
 
 # L1 ntuple producers
-process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
+# process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
+process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
 
 ##############################
 # Rerun the GCT for internal jet collection
@@ -195,11 +198,10 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 
 ##############################
 # New RCT calibs
+# Also sets GlobalTag here
 ##############################
 if new_RCT_calibs:
     print "*** Using new RCT calibs"
-    process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
-    from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
     # Format: map{(record,label):(tag,connection),...}
     recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
@@ -207,6 +209,7 @@ if new_RCT_calibs:
 else:
     print "*** Using whatever RCT calibs the sample was made with"
     process.GlobalTag.globaltag = cms.string(gt+'::All')
+    process.GlobalTag.globaltag = cms.string(gt)
 
 ###########################################################
 # Load new GCT jet calibration coefficients - edit the l1GctConfig file
