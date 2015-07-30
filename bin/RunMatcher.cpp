@@ -170,6 +170,7 @@ int main(int argc, char* argv[]) {
     // LOOP OVER EVENTS //
     //////////////////////
     // produce matching pairs and store
+    Long64_t drawCounter = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         // jentry is the entry # in the current Tree
@@ -230,18 +231,21 @@ int main(int argc, char* argv[]) {
 
 
         // debugging plot - plots eta vs phi of jets
-        if (iEntry < opts.drawNumber()) {
-            TString label = TString::Format(
-                "%.1f < E^{gen}_{T} < %.1f GeV, " \
-                "L1 jet %.1f < E^{L1}_{T} < %.1f GeV, |#eta_{jet}| < %.1f",
-                minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta);
+        if (drawCounter < opts.drawNumber()) {
+            if (matchResults.size() > 0) {
+                TString label = TString::Format(
+                    "%.1f < E^{gen}_{T} < %.1f GeV, " \
+                    "L1 jet %.1f < E^{L1}_{T} < %.1f GeV, |#eta_{jet}| < %.1f",
+                    minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta);
+                // get jets post pT, eta cuts
+                JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
 
-            // get jets post pT, eta cuts
-            JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
+                TString pdfname = TString::Format("%splots_%s_%s_%s/jets_%lld.pdf",
+                    outDir.Data(), inStem.Data(), "reco", "l1", iEntry);
+                drawer.drawAndSave(pdfname);
 
-            TString pdfname = TString::Format("plots_%s_%s_%s/jets_%lld.pdf",
-                inStem.Data(), refJetSuffix.Data(), l1JetSuffix.Data(), iEntry);
-            drawer.drawAndSave(pdfname);
+                drawCounter++;
+            }
         }
 
         // outTree->Fill();
