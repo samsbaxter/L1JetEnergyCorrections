@@ -61,6 +61,7 @@ float ietaToEta(const float& ieta);
 
 float iphiToPhi(const float& iphi);
 
+// From Len:
 float convertRegionEta(int iEta) {
     const double rgnEtaValues[11] = {
         0.174, // HB and inner HE bins are 0.348 wide
@@ -105,7 +106,7 @@ float convertRegionPhi(int iPhi) {
  */
 int main(int argc, char* argv[]) {
 
-    cout << "Running Matcher for data, Stage 1 special run" << std::endl;
+    cout << "Running Matcher for data, Stage 1 special run - getting L1 jets from GT collection" << std::endl;
 
     // deal with user args
     RunMatcherOpts opts(argc, argv);
@@ -114,10 +115,10 @@ int main(int argc, char* argv[]) {
     // SETUP INPUT FILES //
     ///////////////////////
     L1Ntuple ntuple(opts.inputFilename());
-    // L1Analysis::L1AnalysisEventDataFormat * event = ntuple.event_;
+    L1Analysis::L1AnalysisEventDataFormat * event = ntuple.event_;
     L1Analysis::L1AnalysisGTDataFormat * gt = ntuple.gt_;
-    L1Analysis::L1AnalysisRecoJetDataFormat * recoJetTree = ntuple.recoJet_;
-
+    L1Analysis::L1AnalysisRecoJetDataFormat * recoJet = ntuple.recoJet_;
+    L1Analysis::L1AnalysisRecoVertexDataFormat * recoVertex = ntuple.recoVertex_;
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
@@ -141,6 +142,7 @@ int main(int argc, char* argv[]) {
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
+    int out_event(0);
 
     outTree->Branch("pt", &out_pt, "pt/Float_t");
     outTree->Branch("eta", &out_eta, "eta/Float_t");
@@ -158,6 +160,7 @@ int main(int argc, char* argv[]) {
     outTree->Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
     outTree->Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
     outTree->Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    outTree->Branch("event", &out_event, "event/Int_t");
 
     Long64_t nEntries = ntuple.GetEntries();
     if (opts.nEvents() > 0 && opts.nEvents() <= nEntries) {
@@ -225,9 +228,10 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // Get vectors of ref & L1 jets from trees
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors<double>(recoJetTree->etCorr, recoJetTree->eta, recoJetTree->phi);
+        out_event = event->event;
 
+        // Get vectors of ref & L1 jets from trees
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors<double>(recoJet->etCorr, recoJet->eta, recoJet->phi);
         // Need to convert jet rank/ieta/iphi to physical values. Use std::transform to copy
         // gt_ contents to new vector, which we then convert to physical values
         // using the unary operator in std::transform.
@@ -269,6 +273,7 @@ int main(int argc, char* argv[]) {
             out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
             out_resL1 = out_ptDiff/it.l1Jet().Et();
             out_resRef = out_ptDiff/it.refJet().Et();
+            out_numPUVertices = recoVertex->nVtx;
             outTree->Fill();
         }
 
@@ -290,7 +295,6 @@ int main(int argc, char* argv[]) {
 
     }
 
-    // save tree to new file and cleanup
     outTree->Write("", TObject::kOverwrite);
 
     outFile->Close();
