@@ -212,25 +212,25 @@ def main(in_args=sys.argv[1:]):
         # check eta bins are ok
         etaBins = [etaBins[int(x)] for x in args.etaInd]
     elif args.central:
-        etaBins = [eta for eta in etaBins if eta < 3.1]
+        etaBins = binning.eta_bins_central
     elif args.forward:
-        etaBins = [eta for eta in etaBins if eta > 2.9]
+        etaBins = binning.eta_bins_forward
     print "Running over eta bins:", etaBins
 
     # Do plots for each eta bin
-    fit_params = []
-    for i,eta in enumerate(etaBins[:-1]):
-        emin = eta
-        emax = etaBins[i+1]
+    if args.excl:
+        for i,eta in enumerate(etaBins[:-1]):
+            emin = eta
+            emax = etaBins[i+1]
 
-        plot_checks(inputf, output_f, emin, emax, args.maxPt, args.pdf)
+            plot_checks(inputf, output_f, emin, emax, args.maxPt, args.pdf)
 
     # Do an inclusive plot for all eta bins
-    if len(etaBins) > 2:
+    if args.incl and len(etaBins) > 2:
         plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
 
-    # Do a response vs eta graph
-    plot_rsp_eta(inputf, output_f, etaBins, args.maxPt, )
+        # Do a response vs eta graph
+        plot_rsp_eta(inputf, output_f, etaBins, args.maxPt)
 
 
 if __name__ == "__main__":
