@@ -70,11 +70,11 @@ plot_markers = [20, 21, 22, 23]
 
 plot_title = "QCD 50ns"
 plot_title = "TTbar 50ns, GCT jets"
-plot_title = "Data, run 251252"
+plot_title = "Data, run 251718, Stage 1 50ns"
 
 def generate_canvas(title=""):
     """Generate a standard TCanvas for all plots"""
-    c = ROOT.TCanvas("c", title, 1200, 800)
+    c = ROOT.TCanvas("c", title, 1200, 900)
     c.SetTicks(1, 1)
     return c
 
@@ -195,6 +195,21 @@ def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="p
     c.SaveAs("%s/res_l1_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
+def plot_ptDiff_Vs_pt(res_file, eta_min, eta_max, oDir, oFormat='pdf'):
+    """Plot (ptL1 - pTRef) Vs pTL1 for given eta bin"""
+    hname = "eta_%g_%g/Histograms/ptDiff_l1_2d" % (eta_min, eta_max)
+    h_2d = get_from_file(res_file, hname)
+    c = generate_canvas()
+    ROOT.gStyle.SetPalette(55)
+    h_2d.RebinX(16)
+    # h_2d.RebinY(2)
+    h_2d.Draw("COLZ")
+    h_2d.GetYaxis().SetRangeUser(-120, 120)
+    c.SetLogz()
+    c.SetTicks(1, 1)
+    c.SaveAs("%s/h2d_ptDiff_pt_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
 def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot a graph of resolution as a function of L1 eta.
 
@@ -266,6 +281,18 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
 # PLOTS USING OUTPUT FROM checkCalibration
 #############################################
 
+def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
+    """Plot the response in one eta bin"""
+    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+    h_rsp = get_from_file(calib_file, hname)
+    func = h_rsp.GetListOfFunctions().At(0)
+    c = generate_canvas()
+    h_rsp.Draw("HISTE")
+    if func:
+        func.Draw("SAME")
+    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+
+
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot l1 pt against ref jet pt, for given L1 eta bin"""
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
@@ -329,14 +356,13 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
     mg = ROOT.TMultiGraph()
 
     for i, g in enumerate(graphs):
-        g.GetYaxis().SetRangeUser(0, 2)
-        g.GetXaxis().SetLimits(eta_min, eta_max)
         g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
         mg.Add(g)
         # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
+    # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
     line_plus = ROOT.TLine(eta_min, 1.1, eta_max, 1.1)
     line_minus = ROOT.TLine(eta_min, 0.9, eta_max, 0.9)
@@ -346,9 +372,10 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
         line.SetLineWidth(2)
         line.SetLineStyle(3)
 
+    # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
     mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
-    mg.GetYaxis().SetRangeUser(0,2)
+    mg.GetYaxis().SetRangeUser(0.5, 1.5)
     mg.GetXaxis().SetLimits(eta_min, eta_max)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
@@ -372,18 +399,6 @@ def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFor
     c = generate_canvas()
     h_rsp.Draw("HISTE")
     c.SaveAs("%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
-
-
-def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
-    """Plot the response in one eta bin"""
-    hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
-    h_rsp = ROOT.TH1F(get_from_file(calib_file, hname))
-    func = h_rsp.GetListOfFunctions().At(0)
-    c = generate_canvas()
-    h_rsp.Draw("HISTE")
-    if func:
-        func.Draw("SAME")
-    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
@@ -414,13 +429,17 @@ def main(in_args=sys.argv[1:]):
 
     parser.add_argument("--calib", help="input ROOT file from output of runCalibration.py")
 
-    parser.add_argument("--oDir", help="Directory to save plots", default=".")
+    parser.add_argument("--oDir", help="Directory to save plots. Default is $PWD.", default=".")
     parser.add_argument("--format", help="Format for plots (PDF, png, etc)", default="pdf")
     parser.add_argument("--etaInd", help="list of eta bin index to run over")
 
     args = parser.parse_args(args=in_args)
 
     print args
+
+    if args.oDir == ".":
+        print "Warning: I'm going to make these plots here!"
+        print "If you want to put them somewhere specific, use --oDir"
 
     # Check if directory exists. If not, create it.
     check_dir_exists_create(args.oDir)
@@ -471,8 +490,12 @@ def main(in_args=sys.argv[1:]):
                plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
 
             # inclusive eta graph
-            plot_res_all_pt([res_file], eta_min, eta_max, args.oDir, args.format)
-
+            plot_res_all_pt([res_file], 0, 3, args.oDir, args.format)
+            plot_res_all_pt([res_file], 0, 5, args.oDir, args.format)
+            plot_res_all_pt([res_file], 3, 5, args.oDir, args.format)
+            plot_ptDiff_Vs_pt(res_file, 0, 3, args.oDir, args.format)
+            plot_ptDiff_Vs_pt(res_file, 0, 5, args.oDir, args.format)
+            plot_ptDiff_Vs_pt(res_file, 3, 5, args.oDir, args.format)
             # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
 
         else:
@@ -509,7 +532,9 @@ def main(in_args=sys.argv[1:]):
         # check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
         # check_file3 = open_root_file(args.checkcal3) if args.checkcal3 else None
         # plot_rsp_eta([check_file, check_file2, check_file3], etaBins[0], etaBins[-1], args.oDir, args.format)
-        plot_rsp_eta([check_file], etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_rsp_eta([check_file], 0, 3, args.oDir, args.format)
+        plot_rsp_eta([check_file], 0, 5, args.oDir, args.format)
+        plot_rsp_eta([check_file], 3, 5, args.oDir, args.format)
 
         check_file.Close()
 
