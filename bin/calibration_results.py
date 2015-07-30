@@ -18,7 +18,8 @@ import beamer_slide_templates as bst
 
 r.PyConfig.IgnoreCommandLineOptions = True
 r.gROOT.SetBatch(1)
-etaBins = binning.eta_bins_central
+
+etaBins = binning.eta_bins
 
 
 def open_root_file(filename):
@@ -141,10 +142,10 @@ def plot_corr_results(in_name=""):
             name = "l1corr_eta_%g_%g" % (emin, emax)
             bin_title = "%g <  |\eta^{L1}| < %g" % (emin, emax)
             if plot_to_file(input_file,
-                        "l1corr_eta_%g_%g" % (emin, emax),
+                        name,
                         [odir+name+".tex", odir+name+".pdf"],
                         xtitle="<p_{T}^{L1}> [GeV]",
-                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction value",
+                        ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction\ value",
                         title="",
                         drawfit=True,
                         extend_fit=True):
