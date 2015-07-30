@@ -12,3 +12,4 @@
 <include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
 <bin name="RunMatcher" file="RunMatcher.cpp"/>
 <bin name="RunMatcherData" file="RunMatcherData.cpp"/>
+<bin name="RunMatcherDataStage1GT" file="RunMatcherDataStage1GT.cpp"/>
