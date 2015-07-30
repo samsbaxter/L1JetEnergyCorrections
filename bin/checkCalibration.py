@@ -18,6 +18,8 @@ from itertools import izip
 import os
 import argparse
 import binning
+from common_utils import *
+
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
@@ -132,15 +134,21 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
 
         # Figure out if we've made a response hist already:
         rsp_name = "hrsp_eta_%g_%g" % (absetamin, absetamax)
-        h_rsp = outputfile.GetDirectory("eta_%g_%g/Histograms" % (absetamin, absetamax)).Get(rsp_name)
-        if not h_rsp:
+        h_rsp = None
+        if exists_in_file(outputfile, "eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name)):
+            h_rsp = outputfile.Get("eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name))
+            print "Using existing plot"
+        else:
+            print "Doesn't exist"
             # plot response for this eta bin
-            cutStr = "pt>%g && TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (max_pt, absetamax, absetamin)
+            cutStr = "pt<%g && TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (max_pt, absetamax, absetamin)
+            print cutStr
             nb_rsp = 100
             rsp_min, rsp_max = 0, 5
             tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
             h_rsp = ROOT.gROOT.FindObject(rsp_name)
             h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
+            print h_rsp.Integral()
 
         # Fit with Gaussian
         fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
