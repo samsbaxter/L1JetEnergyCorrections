@@ -53,9 +53,12 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     cutStr = eta_cutStr + " && " + pt_cutStr
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,5)" % (absetamin, absetamax) , cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax) , cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
-    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
+    fit_result = hrsp_eta.Fit("gaus", "QER", "", hrsp_eta.GetMean() - hrsp_eta.GetRMS(), hrsp_eta.GetMean() + hrsp_eta.GetRMS())
+    # mean = hrsp_eta.GetFunction("gaus").GetParameter(1)
+    # err = hrsp_eta.GetFunction("gaus").GetParError(1)
     output_f_hists.WriteTObject(hrsp_eta)
 
     nb_pt = 63
