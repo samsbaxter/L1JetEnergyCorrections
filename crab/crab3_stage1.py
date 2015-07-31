@@ -12,10 +12,10 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage1_QCDSpring15_AVE20BX25_newRCTv2_leftovers"
+job_append = "Stage1_QCDSpring15_AVE20BX25_newRCTv2_oldCalibrated"
 
 # CHANGE ME - select dataset(s) to run over
-datasets = ['QCD_Pt-15to30_Spring15_AVE20BX25', 'QCD_Pt-120to170_Spring15_AVE20BX25', 'QCD_Pt-470to600_Spring15_AVE20BX25']
+datasets = samples.samples_qcd_Spring15_AVE20BX25
 
 if __name__ == "__main__":
 
@@ -29,23 +29,29 @@ if __name__ == "__main__":
     # Run through datasets once to check all fine
     for dset in datasets:
         if not dset in samples.samples.keys():
-            raise KeyError("Wrong dataset name:", dset)
+            raise KeyError("Wrong dataset key name:", dset)
+        if not samples.check_dataset(samples.samples[dset].inputDataset):
+            raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
 
     for dset in datasets:
+        dset_opts = samples.samples[dset]
         print dset
         # requestName will be used for name of folder inside workArea,
         # and the name of the jobs on monitoring page
         config.General.requestName = dset+"_"+job_append
-        config.Data.inputDataset = samples.samples[dset].inputDataset
-        config.Data.unitsPerJob = samples.samples[dset].unitsPerJob
+        config.Data.inputDataset = dset_opts.inputDataset
+        config.Data.unitsPerJob = dset_opts.unitsPerJob
 
         # to restrict total units run over
         # comment it out to run over all
-        # if samples.samples[dset].totalUnits > 0:
-        #     config.Data.totalUnits = samples.samples[dset].totalUnits
-        #     print samples.samples[dset].totalUnits
-        # else:
-        #     config.Data.totalUnits = 100000000  # make sure we reset
+        if dset_opts.totalUnits > 1:
+            config.Data.totalUnits = dset_opts.totalUnits
+        elif 0 < dset_opts.totalUnits < 1:
+            config.Data.totalUnits = int(samples.get_number_files(dset_opts.inputDataset) * dset_opts.totalUnits)
+        else:
+            config.Data.totalUnits = 1000000000  # make sure we reset
+
+        print config.Data.totalUnits, "total units"
 
         try:
             crabCommand('submit', config=config)

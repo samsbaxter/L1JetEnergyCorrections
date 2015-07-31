@@ -13,12 +13,39 @@ config.General.requestName = dataset
 config.Data.inputDataset = samples[dataset].inputDataset
 config.Data.unitsPerJob = samples[dataset].unitsPerJob
 
+totalUnits can take the values:
+-1: run over all files in the dataset
+0 - 1: run over this fraction of the dataset
+>1: run over this many files
+
 """
 
 from collections import namedtuple
 import re
+import das_client
+import subprocess
 
-# handly data structure to store some attributes for each dataset
+
+# some helper functions
+#
+# THIS DOESN'T WORK. STALLS.
+# COS SUBPROCESS/das_client IS A POS.
+def get_number_files(dataset):
+    # child = subprocess.Popen(['das_client.py','--query', 'summary dataset=%s' % dataset], stdout=subprocess.PIPE)
+    # output = child.communicate()[0]
+    # rc = child.returncode
+    output = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % dataset], stderr=subprocess.STDOUT)
+    # print output
+    # print rc
+    # return
+    return int(re.search(r'nfiles +: (\d*)', output).group(1))
+
+
+def check_dataset(dataset):
+    return True
+
+
+# handy data structure to store some attributes for each dataset
 Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
 
 # This dict holds ALL samples
@@ -67,8 +94,9 @@ for i, ptmin in enumerate(ptbins[:-1]):
         ver = "-v2"
     elif ptmin == 15:
         ver = "_ext1-v1"
+    # print key
     samples[key] = Dataset(inputDataset="/QCD_Pt_%dto%d_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7%s/GEN-SIM-RAW" % (ptmin, ptmax, ver),
-                            unitsPerJob=50, totalUnits=-1)
+                            unitsPerJob=25, totalUnits=0.3)
 
     # Spring15 AVEPU30 50ns
     key = "QCD_Pt-%dto%d_Spring15_AVE30BX50" % (ptmin, ptmax)
@@ -116,6 +144,18 @@ samples["QCD_Pt-1800_Fall13_PU40bx25"] = Dataset(inputDataset="/QCD_Pt-1800_Tune
 samples["QCD_Pt-1800_Fall13_PU40bx50"] = Dataset(inputDataset="/QCD_Pt-1800_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU40bx50_POSTLS162_V2-v1/GEN-SIM-RAW",
                                                     unitsPerJob=150, totalUnits=-1)
 
+# manually override spring 15 qcd 25ns for smalelr number units
+samples['QCD_Pt-80to120_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v2/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(471/3))
+samples['QCD_Pt-800to1000_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(132/3))
+samples['QCD_Pt-300to470_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(289/3))
+samples['QCD_Pt-170to300_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(321/3))
+samples['QCD_Pt-470to600_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(325/3))
+samples['QCD_Pt-30to50_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(1776/3))
+samples['QCD_Pt-120to170_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(539/3))
+samples['QCD_Pt-50to80_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(2222/3))
+samples['QCD_Pt-600to800_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(132/3))
+samples['QCD_Pt-15to30_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7_ext1-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(8920/3))
+
 # adhoc mini samples for diff QCD sets
 samples_qcd_Spring15_AVE20BX25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Spring15_AVE20BX25", k))
 samples_qcd_Spring15_AVE30BX50 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Spring15_AVE30BX50", k))
@@ -124,4 +164,3 @@ samples_qcd_Phys14_AVE30BX50 = dict((k, samples[k]) for k in samples.keys() if r
 samples_qcd_Fall13_PU20bx25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Fall13_PU20bx25", k))
 samples_qcd_Fall13_PU40bx25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Fall13_PU40bx25", k))
 samples_qcd_Fall13_PU40bx50 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Fall13_PU40bx50", k))
-
