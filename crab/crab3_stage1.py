@@ -12,7 +12,7 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage1_QCDSpring15_AVE20BX25_newRCTv2_oldCalibrated"
+job_append = "Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_31_Jul_15"
 
 # CHANGE ME - select dataset(s) to run over
 datasets = samples.samples_qcd_Spring15_AVE20BX25

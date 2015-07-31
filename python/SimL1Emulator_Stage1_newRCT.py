@@ -25,7 +25,7 @@ gt = 'MCRUN2_74_V9' # for Spring15 AVE20BX25
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
-file_append = "_Stage1_oldcalibrated"
+file_append = "_Stage1_calibrated"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -114,8 +114,8 @@ process.l1ExtraLayer2.muonSource = cms.InputTag("simGmtDigis")
 
 # Turn off any existing stage 1 calibrations
 # process.caloStage1Params.jetCalibrationType = cms.string("None")
-# process.caloStage1Params.jetCalibrationType = cms.string("Stage1JEC")
-# process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt")
+process.caloStage1Params.jetCalibrationType = cms.string("Stage1JEC")
+process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt")
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
