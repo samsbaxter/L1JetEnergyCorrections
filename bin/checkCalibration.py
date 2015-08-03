@@ -11,7 +11,7 @@ python checkCalibration.py -h
 
 import ROOT
 import sys
-import array
+from array import array
 import numpy as np
 from pprint import pprint
 from itertools import izip
@@ -177,6 +177,86 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
     output_f.WriteTObject(gr_rsp_eta)
 
 
+def check_gaus_fit(hist):
+    """Find peak of hist, check against fitted gaus"""
+    s = ROOT.TSpectrum(1)
+    s.Search(hist, 1, "new")
+    peaks_buff = s.GetPositionX()
+    x_peak = peaks_buff[0]
+
+    return (abs(h.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
+
+
+def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins):
+    """Make a graph of response Vs pt for given eta bin"""
+
+    # Input tree
+    tree_raw = inputfile.Get("valid")
+
+    # Output folders
+    output_f = outputfile.GetDirectory('eta_%g_%g' % (absetamin, absetamax))
+    output_f_hists = None
+    if not output_f:
+        output_f = outputfile.mkdir('eta_%g_%g' % (eta_bins[0], eta_bins[-1]))
+        output_f_hists = output_f.mkdir("Histograms")
+    else:
+        output_f_hists = output_f.GetDirectory("Histograms")
+
+    gr_rsp_pt = ROOT.TGraphErrors()
+
+    eta_cut = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
+    pt_cut = "pt < %g" % pt_bins[-1]
+
+    n_rsp_bins = 100
+    rsp_min = 0
+    rsp_max = 5
+
+    n_pt_bins = len(pt_bins)-1
+    pt_array = array('d', pt_bins)
+    print pt_array
+
+    # First make a 2D plot
+    h2d_rsp_l1 = ROOT.TH2D("h2d_rsp_l1_%g_%g" % (absetamin, absetamax), "%g < |#eta| < %g;p_{T}^{L1};response" % (absetamin, absetamax), len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
+    tree_raw.Draw("rsp:pt>>+h2d_rsp_l1_%g_%g" % (absetamin, absetamax), "%s && %s" %(eta_cut, pt_cut))
+
+    output_f_hists.WriteTObject(h2d_rsp_l1)
+
+    # Now for each pt bin, do a projection on 1D hist of response and fit a Gaussian
+    for i, (pt_min, pt_max) in enumerate(zip(pt_bins[:-1], pt_bins[1:])):
+        h_rsp = h2d_rsp_l1.ProjectionY("rsp_pt_%g_%g" % (pt_min, pt_max), i+1, i+2)
+        print i, pt_min, pt_max
+
+        print h_rsp.Integral()
+        if h_rsp.Integral() == 0:
+            continue
+
+        # Fit with Gaussian
+        mean = h_rsp.GetMean()
+        err = h_rsp.GetMeanError()
+        fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
+
+        # TODO: better check against Gaussian fit - are peaks ~ similar?
+        if int(fit_result) == 0 and check_gaus_fit(h_rsp):
+            mean = h_rsp.GetFunction("gaus").GetParameter(1)
+            err = h_rsp.GetFunction("gaus").GetParError(1)
+        else:
+            print "Cannot fit Gaussian in plot_rsp_pt, using raw mean instead"
+
+        output_f_hists.WriteTObject(h_rsp)
+
+        # Add the Gaussian to the total graph
+        N = gr_rsp_pt.GetN()
+        gr_rsp_pt.SetPoint(N, 0.5 * (pt_min + pt_max), mean)
+        gr_rsp_pt.SetPointError(N, 0.5 * (pt_max - pt_min), err)
+
+
+    # Save the graph
+    gr_rsp_pt.SetTitle("%g < |#eta^{L1}| < %g;p_{T}^{L1}; <response> = <p_{T}^{L1}/p_{T}^{Ref}>" % (absetamin, absetamax))
+    gr_rsp_pt.SetName("gr_rsp_pt_eta_%g_%g" % (absetamin, absetamax))
+
+    output_f.WriteTObject(gr_rsp_pt)
+
+
 ########### MAIN ########################
 def main(in_args=sys.argv[1:]):
     print in_args
@@ -223,15 +303,18 @@ def main(in_args=sys.argv[1:]):
     # Do plots for each eta bin
     if args.excl:
         for i,eta in enumerate(etaBins[:-1]):
-            emin = eta
-            emax = etaBins[i+1]
+            eta_min = eta
+            eta_max = etaBins[i+1]
 
-            plot_checks(inputf, output_f, emin, emax, args.maxPt, args.pdf)
+            plot_checks(inputf, output_f, eta_min, eta_max, args.maxPt, args.pdf)
+            # Do a response vs pt graph
+            plot_rsp_pt(inputf, output_f, eta_min, eta_max, binning.pt_bins)
 
     # Do an inclusive plot for all eta bins
     if args.incl and len(etaBins) > 2:
         plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
-
+        # Do a response vs pt graph
+        plot_rsp_pt(inputf, output_f, etaBins[0], etaBins[-1], binning.pt_bins)
         # Do a response vs eta graph
         plot_rsp_eta(inputf, output_f, etaBins, args.maxPt)
 

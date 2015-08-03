@@ -388,6 +388,54 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
     append = "_compare" if len(graphs) > 1 else ""
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
+
+def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
+    """Plot a graph of response vs pt (L1) for a given eta bin"""
+
+    grname = "eta_%g_%g/gr_rsp_pt_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+
+    graphs = [get_from_file(f, grname) for f in check_files if f]
+
+    c = generate_canvas(plot_title)
+
+    leg = ROOT.TLegend(0.34, 0.15, 0.87, 0.4) # bottom right
+
+    mg = ROOT.TMultiGraph()
+
+    for i, g in enumerate(graphs):
+        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
+        mg.Add(g)
+        # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+
+    # lines at 1, and +/- 0.1
+    line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
+    line_plus = ROOT.TLine(eta_min, 1.1, eta_max, 1.1)
+    line_minus = ROOT.TLine(eta_min, 0.9, eta_max, 0.9)
+    line_central.SetLineWidth(2)
+    line_central.SetLineStyle(2)
+    for line in [line_plus, line_minus]:
+        line.SetLineWidth(2)
+        line.SetLineStyle(3)
+
+    # bundle all graphs into a TMultiGraph - set axes limits here
+    mg.Draw("ALP")
+    mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
+    mg.GetYaxis().SetRangeUser(0.5, 1.5)
+    mg.GetXaxis().SetLimits(eta_min, eta_max)
+    mg.GetXaxis().SetTitleSize(0.04)
+    mg.GetXaxis().SetTitleOffset(0.9)
+    # mg.GetYaxis().SetTitleSize(0.04)
+    mg.Draw("ALP")
+    mg.GetHistogram().SetTitle(plot_title)
+
+    # leg.Draw()
+    [line.Draw() for line in [line_central, line_plus, line_minus]]
+    append = "_compare" if len(graphs) > 1 else ""
+    c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
+
+
 #############################################
 # PLOTS USING OUTPUT FROM runCalibration
 #############################################
@@ -529,12 +577,15 @@ def main(in_args=sys.argv[1:]):
         plot_rsp_Vs_l1(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
         plot_rsp_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
 
-        # check_file2 = open_root_file(args.checkcal2) if args.checkcal2 else None
-        # check_file3 = open_root_file(args.checkcal3) if args.checkcal3 else None
-        # plot_rsp_eta([check_file, check_file2, check_file3], etaBins[0], etaBins[-1], args.oDir, args.format)
-        plot_rsp_eta([check_file], 0, 3, args.oDir, args.format)
-        plot_rsp_eta([check_file], 0, 5, args.oDir, args.format)
-        plot_rsp_eta([check_file], 3, 5, args.oDir, args.format)
+        # graphs, can take more than 1 file:
+        check_files = [open_root_file(f) for f in [args.check_file, args.checkcal2, args.checkcal3] if f]
+        plot_rsp_eta(check_files, 0, 3, args.oDir, args.format)
+        plot_rsp_eta(check_files, 0, 5, args.oDir, args.format)
+        plot_rsp_eta(check_files, 3, 5, args.oDir, args.format)
+
+        plot_rsp_pt(check_files, 0, 3, args.oDir, args.format)
+        plot_rsp_pt(check_files, 0, 5, args.oDir, args.format)
+        plot_rsp_pt(check_files, 3, 5, args.oDir, args.format)
 
         check_file.Close()
 
