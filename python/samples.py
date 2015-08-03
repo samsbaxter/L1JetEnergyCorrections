@@ -64,7 +64,7 @@ samples = {
                                 unitsPerJob=50, totalUnits=-1),
 
     "QCDFlatSpring15BX25": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15Digi74-Flat_10_50_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW',
-                                unitsPerJob=50, totalUnits=-1),
+                                unitsPerJob=10, totalUnits=-1),
 
     "QCDFlatSpring14": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Spring14dr-Flat20to50_POSTLS170_V5-v1/GEN-SIM-RAW',
                                 unitsPerJob=50, totalUnits=-1),
@@ -144,17 +144,18 @@ samples["QCD_Pt-1800_Fall13_PU40bx25"] = Dataset(inputDataset="/QCD_Pt-1800_Tune
 samples["QCD_Pt-1800_Fall13_PU40bx50"] = Dataset(inputDataset="/QCD_Pt-1800_Tune4C_13TeV_pythia8/Fall13dr-castor_tsg_PU40bx50_POSTLS162_V2-v1/GEN-SIM-RAW",
                                                     unitsPerJob=150, totalUnits=-1)
 
-# manually override spring 15 qcd 25ns for smalelr number units
-samples['QCD_Pt-80to120_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v2/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(471/3))
-samples['QCD_Pt-800to1000_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(132/3))
-samples['QCD_Pt-300to470_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(289/3))
-samples['QCD_Pt-170to300_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(321/3))
-samples['QCD_Pt-470to600_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(325/3))
-samples['QCD_Pt-30to50_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(1776/3))
-samples['QCD_Pt-120to170_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(539/3))
-samples['QCD_Pt-50to80_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(2222/3))
-samples['QCD_Pt-600to800_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(132/3))
-samples['QCD_Pt-15to30_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7_ext1-v1/GEN-SIM-RAW', unitsPerJob=25, totalUnits=int(8920/3))
+# manually override spring 15 qcd 25ns for smaller number of total units
+# also set units per job smaller as including l1ntupleproducer makes files about twice as big
+samples['QCD_Pt-80to120_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v2/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(471/2))
+samples['QCD_Pt-800to1000_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(132/2))
+samples['QCD_Pt-300to470_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(289/2))
+samples['QCD_Pt-170to300_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(321/2))
+samples['QCD_Pt-470to600_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(325/2))
+samples['QCD_Pt-30to50_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(1776/2))
+samples['QCD_Pt-120to170_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(539/2))
+samples['QCD_Pt-50to80_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(2222/2))
+samples['QCD_Pt-600to800_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(132/2))
+samples['QCD_Pt-15to30_Spring15_AVE20BX25'] = Dataset(inputDataset='/QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7_ext1-v1/GEN-SIM-RAW', unitsPerJob=6, totalUnits=int(8920/2))
 
 # adhoc mini samples for diff QCD sets
 samples_qcd_Spring15_AVE20BX25 = dict((k, samples[k]) for k in samples.keys() if re.match(r"QCD_Pt-[\dto]*_Spring15_AVE20BX25", k))
