@@ -578,7 +578,7 @@ def main(in_args=sys.argv[1:]):
         plot_rsp_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
 
         # graphs, can take more than 1 file:
-        check_files = [open_root_file(f) for f in [args.check_file, args.checkcal2, args.checkcal3] if f]
+        check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
         plot_rsp_eta(check_files, 0, 3, args.oDir, args.format)
         plot_rsp_eta(check_files, 0, 5, args.oDir, args.format)
         plot_rsp_eta(check_files, 3, 5, args.oDir, args.format)
