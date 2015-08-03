@@ -31,7 +31,7 @@ import sys
 from time import strftime
 
 
-env_shebang = '#!/bin/bash'
+env_shebang = '#!/bin/bash -e'
 
 def get_hadd(in_args=sys.argv[1:]):
     """
@@ -93,6 +93,8 @@ def get_hadd(in_args=sys.argv[1:]):
         fraction = args.fraction
         strict = args.strict
         res_status = crabCommand('status', crab_dir)
+        if res_status['status'] in ['FAILED', 'UNKNOWN']:
+            continue
         n_jobs = len(res_status['jobs'])
         job_ids = []
         if completed:
@@ -145,19 +147,22 @@ def get_hadd(in_args=sys.argv[1:]):
                 print "Making directory ../%s" % out_dir
                 os.mkdir("../"+out_dir)
 
-            hadd_cmd = "hadd -f {0} {1}".format(output_path, crab_dir+"/results/L1Tree*.root")
-            cmd_file.write(hadd_cmd)
-            cmd_file.write('\n')
+            # hadd_cmd = "hadd -f {0} {1}".format(output_path, crab_dir+"/results/L1Tree*.root")
+            # cmd_file.write('mkdir {0}'.format("../"+out_dir+"/"))
+            for jid in job_ids:
+                hadd_cmd = "mv {0} {1}".format(crab_dir+"/results/L1Tree_*_%s.root" % jid, "../"+out_dir+"/"+f)
+                # cmd_file.write(hadd_cmd)
+                # cmd_file.write('\n')
 
             print "Will make output file %s" % output_path
 
             # Remove the crab output files
             rm_cmd = 'rm {0}/results/*.root'.format(crab_dir)
-            cmd_file.write(rm_cmd)
+            # cmd_file.write(rm_cmd)
             cmd_file.write('\n')
 
             # If we can get the files, add to get_hadd_all script
-            cmd_filenames.append(cmd_filename)
+            cmd_filenames.append(cmd_filename + " # %s" % f)
 
         # make file executable
         st = os.stat(cmd_filename)
@@ -165,7 +170,7 @@ def get_hadd(in_args=sys.argv[1:]):
         print "Commands written to %s" % cmd_filename
 
     # Now write a simple script to run all the produced scripts
-    all_filename = 'crab_get_hadd_all.sh'
+    all_filename = 'crab_get_hadd_all_%s.sh' % strftime("%H%M%S")
     with open(all_filename, 'w') as f_all:
         f_all.write("%s\n" % env_shebang)
         for cmd in cmd_filenames:
