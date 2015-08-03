@@ -22,6 +22,10 @@
 #include <boost/filesystem.hpp>
 // #include <boost/algorithm/string.hpp>
 
+// Headers from L1Ntuples
+#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
+#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisEventDataFormat.h"
+
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
@@ -33,6 +37,9 @@
 
 using std::cout;
 using std::endl;
+using L1Analysis::L1AnalysisL1ExtraDataFormat;
+using L1Analysis::L1AnalysisEventDataFormat;
+
 namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
@@ -44,6 +51,14 @@ void correctJets(std::vector<TLorentzVector>& jets,
                  std::vector<TF1>& corrFns,
                  std::vector<float>& etaBins,
                  float minPt);
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi);
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi,
+                                                std::vector<int> bx);
+
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -80,6 +95,48 @@ int main(int argc, char* argv[]) {
     L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
     L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
 
+    std::unique_ptr<TChain> eventChain(new TChain("l1NtupleProducer/L1Tree"));
+    std::unique_ptr<L1AnalysisEventDataFormat> eventTree(new L1AnalysisEventDataFormat());
+    int addResult = eventChain->Add(opts.inputFilename().c_str(), -1);
+    if (addResult == 0) {
+        throw runtime_error(("No L1Tree!"));
+    }
+    eventChain->SetBranchAddress("Event", &eventTree);
+
+    // Map L1Analysis::L1AnalysisL1ExtraDataFormat structs to the desired
+    // directories in the TFile.
+    // std::unique_ptr<TChain> refChain(new TChain(refJetDirectory+"/L1ExtraTree"));
+    // std::unique_ptr<L1AnalysisL1ExtraDataFormat> refJetTree(new L1AnalysisL1ExtraDataFormat());
+    // Add file to TChain. Note netries = -1. This is potentially slower, but has
+    // the advantage of actually checking that the file and tree exist, rather
+    // than waiting until later (when it could be forgotten)
+    // Int_t addResult = refChain->Add(opts.inputFilename().c_str(), -1);
+    // if (addResult == 0) {
+    //     throw runtime_error(("Couldn't open "+opts.inputFilename()+":/"+refJetDirectory).Data()) ;
+    // }
+    // refChain->SetBranchAddress("L1Extra", &refJetTree);
+
+    // std::unique_ptr<TChain> l1Chain(new TChain(l1JetDirectory+"/L1ExtraTree"));
+    // std::unique_ptr<L1AnalysisL1ExtraDataFormat> l1JetTree(new L1AnalysisL1ExtraDataFormat());
+    // addResult = l1Chain->Add(opts.inputFilename().c_str(), -1);
+    // if (addResult == 0) {
+    //     throw runtime_error(("Couldn't open "+opts.inputFilename()+":/"+l1JetDirectory).Data()) ;
+    // }
+    // l1Chain->SetBranchAddress("L1Extra", &l1JetTree);
+
+    // Long64_t nentries = refChain->GetEntries();
+    // cout << nentries << endl;
+    // nentries = 100;
+    // for (Long64_t jentry=0; jentry < nentries; jentry++) {
+    //     Long64_t ientry = refChain->LoadTree(jentry);
+    //     Long64_t ientry2 = l1Chain->LoadTree(jentry);
+    //     if (ientry < 0 || ientry2 < 0) break;
+    //     refChain->GetEntry(jentry);
+    //     l1Chain->GetEntry(jentry);
+    //     cout << refJetTree->nCenJets << endl;
+    //     cout << l1JetTree->nCenJets << endl;
+    // }
+
     // TTree that holds PileupInfo
     PileupInfoTree puInfoTree(opts.inputFilename());
 
@@ -112,40 +169,39 @@ int main(int argc, char* argv[]) {
         throw std::runtime_error("Cannot use input filename as output filename!");
     }
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
-
-    // setup output tree to store matched pairs (keep all info)
-    // DON'T USE FOR NOW - HARD TO COMPILE- need to fix LinkDef.h
-    // TString outTreeName = TString::Format("MatchedPairs_%s_%s",
-        // refJetSuffix.Data(), l1JetSuffix.Data());
-    // TTree * outTree = new TTree(outTreeName, outTreeName);
-    std::vector<MatchedPair> matchResults; // holds results from one event
-    // outTree->Branch("MatchedPairs", &matchResults);
+    fs::path outPath(opts.outputFilename());
+    TString outDir(outPath.parent_path().c_str());
+    if (outDir != "") {
+        outDir += "/";
+    }
 
     // setup output tree to store raw variable for quick plotting/debugging
-    TTree * outTree2 = new TTree("valid", "valid");
+    TTree outTree("valid", "valid");
     // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
+    int out_event(0);
 
-    outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
-    outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
-    outTree2->Branch("phi",    &out_phi,    "phi/Float_t");
-    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree2->Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
-    outTree2->Branch("dr",     &out_dr,     "dr/Float_t");
-    outTree2->Branch("deta",   &out_deta,   "deta/Float_t");
-    outTree2->Branch("dphi",   &out_dphi,   "dphi/Float_t");
-    outTree2->Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
-    outTree2->Branch("etaRef", &out_etaRef, "etaRef/Float_t");
-    outTree2->Branch("phiRef", &out_phiRef, "phiRef/Float_t");
-    outTree2->Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
-    outTree2->Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
-    outTree2->Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
-    outTree2->Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
-    outTree2->Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    outTree.Branch("pt",     &out_pt,     "pt/Float_t");
+    outTree.Branch("eta",    &out_eta,    "eta/Float_t");
+    outTree.Branch("phi",    &out_phi,    "phi/Float_t");
+    outTree.Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree.Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
+    outTree.Branch("dr",     &out_dr,     "dr/Float_t");
+    outTree.Branch("deta",   &out_deta,   "deta/Float_t");
+    outTree.Branch("dphi",   &out_dphi,   "dphi/Float_t");
+    outTree.Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
+    outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
+    outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
+    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
+    outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
+    outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
+    outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    outTree.Branch("event", &out_event, "event/Int_t");
 
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
@@ -163,6 +219,8 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(1000.);
     double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
+    // use base class smart pointer for ease of swapping in/out different
+    //  matchers if so desired
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     std::cout << *matcher << std::endl;
 
@@ -176,6 +234,7 @@ int main(int argc, char* argv[]) {
         // jentry is the entry # in the current Tree
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry);
         Long64_t jentry2 = l1JetExtraTree.LoadTree(iEntry);
+        Long64_t jentry3 = eventChain->LoadTree(iEntry);
         if (jentry < 0) break;
         if (jentry2 < 0) break;
         if (iEntry % 10000 == 0) {
@@ -183,6 +242,10 @@ int main(int argc, char* argv[]) {
         }
         refJetExtraTree.GetEntry(iEntry);
         l1JetExtraTree.GetEntry(iEntry);
+
+        // store event info
+        eventChain->GetEntry(iEntry);
+        out_event = eventTree->event;
 
         // get pileup quantities
         // note these get stored once per pair of matched jets NOT once per event
@@ -203,10 +266,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Pass jets to matcher, do matching
-        matchResults.clear();
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
-        matchResults = matcher->getMatchingPairs();
+        std::vector<MatchedPair> matchResults = matcher->getMatchingPairs();
         // matcher->printMatches(); // for debugging
 
         // store L1 & ref jet variables in tree
@@ -226,7 +288,7 @@ int main(int argc, char* argv[]) {
             out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
             out_resL1 = out_ptDiff/it.l1Jet().Et();
             out_resRef = out_ptDiff/it.refJet().Et();
-            outTree2->Fill();
+            outTree.Fill();
         }
 
 
@@ -248,12 +310,10 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // outTree->Fill();
     }
 
     // save tree to new file and cleanup
-    // outTree->Write("", TObject::kOverwrite);
-    outTree2->Write("", TObject::kOverwrite);
+    outTree.Write("", TObject::kOverwrite);
 
     outFile->Close();
 }
@@ -311,6 +371,61 @@ void loadCorrectionFunctions(const TString& filename,
     }
     corrFile->Close();
 }
+
+/**
+ * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
+ *
+ * @param et [description]
+ * @param eta [description]
+ * @param phi [description]
+ * @return [description]
+ */
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi) {
+    // check all same size
+    if (et.size() != eta.size() || et.size() != phi.size()) {
+        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+    }
+    std::vector<TLorentzVector> vecs;
+    for (unsigned i = 0; i < et.size(); i++) {
+        TLorentzVector v;
+        v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
+        vecs.push_back(v);
+    }
+    return vecs;
+}
+
+
+/**
+ * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
+ * Also includes requirement that BX = 0.
+ *
+ * @param et [description]
+ * @param eta [description]
+ * @param phi [description]
+ * @param bx [description]
+ * @return [description]
+ */
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
+                                                std::vector<double> eta,
+                                                std::vector<double> phi,
+                                                std::vector<int> bx) {
+    // check all same size
+    if (et.size() != eta.size() || et.size() != phi.size()) {
+        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+    }
+    std::vector<TLorentzVector> vecs;
+    for (unsigned i = 0; i < et.size(); i++) {
+        if (bx.at(i) == 0) {
+            TLorentzVector v;
+            v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
+            vecs.push_back(v);
+        }
+    }
+    return vecs;
+}
+
 
 
 /**
