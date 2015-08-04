@@ -19,7 +19,7 @@ cp submit_template.condor "$outfile"
 
 # put the right exe in there
 exe=`which RunMatcher`
-exe=`which RunMatcherDataStage1GT`
+# exe=`which RunMatcherDataStage1GT`
 echo $exe
 sed -i "s@SEDINPUTFILES@$exe@" "$outfile"
 sed -i "s@SEDEXE@$PWD/matcher_condor.py@" "$outfile"
@@ -37,10 +37,9 @@ do
     echo "$fdir"
     echo "${outname}"
     # echo "arguments=RunMatcher -I $f -O ${fdir}/pairs_${outname}_preGt_ak5_ref14to1000_l10to500.root --refDir l1ExtraTreeProducerGenAk5 --l1Dir l1ExtraTreeProducerIntern" >> "$outfile"
-    # echo "queue" >> "$outfile"
     # echo "arguments=RunMatcher -I $f -O ${fdir}/pairs_${outname}_preGt_ak4_ref14to1000_l10to500.root --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern" >> "$outfile"
-    # echo "queue" >> "$outfile"
-    echo "arguments=RunMatcherDataStage1GT -I $f -O ${fdir}/pairs_${outname}_Stage1_50ns_ref14to1000_l10to500_v2.root" >> "$outfile"
+    # echo "arguments=RunMatcherDataStage1GT -I $f -O ${fdir}/pairs_${outname}_Stage1_50ns_ref14to1000_l10to500_v2.root" >> "$outfile"
+    echo "arguments=RunMatcher -I $f -O ${fdir}/pairs_${outname}_gtJets_ref14to1000_l10to500.root --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refDir l1ExtraTreeProducerGenAk4" >> "$outfile"
     echo "queue" >> "$outfile"
 done
 echo ""
