@@ -19,13 +19,17 @@ dump_RCT = False
 # (WARNING: DON'T do this for big production - will be HUGE)
 save_EDM = False
 
+# Whether to use new Layer 2 LUT
+# if False, defaults to whatever is in 50ns data
+new_layer2_LUT = True
+
 # Global tag (note, you must ensure it matches input file)
 # You don't need the "::All"!
 gt = 'MCRUN2_74_V9' # for Spring15 AVE20BX25
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
-file_append = "_Stage1_calibrated"
+file_append = "_Stage1"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -115,7 +119,11 @@ process.l1ExtraLayer2.muonSource = cms.InputTag("simGmtDigis")
 # Turn off any existing stage 1 calibrations
 # process.caloStage1Params.jetCalibrationType = cms.string("None")
 process.caloStage1Params.jetCalibrationType = cms.string("Stage1JEC")
-process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt")
+if new_layer2_LUT:
+    process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt")
+    file_append += "_newLUT"
+else:
+    file_append += "_oldLUT"
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
@@ -266,7 +274,7 @@ if dump_RCT:
 ##############################
 # Input/output & standard stuff
 ##############################
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Input source
 
@@ -284,6 +292,10 @@ elif gt in ['MCRUN2_74_V9', 'MCRUN2_74_V7']:
         )
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
+
+# magic for running with condor via cmsRuncondor
+import inputs
+fileNames = cms.untracked.vstring(inputs.fileNames)
 
 process.source = cms.Source("PoolSource",
                             fileNames = fileNames
