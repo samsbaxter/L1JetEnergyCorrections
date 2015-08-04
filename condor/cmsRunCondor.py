@@ -49,11 +49,16 @@ def main(in_args):
         raise IOError
 
     if not os.path.exists(args.outputDir):
+        print "making dir", args.outputDir
         os.mkdir(args.outputDir)
 
     if args.filesPerJob > args.totalFiles and args.totalFiles != -1:
         log.error("You can't have --filesPerJob > --totalFiles!")
         raise RuntimeError
+
+    # make an output directory for log files
+    if not os.path.exists(args.outputDir):
+        os.mkdir('jobs')
 
     # get the total number of files for this dataset using das_client
     output = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % args.dataset], stderr=subprocess.STDOUT)
@@ -63,18 +68,22 @@ def main(in_args):
     if args.totalFiles == -1:
         args.totalFiles = total_num_files
 
+    # Figure out correct numebr of jobs
     total_num_jobs = int(math.ceil(args.totalFiles / float(args.filesPerJob)))
 
-    # make a condor submission script
+    log.debug("Will be submitting %d jobs, running over %d files" % (total_num_jobs, args.totalFiles))
+
+    # Make a condor submission script
     with open('cmsRun_template.condor') as template:
         job_template = template.read()
 
     config_filename = os.path.basename(args.config)
     job_filename = '%s_%s.condor' % (config_filename.replace(".py", ""), strftime("%H%M%S"))
 
-    job_description = job_template.replace("SEDINITIAL", args.outputDir)
+    # job_description = job_template.replace("SEDINITIAL", args.outputDir)
+    job_description = job_template.replace("SEDINITIAL", "")  # for not, keept initialdir local, otherwise tonnes of files on hdfs
     job_description = job_description.replace("SEDNAME", job_filename.replace(".condor", ""))
-    args_str = "%s %s %d %d $(process)" % (config_filename, args.dataset, args.filesPerJob, args.totalFiles)
+    args_str = "%s %s %d %d %s $(process)" % (config_filename, args.dataset, args.filesPerJob, args.totalFiles, args.outputDir)
     job_description = job_description.replace("SEDARGS", args_str)
     job_description = job_description.replace("SEDEXE", 'cmsRun_worker.sh')
     job_description = job_description.replace("SEDNJOBS", str(total_num_jobs))

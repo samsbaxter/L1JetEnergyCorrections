@@ -5,10 +5,12 @@ script=$1
 dataset=$2
 filesPerJob=$3
 totalFiles=$4
-ind=$5 # ind is the job number
+outputDir=$5
+ind=$6 # ind is the job number
 
 # top level of worker node
 worker="$PWD"
+export HOME=$worker
 
 # First setup CMSSW
 cmssw_version=CMSSW_7_4_6_patch6
@@ -21,13 +23,14 @@ cd ${cmssw_version}/src
 eval `scramv1 runtime -sh`
 echo "${cmssw_version} has been set up"
 
-git config user.github "raggleton"
-git config user.name "Robin Aggleton"
-git config user.email "robin.aggleton@cern.ch"
+git config --global user.github "raggleton"
+git config --global user.name "Robin Aggleton"
+git config --global user.email "robin.aggleton@cern.ch"
 git config -l
+export CMSSW_GIT_REFERENCE="${worker}/.cmsgit-cache"
 
 # Setup packages
-git cms-addpkg L1Trigger/L1TCalorimeter
+# git cms-addpkg L1Trigger/L1TCalorimeter
 git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
 git clone https://github.com/raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
 
@@ -52,7 +55,7 @@ for line in $(das_client.py --query="file dataset=$dataset" --limit $limit --idx
 do
     if [[ $line == /store* ]]
     then
-        echo $xrootd$line"," >> $pyfile
+        echo "    '"$line"'," >> $pyfile
     fi
 done
 # remove the last trailing ,
@@ -64,12 +67,20 @@ cat $pyfile
 # Get Golden JSON
 wget https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt
 
-eval `scramv1 runtime -sh`
-echo "packages built"
-
-# Now finally run script
+# Move the cms config script from top level to pwd and build everything!
 mv $worker/$script .
-touch text.txt
+scram b -j9
 ls
-ls L1Trigger/L1TCalorimeter
-# cmsRun $script
+
+# Now finally run script!
+cmsRun $script
+echo "CMS JOB OUTPUT" $?
+
+# Get output filename, make a new unique one
+output=$(find . -name "L1Tree*.root" | xargs basename)
+echo $output
+
+output_file=${output/.root/_$ind.root}
+
+# Copy across to hdfs. Don't need /hdfs bit
+hadoop fs -copyFromLocal $output ${outputDir///hdfs}/$output_file
