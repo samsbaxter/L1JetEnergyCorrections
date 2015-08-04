@@ -30,7 +30,7 @@ sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" resolution_condor.sh
 outfile="submit_resolution.condor"
 cp submit_template.condor "$outfile"
 
-cdir=$PWD
+cdir=${PWD%HTCondor}
 echo $cdir
 
 # Replace correct parts
