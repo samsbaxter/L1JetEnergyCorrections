@@ -57,6 +57,8 @@ def get_hadd(in_args=sys.argv[1:]):
 
     cmd_filenames = []  # to store shell script filenames for later
 
+    summary = {}
+
     # Loop over each dataset
     for f in os.listdir(crab_area):
 
@@ -93,7 +95,7 @@ def get_hadd(in_args=sys.argv[1:]):
         fraction = args.fraction
         strict = args.strict
         res_status = crabCommand('status', crab_dir)
-        if res_status['status'] in ['FAILED', 'UNKNOWN']:
+        if res_status['status'] in ['UNKNOWN']:
             continue
         n_jobs = len(res_status['jobs'])
         job_ids = []
@@ -114,8 +116,11 @@ def get_hadd(in_args=sys.argv[1:]):
             print "Need %d jobs, only found %d " % (n_jobs_to_get, len(job_ids))
             continue
 
+
         # Write commands to file
         with open(cmd_filename, "w") as cmd_file:
+
+            summary[f] = "%d / %d  ( = %3.1f %% )" % (len(job_ids), n_jobs, 100*len(job_ids)/n_jobs)
 
             # START WRITING COMMANDS TO FILE:
             cmd_file.write("%s\n" % env_shebang)
@@ -147,13 +152,10 @@ def get_hadd(in_args=sys.argv[1:]):
                 print "Making directory ../%s" % out_dir
                 os.mkdir("../"+out_dir)
 
-            # hadd_cmd = "hadd -f {0} {1}".format(output_path, crab_dir+"/results/L1Tree*.root")
-            # cmd_file.write('mkdir {0}'.format("../"+out_dir+"/"))
-            for jid in job_ids:
-                hadd_cmd = "mv {0} {1}".format(crab_dir+"/results/L1Tree_*_%s.root" % jid, "../"+out_dir+"/"+f)
-                # cmd_file.write(hadd_cmd)
-                # cmd_file.write('\n')
-
+            hadd_cmd = "hadd -f {0} {1}".format(output_path, crab_dir+"/results/L1Tree*.root")
+            cmd_file.write('\n')
+            cmd_file.write(hadd_cmd)
+            cmd_file.write('\n')
             print "Will make output file %s" % output_path
 
             # Remove the crab output files
@@ -175,10 +177,16 @@ def get_hadd(in_args=sys.argv[1:]):
         f_all.write("%s\n" % env_shebang)
         for cmd in cmd_filenames:
             f_all.write("./%s\n" % cmd)
-
+    # make it executable
     st = os.stat(all_filename)
     os.chmod(all_filename, st.st_mode | stat.S_IEXEC)
+    # print summary table:
     print "All-in-one script written to %s" % all_filename
+    print ""
+    print "SUMMARY"
+    for k,v in summary.iteritems():
+        print "%s : %s" % (k, v)
+
 
 if __name__ == '__main__':
     get_hadd()
