@@ -20,10 +20,12 @@ cmsenv
 
 # Stage 1 emulator - do this first
 git cms-addpkg L1Trigger/L1TCalorimeter
-# L1Ntuples package - see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideL1TNtuples
-git remote add cms-l1t-offline git@github.com:cms-l1t-offline/cmssw.git
-git fetch cms-l1t-offline
-git checkout cms-l1t-offline/l1t-ntuple-dev L1Trigger/L1TNtuples
+# L1DPG Ntuples package
+git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
+# L1TNtuples package - see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideL1TNtuples
+# git remote add cms-l1t-offline git@github.com:cms-l1t-offline/cmssw.git
+# git fetch cms-l1t-offline
+# git checkout cms-l1t-offline/l1t-ntuple-dev L1Trigger/L1TNtuples
 # This package
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
 
