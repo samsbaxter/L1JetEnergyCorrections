@@ -27,3 +27,5 @@ authentication.xml
 *.txt
 core.*
 jobFiles
+*.condor
+crab_get_hadd_*
