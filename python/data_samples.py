@@ -49,6 +49,6 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
 samples = {
 
     "Express_Run2015B_50ns": Dataset(inputDataset='/ExpressPhysics/Run2015B-Express-v1/FEVT',
-                                     unitsPerJob=10, totalUnits=10),
+                                     unitsPerJob=15, totalUnits=-1),
 
 }
