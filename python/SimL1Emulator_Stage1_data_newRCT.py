@@ -15,13 +15,17 @@ save_EDM = False
 # To dump RCT parameters for testing purposes:
 dump_RCT = False
 
+# Whether to use new Layer 2 LUT
+# if False, defaults to whatever is in 50ns data
+new_layer2_LUT = False
+
 # Global tag (note, you must ensure it matches input file)
 # You don't need the "::All"!
 gt = 'GR_H_V58C'
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
-file_append = "_Stage1_data_newLUT"
+file_append = "_Stage1_data"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -79,8 +83,12 @@ process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff')
 
 process.simRctDigis.hcalDigis = cms.VInputTag( cms.InputTag( 'hcalDigis' ) )
 
-# process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath('L1Trigger/L1TCalorimeter/data/lutAttempt_symmetric_0is0.txt') # THE OLD ONE USED FOR 50ns DATA
-process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt") # MY NEW ONE
+if new_layer2_LUT:
+    process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt") # MY NEW ONE
+    file_append += "_newLUT"
+else:
+    process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath('L1Trigger/L1TCalorimeter/data/lutAttempt_symmetric_0is0.txt') # THE OLD ONE USED FOR 50ns DATA
+    file_append += "_oldLUT"
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
@@ -179,7 +187,7 @@ process.p = cms.Path(
     *process.l1RecoTreeProducer # caloJets
     *process.simGtDigis
     *process.l1GtTriggerMenuLite
-    # *process.triggerSelection
+    *process.triggerSelection
     )
 
 if dump_RCT:
