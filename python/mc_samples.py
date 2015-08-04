@@ -1,5 +1,5 @@
 """
-Setup samples here to be used in CRAB3 configs
+MC samples to be used in CRAB3 configs
 
 For each sample, we have a simple Dataset namedtuple. Fields are inputDataset
 and unitsPerJob. We then store all samples in a dict.

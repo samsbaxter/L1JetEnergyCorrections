@@ -1,12 +1,12 @@
 """
-GCT-specific CRAB3 setup
+GCT-specific CRAB3 setup for running with MC
 
 Run with 'python crab3_gct.py'
 """
 
 
 from L1Trigger.L1JetEnergyCorrections.crab3_cfg import config
-import L1Trigger.L1JetEnergyCorrections.samples as samples
+import L1Trigger.L1JetEnergyCorrections.mc_samples as samples
 from CRABAPI.RawCommand import crabCommand
 import httplib
 
