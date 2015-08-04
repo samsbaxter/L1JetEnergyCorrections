@@ -2,21 +2,26 @@
 Config file to run the Stage 1 emulator on 50ns data to make Ntuples from DATA.
 
 Stores corrected ak4 calo jets for reference jets
+
+Note that we have to remake ECAL digis to includes transparency corrections.
 """
 
 import FWCore.ParameterSet.Config as cms
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
-save_EDM = True
+save_EDM = False
+
+# To dump RCT parameters for testing purposes:
+dump_RCT = False
 
 # Global tag (note, you must ensure it matches input file)
 # You don't need the "::All"!
-gt = '74X_dataRun2_Express_v0'
+gt = 'GR_H_V58C'
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
-file_append = "_Stage1_data"
+file_append = "_Stage1_data_newLUT"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -45,40 +50,37 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     "l1ExtraTreeProducerIntern",
     "l1RecoTreeProducer",
 )
+process.MessageLogger.suppressInfo = cms.untracked.vstring(
+    "l1ExtraTreeProducerIntern",
+    "l1RecoTreeProducer",
+)
 
-process.gctDigis.numberOfGctSamplesToUnpack = cms.uint32(1)
+
+##############################
+# New RCT corrections
+# New ECAL transparency corrections
+##############################
+
+process.GlobalTag.toGet = cms.VPSet(
+    cms.PSet(record = cms.string('L1RCTParametersRcd'),
+             tag = cms.string('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV4')
+    ),
+    cms.PSet(record = cms.string("EcalTPGLinearizationConstRcd"),
+             tag = cms.string("EcalTPGLinearizationConst_weekly_test2_hlt"),
+             connect =cms.untracked.string('frontier://FrontierPrep/CMS_CONDITIONS')
+    )
+)
+file_append += '_newRCTv2_ecalTransCorr'
 
 ##############################
 # Load up Stage 1 emulator
 ##############################
+process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_PPFromRaw_cff')
 
-process.load('L1Trigger.L1TCalorimeter.caloStage1Params_cfi')
+process.simRctDigis.hcalDigis = cms.VInputTag( cms.InputTag( 'hcalDigis' ) )
 
-# Load up the Stage 1 parts
-process.load('L1Trigger.L1TCalorimeter.L1TCaloStage1_cff')
-
-# Need to feed unpacked regions into RCT formatter for stage 1
-process.simRctUpgradeFormatDigis.emTag = cms.InputTag("gctDigis")
-process.simRctUpgradeFormatDigis.regionTag = cms.InputTag("gctDigis")
-
-import L1Trigger.Configuration.L1Extra_cff
-process.l1ExtraLayer2 = L1Trigger.Configuration.L1Extra_cff.l1extraParticles.clone()
-process.l1ExtraLayer2.isolatedEmSource    = cms.InputTag("simCaloStage1LegacyFormatDigis","isoEm")
-process.l1ExtraLayer2.nonIsolatedEmSource = cms.InputTag("simCaloStage1LegacyFormatDigis","nonIsoEm")
-process.l1ExtraLayer2.forwardJetSource = cms.InputTag("simCaloStage1LegacyFormatDigis","forJets")
-process.l1ExtraLayer2.centralJetSource = cms.InputTag("simCaloStage1LegacyFormatDigis","cenJets")
-process.l1ExtraLayer2.tauJetSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
-process.l1ExtraLayer2.isoTauJetSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
-process.l1ExtraLayer2.etTotalSource = cms.InputTag("simCaloStage1LegacyFormatDigis")
-process.l1ExtraLayer2.etHadSource   = cms.InputTag("simCaloStage1LegacyFormatDigis")
-process.l1ExtraLayer2.etMissSource  = cms.InputTag("simCaloStage1LegacyFormatDigis")
-process.l1ExtraLayer2.htMissSource  = cms.InputTag("simCaloStage1LegacyFormatDigis")
-process.l1ExtraLayer2.hfRingEtSumsSource    = cms.InputTag("simCaloStage1LegacyFormatDigis")
-process.l1ExtraLayer2.hfRingBitCountsSource = cms.InputTag("simCaloStage1LegacyFormatDigis")
-process.l1ExtraLayer2.muonSource = cms.InputTag("simGmtDigis")
-
-# Turn off any existing stage 1 calibrations
-process.caloStage1Params.jetCalibrationType = cms.string("None")
+# process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath('L1Trigger/L1TCalorimeter/data/lutAttempt_symmetric_0is0.txt') # THE OLD ONE USED FOR 50ns DATA
+process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt") # MY NEW ONE
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
@@ -136,7 +138,16 @@ process.l1NtupleProducer.gctIsoEmSource       = cms.InputTag("simCaloStage1Legac
 process.l1NtupleProducer.gctEnergySumsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","")
 process.l1NtupleProducer.gctTauJetsSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
 process.l1NtupleProducer.gctIsoTauJetsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
-process.l1NtupleProducer.rctSource            = cms.InputTag("gctDigis")
+process.l1NtupleProducer.rctSource            = cms.InputTag("simRctDigis")
+
+##############################
+# GT
+##############################
+from L1Trigger.Configuration.SimL1Emulator_cff import simGtDigis
+process.simGtDigis = simGtDigis.clone()
+process.simGtDigis.GmtInputTag = 'simGmtDigis'
+process.simGtDigis.GctInputTag = 'simCaloStage1LegacyFormatDigis'
+process.simGtDigis.TechnicalTriggersInputTags = cms.VInputTag( )
 
 ##############################
 # Select HLT paths
@@ -159,29 +170,34 @@ process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtTriggerMenuLite_cfi")
 # Running path
 ##############################
 process.p = cms.Path(
-    process.gctDigis # gct unpacker
-    *process.L1TCaloStage1 # run Stage1
-    *process.l1ExtraLayer2
+    process.L1TCaloStage1_PPFromRaw
     *process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
+    *process.l1ExtraLayer2
     *process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
     *process.l1ExtraTreeProducerIntern # ditto but with preGtJets in cenJet branch
     *process.l1NtupleProducer
     *process.l1RecoTreeProducer # caloJets
+    *process.simGtDigis
     *process.l1GtTriggerMenuLite
-    *process.triggerSelection
+    # *process.triggerSelection
     )
+
+if dump_RCT:
+    process.l1RCTParametersTest = cms.EDAnalyzer("L1RCTParametersTester")  # don't forget to include me in a cms.Path()
+    process.p *= process.l1RCTParametersTest
 
 ##############################
 # Input/output & standard stuff
 ##############################
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
 
 # Input source
 
 # Some default testing files
-if gt in ["74X_dataRun2_Express_v0"]:
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/express/Run2015B/ExpressPhysics/FEVT/Express-v1/000/251/244/00000/00ABFFC5-AA25-E511-A3BB-02163E0133FF.root',
-                                      'root://xrootd.unl.edu//store/express/Run2015B/ExpressPhysics/FEVT/Express-v1/000/251/244/00000/045B3EE1-B525-E511-BB37-02163E013960.root')
+if gt in ["GR_H_V58C"]:
+    # fileNames = cms.untracked.vstring(inputs.fileNames)
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/express/Run2015B/ExpressPhysics/FEVT/Express-v1/000/251/244/00000/00ABFFC5-AA25-E511-A3BB-02163E0133FF.root')
+                                      #'root://xrootd.unl.edu//store/express/Run2015B/ExpressPhysics/FEVT/Express-v1/000/251/244/00000/045B3EE1-B525-E511-BB37-02163E013960.root')
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
 
@@ -191,7 +207,8 @@ process.source = cms.Source("PoolSource",
 
 # Golden JSON - disable for crab running. Remember to update!
 import FWCore.PythonUtilities.LumiList as LumiList
-process.source.lumisToProcess = LumiList.LumiList(filename='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON.txt').getVLuminosityBlockRange()
+# process.source.lumisToProcess = LumiList.LumiList(filename='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
+# process.source.lumisToProcess = LumiList.LumiList(filename='Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
 
 # Main Ntuple output file
 output_filename = 'L1Tree{0}.root'.format(file_append)
