@@ -266,7 +266,7 @@ if dump_RCT:
 ##############################
 # Input/output & standard stuff
 ##############################
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
 
 # Input source
 
@@ -274,58 +274,14 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 if gt in ['PHYS14_25_V3', 'PHYS14_25_V2', 'MCRUN2_74_V8']:
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/004DD38A-2B8E-E411-8E4F-003048FFD76E.root')
 elif gt in ['MCRUN2_74_V9', 'MCRUN2_74_V7']:
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v2/80000/0011C312-7701-E511-B156-0025905C94D2.root')
-    # fileNames = cms.untracked.vstring(
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v2/80000/0011C312-7701-E511-B156-0025905C94D2.root')
+    fileNames = cms.untracked.vstring(
+        'root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_40_BX_25ns_tsg_MCRUN2_74_V7-v1/00000/0C72BDF4-03F4-E411-868F-003048CEFFE4.root'
         # 'root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/00EFBCBB-61F0-E411-B56B-00266CF9B254.root',
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/02559CAE-F5EF-E411-AEDC-002590D0AFB4.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/02C5441C-60F0-E411-A6D9-7845C4FC3611.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0402D5EC-F7EF-E411-86ED-E0CB4E4408F3.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/040B2C6A-7EF0-E411-AE4A-002618943974.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0417BAFB-4DF0-E411-B65A-003048F0E3AC.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/04B7B6E4-45F0-E411-92F6-001E673983F4.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/04F13A5B-CAF0-E411-A65A-0025905C43EA.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/063A6962-F5EF-E411-BA24-0025907B4EC2.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/08377A55-60F0-E411-96FD-00266CF9B254.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/084726F8-7EF0-E411-A934-0025905A48D6.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0886EC80-46F0-E411-9F73-001E67396685.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0C594377-30F1-E411-82D0-AC853D9DACF7.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0C7CC53D-CAF0-E411-B8AB-0025905C9740.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0E0E1A79-47F0-E411-8E6F-002590A80DE0.root")
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/10302A90-7EF0-E411-8CFD-0025905AA9F0.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/10B4D4C5-C9F0-E411-9C38-0025904CF758.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/12862A1B-F6EF-E411-8BD1-002590D0B00A.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/1477439A-F7EF-E411-A87B-002590775158.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/147D9D6B-61F0-E411-830D-7845C4FC3611.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/163DECF3-F5EF-E411-9559-52540061D153.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/16530B9F-F7EF-E411-8AF1-E0CB4E29C4F7.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/16DC911E-30F1-E411-B76F-0026B92A82A5.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/1867A468-F7EF-E411-AABD-E0CB4EA0A8FA.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/18C0C49C-CBF0-E411-B31B-0025904C4F9E.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/1E5965EA-CAF0-E411-9263-0025904E9010.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/203936D0-46F0-E411-A524-C4346BBC9BB0.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/2295665A-60F0-E411-9874-00266CF9C1E0.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/263CF86B-4EF0-E411-9BD8-0025901D4B06.root")
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/26613A24-CAF0-E411-83E3-0025905C3D6C.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/269ADB3B-F7EF-E411-B9B1-E0CB4E55369E.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/26D01395-61F0-E411-91D6-00266CF25B24.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/28F79498-F5EF-E411-B0E9-002590775158.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/2A05F9C4-45F0-E411-BED0-002590200B6C.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/2AF95257-F7EF-E411-84B7-00259074AEAE.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/2C11230E-60F0-E411-810B-00266CFAE268.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/2C2E4B37-60F0-E411-85F0-00266CF25B24.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/301A2963-CAF0-E411-B6AC-0025904C4F9E.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/30D72F98-7CF0-E411-84B3-0025905A60F8.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/3235716C-84F0-E411-8179-0026189438EB.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/327BBA8F-12F1-E411-A525-003048FFD760.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/3472AFAD-61F0-E411-A43B-7845C4FC3B57.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/34966AE2-CAF0-E411-B687-0025904E9010.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/3602B520-61F0-E411-93B0-00A0D1EE8D00.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/36DD9273-5FF0-E411-8C1A-00266CF9B9F0.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/3C419686-61F0-E411-A85F-3417EBE643E1.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/42199677-60F0-E411-B94C-7845C4FC3B57.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/46A3B13C-4CF0-E411-867A-002590DB9302.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/4C1E3E88-61F0-E411-ABB6-00266CF9C1E0.root",
-                                    # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/4EB4696F-CAF0-E411-9AD9-0025904C6568.root")
+        # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/02559CAE-F5EF-E411-AEDC-002590D0AFB4.root",
+        # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/02C5441C-60F0-E411-A6D9-7845C4FC3611.root",
+        # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0402D5EC-F7EF-E411-86ED-E0CB4E4408F3.root",
+        )
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
 
