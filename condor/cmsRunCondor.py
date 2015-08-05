@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
-"""Script to allow you to run cmsRun jobs on HTCondor.
+"""
+Script to allow you to run cmsRun jobs on HTCondor.
 
-Bit rudimentary. See options with
+Bit rudimentary. See options with:
 
 cmsRunCondor.py --help
 
-IMPORTANT: since this is hacky, you need to modify your process.source:
-
-import inputs
-process.source = cms.untracked.vstring(inputs.fileList)
+Note that it automatically sets the correct process.source, and process.maxEvents
 
 Robin Aggleton 2015, in a rush
 """
@@ -49,8 +47,12 @@ def main(in_args):
         raise IOError
 
     if not os.path.exists(args.outputDir):
-        print "making dir", args.outputDir
-        os.mkdir(args.outputDir)
+        print "Output directory doesn't exists, trying to make it:", args.outputDir
+        try:
+            os.mkdir(args.outputDir)
+        except OSError as e:
+            log.error("Cannot make output dir %s" % args.outputDir)
+            raise
 
     if args.filesPerJob > args.totalFiles and args.totalFiles != -1:
         log.error("You can't have --filesPerJob > --totalFiles!")
