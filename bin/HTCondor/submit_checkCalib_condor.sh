@@ -27,15 +27,15 @@ declare -a etaBins=(
 sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" check_condor.sh
 
 # make a copy of the condor script
-outfile="submit_check.condor"
+outfile="submit_checkCalib.condor"
 cp submit_template.condor "$outfile"
 
 cdir=${PWD%HTCondor}
 echo $cdir
 
 # Replace correct parts
-sed -i 's/SEDNAME/check/g' $outfile
-sed -i 's/SEDEXE/check_condor.sh/g' $outfile
+sed -i 's/SEDNAME/checkCalib/g' $outfile
+sed -i 's/SEDEXE/checkCalib_condor.sh/g' $outfile
 sed -i "s@SEDINPUTFILES@$cdir/checkCalibration.py, $cdir/binning.py, $cdir/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
 # Queue up jobs
