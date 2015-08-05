@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     }
 
     // setup output tree to store raw variable for quick plotting/debugging
-    TTree * outTree2 = new TTree("valid", "valid");
+    TTree outTree("valid", "valid");
     // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
@@ -102,22 +102,22 @@ int main(int argc, char* argv[]) {
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
 
-    outTree2->Branch("pt",     &out_pt,     "pt/Float_t");
-    outTree2->Branch("eta",    &out_eta,    "eta/Float_t");
-    outTree2->Branch("phi",    &out_phi,    "phi/Float_t");
-    outTree2->Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree2->Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
-    outTree2->Branch("dr",     &out_dr,     "dr/Float_t");
-    outTree2->Branch("deta",   &out_deta,   "deta/Float_t");
-    outTree2->Branch("dphi",   &out_dphi,   "dphi/Float_t");
-    outTree2->Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
-    outTree2->Branch("etaRef", &out_etaRef, "etaRef/Float_t");
-    outTree2->Branch("phiRef", &out_phiRef, "phiRef/Float_t");
-    outTree2->Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
-    outTree2->Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
-    outTree2->Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
-    outTree2->Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
-    outTree2->Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    outTree.Branch("pt",     &out_pt,     "pt/Float_t");
+    outTree.Branch("eta",    &out_eta,    "eta/Float_t");
+    outTree.Branch("phi",    &out_phi,    "phi/Float_t");
+    outTree.Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree.Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
+    outTree.Branch("dr",     &out_dr,     "dr/Float_t");
+    outTree.Branch("deta",   &out_deta,   "deta/Float_t");
+    outTree.Branch("dphi",   &out_dphi,   "dphi/Float_t");
+    outTree.Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
+    outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
+    outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
+    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
+    outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
+    outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
+    outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
 
     Long64_t nEntries = ntuple.GetEntries();
     if (opts.nEvents() > 0 && opts.nEvents() <= nEntries) {
@@ -138,6 +138,7 @@ int main(int argc, char* argv[]) {
     //////////////////////
     // produce matching pairs and store
     Long64_t drawCounter = 0;
+    Long64_t matchedEvent = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         if (ntuple.GetEntry(iEntry) == 0) {
@@ -169,6 +170,10 @@ int main(int argc, char* argv[]) {
         std::vector<MatchedPair> matchResults = matcher->getMatchingPairs();
         // matcher->printMatches(); // for debugging
 
+        if (matchResults.size()>0) {
+            matchedEvent++;
+        }
+
         // store L1 & ref jet variables in tree
         for (const auto &it: matchResults) {
             // std::cout << it << std::endl;
@@ -186,7 +191,7 @@ int main(int argc, char* argv[]) {
             out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
             out_resL1 = out_ptDiff/it.l1Jet().Et();
             out_resRef = out_ptDiff/it.refJet().Et();
-            outTree2->Fill();
+            outTree.Fill();
         }
 
 
@@ -211,10 +216,11 @@ int main(int argc, char* argv[]) {
     }
 
     // save tree to new file and cleanup
-    outTree2->Write("", TObject::kOverwrite);
+    outTree.Write("", TObject::kOverwrite);
 
     outFile->Close();
 
+    cout << matchedEvent << "events had 1+ matches, out of " << nEntries << endl;
 }
 
 

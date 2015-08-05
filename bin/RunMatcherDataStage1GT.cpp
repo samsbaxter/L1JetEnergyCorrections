@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     }
 
     // setup output tree to store raw variable for quick plotting/debugging
-    TTree * outTree = new TTree("valid", "valid");
+    TTree outTree("valid", "valid");
     // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
     float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
@@ -149,23 +149,23 @@ int main(int argc, char* argv[]) {
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
     int out_event(0);
 
-    outTree->Branch("pt", &out_pt, "pt/Float_t");
-    outTree->Branch("eta", &out_eta, "eta/Float_t");
-    outTree->Branch("phi", &out_phi, "phi/Float_t");
-    outTree->Branch("rsp", &out_rsp, "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree->Branch("rsp_inv", &out_rsp_inv, "rsp_inv/Float_t"); // response_inverse = ref pT/ l1 jet pT
-    outTree->Branch("dr", &out_dr, "dr/Float_t");
-    outTree->Branch("deta", &out_deta, "deta/Float_t");
-    outTree->Branch("dphi", &out_dphi, "dphi/Float_t");
-    outTree->Branch("ptRef", &out_ptRef, "ptRef/Float_t");
-    outTree->Branch("etaRef", &out_etaRef, "etaRef/Float_t");
-    outTree->Branch("phiRef", &out_phiRef, "phiRef/Float_t");
-    outTree->Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
-    outTree->Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
-    outTree->Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
-    outTree->Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
-    outTree->Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
-    outTree->Branch("event", &out_event, "event/Int_t");
+    outTree.Branch("pt", &out_pt, "pt/Float_t");
+    outTree.Branch("eta", &out_eta, "eta/Float_t");
+    outTree.Branch("phi", &out_phi, "phi/Float_t");
+    outTree.Branch("rsp", &out_rsp, "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/Float_t"); // response_inverse = ref pT/ l1 jet pT
+    outTree.Branch("dr", &out_dr, "dr/Float_t");
+    outTree.Branch("deta", &out_deta, "deta/Float_t");
+    outTree.Branch("dphi", &out_dphi, "dphi/Float_t");
+    outTree.Branch("ptRef", &out_ptRef, "ptRef/Float_t");
+    outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
+    outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
+    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
+    outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
+    outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
+    outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    outTree.Branch("event", &out_event, "event/Int_t");
 
     Long64_t nEntries = ntuple.GetEntries();
     if (opts.nEvents() > 0 && opts.nEvents() <= nEntries) {
@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
             out_resL1 = out_ptDiff/it.l1Jet().Et();
             out_resRef = out_ptDiff/it.refJet().Et();
             out_numPUVertices = recoVertex->nVtx;
-            outTree->Fill();
+            outTree.Fill();
         }
 
 
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
 
     }
 
-    outTree->Write("", TObject::kOverwrite);
+    outTree.Write("", TObject::kOverwrite);
 
     outFile->Close();
 
