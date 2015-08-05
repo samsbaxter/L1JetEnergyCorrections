@@ -293,10 +293,6 @@ elif gt in ['MCRUN2_74_V9', 'MCRUN2_74_V7']:
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
 
-# magic for running with condor via cmsRuncondor
-import inputs
-fileNames = cms.untracked.vstring(inputs.fileNames)
-
 process.source = cms.Source("PoolSource",
                             fileNames = fileNames
                             )
