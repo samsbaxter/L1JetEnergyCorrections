@@ -184,7 +184,7 @@ def check_gaus_fit(hist):
     peaks_buff = s.GetPositionX()
     x_peak = peaks_buff[0]
 
-    return (abs(h.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
+    return (abs(hist.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
 
 
 def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins):
