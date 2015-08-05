@@ -60,7 +60,7 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
  */
 int main(int argc, char* argv[]) {
 
-    cout << "Running Matcher for data" << std::endl;
+    cout << "Running Matcher for data, L1 jets from L1Extra, ref jets from RecoTree" << std::endl;
 
     // deal with user args
     RunMatcherOpts opts(argc, argv);
@@ -157,9 +157,9 @@ int main(int argc, char* argv[]) {
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(recoJetTree->etCorr, recoJetTree->eta, recoJetTree->phi);
         std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1JetTree->cenJetEt, l1JetTree->cenJetEta, l1JetTree->cenJetPhi, l1JetTree->cenJetBx);
         std::vector<TLorentzVector> fwdJets  = makeTLorentzVectors(l1JetTree->fwdJetEt, l1JetTree->fwdJetEta, l1JetTree->fwdJetPhi, l1JetTree->fwdJetBx);
-        std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi, l1JetTree->tauJetBx);
         l1Jets.insert(l1Jets.end(), fwdJets.begin(), fwdJets.end());
-        l1Jets.insert(l1Jets.end(), tauJets.begin(), tauJets.end());
+        // std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi, l1JetTree->tauJetBx);  // only enable taus for GCT, not for Stage 1 or 2
+        // l1Jets.insert(l1Jets.end(), tauJets.begin(), tauJets.end());
         // cout << "# refJets: " << refJets.size() << endl;
         // cout << "# l1Jets: " << l1Jets.size() << endl;
 
