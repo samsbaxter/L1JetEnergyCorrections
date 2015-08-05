@@ -4,8 +4,8 @@
 # all you should change is pairsFile(s) array
 
 declare -a pairsFiles=(
-# "/afs/cern.ch/work/r/raggleto/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDPhys14_newRCTv2/pairs_QCD_Pt-15to600_Phys14_AVE30BX50_GCT_QCDPhys14_newRCTv2_GCT_ak5_ref14to1000_l10to500.root"
-"/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/TTbarSpring15_GCT_newRCTv2_newGCT/pairs_TTbarSpring15AVE30BX50_TTbarSpring15_GCT_newRCTv2_newGCT_GCT_ak5_ref14to1000_l10to500.root"
+"/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_newLUT_3_Aug_15_Bristol/pairs_QCD_Pt-30to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_newLUT_3_Aug_15_Bristol_gtJets_ref14to1000_l10to500.root"
+"/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_newRCTv2_oldCalibrated_3_Aug_15_Bristol_v3/pairs_QCD_Pt-30to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_AVE20BX25_newRCTv2_oldCalibrated_3_Aug_15_Bristol_v3_gtJets_ref14to1000_l10to500.root"
 )
 
 declare -a etaBins=(
@@ -36,7 +36,7 @@ echo $cdir
 # Replace correct parts
 sed -i 's/SEDNAME/resolution/g' $outfile
 sed -i 's/SEDEXE/resolution_condor.sh/g' $outfile
-sed -i "s@SEDINPUTFILES@$cdir/makeResolutionPlots.py, $cdir/binning.py, $cdir/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
+sed -i "s@SEDINPUTFILES@$cdir/makeResolutionPlots.py, $cdir/binning.py, $PWD/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
@@ -65,11 +65,11 @@ do
     done
     outname=${fname#pairs_}
     outname=${outname%.root}
-    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_central.root --incl --central ${i}" >> "$outfile"
+    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_central.root --incl --central" >> "$outfile"
     echo "queue" >> "$outfile"
-    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_forward.root --incl --forward ${i}" >> "$outfile"
+    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_forward.root --incl --forward" >> "$outfile"
     echo "queue" >> "$outfile"
-    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_all.root --incl ${i}" >> "$outfile"
+    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_all.root --incl" >> "$outfile"
     echo "queue" >> "$outfile"
 done
 

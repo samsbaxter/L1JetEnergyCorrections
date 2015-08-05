@@ -36,7 +36,7 @@ echo $cdir
 # Replace correct parts
 sed -i 's/SEDNAME/calibration/g' $outfile
 sed -i 's/SEDEXE/calibration_condor.sh/g' $outfile
-sed -i "s@SEDINPUTFILES@$cdir/runCalibration.py, $cdir/binning.py, $cdir/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
+sed -i "s@SEDINPUTFILES@$cdir/runCalibration.py, $cdir/binning.py, $PWD/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
