@@ -160,7 +160,7 @@ def get_hadd(in_args=sys.argv[1:]):
 
             # Remove the crab output files
             rm_cmd = 'rm {0}/results/*.root'.format(crab_dir)
-            # cmd_file.write(rm_cmd)
+            cmd_file.write(rm_cmd)
             cmd_file.write('\n')
 
             # If we can get the files, add to get_hadd_all script
