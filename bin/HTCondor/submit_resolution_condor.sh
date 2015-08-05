@@ -60,16 +60,16 @@ do
         outname="res_${outname}_${i}.root"
         echo "$jobname"
         echo "$outname"
-        echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i}" >> "$outfile"
+        echo "arguments = python makeResolutionPlots.py ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i}" >> "$outfile"
         echo "queue" >> "$outfile"
     done
     outname=${fname#pairs_}
     outname=${outname%.root}
-    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_central.root --incl --central" >> "$outfile"
+    echo "arguments = python makeResolutionPlots.py ${fdir}/${fname} ${fdir}/res_${outname}_central.root --incl --central" >> "$outfile"
     echo "queue" >> "$outfile"
-    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_forward.root --incl --forward" >> "$outfile"
+    echo "arguments = python makeResolutionPlots.py ${fdir}/${fname} ${fdir}/res_${outname}_forward.root --incl --forward" >> "$outfile"
     echo "queue" >> "$outfile"
-    echo "arguments = python makeResolutionPlots.py  resolution_batch.sh ${fdir}/${fname} ${fdir}/res_${outname}_all.root --incl" >> "$outfile"
+    echo "arguments = python makeResolutionPlots.py ${fdir}/${fname} ${fdir}/res_${outname}_all.root --incl" >> "$outfile"
     echo "queue" >> "$outfile"
 done
 
