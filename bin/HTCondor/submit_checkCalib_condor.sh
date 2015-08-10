@@ -24,7 +24,7 @@ declare -a etaBins=(
 )
 
 # update the setup script on worker side
-sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" check_condor.sh
+sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" checkCalib_condor.sh
 
 # make a copy of the condor script
 outfile="submit_checkCalib.condor"
