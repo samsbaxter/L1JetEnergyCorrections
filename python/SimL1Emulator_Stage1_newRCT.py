@@ -220,9 +220,9 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 if new_RCT_calibs:
     print "*** Using new RCT calibs"
     # Format: map{(record,label):(tag,connection),...}
-    recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV2', None) }
+    recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV4', None) }
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
-    file_append += '_newRCTv2'
+    file_append += '_newRCTv4'
 else:
     print "*** Using whatever RCT calibs the sample was made with"
     process.GlobalTag.globaltag = cms.string(gt)
