@@ -25,6 +25,7 @@ from sys import platform as _platform
 from itertools import izip
 from common_utils import *
 from array import array
+import os
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -36,16 +37,21 @@ ROOT.gROOT.SetBatch(True)
 ptBins = binning.pt_bins
 
 # Some common strings
-rsp_str = "E_{T}^{L1}/E_{T}^{Ref}"
+ref_str = "GenJet"
+# ref_str = "CaloJet"
+
+rsp_str = "E_{T}^{L1}/E_{T}^{%s}" % (ref_str)
 eta_str = "#eta"
-eta_ref_str = "|#eta^{Ref}|"
+eta_ref_str = "|#eta^{%s}|" % (ref_str)
 eta_l1_str = "|#eta^{L1}|"
-dr_str = "#DeltaR(L1 jet - Ref jet)"
+dr_str = "#DeltaR(L1 jet, Ref jet)"
 pt_str = "E_{T}[GeV]"
 pt_l1_str = "E_{T}^{L1} [GeV]"
-pt_ref_str = "E_{T}^{Ref} [GeV]"
-res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{Ref})/<E_{T}^{L1}>"
-pt_diff_str = "E_{T}^{L1} - E_{T}^{Ref} [GeV]"
+pt_ref_str = "E_{T}^{%s} [GeV]" % (ref_str)
+res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{%s})/<E_{T}^{L1}>" % (ref_str)
+res_ref_str = "#sigma(E_{T}^{L1} - E_{T}^{%s})/<E_{T}^{%s}>" % (ref_str, ref_str)
+alt_res_l1_str = "(E_{T}^{L1} - E_{T}^{%s})/E_{T}^{L1}" % (ref_str)
+pt_diff_str = "E_{T}^{L1} - E_{T}^{%s} [GeV]" % (ref_str)
 
 # compare_1_str = "Old calibration"
 # compare_1_str = "2012 RCT calibration, 2012 GCT calibration (GCT jets)"
