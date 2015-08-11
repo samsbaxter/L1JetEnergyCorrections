@@ -53,10 +53,8 @@ res_ref_str = "#sigma(E_{T}^{L1} - E_{T}^{%s})/<E_{T}^{%s}>" % (ref_str, ref_str
 alt_res_l1_str = "(E_{T}^{L1} - E_{T}^{%s})/E_{T}^{L1}" % (ref_str)
 pt_diff_str = "E_{T}^{L1} - E_{T}^{%s} [GeV]" % (ref_str)
 
-# compare_1_str = "Old calibration"
-# compare_1_str = "2012 RCT calibration, 2012 GCT calibration (GCT jets)"
-# compare_2_str = "New RCT calibration, 2012 GCT calibration (GCT jets)"
-# compare_3_str = "New RCT calibration, new GCT calibration (GCT jets)"
+rsp_min, rsp_max = 0.5, 1.5
+# rsp_min, rsp_max = 0, 2
 
 plot_labels = [
     #"New RCT calibration, 2012 GCT calibration (GCT jets), Phys14",
@@ -83,6 +81,11 @@ def generate_canvas(title=""):
     c = ROOT.TCanvas("c", title, 1200, 900)
     c.SetTicks(1, 1)
     return c
+
+def generate_legend(x1=0.4, y1=0.7, x2=0.88, y2=0.88):
+    """Generate a standard TLegend. Can optionally pass in co-ordinates. """
+    leg = ROOT.TLegend(x1, y1, x2, y2)
+    return leg
 
 #############################################
 # PLOTS USING OUTPUT FROM RunMatcher
@@ -147,7 +150,7 @@ def plot_pt_both(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     print total_cut
     stack.GetHistogram().SetTitle("%s;%s;N" % (total_cut, pt_str))
     c.SetTitle(total_cut)
-    leg = ROOT.TLegend(0.7, 0.7, 0.88, 0.88)
+    leg = generate_legend() #(0.7, 0.7, 0.88, 0.88)
     leg.AddEntry(0, "|#eta|: %g - %g" %(eta_min, eta_max), "")
     leg.AddEntry(h_pt_l1, "L1", "L")
     leg.AddEntry(h_pt_ref, "Ref", "L")
@@ -165,7 +168,7 @@ def plot_eta_both(tree, oDir, cut="1", oFormat="pdf"):
     h_eta_ref.SetLineColor(ROOT.kRed)
     h_eta_l1.Draw("HISTE")
     h_eta_ref.Draw("HISTE SAME")
-    leg = ROOT.TLegend(0.7, 0.7, 0.88, 0.88)
+    leg = generate_legend() #(0.7, 0.7, 0.88, 0.88)
     leg.AddEntry(h_eta_l1, "L1", "L")
     leg.AddEntry(h_eta_ref, "Ref", "L")
     leg.Draw()
@@ -356,8 +359,8 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
 
     c = generate_canvas(plot_title)
 
-    # leg = ROOT.TLegend(0.4, 0.7, 0.87, 0.87) # top right
-    leg = ROOT.TLegend(0.34, 0.15, 0.87, 0.4) # bottom right
+    # leg = generate_legend() #(0.4, 0.7, 0.87, 0.87) # top right
+    leg = generate_legend() #(0.54, 0.15, 0.87, 0.3) # bottom right
 
     mg = ROOT.TMultiGraph()
 
@@ -404,7 +407,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = ROOT.TLegend(0.34, 0.15, 0.87, 0.4) # bottom right
+    leg = generate_legend() #(0.54, 0.15, 0.87, 0.3) # bottom right
 
     mg = ROOT.TMultiGraph()
 
@@ -413,7 +416,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
         g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
         mg.Add(g)
-        # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
@@ -427,8 +430,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
-    mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
-    mg.GetYaxis().SetRangeUser(0.5, 1.5)
+    mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
     mg.GetXaxis().SetLimits(eta_min, eta_max)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
