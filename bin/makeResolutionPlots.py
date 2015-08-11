@@ -131,7 +131,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     # Eta cut string
     eta_cut = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
     # pt cut string for 2D plots
-    pt_cut_all = "pt < %g && pt > %g" % (ptBins[-1], ptBins[0])
+    pt_cut_all = "pt < %g" % (ptBins[-1])
 
     title = "%g < |#eta^{L1}| < %g" % (absetamin, absetamax)
 
@@ -143,6 +143,7 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     nbins_diff = 200
 
     pt_bin_min = ptBins[0]
+    pt_bin_min = 0
     pt_bin_max = ptBins[-1]
     nbins_et = 4 * (pt_bin_max - pt_bin_min)
 
