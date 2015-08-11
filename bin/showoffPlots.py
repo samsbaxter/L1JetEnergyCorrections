@@ -181,7 +181,7 @@ def plot_eta_both(tree, oDir, cut="1", oFormat="pdf"):
 
 def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the difference between L1 and ref jet pT, for given L1 pT, eta bin"""
-    hname = "eta_%g_%g/Histograms/ptDiff_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
+    hname = "eta_%g_%g/Histograms/ptDiff_ref_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     h_diff = get_from_file(res_file, hname)
     c = generate_canvas()
     h_diff.Draw()
