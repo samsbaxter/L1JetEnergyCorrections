@@ -195,8 +195,8 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_graph_l1 = ROOT.TGraphErrors()
     res_graph_l1.SetNameTitle("resL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{L1}" % title)
 
-    res_graph_l1_diff = ROOT.TGraphErrors()
-    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref}/<E_{T}^{L1}>" % title)
+    res_graph_l1_diff = ROOT.TGraphErrors() #binned in l1 pt.  this fits to L1-ref, then divides by average L1 pT
+    res_graph_l1_diff.SetNameTitle("resL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];#sigma(E_{T}^{L1} - E_{T}^{Ref})/<E_{T}^{L1}>" % title)
 
     res_graph_refVsl1 = ROOT.TGraphErrors() # binned in l1 pt
     res_graph_refVsl1.SetNameTitle("resRefL1_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{Ref}" % title)
@@ -204,8 +204,11 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_graph_refVsref = ROOT.TGraphErrors() # binned in ref pt
     res_graph_refVsref.SetNameTitle("resRefRef_%g_%g" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{Ref}" % title)
 
-    res_graph_refVsref_diff = ROOT.TGraphErrors() # binned in ref pt
+    res_graph_refVsref_diff = ROOT.TGraphErrors() # fit to L1 - ref pT, divide by ref pT, binned in ref pt
     res_graph_refVsref_diff.SetNameTitle("resRefRef_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];E_{T}^{L1} - E_{T}^{Ref}/<E_{T}^{Ref}>" % title)
+
+    # res_graph_refVsl1_diff = ROOT.TGraphErrors() # fit to L1 - ref pT, divide by ref pT, binned in L1 pt
+    # res_graph_refVsl1_diff.SetNameTitle("resRefL1_%g_%g_diff" % (absetamin, absetamax), "%s;E_{T}^{Ref} [GeV];#sigma(E_{T}^{L1} - E_{T}^{Ref})/<E_{T}^{Ref}>" % title)
 
     # Now go through pt bins, and plot resolution for each, fit with gaussian,
     # and add width to graph
