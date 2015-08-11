@@ -99,17 +99,17 @@ def plot_bin_fit(res_2d, ptmin, ptmax, hist_title, hist_name, graph, output, div
         if fit_res and int(fit_res) == 0: # and check_fit_width(fit_res, h_res):
             width =  fit_res.Parameters()[2]
             width_err = fit_res.Errors()[2]
+            # add point to graph
+            if graph:
+                count = graph.GetN()
+                if divide:
+                    width = width / pt_mid
+                    width_err = width_err / pt_mid # important
+                graph.SetPoint(count, pt_mid, width)
+                graph.SetPointError(count, pt_width, width_err)
         else:
             print "Poor fit to l1 res - using raw values"
 
-        # add point to graph
-        if graph:
-            count = graph.GetN()
-            if divide:
-                width = width / pt_mid
-                width_err = width_err / pt_mid # important
-            graph.SetPoint(count, pt_mid, width)
-            graph.SetPointError(count, pt_width, width_err)
     else:
         print "0 entries in resolution plot"
     output.WriteTObject(h_res)
