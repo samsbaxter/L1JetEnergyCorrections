@@ -151,12 +151,28 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     # - or should it be pt * rsp for old style rsp?
     ptRef = "ptRef" if check_var_stored(tree_raw, "ptRef") else "(pt/rsp)"
 
+    # 1D plot of ptDifference
+    # tree_raw.Draw("ptDiff>>ptDiff(%d, %g, %g)" % (nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
+    # ptDiff = ROOT.gROOT.FindObject("ptDiff")
+
     # 2d plots of pt difference vs L1 pt
     var = "ptDiff" if check_var_stored(tree_raw, "ptDiff") else "(pt-%s)" % ptRef
     tree_raw.Draw("%s:pt>>ptDiff_l1_2d(%d, %g, %g, %d, %g, %g)" % (var, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
     ptDiff_l1_2d = ROOT.gROOT.FindObject("ptDiff_l1_2d")
     ptDiff_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];E_{T}^{L1} - E_{T}^{Ref} [GeV]" % title)
     output_f_hists.WriteTObject(ptDiff_l1_2d)
+
+    # 1D plot of ptDiff
+    ptDiff = ptDiff_l1_2d.ProjectionY("ptDiff")
+    ptDiff.SetTitle(";E_{T}^{L1} - E_{T}^{Ref} [GeV];N")
+    fit_res = ptDiff.Fit("gaus", "QESR", "R", ptDiff.GetMean() - 1. * ptDiff.GetRMS(), ptDiff.GetMean() + 1. * ptDiff.GetRMS())
+    output_f_hists.WriteTObject(ptDiff)
+
+    # 1D plot of L1 pt
+    ptL1 = ptDiff_l1_2d.ProjectionX("pt")
+    ptL1.SetTitle(";E_{T}^{L1}[GeV];N")
+    fit_res = ptL1.Fit("gaus", "QESR", "R", ptL1.GetMean() - 1. * ptL1.GetRMS(), ptL1.GetMean() + 1. * ptL1.GetRMS())
+    output_f_hists.WriteTObject(ptL1)
 
     # 2d plots of pt difference vs ref pt
     tree_raw.Draw("%s:%s>>ptDiff_ref_2d(%d, %g, %g, %d, %g, %g)" % (var, ptRef, nbins_et, pt_bin_min, pt_bin_max, nbins_diff, diff_min, diff_max), eta_cut + "&&" + pt_cut_all)
@@ -175,6 +191,12 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_l1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{L1}" % title)
     output_f_hists.WriteTObject(res_l1_2d)
 
+    # 1D plot of L1-ref/L1
+    res_l1 = res_l1_2d.ProjectionY("res_l1")
+    res_l1.SetTitle(";E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{L1};N")
+    fit_res = res_l1.Fit("gaus", "QESR", "R", res_l1.GetMean() - 1. * res_l1.GetRMS(), res_l1.GetMean() + 1. * res_l1.GetRMS())
+    output_f_hists.WriteTObject(res_l1)
+
     # 2D plot of L1-Ref/Ref VS L1
     var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-%s)/%s" % (ptRef, ptRef)
     res_min = -2
@@ -183,6 +205,12 @@ def plot_resolution(inputfile, outputfile, ptBins, absetamin, absetamax):
     res_refVsl1_2d = ROOT.gROOT.FindObject("res_refVsl1_2d")
     res_refVsl1_2d.SetTitle("%s;E_{T}^{L1} [GeV];(E_{T}^{L1} - E_{T}^{Ref})/E_{T}^{Ref}" % title)
     output_f_hists.WriteTObject(res_refVsl1_2d)
+
+    # 1D plot of L1-ref/ref
+    res_ref = res_refVsl1_2d.ProjectionY("res_ref")
+    res_ref.SetTitle(";E_{T}^{L1} - E_{T}^{Ref}/E_{T}^{L1};N")
+    fit_res = res_ref.Fit("gaus", "QESR", "R", res_ref.GetMean() - 1. * res_ref.GetRMS(), res_ref.GetMean() + 1. * res_ref.GetRMS())
+    output_f_hists.WriteTObject(res_ref)
 
     # 2D plot of L1-Ref/Ref VS Ref
     var = "resRef" if check_var_stored(tree_raw, "resRef") else "(pt-%s)/%s" % (ptRef, ptRef)
