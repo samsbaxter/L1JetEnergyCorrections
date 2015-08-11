@@ -27,7 +27,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
-def main(in_args):
+def cmsRunCondor(in_args):
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", help="CMSSW config file you want to run.")
@@ -35,6 +35,7 @@ def main(in_args):
     parser.add_argument("--dataset", help="Name of dataset you want to run over")
     parser.add_argument("--filesPerJob", help="Number of files to run over, per job.", type=int, default=5)
     parser.add_argument("--totalFiles", help="Total number of files to run over. Default is ALL (-1)", type=int, default=-1)
+    parser.add_argument("--outputScript", help="Output condor submission script")
     parser.add_argument("--verbose", help="Extra printout to clog up your screen.", action='store_true')
     args = parser.parse_args(args=in_args)
 
@@ -49,7 +50,7 @@ def main(in_args):
     if not os.path.exists(args.outputDir):
         print "Output directory doesn't exists, trying to make it:", args.outputDir
         try:
-            os.mkdir(args.outputDir)
+            os.makedirs(args.outputDir)
         except OSError as e:
             log.error("Cannot make output dir %s" % args.outputDir)
             raise
@@ -70,8 +71,26 @@ def main(in_args):
     if args.totalFiles == -1:
         args.totalFiles = total_num_files
 
-    # Figure out correct numebr of jobs
+    # Figure out correct number of jobs
     total_num_jobs = int(math.ceil(args.totalFiles / float(args.filesPerJob)))
+
+    # Make a list of files for each job to avoid doing it on worker node side:
+    output = subprocess.check_output(['das_client.py','--query', 'files dataset=%s' % args.dataset, '--limit=%d' % args.totalFiles], stderr=subprocess.STDOUT)
+    log.debug(output)
+
+    list_of_files = ['%s' % line for line in output if line.lower().startswith("/store")]
+
+    def grouper(iterable, n, fillvalue=None):
+        args = [iter(iterable)] * n
+        return izip_longest(fillvalue=fillvalue, *args)
+
+    fileList = "fileList%s.py" % args.dataset.replace("/", "_")
+    with open(fileList, "w") as file_list:
+        fileList.write("fileNames = {")
+        for n, chunk in enumerate(grouper(list_of_files, args.filesPerJob)):
+            fileList.write("%d: [%s]," % (n, ', '.join(filter(None, chunk))))
+        fileList.write("}")
+    log.info("List of files for each jobs written to %s" % fileList)
 
     log.debug("Will be submitting %d jobs, running over %d files" % (total_num_jobs, args.totalFiles))
 
@@ -82,19 +101,24 @@ def main(in_args):
     config_filename = os.path.basename(args.config)
     job_filename = '%s_%s.condor' % (config_filename.replace(".py", ""), strftime("%H%M%S"))
 
+    if not args.outputScript:
+        args.outputScript = job_filename
     # job_description = job_template.replace("SEDINITIAL", args.outputDir)
     job_description = job_template.replace("SEDINITIAL", "")  # for not, keept initialdir local, otherwise tonnes of files on hdfs
-    job_description = job_description.replace("SEDNAME", job_filename.replace(".condor", ""))
-    args_str = "%s %s %d %d %s $(process)" % (config_filename, args.dataset, args.filesPerJob, args.totalFiles, args.outputDir)
+    job_description = job_description.replace("SEDNAME", args.outputScript.replace(".condor", ""))
+    args_str = "%s %s %s $(process)" % (config_filename, fileList, args.outputDir)
     job_description = job_description.replace("SEDARGS", args_str)
     job_description = job_description.replace("SEDEXE", 'cmsRun_worker.sh')
     job_description = job_description.replace("SEDNJOBS", str(total_num_jobs))
-    job_description = job_description.replace("SEDINPUTFILES", os.path.abspath(args.config))
+    job_description = job_description.replace("SEDINPUTFILES", "%s, %s" % (os.path.abspath(args.config), fileList))
 
-    with open(job_filename, 'w') as submit_script:
+    with open(args.outputScript, 'w') as submit_script:
         submit_script.write(job_description)
-    log.info('New condor submission script written to %s' % job_filename)
+    log.info('New condor submission script written to %s' % args.outputScript)
+
+    # submit to queue
+    subprocess.call(['condor_submit', args.outputScript])
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    cmsRunCondor(sys.argv[1:])
