@@ -1,11 +1,7 @@
 """
 Config file to run the Stage 1 emulator to make Ntuples.
 
-This is a special case, which runs using the "default" setup, no emualtion necessary.
-
-Stores internal jets, as well as ak5 and ak4 GenJets
-
-YOU MUST RUN WITH CMSSW 742 OR NEWER TO PICK UP THE NEW RCT CALIBS.
+This is a special case, which runs using setup that was used for HLT studies.
 
 """
 
@@ -21,11 +17,11 @@ save_EDM = False
 
 # Global tag (note, you must ensure it matches input file)
 # You don't need the "::All"!
-gt = 'PHYS14_25_V3' # for Phys14 AVE20 BX25
+gt = 'PHY1474_25V4' # for Phys14 AVE20 BX25
 
 # Things to append to L1Ntuple/EDM filename
 # (if using new RCT calibs, this gets auto added)
-file_append = "_Stage1_default"
+file_append = "_Stage1_oldSetup"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -37,12 +33,13 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.GeometryDB_cff')
-process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
+# process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
+process.load( 'Configuration.StandardSequences.RawToDigi_cff' )
 process.load('Configuration.StandardSequences.L1Reco_cff')
-process.load('Configuration.StandardSequences.Reconstruction_cff')
+# process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration/StandardSequences/EndOfProcess_cff')
 process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cff')
-process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
+# process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
 process.load('Configuration/StandardSequences/SimL1Emulator_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
@@ -61,6 +58,28 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 )
 
 ##############################
+# Setup the L1 Emulator chain EXACTLY as it was for 25ns studies
+##############################
+import L1Trigger.Configuration.L1Trigger_custom
+
+import L1Trigger.L1TCalorimeter.L1TCaloStage1_customForHLT
+process = L1Trigger.L1TCalorimeter.L1TCaloStage1_customForHLT.customiseL1EmulatorFromRaw( process )
+
+process.l1ExtraLayer2.centralBxOnly = cms.bool(True)
+
+process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
+process.l1ExtraTreeProducer.nonIsoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:NonIsolated")
+process.l1ExtraTreeProducer.isoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:Isolated")
+process.l1ExtraTreeProducer.tauJetLabel = cms.untracked.InputTag("l1ExtraLayer2:Tau")
+process.l1ExtraTreeProducer.isoTauJetLabel = cms.untracked.InputTag("l1ExtraLayer2:IsoTau")
+process.l1ExtraTreeProducer.cenJetLabel = cms.untracked.InputTag("l1ExtraLayer2:Central")
+process.l1ExtraTreeProducer.fwdJetLabel = cms.untracked.InputTag("l1ExtraLayer2:Forward")
+process.l1ExtraTreeProducer.muonLabel = cms.untracked.InputTag("l1ExtraLayer2")
+process.l1ExtraTreeProducer.metLabel = cms.untracked.InputTag("l1ExtraLayer2:MET")
+process.l1ExtraTreeProducer.mhtLabel = cms.untracked.InputTag("l1ExtraLayer2:MHT")
+process.l1ExtraTreeProducer.hfRingsLabel = cms.untracked.InputTag("l1ExtraLayer2")
+
+##############################
 # Do ak4 GenJets
 ##############################
 # Convert ak4 genjets to L1JetParticle objects
@@ -77,24 +96,32 @@ process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
 ##############################
 # L1Ntuple producer
 ##############################
-process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
-process.l1NtupleProducer.gctCentralJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","cenJets")
-process.l1NtupleProducer.gctNonIsoEmSource    = cms.InputTag("simCaloStage1LegacyFormatDigis","nonIsoEm")
-process.l1NtupleProducer.gctForwardJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","forJets")
-process.l1NtupleProducer.gctIsoEmSource       = cms.InputTag("simCaloStage1LegacyFormatDigis","isoEm")
-process.l1NtupleProducer.gctEnergySumsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","")
-process.l1NtupleProducer.gctTauJetsSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
-process.l1NtupleProducer.gctIsoTauJetsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
+# process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
+# process.l1NtupleProducer.gctCentralJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","cenJets")
+# process.l1NtupleProducer.gctNonIsoEmSource    = cms.InputTag("simCaloStage1LegacyFormatDigis","nonIsoEm")
+# process.l1NtupleProducer.gctForwardJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","forJets")
+# process.l1NtupleProducer.gctIsoEmSource       = cms.InputTag("simCaloStage1LegacyFormatDigis","isoEm")
+# process.l1NtupleProducer.gctEnergySumsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","")
+# process.l1NtupleProducer.gctTauJetsSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
+# process.l1NtupleProducer.gctIsoTauJetsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
 
 ##############################
 # Overall path
 ##############################
 
 process.p = cms.Path(
-    process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
+    process.hcalDigis
+    *process.simHcalTriggerPrimitiveDigis
+    *process.ecalDigis
+    *process.simRctDigis
+    *process.simRctUpgradeFormatDigis
+    *process.simCaloStage1Digis
+    *process.simCaloStage1FinalDigis
+    *process.simCaloStage1LegacyFormatDigis
+    *process.l1ExtraLayer2
     *process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
+    *process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
-    # *process.l1NtupleProducer
     )
 
 if dump_RCT:
@@ -104,13 +131,14 @@ if dump_RCT:
 ##############################
 # Input/output & standard stuff
 ##############################
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Input source
 
 # Some default testing files
-if gt in ['PHYS14_25_V3', 'PHYS14_25_V2', 'MCRUN2_74_V8']:
-    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-30to50_Tune4C_13TeV_pythia8/AODSIM/AVE20BX25_tsg_castor_PHYS14_25_V3-v2/00000/006070D2-0599-E411-98F5-0025B3E05D3A.root')
+if gt in ['PHYS14_25_V3', 'PHYS14_25_V2', 'MCRUN2_74_V8', 'PHY1474_25V4']:
+    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-30to50_Tune4C_13TeV_pythia8/AODSIM/AVE20BX25_tsg_castor_PHYS14_25_V3-v2/00000/006070D2-0599-E411-98F5-0025B3E05D3A.root')
+    fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-80to120_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/00679EAE-098E-E411-9AFC-0025905A6104.root')
 elif gt in ['MCRUN2_74_V9', 'MCRUN2_74_V7']:
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_40_BX_25ns_tsg_MCRUN2_74_V7-v1/00000/0C72BDF4-03F4-E411-868F-003048CEFFE4.root')
 else:
