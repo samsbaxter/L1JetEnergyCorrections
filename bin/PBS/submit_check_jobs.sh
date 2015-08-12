@@ -50,7 +50,7 @@ do
         echo "$outname"
         # if [ $i -ge "7" ]
         # then
-            # bsub -q 1nh -J $jobname "sh check_batch.sh ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i} --maxPt 250"
+        bsub -q 1nh -J $jobname "sh check_batch.sh ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i} --maxPt 250"
         # fi
         # ./check_batch.sh ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i}
     done
@@ -59,8 +59,8 @@ do
     outname=${outname%.root}
     bsub -q 1nh -J allCentral "sh check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_central.root --incl --central --maxPt 250"
     # ./check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_central.root --incl --central
-    # bsub -q 8nh -J allForward "sh check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_forward.root --incl --forward --maxPt 250"
+    bsub -q 8nh -J allForward "sh check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_forward.root --incl --forward --maxPt 250"
     # ./check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_forward.root --incl --forward
-    # bsub -q 8nh -J all "sh check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_allEta.root --incl --maxPt 250"
+    bsub -q 8nh -J all "sh check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_allEta.root --incl --maxPt 250"
     # ./check_batch.sh ${fdir}/${fname} ${fdir}/check_${outname}_allEta.root --incl
 done

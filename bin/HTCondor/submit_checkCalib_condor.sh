@@ -60,16 +60,16 @@ do
         outname="check_${outname}_${i}.root"
         echo "$jobname"
         echo "$outname"
-        echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i}" >> "$outfile"
+        echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/${outname} --excl --etaInd ${i} --maxPt 250" >> "$outfile"
         echo "queue" >> "$outfile"
     done
     outname=${fname#pairs_}
     outname=${outname%.root}
-    echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/check_${outname}_central.root --incl --central" >> "$outfile"
+    echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/check_${outname}_central.root --incl --central --maxPt 250" >> "$outfile"
     echo "queue" >> "$outfile"
-    echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/check_${outname}_forward.root --incl --forward" >> "$outfile"
+    echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/check_${outname}_forward.root --incl --forward --maxPt 250" >> "$outfile"
     echo "queue" >> "$outfile"
-    echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/check_${outname}_all.root --incl" >> "$outfile"
+    echo "arguments = python checkCalibration.py ${fdir}/${fname} ${fdir}/check_${outname}_all.root --incl --maxPt 250" >> "$outfile"
     echo "queue" >> "$outfile"
 
 done
