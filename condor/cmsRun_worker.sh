@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #################################################
 # Script to run cmsRun on condor worker node
@@ -43,6 +43,8 @@ export CMSSW_GIT_REFERENCE="${worker}/.cmsgit-cache"
 # git cms-addpkg L1Trigger/L1TCalorimeter
 git clone https://github.com/cms-l1-dpg/L1Ntuples.git L1TriggerDPG/L1Ntuples
 git clone https://github.com/raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
+# Get Golden JSON
+# wget https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt
 
 ######################
 # Make a wrapper config
@@ -68,11 +70,10 @@ echo ""
 cat $pyfile
 echo ""
 
-# Get Golden JSON
-# wget https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt
 
 ######################
-# Move the cms config script from top level to CMSSW area and build everything
+# Move the cms config script * list of files from top level
+# to CMSSW area and build everything
 ######################
 mv $worker/$script .
 mv $worker/fileList* .
