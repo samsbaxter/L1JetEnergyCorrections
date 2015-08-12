@@ -189,8 +189,10 @@ def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"
     # h_diff.SetLineWidth(2)
     func = h_diff.GetListOfFunctions().At(0)
     func.SetLineWidth(1)
-    h_diff.SetTitle("%g < |#eta^{L1}| < %g, %g < p_{T}^{L1} < %g;%s;N" % (eta_min, eta_max, pt_min, pt_max, pt_diff_str))
-    c.SaveAs("%s/pt_diff_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
+    h_diff.SetTitle("%g < |#eta^{L1}| < %g, %g < p_{T}^{%s} < %g;%s;N" % (eta_min, eta_max, pt_min, ref_str, pt_max, pt_diff_str))
+    if not os.path.exists("%s/eta_%g_%g" % (oDir, eta_min, eta_max)):
+        os.makedirs("%s/eta_%g_%g" % (oDir, eta_min, eta_max))
+    c.SaveAs("%s/eta_%g_%g/pt_diff_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, eta_min, eta_max, pt_min, pt_max, oFormat))
 
 
 def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
