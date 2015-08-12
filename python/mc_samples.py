@@ -101,12 +101,15 @@ for i, ptmin in enumerate(ptbins[:-1]):
     # Spring15 AVEPU30 50ns
     key = "QCD_Pt-%dto%d_Spring15_AVE30BX50" % (ptmin, ptmax)
     samples[key] = Dataset(inputDataset="/QCD_Pt_%dto%d_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                            unitsPerJob=50, totalUnits=-1)
+                            unitsPerJob=1, totalUnits=0.1) #
 
     # Phys14 AVEPU20 25ns
     key = "QCD_Pt-%dto%d_Phys14_AVE20BX25" % (ptmin, ptmax)
-    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE20BX25_tsg_castor_PHYS14_25_V3-v1/GEN-SIM-RAW" % (ptmin, ptmax),
-                            unitsPerJob=50, totalUnits=-1)
+    ver = "-v1"
+    if ptmin in [15, 30]:
+        ver = "-v2"
+    samples[key] = Dataset(inputDataset="/QCD_Pt-%dto%d_Tune4C_13TeV_pythia8/Phys14DR-AVE20BX25_tsg_castor_PHYS14_25_V3%s/GEN-SIM-RAW" % (ptmin, ptmax, ver),
+                            unitsPerJob=10, totalUnits=0.3)
 
     # Phys14 AVEPU20 25ns, AODSIM
     key = "QCD_Pt-%dto%d_Phys14_AVE20BX25_AODSIM" % (ptmin, ptmax)
