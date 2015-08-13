@@ -490,6 +490,53 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
+def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
+    """Plot a graph of response vs pt (L1) for a given eta bin"""
+
+    grname = "eta_%g_%g/gr_rsp_ptRef_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
+
+    graphs = [get_from_file(f, grname) for f in check_files if f]
+
+    c = generate_canvas(plot_title)
+
+    leg = generate_legend() #(0.54, 0.15, 0.87, 0.3) # bottom right
+
+    mg = ROOT.TMultiGraph()
+
+    for i, g in enumerate(graphs):
+        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
+        mg.Add(g)
+        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+
+    pt_min, pt_max = 0, 250
+    # lines at 1, and +/- 0.1
+    line_central = ROOT.TLine(pt_min, 1, pt_max, 1)
+    line_plus = ROOT.TLine(pt_min, 1.1, pt_max, 1.1)
+    line_minus = ROOT.TLine(pt_min, 0.9, pt_max, 0.9)
+    line_central.SetLineWidth(2)
+    line_central.SetLineStyle(2)
+    for line in [line_plus, line_minus]:
+        line.SetLineWidth(2)
+        line.SetLineStyle(3)
+
+    # bundle all graphs into a TMultiGraph - set axes limits here
+    mg.Draw("ALP")
+    mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
+    mg.GetXaxis().SetLimits(0, 250)
+    mg.GetXaxis().SetTitleSize(0.04)
+    mg.GetXaxis().SetTitleOffset(0.9)
+    # mg.GetYaxis().SetTitleSize(0.04)
+    mg.Draw("ALP")
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_ref_str, rsp_str))
+
+    leg.Draw()
+    [line.Draw() for line in [line_central, line_plus, line_minus]]
+    append = "_compare" if len(graphs) > 1 else ""
+    c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
+
+
 #############################################
 # PLOTS USING OUTPUT FROM runCalibration
 #############################################
