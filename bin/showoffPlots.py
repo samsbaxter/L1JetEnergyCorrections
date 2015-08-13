@@ -413,16 +413,15 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
 
     # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
-    mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
-    mg.GetYaxis().SetRangeUser(0.5, 1.5)
+    mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
     mg.GetXaxis().SetLimits(eta_min, eta_max)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
     mg.Draw("ALP")
-    mg.GetHistogram().SetTitle(plot_title)
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title, eta_l1_str, rsp_str))
 
-    # leg.Draw()
+    leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = "_compare" if len(graphs) > 1 else ""
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
