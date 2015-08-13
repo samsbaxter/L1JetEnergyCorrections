@@ -56,7 +56,12 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax) , cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
-    fit_result = hrsp_eta.Fit("gaus", "QER", "", hrsp_eta.GetMean() - hrsp_eta.GetRMS(), hrsp_eta.GetMean() + hrsp_eta.GetRMS())
+    if absetamin < 2.9:
+        fit_result = hrsp_eta.Fit("gaus", "QER", "", hrsp_eta.GetMean() - hrsp_eta.GetRMS(), hrsp_eta.GetMean() + hrsp_eta.GetRMS())
+    else:
+        peak = hrsp_eta.GetBinCenter(hrsp_eta.GetMaximumBin())
+        fit_result = hrsp_eta.Fit("gaus", "QER", "", peak - (0.5*hrsp_eta.GetRMS()), peak + (0.5*hrsp_eta.GetRMS()))
+
     # mean = hrsp_eta.GetFunction("gaus").GetParameter(1)
     # err = hrsp_eta.GetFunction("gaus").GetParError(1)
     output_f_hists.WriteTObject(hrsp_eta)
@@ -154,13 +159,18 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
             print h_rsp.Integral()
 
         # Fit with Gaussian
-        fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
+        peak = h_rsp.GetBinCenter(h_rsp.GetMaximumBin())
+        if absetamin < 2.9:
+            fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
+        else:
+            fit_result = h_rsp.Fit("gaus", "QER", "", peak - (0.5*h_rsp.GetRMS()), peak + (0.5*h_rsp.GetRMS()))
+
         mean = h_rsp.GetFunction("gaus").GetParameter(1)
         err = h_rsp.GetFunction("gaus").GetParError(1)
 
-        check_fit = False
+        check_fit = True
         if check_fit:
-            if fit_result != 0:
+            if int(fit_result) != 0:
                 print "cannot fit with Gaussian - using raw mean instead"
                 mean = h_rsp.GetMean()
                 err = h_rsp.GetMeanError()
@@ -169,6 +179,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
 
         # add to graph
         N = gr_rsp_eta.GetN()
+        print absetamin, "-", absetamax, mean, err
         gr_rsp_eta.SetPoint(N, 0.5 * (absetamin + absetamax), mean)
         gr_rsp_eta.SetPointError(N, 0.5 * (absetamax - absetamin), err)
 
