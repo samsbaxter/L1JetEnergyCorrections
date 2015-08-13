@@ -630,13 +630,13 @@ def main(in_args=sys.argv[1:]):
 #            pt_min = binning.pt_bins[10]
 #            pt_max = binning.pt_bins[11]
             # for the first 4 bins - troublesome
-            # for pt_min, pt_max in izip(binning.pt_bins[0:4], binning.pt_bins[1:5]):
-#            plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-#            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
             # exclusive eta graphs
-            for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
-               plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
+            # for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+                # plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
+                # for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
+                #     plot_pt_diff(res_file, emin, emax, pt_min, pt_max, args.oDir, args.format)
+    #            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
             # inclusive eta graph
             plot_res_all_pt([res_file], 0, 3, args.oDir, args.format)
@@ -646,6 +646,12 @@ def main(in_args=sys.argv[1:]):
             plot_ptDiff_Vs_pt(res_file, 0, 5, args.oDir, args.format)
             plot_ptDiff_Vs_pt(res_file, 3, 5, args.oDir, args.format)
             # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
+
+            # components of these:
+            for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
+                plot_pt_diff(res_file, 0, 3, pt_min, pt_max, args.oDir, args.format)
+                plot_pt_diff(res_file, 0, 5, pt_min, pt_max, args.oDir, args.format)
+                plot_pt_diff(res_file, 3, 5, pt_min, pt_max, args.oDir, args.format)
 
         else:
             # if doing comparison
@@ -658,7 +664,10 @@ def main(in_args=sys.argv[1:]):
 #            for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
 #                plot_res_all_pt(res_files, emin, emax, args.oDir, args.format)
 
-            plot_res_all_pt(res_files, binning.eta_bins[0], binning.eta_bins_central[-1], args.oDir, args.format)
+            plot_res_all_pt(res_files, 0, 3, args.oDir, args.format)
+            plot_res_all_pt(res_files, 0, 5, args.oDir, args.format)
+            plot_res_all_pt(res_files, 3, 5, args.oDir, args.format)
+            # plot_res_eta(res_files, binning.eta_bins, args.oDir, args.format)
 
         res_file.Close()
 
@@ -668,15 +677,30 @@ def main(in_args=sys.argv[1:]):
         etaBins = binning.eta_bins
         check_file = open_root_file(args.checkcal)
 
+        ptBinsWide = list(np.arange(10, 250, 8))
+
         for emin, emax in izip(etaBins[:-1], etaBins[1:]):
             plot_l1_Vs_ref(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_Vs_l1(check_file, emin, emax, args.oDir, args.format)
             plot_rsp_Vs_ref(check_file, emin, emax, args.oDir, args.format)
+            # plot_rsp_pt_hists(check_file, emin, emax, ptBinsWide, args.oDir, args.format)
 
-        plot_l1_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
-        plot_rsp_Vs_l1(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
-        plot_rsp_Vs_ref(check_file, etaBins[0], etaBins[-1], args.oDir, args.format)
+        plot_rsp_Vs_l1(check_file, 0, 3, args.oDir, args.format)
+        plot_rsp_Vs_l1(check_file, 0, 5, args.oDir, args.format)
+        plot_rsp_Vs_l1(check_file, 3, 5, args.oDir, args.format)
+
+        plot_rsp_pt_hists(check_file, 0, 3, ptBins, args.oDir, args.format)
+        plot_rsp_pt_hists(check_file, 0, 5, ptBins, args.oDir, args.format)
+        plot_rsp_pt_hists(check_file, 3, 5, ptBins, args.oDir, args.format)
+
+        plot_l1_Vs_ref(check_file, 0, 3, args.oDir, args.format)
+        plot_l1_Vs_ref(check_file, 0, 5, args.oDir, args.format)
+        plot_l1_Vs_ref(check_file, 3, 5, args.oDir, args.format)
+
+        plot_rsp_Vs_ref(check_file, 0, 3, args.oDir, args.format)
+        plot_rsp_Vs_ref(check_file, 0, 5, args.oDir, args.format)
+        plot_rsp_Vs_ref(check_file, 3, 5, args.oDir, args.format)
 
         # graphs, can take more than 1 file:
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
@@ -687,6 +711,10 @@ def main(in_args=sys.argv[1:]):
         plot_rsp_pt(check_files, 0, 3, args.oDir, args.format)
         plot_rsp_pt(check_files, 0, 5, args.oDir, args.format)
         plot_rsp_pt(check_files, 3, 5, args.oDir, args.format)
+
+        plot_rsp_ptRef(check_files, 0, 3, args.oDir, args.format)
+        plot_rsp_ptRef(check_files, 0, 5, args.oDir, args.format)
+        plot_rsp_ptRef(check_files, 3, 5, args.oDir, args.format)
 
         check_file.Close()
 
