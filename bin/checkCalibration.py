@@ -198,8 +198,12 @@ def check_gaus_fit(hist):
     return (abs(hist.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
 
 
-def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins):
-    """Make a graph of response Vs pt for given eta bin"""
+def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var):
+    """Make a graph of response Vs pt for given eta bin
+
+    pt_var allows the user to specify which pT to bin in & plot against.
+    Should be the name of a variable in the tree
+    """
 
     # Input tree
     tree_raw = inputfile.Get("valid")
@@ -216,7 +220,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins):
     gr_rsp_pt = ROOT.TGraphErrors()
 
     eta_cut = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
-    pt_cut = "pt < %g" % pt_bins[-1]
+    pt_cut = "%s < %g && pt < 250" % (pt_var, pt_bins[-1])
 
     n_rsp_bins = 100
     rsp_min = 0
@@ -224,46 +228,51 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins):
 
     n_pt_bins = len(pt_bins)-1
     pt_array = array('d', pt_bins)
-    print pt_array
 
     # First make a 2D plot
-    h2d_rsp_l1 = ROOT.TH2D("h2d_rsp_l1_%g_%g" % (absetamin, absetamax), "%g < |#eta| < %g;p_{T}^{L1};response" % (absetamin, absetamax), len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
-    tree_raw.Draw("rsp:pt>>+h2d_rsp_l1_%g_%g" % (absetamin, absetamax), "%s && %s" %(eta_cut, pt_cut))
+    h2d_rsp_l1 = ROOT.TH2D("h2d_rsp_%s_%g_%g" % (pt_var, absetamin, absetamax), "%g < |#eta| < %g;p_{T};response" % (absetamin, absetamax), len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
+    tree_raw.Draw("rsp:%s>>+h2d_rsp_%s_%g_%g" % (pt_var, pt_var, absetamin, absetamax), "%s && %s" % (eta_cut, pt_cut))
 
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # Now for each pt bin, do a projection on 1D hist of response and fit a Gaussian
     for i, (pt_min, pt_max) in enumerate(zip(pt_bins[:-1], pt_bins[1:])):
-        h_rsp = h2d_rsp_l1.ProjectionY("rsp_pt_%g_%g" % (pt_min, pt_max), i+1, i+2)
+        h_rsp = h2d_rsp_l1.ProjectionY("rsp_%s_%g_%g" % (pt_var, pt_min, pt_max), i+1, i+2)
         print i, pt_min, pt_max
 
-        print h_rsp.Integral()
-        if h_rsp.Integral() == 0:
+        if h_rsp.Integral() < 0:
+            print "No entries - skipping"
             continue
 
         # Fit with Gaussian
         mean = h_rsp.GetMean()
         err = h_rsp.GetMeanError()
-        fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
 
-        # TODO: better check against Gaussian fit - are peaks ~ similar?
-        if int(fit_result) == 0 and check_gaus_fit(h_rsp):
-            mean = h_rsp.GetFunction("gaus").GetParameter(1)
-            err = h_rsp.GetFunction("gaus").GetParError(1)
-        else:
-            print "Cannot fit Gaussian in plot_rsp_pt, using raw mean instead"
+        peak = h_rsp.GetBinCenter(h_rsp.GetMaximumBin())
+        # if h_rsp.GetRMS() < 0.2:
+            # fit_result = h_rsp.Fit("gaus", "QER", "", peak - h_rsp.GetRMS(), peak + h_rsp.GetRMS())
+        # else:
+        fit_result = h_rsp.Fit("gaus", "QER", "", peak - 0.5*h_rsp.GetRMS(), peak + 0.5*h_rsp.GetRMS())
 
         output_f_hists.WriteTObject(h_rsp)
 
-        # Add the Gaussian to the total graph
-        N = gr_rsp_pt.GetN()
-        gr_rsp_pt.SetPoint(N, 0.5 * (pt_min + pt_max), mean)
-        gr_rsp_pt.SetPointError(N, 0.5 * (pt_max - pt_min), err)
+        # TODO: better check against Gaussian fit - are peaks ~ similar?
+        # if int(fit_result) == 0 and check_gaus_fit(h_rsp):
+        if int(fit_result) == 0 and abs(h_rsp.GetFunction("gaus").GetParameter(1) - peak) / peak < 0.1:
+            mean = h_rsp.GetFunction("gaus").GetParameter(1)
+            err = h_rsp.GetFunction("gaus").GetParError(1)
+            # Add the Gaussian to the total graph
+            N = gr_rsp_pt.GetN()
+            gr_rsp_pt.SetPoint(N, 0.5 * (pt_min + pt_max), mean)
+            gr_rsp_pt.SetPointError(N, 0.5 * (pt_max - pt_min), err)
+        else:
+            print "Cannot fit Gaussian in plot_rsp_pt, using raw mean instead"
+
 
 
     # Save the graph
-    gr_rsp_pt.SetTitle("%g < |#eta^{L1}| < %g;p_{T}^{L1}; <response> = <p_{T}^{L1}/p_{T}^{Ref}>" % (absetamin, absetamax))
-    gr_rsp_pt.SetName("gr_rsp_pt_eta_%g_%g" % (absetamin, absetamax))
+    gr_rsp_pt.SetTitle("%g < |#eta^{L1}| < %g;p_{T}; <response> = <p_{T}^{L1}/p_{T}^{Ref}>" % (absetamin, absetamax))
+    gr_rsp_pt.SetName("gr_rsp_%s_eta_%g_%g" % (pt_var, absetamin, absetamax))
 
     output_f.WriteTObject(gr_rsp_pt)
 
@@ -319,13 +328,16 @@ def main(in_args=sys.argv[1:]):
 
             plot_checks(inputf, output_f, eta_min, eta_max, args.maxPt, args.pdf)
             # Do a response vs pt graph
-            plot_rsp_pt(inputf, output_f, eta_min, eta_max, binning.pt_bins)
+            plot_rsp_pt(inputf, output_f, eta_min, eta_max, binning.pt_bins, "pt")
+            plot_rsp_pt(inputf, output_f, eta_min, eta_max, binning.pt_bins, "ptRef")
 
     # Do an inclusive plot for all eta bins
     if args.incl and len(etaBins) > 2:
         plot_checks(inputf, output_f, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
         # Do a response vs pt graph
-        plot_rsp_pt(inputf, output_f, etaBins[0], etaBins[-1], binning.pt_bins)
+        ptBins_wide = list(np.arange(10, 250, 8))
+        plot_rsp_pt(inputf, output_f, etaBins[0], etaBins[-1], binning.pt_bins, "pt")
+        plot_rsp_pt(inputf, output_f, etaBins[0], etaBins[-1], binning.pt_bins, "ptRef")
         # Do a response vs eta graph
         plot_rsp_eta(inputf, output_f, etaBins, args.maxPt)
 
