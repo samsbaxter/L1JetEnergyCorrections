@@ -463,10 +463,11 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
         mg.Add(g)
         leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
+    pt_min, pt_max = 0, 250
     # lines at 1, and +/- 0.1
-    line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
-    line_plus = ROOT.TLine(eta_min, 1.1, eta_max, 1.1)
-    line_minus = ROOT.TLine(eta_min, 0.9, eta_max, 0.9)
+    line_central = ROOT.TLine(pt_min, 1, pt_max, 1)
+    line_plus = ROOT.TLine(pt_min, 1.1, pt_max, 1.1)
+    line_minus = ROOT.TLine(pt_min, 0.9, pt_max, 0.9)
     line_central.SetLineWidth(2)
     line_central.SetLineStyle(2)
     for line in [line_plus, line_minus]:
@@ -476,14 +477,14 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
     mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
-    mg.GetXaxis().SetLimits(eta_min, eta_max)
+    mg.GetXaxis().SetLimits(0, 250)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
     mg.Draw("ALP")
-    mg.GetHistogram().SetTitle(plot_title)
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_l1_str, rsp_str))
 
-    # leg.Draw()
+    leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = "_compare" if len(graphs) > 1 else ""
     c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
