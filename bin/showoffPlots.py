@@ -399,7 +399,7 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
         g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
         mg.Add(g)
-        # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
