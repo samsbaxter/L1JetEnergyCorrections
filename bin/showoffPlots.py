@@ -427,6 +427,22 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
+def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, oDir, oFormat='pdf'):
+    """Plot component hists of response vs pt graph, for given eta bin"""
+
+    sub_dir = "eta_%g_%g" % (eta_min, eta_max)
+    if not os.path.isdir("%s/%s" % (oDir, sub_dir)):
+        os.mkdir("%s/%s" % (oDir, sub_dir))
+
+    c = generate_canvas(plot_title)
+    for i, pt_min  in enumerate(pt_bins[:-1]):
+        pt_max = pt_bins[i+1]
+        hist = get_from_file(check_file, "%s/Histograms/rsp_pt_%g_%g" % (sub_dir, pt_min, pt_max))
+        hist.SetTitle("%s;%s;%s" % (plot_title, pt_l1_str, rsp_str))
+        hist.Draw()
+        c.SaveAs("%s/%s/rsp_pt_%g_%g.%s" % (oDir, sub_dir, pt_min, pt_max, oFormat))
+
+
 def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot a graph of response vs pt (L1) for a given eta bin"""
 
