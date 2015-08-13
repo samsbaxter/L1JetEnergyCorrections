@@ -208,7 +208,7 @@ def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="p
 
 def plot_ptDiff_Vs_pt(res_file, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot (ptL1 - pTRef) Vs pTL1 for given eta bin"""
-    hname = "eta_%g_%g/Histograms/ptDiff_l1_2d" % (eta_min, eta_max)
+    hname = "eta_%g_%g/Histograms/ptDiff_ref_2d" % (eta_min, eta_max)
     h_2d = get_from_file(res_file, hname)
     c = generate_canvas()
     ROOT.gStyle.SetPalette(55)
@@ -218,7 +218,7 @@ def plot_ptDiff_Vs_pt(res_file, eta_min, eta_max, oDir, oFormat='pdf'):
     h_2d.GetYaxis().SetRangeUser(-120, 120)
     c.SetLogz()
     c.SetTicks(1, 1)
-    c.SaveAs("%s/h2d_ptDiff_pt_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+    c.SaveAs("%s/h2d_ptDiff_ptRef_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
 def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
@@ -228,34 +228,62 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     in which case res_file1 is treated as before calibration,
     whilst res_file2 is treated as after calibration.
     """
-    grname = "eta_%g_%g/resL1_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
+    # binned by l1 pt
+    # grname = "eta_%g_%g/resL1_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
 
-    graphs = [get_from_file(f, grname) for f in res_files if f]
+    # graphs = [get_from_file(f, grname) for f in res_files if f]
 
     c = generate_canvas()
 
-    # leg = ROOT.TLegend(0.34, 0.56, 0.87, 0.87)
-    leg = ROOT.TLegend(0.6, 0.7, 0.87, 0.87)
+    # # leg = generate_legend() #(0.34, 0.56, 0.87, 0.87)
+    # leg = generate_legend() #(0.6, 0.7, 0.87, 0.87)
 
+    # mg = ROOT.TMultiGraph()
+    # for i, g in enumerate(graphs):
+    #     g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+    #     g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
+    #     g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else ROOT.kBlack)
+    #     mg.Add(g)
+    #     leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+    #     # leg.AddEntry(g, "|#eta|: %g - %g" % (eta_min, eta_max), "LP")
+
+    # mg.Draw("ALP")
+    # mg.GetXaxis().SetTitleSize(0.04)
+    # mg.GetXaxis().SetTitleOffset(0.9)
+    # mg.GetYaxis().SetTitle(res_l1_str)
+    # mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax() * 1.5)
+    # mg.GetYaxis().SetRangeUser(0, 0.5)
+    # mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title+', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_l1_str, res_l1_str))
+    # mg.Draw("ALP")
+    # leg.Draw()
+    # append = "_compare" if len(res_files) > 1 else ""
+    # c.SaveAs("%s/res_l1_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
+
+    # binned by ref pt
+    grname = "eta_%g_%g/resRefRef_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
+
+    graphs = [get_from_file(f, grname) for f in res_files if f]
+
+    leg = generate_legend() #(0.6, 0.7, 0.87, 0.87)
     mg = ROOT.TMultiGraph()
     for i, g in enumerate(graphs):
         g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
         g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else ROOT.kBlack)
         mg.Add(g)
-        # leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
-        leg.AddEntry(g, "|#eta|: %g - %g" % (eta_min, eta_max), "LP")
+        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
     mg.Draw("ALP")
-    mg.SetTitle("%s;%s;%s" % (plot_title, graphs[0].GetXaxis().GetTitle(), graphs[0].GetYaxis().GetTitle()))
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
-    mg.GetYaxis().SetTitle(res_l1_str)
-    mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax())
+    # mg.GetYaxis().SetTitle(res_l1_str)
+    mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax() * 1.5)
+    mg.GetYaxis().SetRangeUser(0, 0.6)
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title+', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
     mg.Draw("ALP")
     leg.Draw()
     append = "_compare" if len(res_files) > 1 else ""
-    c.SaveAs("%s/res_l1_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
+    c.SaveAs("%s/res_ref_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
 def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
