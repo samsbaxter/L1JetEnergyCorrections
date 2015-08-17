@@ -141,3 +141,22 @@ def get_exey(graph):
 
     return xarr, yarr
 
+
+def norm_vertical_bins(hist):
+    """
+    Return a copy of the 2D hist, with x bin contents normalised to 1.
+    This way you can clearly see the distribution per x bin,
+    rather than underlying distribution across x bins.
+    """
+
+    h = hist.Clone(hist.GetName()+"_normX")
+    nbins_y = h.GetNbinsY()
+    for i in xrange(1, h.GetNbinsX()+1, 1):
+        y_int = h.Integral(i, i+1, 1, nbins_y)
+        if y_int != 0:
+            scale_factor = 1. / y_int
+            for j in xrange(1, nbins_y+1, 1):
+                h.SetBinContent(i, j, h.GetBinContent(i, j) * scale_factor)
+                h.SetBinError(i, j, h.GetBinError(i, j) * scale_factor)
+
+    return h
