@@ -1,5 +1,5 @@
 """
-Equivalent of the crab3 scripts, this creates jobs on the HTCOndor system running
+Equivalent of the crab3 scripts, this creates jobs on the HTCondor system running
 over various datasets.
 
 User must select the correct config file, outputDir, and dataset(s).
@@ -27,20 +27,22 @@ if __name__ == "__main__":
             raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
 
     for dset in datasets:
+
         dset_opts = samples.samples[dset]
+        print "*"*80
         print "Dataset key:", dset
  
         # to restrict total units run over
         if dset_opts.totalUnits > 1:
             totalUnits = dset_opts.totalUnits
-        elif 0 < dset_opts.totalUnits < 1:
+        elif 0 < dset_opts.totalUnits <= 1:
             totalUnits = int(samples.get_number_files(dset_opts.inputDataset) * dset_opts.totalUnits)
         else:
             totalUnits = int(samples.get_number_files(dset_opts.inputDataset))  # make sure we reset
         print "Total units:", totalUnits
 
         scriptName = '%s_%s_%s.condor' % (os.path.basename(config).replace(".py", ""), dset, strftime("%H%M%S"))
-        print scriptName
+        print "Script Name:", scriptName
         cmsRunCondor(['--config', config,
                       '--outputDir', outputDir+"/"+dset,
                       '--dataset', dset_opts.inputDataset,
@@ -51,4 +53,3 @@ if __name__ == "__main__":
 
         print "Sleeping for 60s to avoid hammering the queue..."
         sleep(60)
-

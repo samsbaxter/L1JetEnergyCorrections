@@ -87,6 +87,8 @@ ls
 cmsRun $pyfile
 echo "CMS JOB OUTPUT" $?
 
+ls -l
+
 ######################
 # Copy across to hdfs. Don't need /hdfs bit when using hadoop tools
 # TODO: add in check as to whether the user wants it on hdfs or not...

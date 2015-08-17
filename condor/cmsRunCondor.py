@@ -44,6 +44,8 @@ def cmsRunCondor(in_args):
     if args.verbose:
         log.setLevel(logging.DEBUG)
 
+    log.debug(args)
+
     # do some checking
     if not os.path.isfile(args.config):
         log.error("Cannot find config file %s" % args.config)
@@ -66,11 +68,10 @@ def cmsRunCondor(in_args):
         os.mkdir('jobs')
 
     # get the total number of files for this dataset using das_client
-    output_summary = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % args.dataset], stderr=subprocess.STDOUT)
-    log.debug(output_summary)
-    total_num_files = int(re.search(r'nfiles +: (\d*)', output_summary).group(1))
-
     if args.totalFiles == -1:
+        output_summary = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % args.dataset], stderr=subprocess.STDOUT)
+        log.debug(output_summary)
+        total_num_files = int(re.search(r'nfiles +: (\d*)', output_summary).group(1))
         args.totalFiles = total_num_files
 
     # Figure out correct number of jobs
