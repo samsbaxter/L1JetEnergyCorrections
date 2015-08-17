@@ -77,11 +77,17 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     h2d_rsp_gen.SetTitle(";p_{T}^{Ref} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
+    h2d_rsp_gen_norm = norm_vertical_bins(h2d_rsp_gen)
+    output_f_hists.WriteTObject(h2d_rsp_gen_norm)
+
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
+
+    h2d_rsp_l1_norm = norm_vertical_bins(h2d_rsp_l1)
+    output_f_hists.WriteTObject(h2d_rsp_l1_norm)
 
     # Draw pT^Gen Vs pT^L1
     tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_pt, pt_min, pt_max), cutStr)

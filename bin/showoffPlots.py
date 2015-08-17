@@ -33,6 +33,7 @@ ROOT.TH1.SetDefaultSumw2(True)
 ROOT.gStyle.SetOptFit(1) # only show fit params and errors
 # ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
+ROOT.gStyle.SetPalette(55)
 
 ptBins = binning.pt_bins
 
@@ -339,16 +340,34 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     c = generate_canvas()
     h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
-    line = ROOT.TLine(0, 0, 250, 250)
-    line.SetLineStyle(2)
-    line.SetLineWidth(2)
-    line.Draw()
+    # lines of constant response
+    line1 = ROOT.TLine(0, 0, 250, 250)
+    line1.SetLineStyle(1)
+    line1.SetLineWidth(2)
+    line1.Draw()
+    line1p25 = ROOT.TLine(0, 0, 250/1.25, 250)
+    line1p25.SetLineStyle(2)
+    line1p25.SetLineWidth(2)
+    line1p25.Draw()
+    line1p5 = ROOT.TLine(0, 0, 250/1.5, 250)
+    line1p5.SetLineStyle(3)
+    line1p5.SetLineWidth(2)
+    line1p5.Draw()
+    line0p75 = ROOT.TLine(0, 0, 250, 250*0.75)
+    line0p75.SetLineStyle(2)
+    line0p75.SetLineWidth(2)
+    line0p75.Draw()
+    line0p5 = ROOT.TLine(0, 0, 250, 250*0.5)
+    line0p5.SetLineStyle(3)
+    line0p5.SetLineWidth(2)
+    line0p5.Draw()
     c.SaveAs("%s/h2d_gen_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_rsp_Vs_l1(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
+def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, oDir, oFormat="pdf"):
     """Plot response (l1/ref) Vs l1 pt"""
-    hname = "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max)
+    app = "_normX" if normX else ""
+    hname = "eta_%g_%g/Histograms/h2d_rsp_l1%s" % (eta_min, eta_max, app)
     h2d_rsp_l1_orig = get_from_file(check_file, hname)
     h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1,2,"hnew")
     c = generate_canvas()
@@ -358,12 +377,13 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     line.SetLineStyle(2)
     line.SetLineWidth(2)
     line.Draw()
-    c.SaveAs("%s/h2d_rsp_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+    c.SaveAs("%s/h2d_rsp_l1_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
-def plot_rsp_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
+def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, oDir, oFormat="pdf"):
     """Plot response (l1/ref) Vs ref pt"""
-    hname = "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max)
+    app = "_normX" if normX else ""
+    hname = "eta_%g_%g/Histograms/h2d_rsp_gen%s" % (eta_min, eta_max, app)
     h2d_rsp_ref_orig = get_from_file(check_file, hname)
     h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1,2,"hnew")
     c = generate_canvas()
@@ -373,7 +393,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     line.SetLineStyle(2)
     line.SetLineWidth(2)
     line.Draw()
-    c.SaveAs("%s/h2d_rsp_ref_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+    c.SaveAs("%s/h2d_rsp_ref_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
 def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
@@ -686,9 +706,12 @@ def main(in_args=sys.argv[1:]):
             plot_rsp_Vs_ref(check_file, emin, emax, args.oDir, args.format)
             # plot_rsp_pt_hists(check_file, emin, emax, ptBinsWide, args.oDir, args.format)
 
-        plot_rsp_Vs_l1(check_file, 0, 3, args.oDir, args.format)
-        plot_rsp_Vs_l1(check_file, 0, 5, args.oDir, args.format)
-        plot_rsp_Vs_l1(check_file, 3, 5, args.oDir, args.format)
+        plot_rsp_Vs_l1(check_file, 0, 3, False, args.oDir, args.format)
+        plot_rsp_Vs_l1(check_file, 0, 3, True, args.oDir, args.format)
+        # plot_rsp_Vs_l1(check_file, 0, 5, False, args.oDir, args.format)
+        # plot_rsp_Vs_l1(check_file, 0, 5, True, args.oDir, args.format)
+        # plot_rsp_Vs_l1(check_file, 3, 5, False, args.oDir, args.format)
+        # plot_rsp_Vs_l1(check_file, 3, 5, True, args.oDir, args.format)
 
         plot_rsp_pt_hists(check_file, 0, 3, ptBins, args.oDir, args.format)
         plot_rsp_pt_hists(check_file, 0, 5, ptBins, args.oDir, args.format)
@@ -698,9 +721,12 @@ def main(in_args=sys.argv[1:]):
         plot_l1_Vs_ref(check_file, 0, 5, args.oDir, args.format)
         plot_l1_Vs_ref(check_file, 3, 5, args.oDir, args.format)
 
-        plot_rsp_Vs_ref(check_file, 0, 3, args.oDir, args.format)
-        plot_rsp_Vs_ref(check_file, 0, 5, args.oDir, args.format)
-        plot_rsp_Vs_ref(check_file, 3, 5, args.oDir, args.format)
+        plot_rsp_Vs_ref(check_file, 0, 3, False, args.oDir, args.format)
+        plot_rsp_Vs_ref(check_file, 0, 3, True, args.oDir, args.format)
+        # plot_rsp_Vs_ref(check_file, 0, 5, False, args.oDir, args.format)
+        # plot_rsp_Vs_ref(check_file, 0, 5, True, args.oDir, args.format)
+        # plot_rsp_Vs_ref(check_file, 3, 5, False, args.oDir, args.format)
+        # plot_rsp_Vs_ref(check_file, 3, 5, True, args.oDir, args.format)
 
         # graphs, can take more than 1 file:
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
