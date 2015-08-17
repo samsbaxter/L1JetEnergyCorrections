@@ -29,3 +29,4 @@ core.*
 jobFiles
 *.condor
 crab_get_hadd_*
+.gitconfig
