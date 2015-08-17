@@ -13,6 +13,7 @@ import sys
 import re
 import subprocess
 import argparse
+import random, string
 
 parser = argparse.ArgumentParser()
 parser.add_argument("filestem", help="stem for output file e.g. resolution, output, check ...")
@@ -21,7 +22,9 @@ args = parser.parse_args()
 
 print args
 outputname = ""
-tmpname = "temp.root"
+# make unique output filename in case 2 jobs run on same node
+random_str = ''.join(random.choice(string.lowercase) for i in xrange(3))
+tmpname = "temp_%s.root" % (random_str)
 
 commands = args.command
 for i, opt in enumerate(commands):
