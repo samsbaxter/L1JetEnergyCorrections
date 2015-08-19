@@ -58,8 +58,9 @@ def check_dir_exists_create(filepath):
 #
 def open_root_file(filename, mode="READ"):
     """Safe way to open ROOT file. Could be improved."""
-    if not check_file_exists(filename):
-        raise RuntimeError("No such file %s" % filename)
+    if mode in ["READ", "UPDATE"]:
+        if not check_file_exists(filename):
+            raise RuntimeError("No such file %s" % filename)
     f = ROOT.TFile(filename, mode)
     if f.IsZombie() or not f:
         raise RuntimeError("Can't open TFile %s" % filename)
