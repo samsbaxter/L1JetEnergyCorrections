@@ -9,12 +9,15 @@ MASSIVE PAIN IN THE ARSE
 
 """
 
+import os
 import sys
 import re
 import subprocess
 import argparse
 import random, string
 
+print "condor_wrapper, innit"
+print sys.argv
 parser = argparse.ArgumentParser()
 parser.add_argument("filestem", help="stem for output file e.g. resolution, output, check ...")
 parser.add_argument("command", help="command that you would run e.g. python runCalibration.py pairs.root output.root", nargs=argparse.REMAINDER)
@@ -33,10 +36,15 @@ for i, opt in enumerate(commands):
         print opt
         commands[i] = tmpname
 
+# Actaully call the commands
 print ' '.join(commands)
-
 subprocess.call(commands)
 
-cmd = "mv %s %s" % (tmpname, outputname)
+# Copy across to HDFS
+# cmd = "mv %s %s" % (tmpname, outputname)
+cmd = "hadoop fs -copyFromLocal -f %s %s" % (tmpname, outputname.replace("/hdfs", ""))
 print cmd
 subprocess.call(cmd.split())
+
+# Remove the temp file
+os.remove(tmpname)
