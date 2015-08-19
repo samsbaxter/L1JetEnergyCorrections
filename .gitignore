@@ -9,6 +9,7 @@ __init__.py
 *.out
 *.err
 dictionary*
+fileList*.py
 Fall13_TTbar_PU20bx25/
 RelValQCD_FlatPt_15_3000HS_13_CMSSW_7_3_0-MCRUN2_73_V7-v1/
 RelValTTbar_13_CMSSW_7_3_0-PU50ns_MCRUN2_73_V9_71XGENSIM_FIXGT-v1/
@@ -30,3 +31,10 @@ jobFiles
 *.condor
 crab_get_hadd_*
 .gitconfig
+*.dag
+*.lock
+*.dub
+*.metrics
+*rescue*
+*.sub
+*.status
