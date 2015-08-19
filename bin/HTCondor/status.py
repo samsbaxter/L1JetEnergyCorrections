@@ -20,8 +20,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
-def strip_doublequotes(string):
-    return re.search(r'\"(.*)\"', string).group(1)
+def strip_doublequotes(line):
+    return re.search(r'\"(.*)\"', line).group(1)
 
 
 class ClassAd(object):
@@ -53,7 +53,7 @@ class NodeStatus(ClassAd):
                  job_procs_queued, job_procs_held):
         self.node = strip_doublequotes(node)
         self.node_status = strip_doublequotes(node_status)
-        self.status_details = status_details
+        self.status_details = status_details.replace('"', '')
         self.retry_count = int(retry_count)
         self.job_procs_queued = int(job_procs_queued)
         self.job_procs_held = int(job_procs_held)
@@ -67,6 +67,8 @@ class StatusEnd(ClassAd):
 
 def process(status_filename):
     """Main function to process the status file"""
+
+    print status_filename, ":"
 
     dag_status = None
     node_statuses = []
@@ -132,9 +134,10 @@ def print_table(dag_status, node_statuses, status_end):
     job_dict = OrderedDict()  # holds column title as key and object attribute name as value
     job_dict["Node"] = "node"
     job_dict["Status"] = "node_status"
+    job_dict["Detail"] = "status_details"
     job_dict["Retries"] = "retry_count"
-    # Auto-size each column
-    job_col_widths = [max(max(len(str(x.__dict__[v])) for x in node_statuses), len(k)) for k, v in job_dict.iteritems()]
+    # Auto-size each column - find maximum of column header and column contents
+    job_col_widths = [max([len(str(x.__dict__[v])) for x in node_statuses]+[len(k)]) for k, v in job_dict.iteritems()]
     # make formatter string to be used for each row, auto calculates number of columns
     job_format = "  |  ".join(["{{:<{}}}"]*len(job_dict.keys())).format(*job_col_widths)
     job_header = job_format.format(*job_dict.keys())
