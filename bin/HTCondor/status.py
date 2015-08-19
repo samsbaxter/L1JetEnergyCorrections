@@ -4,10 +4,10 @@ Code to interpret a DAGman status output, and present it in a more user-friendly
 
 TODO:
 - maybe use namedtuples instead of full-blown classes?
-- help info?
 """
 
 
+import argparse
 import sys
 import logging
 from pprint import pprint
@@ -180,9 +180,8 @@ def print_table(dag_status, node_statuses, status_end):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage:"
-        print "    python status.py <dag status file>"
-        exit(1)
-    else:
-        process(sys.argv[1])
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("statusFile", help="name of DAG status file")
+    args = parser.parse_args()
+    process(args.status)
