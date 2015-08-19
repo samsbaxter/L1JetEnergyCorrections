@@ -9,10 +9,12 @@ echo "I got the following parameters: $@"
 . $VO_CMS_SW_DIR/cmsset_default.sh
 # get CMSSW
 VER=CMSSW_7_4_2
-scramv1 project CMSSW $VER
+if [ ! -d $VER ];
+then
+    scramv1 project CMSSW $VER
+fi
 cd $VER/src/
 eval `scramv1 runtime -sh`
 cd ../..
 ls
-echo $@
 python condor_wrapper.py res $@
