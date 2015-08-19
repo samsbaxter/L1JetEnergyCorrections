@@ -185,6 +185,7 @@ def print_table(dag_status, node_statuses, status_end):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("statusFile", help="name of DAG status file")
+    parser.add_argument("statusFile", help="name(s) of DAG status file(s), separated by spaces", nargs="*")
     args = parser.parse_args()
-    process(args.status)
+    for f in args.statusFile:
+        process(f)
