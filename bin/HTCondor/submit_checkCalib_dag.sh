@@ -38,7 +38,7 @@ echo 'arguments = $(opts)' >> "$outfile"
 echo "queue" >> "$outfile"
 
 # Replace correct parts
-sed -i 's/SEDNAME/checkCalib/g' $outfile
+sed -i 's@SEDNAME@checkCalib/checkCalib@g' $outfile
 sed -i 's/SEDEXE/checkCalib_condor.sh/g' $outfile
 cdir=${PWD%HTCondor}
 echo $cdir

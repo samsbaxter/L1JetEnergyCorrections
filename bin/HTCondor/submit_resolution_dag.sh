@@ -38,7 +38,7 @@ echo 'arguments = $(opts)' >> "$outfile"
 echo "queue" >> "$outfile"
 
 # Replace correct parts
-sed -i 's/SEDNAME/resolution/g' $outfile
+sed -i 's@SEDNAME@resolution/resolution@g' $outfile
 sed -i 's/SEDEXE/resolution_condor.sh/g' $outfile
 cdir=${PWD%HTCondor}
 echo $cdir
