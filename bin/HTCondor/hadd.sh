@@ -34,5 +34,9 @@ tmpName="temp_${timeNow}.root"
 echo "Making temp file $tmpName"
 echo "Will make output $outputFile"
 hadd "$tmpName" ${inputFiles[@]}
+# put a copy in /users
+# cp "$tmpName" "${outputFile/\/hdfs\/user//users}"
+# put a copy in /hdfs
 hadoop fs -copyFromLocal -f "$tmpName" "${outputFile#/hdfs}"
+# tidy up
 rm "$tmpName"

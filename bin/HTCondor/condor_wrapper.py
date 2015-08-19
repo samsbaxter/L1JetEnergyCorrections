@@ -41,7 +41,6 @@ print ' '.join(commands)
 subprocess.call(commands)
 
 # Copy across to HDFS
-# cmd = "mv %s %s" % (tmpname, outputname)
 cmd = "hadoop fs -copyFromLocal -f %s %s" % (tmpname, outputname.replace("/hdfs", ""))
 print cmd
 subprocess.call(cmd.split())
