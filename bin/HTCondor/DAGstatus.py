@@ -156,7 +156,7 @@ def print_table(dag_status, node_statuses, status_end):
     summary_header = summary_format.format(*summary_dict.keys())
 
     # Now figure out how many char columns to occupy for the *** and ---
-    columns = max(len(job_header), len(summary_header))
+    columns = max(len(job_header), len(summary_header)) + 1
     term_rows, term_columns = os.popen('stty size', 'r').read().split()
     term_rows = int(term_rows)
     term_columns = int(term_columns)
@@ -170,12 +170,12 @@ def print_table(dag_status, node_statuses, status_end):
     print "-" * columns
     for n in node_statuses:
         print job_format.format(*[n.__dict__[v] for v in job_dict.values()])
-    print "*" * columns
+    print "-" * columns
     # print summary of all jobs
     print summary_header
     print "-" * columns
     print summary_format.format(*[dag_status.__dict__[v] for v in summary_dict.values()])
-    print "*" * columns
+    print "-" * columns
     # print time of next update
     print "Status recorded at:", status_end.end_time
     print "Next update:       ", status_end.next_update

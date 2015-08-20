@@ -114,7 +114,7 @@ do
     condor_submit_dag "$dagfile"
     echo ""
     echo "Check status with:"
-    echo "./status.py $statusfile"
+    echo "./DAGstatus.py $statusfile"
     echo ""
     echo "(may take a little time to appear)"
 done
