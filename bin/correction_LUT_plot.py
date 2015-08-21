@@ -173,7 +173,7 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     """Make plot of pt before Vs after to show mapping"""
 
     # jet pTs, pre calibration
-    min_pre = 4
+    min_pre = 0
     max_pre = 52
     jet_pt_pre = np.arange(min_pre, max_pre, 0.5)
 
@@ -222,34 +222,34 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
 
     corr_fn.Eval(5)
     # Make hists of pre & post occupancy
-    h_pre = ROOT.TH1D("h_pre", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
-    h_post = ROOT.TH1D("h_post", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
+    # h_pre = ROOT.TH1D("h_pre", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
+    # h_post = ROOT.TH1D("h_post", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
 
-    for pt in jet_pt_pre:
-        h_pre.Fill(pt)
+    # for pt in jet_pt_pre:
+    #     h_pre.Fill(pt)
 
-    for pt in jet_pt_post:
-        h_post.Fill(pt)
+    # for pt in jet_pt_post:
+    #     h_post.Fill(pt)
 
-    h_post.SetLineColor(ROOT.kRed)
-    h_pre.Draw("HIST")
-    h_post.Draw("SAMEHIST")
+    # h_post.SetLineColor(ROOT.kRed)
+    # h_pre.Draw("HIST")
+    # h_post.Draw("SAMEHIST")
 
-    leg = ROOT.TLegend(0.7, 0.7, 0.8, 0.8)
-    leg.SetFillColor(ROOT.kWhite)
-    leg.AddEntry(h_pre, "Pre", "L")
-    leg.AddEntry(h_post, "Post", "L")
-    leg.Draw()
-    c.SaveAs(filename.replace('correction_map', 'occupancy_map'))
+    # leg = ROOT.TLegend(0.7, 0.7, 0.8, 0.8)
+    # leg.SetFillColor(ROOT.kWhite)
+    # leg.AddEntry(h_pre, "Pre", "L")
+    # leg.AddEntry(h_post, "Post", "L")
+    # leg.Draw()
+    # c.SaveAs(filename.replace('correction_map', 'occupancy_map'))
 
 
 def main(in_args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("lut", help="output LUT filename", default="my_lut.txt")
-    parser.add_argument("--gct", help="Make LUT for GCT")
-    parser.add_argument("--stage1", help="Make LUT for Stage 1")
-    parser.add_argument("--plots", help="Make plots to check sensibility of correciton functions.",
+    parser.add_argument("--gct", help="Make LUT for GCT", action='store_true')
+    parser.add_argument("--stage1", help="Make LUT for Stage 1", action='store_true')
+    parser.add_argument("--plots", help="Make plots to check sensibility of correction functions.",
                         action='store_true')
     parser.add_argument("--cpp", help="print ROOT C++ code to screen", action='store_true')
     parser.add_argument("--python", help="print PyROOT code to screen", action='store_true')
@@ -290,8 +290,9 @@ def main(in_args=sys.argv[1:]):
         fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
         all_fit_params.append(fit_params)
         print "Fit parameters:", fit_params
-        corr_10 = fit_func.Eval(10)
-        print "Fit fn evaluated at 10 GeV:", corr_10
+
+        corr_5 = fit_func.Eval(5)
+        print "Fit fn evaluated at 5 GeV:", corr_5
 
         # Print function to screen
         if args.cpp:
@@ -311,8 +312,8 @@ def main(in_args=sys.argv[1:]):
             line.SetY2(15)
             line.Draw()
             l2 = line2.Clone()
-            l2.SetY1(corr_10)
-            l2.SetY2(corr_10)
+            l2.SetY1(corr_5)
+            l2.SetY2(corr_5)
             l2.Draw("SAME")
 
             # Plot function mapping
