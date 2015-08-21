@@ -34,10 +34,35 @@ root = Tk.Tk()
 root.wm_title("Play with fitting function by Robin Aggleton")
 
 # Put the points for the graph here x, y, x errorbars, y errorbars:
-xpt = [16.3945, 16.0968, 17.2177, 18.9381, 20.9077, 23.269, 25.7539, 28.328, 31.072, 37.2628, 52.434, 68.4167, 84.925]
-ypt = [0.992469, 1.48571, 1.60127, 1.60084, 1.62146, 1.60733, 1.60065, 1.58229, 1.55749, 1.51606, 1.43605, 1.39438, 1.41854]
-errx = [0.084203, 0.0421546, 0.0315441, 0.027393, 0.0278687, 0.0326988, 0.0392042, 0.0454415, 0.0494926, 0.0433829, 0.165039, 0.679132, 2.62304]
-erry = [0.00537132, 0.00663933, 0.00473137, 0.00212173, 0.0019282, 0.00178581, 0.00191178, 0.00184522, 0.00267766, 0.001325, 0.0036714, 0.0110765, 0.0881421]
+graph_x = [12.84, 13.80, 15.12, 16.77, 18.75, 21.01, 23.57, 26.42, 29.52, 32.75,
+           36.16, 39.70, 43.45, 47.01, 50.91, 54.64, 58.39, 62.28, 66.34, 70.26,
+           73.82, 77.94, 81.55, 85.62, 89.65, 93.94, 97.85, 101.37, 106.05,
+           110.05, 113.95, 118.18, 122.26, 126.61, 131.32, 135.72, 139.71,
+           145.15, 149.12, 154.08, 158.65, 163.57, 168.58, 172.46, 178.72,
+           183.33, 186.73, 192.04, 198.36, 201.31, 206.18, 210.25, 215.56,
+           219.23, 222.31, 228.64, 230.82, 235.77, 240.92]
+graph_y = [1.24, 1.45, 1.58, 1.66, 2.09, 2.06, 2.07, 1.93, 1.87, 1.76, 1.70,
+           1.63, 1.57, 1.54, 1.50, 1.46, 1.43, 1.41, 1.38, 1.35, 1.34, 1.32,
+           1.31, 1.29, 1.27, 1.26, 1.25, 1.24, 1.23, 1.22, 1.22, 1.20, 1.20,
+           1.19, 1.18, 1.17, 1.17, 1.16, 1.15, 1.15, 1.14, 1.14, 1.14, 1.14,
+           1.13, 1.13, 1.12, 1.12, 1.12, 1.11, 1.11, 1.11, 1.10, 1.10, 1.10,
+           1.08, 1.09, 1.08, 1.08]
+graph_errx = [0.0126, 0.0125, 0.0130, 0.0144, 0.0164, 0.0193, 0.0234, 0.0284,
+              0.0335, 0.0384, 0.0443, 0.0504, 0.0588, 0.0628, 0.0713, 0.0748,
+              0.0796, 0.0867, 0.0930, 0.1023, 0.1062, 0.1143, 0.1185, 0.1251,
+              0.1296, 0.1345, 0.1368, 0.1405, 0.1500, 0.1585, 0.1696, 0.1884,
+              0.2009, 0.2163, 0.2404, 0.2599, 0.2890, 0.3181, 0.3374, 0.3851,
+              0.4344, 0.4716, 0.5152, 0.5511, 0.5856, 0.6463, 0.6325, 0.6788,
+              0.7586, 0.7251, 0.7403, 0.7848, 0.7571, 0.8102, 0.8083, 0.8217,
+              0.8111, 0.8104, 0.8158]
+graph_erry = [0.0006, 0.0005, 0.0004, 0.0004, 0.0015, 0.0015, 0.0026, 0.0019,
+              0.0026, 0.0019, 0.0021, 0.0019, 0.0021, 0.0019, 0.0020, 0.0018,
+              0.0020, 0.0019, 0.0022, 0.0019, 0.0019, 0.0016, 0.0020, 0.0017,
+              0.0016, 0.0020, 0.0017, 0.0016, 0.0016, 0.0019, 0.0019, 0.0018,
+              0.0018, 0.0016, 0.0017, 0.0021, 0.0021, 0.0021, 0.0021, 0.0023,
+              0.0022, 0.0025, 0.0026, 0.0024, 0.0030, 0.0027, 0.0031, 0.0033,
+              0.0038, 0.0032, 0.0031, 0.0031, 0.0037, 0.0039, 0.0035, 0.0030,
+              0.0030, 0.0030, 0.0027]
 
 # fitting function and starting parameters
 def pf_func(et, params):
@@ -84,7 +109,7 @@ et = np.arange(et_min, et_max + et_interval, et_interval)
 ##############
 def draw_reference_graph(axes, x, y, err_x, err_y):
     """Draw the reference graph"""
-    axes.errorbar(xpt, ypt, xerr=errx, yerr=erry, fmt='-', lw=2, color='black')
+    axes.errorbar(x, y, xerr=err_x, yerr=err_y, fmt='-', lw=2, color='black')
 
 
 def plot_fit_func(axes, et, params):
@@ -107,7 +132,7 @@ axes = fig.add_subplot(111)
 
 y_min, y_max = 0, 2.5
 
-draw_reference_graph(axes, xpt, ypt, errx, erry)
+draw_reference_graph(axes, graph_x, graph_y, graph_errx, graph_erry)
 plot_fit_func(axes, et, params)
 
 # Setup 3 pane window
@@ -142,7 +167,7 @@ canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 # Add sliders with multiplier entry boxes
 ##############
 sliders = []
-boxes = []
+multiplier_boxes = []
 
 def set_slider_box_values(slider, multiplier_box, value):
     """Set slider and multiplier box value, since slider only goes -1 to 1."""
@@ -161,7 +186,7 @@ def update_plot(event):
     for i, (slider, box) in enumerate(zip(sliders, boxes)):
         params[i] = slider.get() * float(box.get())
     axes.clear()
-    draw_reference_graph(axes, xpt, ypt, errx, erry)
+    draw_reference_graph(axes, graph_x, graph_y, graph_errx, graph_erry)
     plot_fit_func(axes, et, params)
     canvas.draw()
 
@@ -251,12 +276,12 @@ def calc_penalty(params, min_x, max_x):
     pen = 0
     sign = 0
     counter = 0
-    for i, (x, y_graph, yerr) in enumerate(zip(xpt, ypt, erry)):
-        if min_x < x < max_x:
+    for i, (x_pt, y_pt, yerr) in enumerate(zip(graph_x, graph_y, graph_erry)):
+        if min_x < x_pt < max_x:
             counter += 1
-            y_new = pf_func(x, params)
-            pen += pow(y_new - y_graph, 2)/pow(yerr, 2)
-            sign += (y_new - y_graph)/abs(y_new - y_graph)
+            y_new = pf_func(x_pt, params)
+            pen += pow(y_new - y_pt, 2)/pow(yerr, 2)
+            sign += (y_new - y_pt)/abs(y_new - y_pt)
     sign = sign/abs(sign)
     return sign * np.sqrt(pen) / counter
 
