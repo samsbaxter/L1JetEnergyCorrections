@@ -235,6 +235,52 @@ for i, p in enumerate(params):
     multiplier_boxes.append(box)
     set_slider_box_values(slider, box, p)
 
+
+######################
+# File/graph selector
+######################
+
+graph_label = Tk.Label(master=selector_frame, text="Graph:")
+
+graph_entry = Tk.Entry(master=selector_frame, width=20)
+graph_entry.insert(0, "l1corr_eta_0_0.348")
+
+fn_label = Tk.Label(master=selector_frame, text="TF1:")
+fn_entry = Tk.Entry(master=selector_frame, width=20)
+fn_entry.insert(0, "fitfcneta_0_0.348")
+
+root_file = None
+def choose_file():
+    """Get graph & fit fcn from ROOT file via tkFileDialog, plot them on the canvas"""
+    ftypes = [('ROOT files', '*.root'), ('All files', '*')]
+    dlg = tkFileDialog.Open(filetypes=ftypes)
+    fl = dlg.show()
+    if fl != '':
+        root_file = ROOT.TFile(fl, "READ")
+        gr = root_file.Get(graph_entry.get())
+        fn = root_file.Get(fn_entry.get())
+        if gr and fn:
+            tkMessageBox.showinfo("Got graph & fit", "Got graph %s and function %s" % (graph_entry.get(), fn_entry.get()))
+            # store xy points so properly drawn when canvas updated
+            global graph_x, graph_errx, graph_y, graph_erry
+            graph_x, graph_y = cu.get_xy(gr)
+            graph_errx, graph_erry = cu.get_exey(gr)
+            new_params = [fn.GetParameter(i) for i in xrange(fn.GetNumberFreeParameters())]
+            for slider, box, param in zip(sliders, multiplier_boxes, new_params):
+                set_slider_box_values(slider, box, param)
+        else:
+            if not gr:
+                tkMessageBox.showwarning("No graph", "Graph with name %s does not exist" % graph_entry.get())
+            if not fn:
+                tkMessageBox.showwarning("No function", "Function with name %s does not exist" % graph_entry.get())
+
+open_button = Tk.Button(master=selector_frame, text="Open file", command=choose_file)
+graph_label.pack(side=Tk.LEFT, expand=True)
+graph_entry.pack(side=Tk.LEFT, expand=True)
+fn_label.pack(side=Tk.LEFT, expand=True)
+fn_entry.pack(side=Tk.LEFT, expand=True)
+open_button.pack(side=Tk.LEFT, expand=True)
+
 ##############
 # Add buttons
 ##############
