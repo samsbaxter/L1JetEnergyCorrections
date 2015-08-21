@@ -13,20 +13,22 @@ Robin Aggleton July 2015
 
 import matplotlib
 matplotlib.use('TkAgg')
-
+# implement the default mpl key bindings
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
+import os
 from math import *
 import numpy as np
 import random
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-# implement the default mpl key bindings
-from matplotlib.figure import Figure
-
+import ROOT
+import common_utils as cu
 import sys
 if sys.version_info[0] < 3:
     import Tkinter as Tk
 else:
     import tkinter as Tk
 import tkMessageBox
+import tkFileDialog
 
 root = Tk.Tk()
 root.wm_title("Play with fitting function by Robin Aggleton")
@@ -339,6 +341,8 @@ fitting_pane.add(fit_button)
 ##############
 # Draw!
 ##############
+# hack to bring the window to the front
+os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
 Tk.mainloop()
 # If you put root.destroy() here, it will cause an error if
 # the window is closed with the window manager.
