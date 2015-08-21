@@ -66,7 +66,7 @@ do
     declare -a outFileNames=()
 
     # Special appendix, if desired (e.g. if changing a param)
-    append="_test"
+    append=""
 
     outname=${fname/pairs_/res_}
     outname=${outname%.root}
@@ -116,7 +116,7 @@ do
 
     # Now add job for hadding
     finalRootName="${fdir}/${outname}${append}.root"
-    haddJobName="haddCheckCalib"
+    haddJobName="haddResolution"
     echo "JOB $haddJobName hadd.condor" >> "$dagfile"
     echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
 

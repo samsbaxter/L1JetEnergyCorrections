@@ -8,7 +8,7 @@
 # separate jobs, and then hadds them all after.
 
 declare -a pairsFiles=(
-/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_newLUT_3_Aug_15_Bristol/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_newLUT_3_Aug_15_Bristol_gtJets_ref14to1000_l10to500.root
+/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500.root
 )
 
 declare -a etaBins=(
@@ -66,7 +66,7 @@ do
     declare -a outFileNames=()
 
     # Special appendix, if desired (e.g. if changing a param)
-    append="_test"
+    append=""
 
     outname=${fname/pairs_/check_}
     outname=${outname%.root}

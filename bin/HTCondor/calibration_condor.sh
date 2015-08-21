@@ -1,4 +1,5 @@
 #!/bin/bash -e
+# for runCalibration.py
 # setup CMSSW for ROOT
 VO_CMS_SW_DIR=/cvmfs/cms.cern.ch
 host=`hostname`

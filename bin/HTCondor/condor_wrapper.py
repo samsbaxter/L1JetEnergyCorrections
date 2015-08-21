@@ -32,7 +32,7 @@ tmpname = "temp_%s.root" % (random_str)
 commands = args.command
 for i, opt in enumerate(commands):
     if re.match(r"/hdfs/user/ra12451/L1JEC/CMSSW_\d_\d_.*/src/L1Trigger/L1JetEnergyCorrections/.*/%s.*" % args.filestem, opt):
-        outputname=opt
+        outputname = opt
         print opt
         commands[i] = tmpname
 
