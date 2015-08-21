@@ -135,33 +135,34 @@ y_min, y_max = 0, 2.5
 draw_reference_graph(axes, graph_x, graph_y, graph_errx, graph_erry)
 plot_fit_func(axes, et, params)
 
-# Setup 3 pane window
-# plot_pane = Tk.PanedWindow()
-# plot_pane.pack(expand=1)
+#############
+# Setup frames
+#############
+# frame for canvas
+left_frame = Tk.Frame(root)
+left_frame.pack(side=Tk.LEFT, expand=True, fill=Tk.BOTH)
 
-# mod_pane = Tk.PanedWindow(orient=Tk.HORIZONTAL)
-# mod_pane.pack(expand=1)
+# frame for everything else on the right
+right_frame = Tk.Frame(root)
+right_frame.pack(side=Tk.RIGHT, expand=False, padx=4, pady=4)
 
-button_pane = Tk.PanedWindow(orient=Tk.HORIZONTAL)
-button_pane.pack(expand=1)
+# subframe for file/graph selector
+selector_frame = Tk.LabelFrame(master=right_frame, text='Select file/graph', padx=4, pady=4)
+selector_frame.pack(fill='both', expand='yes')
 
-fitting_pane = Tk.PanedWindow(orient=Tk.HORIZONTAL)
-fitting_pane.pack(expand=1)
+# subframe for buttons
+button_frame = Tk.Frame(right_frame)
+button_frame.pack(ipadx=4, ipady=4, padx=4, pady=4, expand=True, fill=Tk.X)
 
 # A tk.DrawingArea for the main plot
-canvas = FigureCanvasTkAgg(fig, master=root)
-# canvas = FigureCanvasTkAgg(fig, master=plot_pane)
+canvas = FigureCanvasTkAgg(fig, master=left_frame)
 canvas.show()
 canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-# plot_pane.add(canvas.get_tk_widget())
 
-#############
 # The matplotlib toolbar
-#############
-# toolbar = NavigationToolbar2TkAgg( canvas, root )
-# toolbar.update()
-# canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-# plot_pane.add(canvas._tkcanvas)
+toolbar = NavigationToolbar2TkAgg(canvas, left_frame)
+toolbar.update()
+canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
 #############
 # Add sliders with multiplier entry boxes
@@ -209,11 +210,25 @@ def validate_float(contents):
 
 
 for i, p in enumerate(params):
-    slider = Tk.Scale(master=root, label='p%d' %i, orient=Tk.HORIZONTAL, from_=-1, to=1,
-                      resolution=1E-8, length=500, tickinterval=1, command=update_plot)
-    slider.pack(fill=Tk.X)
+    if i == 0:
+        col = "blue"
+    elif i in [1, 2]:
+        col = "green"
+    else:
+        col = "orange"
+
+    param_frame = Tk.LabelFrame(master=right_frame, text='p%d' % i, padx=2, fg=col)
+    param_frame.pack(fill='both', expand='yes')
+
+    slider = Tk.Scale(master=param_frame, orient=Tk.HORIZONTAL, from_=-1, to=1,
+                      resolution=1E-8, length=450, tickinterval=1, command=update_plot) # label='p%d' %i,
+    slider.grid(column=0, row=i+1)
     sliders.append(slider)
-    box = Tk.Entry(master=root)#, validatecommand=validate_float, validate='key')
+
+    label = Tk.Label(master=param_frame, text=" * ")
+    label.grid(column=1, row=i+1)
+
+    box = Tk.Entry(master=param_frame, width=9)#, validatecommand=validate_float, validate='key')
     box.register(validate_float)
     box.bind('<Key>', update_plot)
     box.grid(column=2, row=i+1)
@@ -231,20 +246,18 @@ def print_params():
     print pf_func(et, params)
 
 
-print_button = Tk.Button(master=root, text='Print params', command=print_params)
-# print_button.pack(side=Tk.LEFT, expand=True)
-button_pane.add(print_button)
+print_button = Tk.Button(master=button_frame, text='Print params', command=print_params)
+print_button.pack(side=Tk.LEFT, expand=True)
 
 
 def reset_params():
-    for slider, box, param in zip(sliders, boxes, original_params):
+    for slider, box, param in zip(sliders, multiplier_boxes, original_params):
         set_slider_box_values(slider, box, param)
     # update_plot(None)
 
 
-reset_button = Tk.Button(master=root, text='Reset params', command=reset_params)
-# reset_button.pack(side=Tk.LEFT, expand=True)
-button_pane.add(reset_button)
+reset_button = Tk.Button(master=button_frame, text='Reset params', command=reset_params)
+reset_button.pack(side=Tk.LEFT, expand=True)
 
 
 def _quit():
@@ -252,29 +265,36 @@ def _quit():
     root.destroy()  # this is necessary on Windows to prevent
                     # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
-quit_button = Tk.Button(master=root, text='Quit', command=_quit)
-# quit_button.pack(side=Tk.LEFT, expand=True)
-button_pane.add(quit_button)
+quit_button = Tk.Button(master=button_frame, text='Quit', command=_quit)
+quit_button.pack(side=Tk.LEFT, expand=True)
 
 ###########
 # Fitting
 ###########
+fit_frame = Tk.LabelFrame(right_frame, text='Fitting', padx=2)
+fit_frame.pack()
 
-label_min = Tk.Label(root, text="ET min:")
-label_max = Tk.Label(root, text="ET max:")
-label_end = Tk.Label(root, text="Fit end condition:")
-box_min = Tk.Entry(root, width=3)
-box_min.insert(3, 20)
-box_max = Tk.Entry(root, width=3)
-box_max.insert(3, 200)
-box_end = Tk.Entry(root, width=3)
-box_end.insert(3, 1.5)
-fitting_pane.add(label_min)
-fitting_pane.add(box_min)
-fitting_pane.add(label_max)
-fitting_pane.add(box_max)
-fitting_pane.add(label_end)
-fitting_pane.add(box_end)
+# dummy button to make the Fit button show for some weird reason
+button = Tk.Button(fit_frame, text='')
+button.pack(side=Tk.RIGHT)
+
+label_min = Tk.Label(fit_frame, text="ET min:")
+label_max = Tk.Label(fit_frame, text="ET max:")
+label_curr = Tk.Label(fit_frame, text="Current chi2: NA")
+label_end = Tk.Label(fit_frame, text="End chi2:")
+box_min = Tk.Entry(fit_frame, width=3)
+box_min.insert(0, 20)
+box_max = Tk.Entry(fit_frame, width=3)
+box_max.insert(0, 200)
+box_end = Tk.Entry(fit_frame, width=3)
+box_end.insert(0, 1.5)
+label_min.pack(side=Tk.LEFT)
+box_min.pack(side=Tk.LEFT)
+label_max.pack(side=Tk.LEFT)
+box_max.pack(side=Tk.LEFT)
+label_curr.pack(side=Tk.LEFT)
+label_end.pack(side=Tk.LEFT)
+box_end.pack(side=Tk.LEFT)
 
 
 def calc_penalty(params, min_x, max_x):
