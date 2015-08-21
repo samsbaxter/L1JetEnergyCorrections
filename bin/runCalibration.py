@@ -275,7 +275,7 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
 
     if do_correction_fit:
         thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-        fit_min = 30
+        fit_min = 20
         # some forward - specific settings
         if absetamin >= 3.:
             fit_min = 20
@@ -284,7 +284,7 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         xarr, yarr = get_xy(gr)
         max_pt = max(xarr)  # Maxmimum pt for upper range of fit
         # For lower bound of fit, use either fit_min or the pt
-        # of the maximum corr value, whicher is larger.
+        # of the maximum corr value, which ever is larger.
         # Check to make sure it's not the last point on the graph
         # (e.g. if no turnover), in which case just use the default fit_min
         max_corr = max(yarr[:len(yarr)/2])
@@ -318,6 +318,9 @@ def fit_correction(graph, function, fit_min, fit_max):
     If that fails, then we lower the upper bound and try fitting whilst raising
     the lower bound again.
 
+    If fit_min and fit_max are set to < 0, then it will try and figure out
+    sensible settings to avoid a low pT turnover, and a high pT tail.
+
     Returns parameters of successful fit.
     """
     print "Fitting", fit_min, fit_max
@@ -326,21 +329,27 @@ def fit_correction(graph, function, fit_min, fit_max):
     # pt range due to turnover
     # To make the fit better/easier, we make a Graph with the subset of points we want to fit to
     xarr, yarr = get_xy(graph)
+    exarr, eyarr = get_exey(graph)
     min_ind = xarr.index(next(x for x in xarr if x >= fit_min and xarr[xarr.index(x)+1] > x))
     print "min_ind:", min_ind, "x,y of fit graph:", xarr[min_ind:], yarr[min_ind:]
 
+    print "Graph points"
+    print "x", xarr
+    print "y", yarr
+    print "errx", exarr
+    print "erry", eyarr
+
     # For HF, the upper end flicks up, ruining the fit. Remove these points:
-    max_ind = 0
-    starting_ind = len(yarr)/2
-    for i, y in enumerate(yarr[starting_ind:]):
-        if yarr[i + 1 + starting_ind] > y:
-            max_ind = i + starting_ind + 1
-            break
-    print "max_ind:", max_ind, "x,y of fit graph:", xarr[min_ind:max_ind], yarr[min_ind:max_ind]
+    max_ind = len(xarr)-1
+    # starting_ind = len(yarr)/2
+    # for i, y in enumerate(yarr[starting_ind:]):
+    #     if yarr[i + 1 + starting_ind] > y:
+    #         max_ind = i + starting_ind + 1
+    #         break
+    # print "max_ind:", max_ind, "x,y of fit graph:", xarr[min_ind:max_ind], yarr[min_ind:max_ind]
 
     # Do not user graph.RemovePoint()! It doesn't work, and only removes every-other point
     # Instead make a graph with the bit of array we want
-    exarr, eyarr = get_exey(graph)
     fit_graph = ROOT.TGraphErrors(max_ind-min_ind, np.array(xarr[min_ind:max_ind]), np.array(yarr[min_ind:max_ind]), np.array(exarr[min_ind:max_ind]), np.array(eyarr[min_ind:max_ind]))
     fit_graph.SetName(graph.GetName()+"_fit")
 
