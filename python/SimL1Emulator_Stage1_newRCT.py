@@ -116,14 +116,20 @@ process.l1ExtraLayer2.hfRingEtSumsSource    = cms.InputTag("simCaloStage1LegacyF
 process.l1ExtraLayer2.hfRingBitCountsSource = cms.InputTag("simCaloStage1LegacyFormatDigis")
 process.l1ExtraLayer2.muonSource = cms.InputTag("simGmtDigis")
 
-# Turn off any existing stage 1 calibrations
-# process.caloStage1Params.jetCalibrationType = cms.string("None")
+# Change jet seed to 5 GeV
+process.caloStage1Params.jetSeedThreshold = cms.double(5.)
+file_append += "_jetSeed5"
+
+# Change the Stage 1 calibrations as necessary
+# process.caloStage1Params.jetCalibrationType = cms.string("None")  # no calibrations - necessary for deriving them
+# file_append += "_noStage1Lut"
+
 process.caloStage1Params.jetCalibrationType = cms.string("Stage1JEC")
 if new_layer2_LUT:
-    process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/jetCalibrationLUT_stage1_symmetric_Spring15_newRCTv2.txt")
-    file_append += "_newLUT"
+    process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath("L1Trigger/L1JetEnergyCorrections/data/Jet_Stage1_2015_v2.txt")
+    file_append += "_stage1v2"
 else:
-    file_append += "_oldLUT"
+    file_append += "_stage1v0"
 
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
@@ -177,17 +183,17 @@ process.l1ExtraTreeProducerIntern.maxL1Extra = cms.uint32(50)
 # Do ak5 GenJets
 ##############################
 # Need to make ak5, not included in GEN-SIM-RAW for Spring15 onwards
-process.load('RecoJets.Configuration.GenJetParticles_cff')
-process.load('RecoJets.Configuration.RecoGenJets_cff')
-process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak5GenJets)
+# process.load('RecoJets.Configuration.GenJetParticles_cff')
+# process.load('RecoJets.Configuration.RecoGenJets_cff')
+# process.antiktGenJets = cms.Sequence(process.genJetParticles*process.ak5GenJets)
 
-# Convert ak5 genjets to L1JetParticle objects, store in another L1ExtraTree as cenJets
-process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
-    genJetSource = cms.InputTag("ak5GenJets", "", "L1NTUPLE")
-)
-process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducerIntern.clone()
-process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk5:GenJets")
-process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
+# # Convert ak5 genjets to L1JetParticle objects, store in another L1ExtraTree as cenJets
+# process.genJetToL1JetAk5 = cms.EDProducer("GenJetToL1Jet",
+#     genJetSource = cms.InputTag("ak5GenJets", "", "L1NTUPLE")
+# )
+# process.l1ExtraTreeProducerGenAk5 = process.l1ExtraTreeProducerIntern.clone()
+# process.l1ExtraTreeProducerGenAk5.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk5:GenJets")
+# process.l1ExtraTreeProducerGenAk5.maxL1Extra = cms.uint32(50)
 
 ##############################
 # Do ak4 GenJets
@@ -222,7 +228,7 @@ if new_RCT_calibs:
     # Format: map{(record,label):(tag,connection),...}
     recordOverrides = { ('L1RCTParametersRcd', None) : ('L1RCTParametersRcd_L1TDevelCollisions_ExtendedScaleFactorsV4', None) }
     process.GlobalTag = GlobalTag(process.GlobalTag, gt, recordOverrides)
-    file_append += '_newRCTv4'
+    file_append += '_rctv4'
 else:
     print "*** Using whatever RCT calibs the sample was made with"
     process.GlobalTag.globaltag = cms.string(gt)
@@ -238,33 +244,32 @@ process.l1NtupleProducer.gctIsoEmSource       = cms.InputTag("simCaloStage1Legac
 process.l1NtupleProducer.gctEnergySumsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","")
 process.l1NtupleProducer.gctTauJetsSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
 process.l1NtupleProducer.gctIsoTauJetsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
+process.l1NtupleProducer.rctDigis  = cms.InputTag("simRctDigis")
+process.l1NtupleProducer.simulationSource  = cms.InputTag("addPileupInfo")
+
 
 ##############################
 # Overall path
 ##############################
 
 process.p = cms.Path(
-    # process.L1TCaloStage1_PPFromRaw
     # process.ecalDigis # ecal unpacker
     # *process.hcalDigis # hcal unpacker
-    # *process.gctDigis # gct unpacker
-    # *process.simHcalTriggerPrimitiveDigis # remake hcal TPs
-    # *process.simRctDigis # remake regions
     process.RawToDigi
     *process.simRctDigis
     *process.L1TCaloStage1 # run Stage1
     *process.l1ExtraLayer2
     *process.preGtJetToL1Jet # convert preGtJets into L1Jet objs
-    *process.antiktGenJets # make ak5GenJets
-    *process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
     *process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
     *process.l1ExtraTreeProducer # normal Stage 1 stuff in L1ExtraTree
     *process.l1ExtraTreeProducerIntern # ditto but with preGtJets in cenJet branch
-    *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
+    # *process.antiktGenJets # make ak5GenJets
+    # *process.genJetToL1JetAk5 # convert ak5GenJets to L1Jet objs
+    # *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
     *process.puInfo # store nVtx info
-    # *process.l1UpgradeTreeProducer
     *process.l1NtupleProducer
+    # *process.l1UpgradeTreeProducer
     )
 
 if dump_RCT:
@@ -274,7 +279,7 @@ if dump_RCT:
 ##############################
 # Input/output & standard stuff
 ##############################
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 # Input source
 
@@ -282,13 +287,12 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 if gt in ['PHYS14_25_V3', 'PHYS14_25_V2', 'MCRUN2_74_V8']:
     fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/004DD38A-2B8E-E411-8E4F-003048FFD76E.root')
 elif gt in ['MCRUN2_74_V9', 'MCRUN2_74_V7']:
-    # fileNames = cms.untracked.vstring('root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v2/80000/0011C312-7701-E511-B156-0025905C94D2.root')
     fileNames = cms.untracked.vstring(
-        'root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_40_BX_25ns_tsg_MCRUN2_74_V7-v1/00000/0C72BDF4-03F4-E411-868F-003048CEFFE4.root'
-        # 'root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/00EFBCBB-61F0-E411-B56B-00266CF9B254.root',
+        'root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/00EFBCBB-61F0-E411-B56B-00266CF9B254.root',
         # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/02559CAE-F5EF-E411-AEDC-002590D0AFB4.root",
         # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/02C5441C-60F0-E411-A6D9-7845C4FC3611.root",
         # "root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_20_BX_25ns_tsg_MCRUN2_74_V7-v1/70000/0402D5EC-F7EF-E411-86ED-E0CB4E4408F3.root",
+        # 'root://xrootd.unl.edu//store/mc/RunIISpring15Digi74/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/GEN-SIM-RAW/AVE_40_BX_25ns_tsg_MCRUN2_74_V7-v1/00000/0C72BDF4-03F4-E411-868F-003048CEFFE4.root'
         )
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
