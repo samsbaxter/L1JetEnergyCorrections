@@ -18,7 +18,7 @@ from itertools import izip
 import os
 import argparse
 import binning
-from common_utils import *
+import common_utils as cu
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -77,7 +77,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     h2d_rsp_gen.SetTitle(";p_{T}^{Ref} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
-    h2d_rsp_gen_norm = norm_vertical_bins(h2d_rsp_gen)
+    h2d_rsp_gen_norm = cu.norm_vertical_bins(h2d_rsp_gen)
     output_f_hists.WriteTObject(h2d_rsp_gen_norm)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
@@ -86,7 +86,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
-    h2d_rsp_l1_norm = norm_vertical_bins(h2d_rsp_l1)
+    h2d_rsp_l1_norm = cu.norm_vertical_bins(h2d_rsp_l1)
     output_f_hists.WriteTObject(h2d_rsp_l1_norm)
 
     # Draw pT^Gen Vs pT^L1
@@ -149,7 +149,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
         # Figure out if we've made a response hist already:
         rsp_name = "hrsp_eta_%g_%g" % (absetamin, absetamax)
         h_rsp = None
-        if exists_in_file(outputfile, "eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name)):
+        if cu.exists_in_file(outputfile, "eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name)):
             h_rsp = outputfile.Get("eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name))
             print "Using existing plot"
         else:
@@ -308,11 +308,11 @@ def main(in_args=sys.argv[1:]):
     args = parser.parse_args(args=in_args)
 
     # Open input & output files, check
-    inputf = ROOT.TFile(args.input, "READ")
-    output_f = ROOT.TFile(args.output, "RECREATE")
+    input_file = cu.open_root_file(args.input, "READ")
+    output_file = cu.open_root_file(args.output, "RECREATE")
     print "IN:", args.input
     print "OUT:", args.output
-    if not inputf or not output_f:
+    if not input_file or not output_file:
         raise Exception("Input or output files cannot be opened")
 
     etaBins = binning.eta_bins
@@ -347,6 +347,8 @@ def main(in_args=sys.argv[1:]):
         # Do a response vs eta graph
         plot_rsp_eta(inputf, output_f, etaBins, args.maxPt)
 
+    input_file.Close()
+    output_file.Close()
 
 if __name__ == "__main__":
     main()
