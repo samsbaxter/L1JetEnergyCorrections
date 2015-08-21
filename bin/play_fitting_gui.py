@@ -178,13 +178,21 @@ def set_slider_box_values(slider, multiplier_box, value):
     copysign(y,value) # mantissa
     slider.set(y)
     multiplier_box.delete(0, Tk.END)
-    multiplier_box.insert(5, pow(10, n))
+    multiplier_box.insert(0, pow(10, n))
 
 
 def update_plot(event):
     """Update the main plot whenever a slider or multiplier box is updated."""
-    for i, (slider, box) in enumerate(zip(sliders, boxes)):
+    for i, (slider, box) in enumerate(zip(sliders, multiplier_boxes)):
         params[i] = slider.get() * float(box.get())
+    # this retains whatever the current axes limits are,
+    # incase the user zoomed/transposed
+    global y_min, y_max, et_min, et_max
+    # global y_max
+    # global et_min
+    # global et_max
+    y_min, y_max = axes.get_ylim()
+    et_min, et_max = axes.get_xlim()
     axes.clear()
     draw_reference_graph(axes, graph_x, graph_y, graph_errx, graph_erry)
     plot_fit_func(axes, et, params)
@@ -208,8 +216,8 @@ for i, p in enumerate(params):
     box = Tk.Entry(master=root)#, validatecommand=validate_float, validate='key')
     box.register(validate_float)
     box.bind('<Key>', update_plot)
-    box.pack()
-    boxes.append(box)
+    box.grid(column=2, row=i+1)
+    multiplier_boxes.append(box)
     set_slider_box_values(slider, box, p)
 
 ##############
@@ -327,7 +335,7 @@ def approx_fit():
             print 'old penalty:', old_penalty
             print 'new penalty:', new_penalty
             old_params, old_penalty = new_params[:], new_penalty
-            for slider, box, param in zip(sliders, boxes, new_params):
+            for slider, box, param in zip(sliders, multiplier_boxes, new_params):
                 set_slider_box_values(slider, box, param)
             stuck_counter = 0
             update_plot(None)
