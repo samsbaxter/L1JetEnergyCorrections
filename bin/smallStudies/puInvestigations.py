@@ -60,6 +60,9 @@ def make_plots(input_filename, out_dir, refPtMin=0, internJet=False, append=""):
             out_name = mg.GetName()+".pdf"
             c.SaveAs(out_dir+"/"+out_name)
 
+
+    # DeltaR vs response for given pT bin
+
     f.Close()
 
     # Draw DeltaR Vs Delta pT

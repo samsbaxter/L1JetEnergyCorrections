@@ -1,8 +1,8 @@
 {
     TFile * f1 = TFile::Open("/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/output_QCD_Pt-30to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500_better2.root");
-    TFile * f2 = TFile::Open("/users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/output_QCD_Pt-15to170_300to1000_Spring15_AVE20BX25_Stage1_jetSeed5_MCRUN2_V9_noStage1Lut_rctv4_preGt_ak4_ref14to1000_l10to500.root");
+    TFile * f2 = TFile::Open("/users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/output_QCD_Pt-30to170_300to1000_Spring15_AVE20BX25_Stage1_jetSeed5_MCRUN2_V9_noStage1Lut_rctv4_preGt_ak4_ref14to1000_l10to500_central.root");
 
-    TLegend * leg = new TLegend(0.6, 0.6, 0.88, 0.88);
+    TLegend * leg = new TLegend(0.67, 0.67, 0.88, 0.88);
     TString leg1Label("jet seed 10");
     TString leg2Label("jet seed 5");
 
@@ -29,8 +29,8 @@
         cout << grName << endl;
         TF1 * form1 = (TF1*) f1->Get(grName);
         TF1 * form2 = (TF1*) f2->Get(grName);
-        form1->SetTitle(TString::Format("eta: %g - %g", etaBins[i], etaBins[i+1]));
-        form2->SetTitle(TString::Format("eta: %g - %g", etaBins[i], etaBins[i+1]));
+        form1->SetTitle(TString::Format("eta: %g - %g", etaBins[i], etaBins[i+1])+";p_{T};Correction value");
+        form2->SetTitle(TString::Format("eta: %g - %g", etaBins[i], etaBins[i+1])+";p_{T};Correction value");
         form2->SetLineColor(kBlue);
 
         double min = 0;
@@ -72,19 +72,17 @@
         TGraphErrors * gr2 = (TGraphErrors*) f2->Get(grName);
         gr1->SetTitle(TString::Format("eta: %g - %g", etaBins[i], etaBins[i+1]));
         gr2->SetTitle(TString::Format("eta: %g - %g", etaBins[i], etaBins[i+1]));
+        gr1->SetLineColor(kRed);
         gr2->SetLineColor(kBlue);
 
         min = 0;
         max = 250;
         gr1->GetXaxis()->SetLimits(min, max);
         gr2->GetXaxis()->SetLimits(min, max);
-        // if (gr2->GetMaximum() > gr1->GetMaximum()) {
+        gr1->GetYaxis()->SetRangeUser(0.8, 2.6);
+        gr2->GetYaxis()->SetRangeUser(0.8, 2.6);
         gr2->Draw("ALP");
         gr1->Draw("SAME");
-        // } else {
-        //     gr1->Draw("ALP");
-        //     gr2->Draw("SAME");
-        // }
         leg->Draw();
         c1->SaveAs(grName+"_compare.pdf");
 
@@ -92,17 +90,18 @@
         max = 50;
         gr1->GetXaxis()->SetLimits(min, max);
         gr2->GetXaxis()->SetLimits(min, max);
-        // if (gr2->GetMaximum() > gr1->GetMaximum()) {
-            gr2->Draw("ALP");
-            gr1->Draw("SAME");
-        // } else {
-        //     gr1->Draw("ALP");
-        //     gr2->Draw("SAME");
-        // }
+        gr2->Draw("ALP");
+        gr1->Draw("SAME");
         leg->Draw();
         c1->SaveAs(grName+"_compare_zoom.pdf");
 
-
+        // plot graphs and functions
+        gr2->Draw("ALP");
+        gr1->Draw("SAME");
+        form2->Draw("SAME");
+        form1->Draw("SAME");
+        leg->Draw();
+        c1->SaveAs(grName+"_compare_zoom_fn.pdf");
     }
 
     f1->Close();
