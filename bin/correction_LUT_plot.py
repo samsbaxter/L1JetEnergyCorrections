@@ -107,7 +107,7 @@ def print_GCT_lut_file(fit_params, eta_bins, filename):
         lut_file.write(")\n")
 
 
-def print_Stage1_lut_file(fit_params, eta_bins, filename):
+def print_Stage1_lut_file(fit_functions, eta_bins, filename):
     """
     Take fit parameters and print to file, for use in CMSSW config file with Stage 1 emulator.
 
@@ -128,12 +128,13 @@ def print_Stage1_lut_file(fit_params, eta_bins, filename):
     from -1.27682 to 2.152 !!!
     """
         # check
-    if (1 + len(fit_params)) != len(eta_bins):
-        print "ERROR: no. of eta bins in fit_params not same as no. of eta bins in setup"
+    if (1 + len(fit_functions)) != len(eta_bins):
+        print "ERROR: no. of eta bins in fit_functions not same as no. of eta bins in setup"
         return
 
     with open(filename, "w") as lut_file:
-        header = """#<header> V1 15 7 </header>
+        with open(filename.replace(".txt", "_dump.txt"), "w") as dump_file:
+            header = """#<header> V1 15 7 </header>
 ########################################
 # jet calibration and ranking LUT
 # MSB 5 bits are eta value, LSB 10 bits
@@ -141,31 +142,32 @@ def print_Stage1_lut_file(fit_params, eta_bins, filename):
 ########################################
 # Second  attempt at preliminar CalibJet for FirmwareVersion3
 # Symmetric in Eta and RANK=0 jets do not scale up
-# ########################################"""
-        lut_file.write(header)
+#########################################
+"""
+            lut_file.write(header)
 
-        for eta in xrange(22):
+            for eta in xrange(22):
 
-            param_ind = (10 - eta) if eta < 11 else (eta - 11)
+                param_ind = (10 - eta) if eta < 11 else (eta - 11)
+                print "Eta region:", eta, " = physical eta bin:", param_ind
+                for pt in xrange(1025):
 
-            for pt in xrange(1025):
+                    if pt >(1<<10)-1:
+                        pt = ((1<<10) -1)
+                        break
 
-                if pt >(1<<10)-1:
-                    pt = ((1<<10) -1)
-                    break
-
-                lut_address = (eta<<10) + pt
-                physPt = pt / 2. # convert HW pt to physical pt
-                pt_corr = function(physPt, fit_params[param_ind])
-                if pt_corr < 0:
-                    pt_corr = 0
-                RANKCALIB = pt_corr / 4;  # The 4 is to go to the 4 GeV binning at the GT
-                if (RANKCALIB > 63):
-                    RANKCALIB = 63;
-                line = "%s %s" %(lut_address, RANKCALIB)
-                print line
-                lut_file.write(line);
-
+                    lut_address = (eta<<10) + pt
+                    physPt = pt / 2. # convert HW pt to physical pt
+                    pt_corr = physPt * fit_functions[param_ind].Eval(physPt)
+                    if pt_corr < 0:
+                        pt_corr = 0
+                    RANKCALIB = int(pt_corr / 4);  # The 4 is to go to the 4 GeV binning at the GT
+                    if (RANKCALIB > 63):
+                        RANKCALIB = 63;
+                    line = "%s %s\n" % (lut_address, RANKCALIB)
+                    lut_file.write(line);
+                    dump_line = "eta: %d phys pt: %f LUT address: %d corrPhysPt: %f RANKCALIB: %d\n" % (eta, physPt, lut_address, pt_corr, RANKCALIB)
+                    dump_file.write(dump_line)
 
 def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     """Make plot of pt before Vs after to show mapping"""
@@ -271,9 +273,11 @@ def main(in_args=sys.argv[1:]):
 
     line2 = ROOT.TLine(1, 2, 20, 2)
     line2.SetLineStyle(3)
-    all_fit_params = []
 
-    etaBins = binning.eta_bins_central # CHANGE ME TO INCLUDE FWD
+    all_fit_params = []
+    all_fits = []
+
+    etaBins = binning.eta_bins
     for i, (etamin, etamax) in enumerate(izip(etaBins[:-1], etaBins[1:])):
         print "Eta bin:", etamin, "-", etamax
 
@@ -282,6 +286,7 @@ def main(in_args=sys.argv[1:]):
         if not fit_func:
             raise Exception("Couldn't get fit function fitfcneta_%g_%g" % (etamin, etamax))
 
+        all_fits.append(fit_func)
         fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
         all_fit_params.append(fit_params)
         print "Fit parameters:", fit_params
@@ -319,7 +324,7 @@ def main(in_args=sys.argv[1:]):
     if args.gct:
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
     elif args.stage1:
-        print_Stage1_lut_file(all_fit_params, etaBins, args.lut)
+        print_Stage1_lut_file(all_fits, etaBins, args.lut)
 
 
 if __name__ == "__main__":
