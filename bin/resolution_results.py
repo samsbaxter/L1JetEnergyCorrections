@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This script outputs all the resolution plots in the ROOT file as one long pdf,
-cos TBrowser sucks.
+This script outputs all the resolution plots in the ROOT file output by
+makeResolutionPlots.py as one long pdf, cos TBrowser sucks.
 """
 
 import ROOT as r
@@ -439,7 +439,7 @@ def compile_pdf(texfile, pdffile, outdir, n=2):
 
     output = "-output-directory=%s" % outdir
     for i in range(n):
-        subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
+        subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
         # subprocess.call(["lualatex", output, texfile])
     # Open the result
     subprocess.call(["open", pdffile])

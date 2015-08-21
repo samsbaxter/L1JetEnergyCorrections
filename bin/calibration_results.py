@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This script outputs all the calibration plots in the ROOT file as one long pdf,
-cos TBrowser sucks.
+This script outputs all the calibration plots in the ROOT file output by
+runCalibration.py as one long pdf, cos TBrowser sucks.
 """
 
 import ROOT as r
@@ -252,12 +252,12 @@ def compile_pdf(texfile, pdffile, outdir):
     """
 
     output = "-output-directory=%s" % outdir
-    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
-    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
+    subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
+    subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
     # subprocess.call(["lualatex", output, texfile])
     # subprocess.call(["lualatex", output, texfile])
     # Open the result
-    subprocess.call(["open", pdffile])
+    # subprocess.call(["open", pdffile])
 
 
 if __name__ == "__main__":
