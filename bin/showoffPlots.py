@@ -22,7 +22,7 @@ import argparse
 from subprocess import call
 from subprocess import check_output
 from sys import platform as _platform
-from itertools import izip
+from itertools import izip, product
 from common_utils import *
 from array import array
 import os
@@ -34,8 +34,6 @@ ROOT.gStyle.SetOptFit(1) # only show fit params and errors
 # ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(55)
-
-ptBins = binning.pt_bins
 
 # Some common strings
 ref_str = "GenJet"
@@ -333,11 +331,15 @@ def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
+def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
     """Plot l1 pt against ref jet pt, for given L1 eta bin"""
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
     h2d_gen_l1 = get_from_file(check_file, hname)
     c = generate_canvas()
+    app = ""
+    if logZ:
+        c.SetLogz()
+        app = "_log"
     h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
     # lines of constant response
@@ -361,16 +363,19 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, oDir, oFormat="pdf"):
     line0p5.SetLineStyle(3)
     line0p5.SetLineWidth(2)
     line0p5.Draw()
-    c.SaveAs("%s/h2d_gen_l1_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+    c.SaveAs("%s/h2d_gen_l1_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
-def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, oDir, oFormat="pdf"):
+def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf"):
     """Plot response (l1/ref) Vs l1 pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_l1%s" % (eta_min, eta_max, app)
     h2d_rsp_l1_orig = get_from_file(check_file, hname)
     h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1,2,"hnew")
     c = generate_canvas()
+    if logZ:
+        c.SetLogz()
+        app += "_log"
     h2d_rsp_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_l1_str, rsp_str))
     h2d_rsp_l1.Draw("COLZ")
     line = ROOT.TLine(0, 1, 250, 1)
@@ -380,13 +385,16 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, oDir, oFormat="pdf"):
     c.SaveAs("%s/h2d_rsp_l1_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
-def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, oDir, oFormat="pdf"):
+def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf"):
     """Plot response (l1/ref) Vs ref pt"""
     app = "_normX" if normX else ""
+    c = generate_canvas()
     hname = "eta_%g_%g/Histograms/h2d_rsp_gen%s" % (eta_min, eta_max, app)
     h2d_rsp_ref_orig = get_from_file(check_file, hname)
     h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1,2,"hnew")
-    c = generate_canvas()
+    if logZ:
+        c.SetLogz()
+        app += "_log"
     h2d_rsp_ref.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
     h2d_rsp_ref.Draw("COLZ")
     line = ROOT.TLine(0, 1, 250, 1)
@@ -447,7 +455,7 @@ def plot_rsp_eta(check_files, eta_min, eta_max, oDir, oFormat="pdf"):
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
-def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, oDir, oFormat='pdf'):
+def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oFormat='pdf'):
     """Plot component hists of response vs pt graph, for given eta bin"""
 
     sub_dir = "eta_%g_%g" % (eta_min, eta_max)
@@ -457,10 +465,10 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, oDir, oFormat='pdf'
     c = generate_canvas(plot_title)
     for i, pt_min  in enumerate(pt_bins[:-1]):
         pt_max = pt_bins[i+1]
-        hist = get_from_file(check_file, "%s/Histograms/rsp_pt_%g_%g" % (sub_dir, pt_min, pt_max))
-        hist.SetTitle("%s;%s;%s" % (plot_title, pt_l1_str, rsp_str))
+        hist = get_from_file(check_file, "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max))
+        hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
         hist.Draw()
-        c.SaveAs("%s/%s/rsp_pt_%g_%g.%s" % (oDir, sub_dir, pt_min, pt_max, oFormat))
+        c.SaveAs("%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat))
 
 
 def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
@@ -563,20 +571,37 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
 def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one pt, eta bin"""
+    sub_dir = "eta_%g_%g" % (eta_min, eta_max)
+    if not os.path.isdir("%s/%s" % (oDir, sub_dir)):
+        os.mkdir("%s/%s" % (oDir, sub_dir))
     hname = "eta_%g_%g/Histograms/Rsp_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
-    h_rsp = get_from_file(calib_file, hname)
-    c = generate_canvas()
-    h_rsp.Draw("HISTE")
-    c.SaveAs("%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
+    # ignore histogram not found errors... naughty naughty
+    try:
+        h_rsp = get_from_file(calib_file, hname)
+        c = generate_canvas()
+        h_rsp.Draw("HISTE")
+        func = h_rsp.GetListOfFunctions().At(0)
+        if func:
+            func.Draw("SAME")
+        c.SaveAs("%s/%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat))
+    except Exception:
+        pass
 
 
 def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
-    """Plot the L1 pt in a given ref jet pt bin"""
+    """Plot the L1 pt in a given ref jet pt bin, for a given eta bin"""
+    sub_dir = "eta_%g_%g" % (eta_min, eta_max)
+    if not os.path.isdir("%s/%s" % (oDir, sub_dir)):
+        os.mkdir("%s/%s" % (oDir, sub_dir))
     hname = "eta_%g_%g/Histograms/L1_pt_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
-    h_pt = get_from_file(calib_file, hname)
-    c = generate_canvas()
-    h_pt.Draw("HISTE")
-    c.SaveAs("%s/L1_pt_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, pt_min, pt_max, oFormat))
+    # ignore histogram not found errors... naughty naughty
+    try:
+        h_pt = get_from_file(calib_file, hname)
+        c = generate_canvas()
+        h_pt.Draw("HISTE")
+        c.SaveAs("%s/%s/L1_pt_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat))
+    except Exception:
+        pass
 
 
 def main(in_args=sys.argv[1:]):
@@ -615,6 +640,7 @@ def main(in_args=sys.argv[1:]):
 
     # Choice eta & pt bin
     eta_min, eta_max = binning.eta_bins[0], binning.eta_bins[-1]
+    ptBins = binning.pt_bins
     pt_min, pt_max = ptBins[10], ptBins[11]
 
     if args.etaInd:
@@ -700,57 +726,43 @@ def main(in_args=sys.argv[1:]):
         ptBinsWide = list(np.arange(10, 250, 8))
 
         for emin, emax in izip(etaBins[:-1], etaBins[1:]):
-            plot_l1_Vs_ref(check_file, emin, emax, args.oDir, args.format)
+            plot_l1_Vs_ref(check_file, emin, emax, False, args.oDir, args.format)
             plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
-            plot_rsp_Vs_l1(check_file, emin, emax, args.oDir, args.format)
-            plot_rsp_Vs_ref(check_file, emin, emax, args.oDir, args.format)
+            plot_rsp_Vs_l1(check_file, emin, emax, False, False, args.oDir, args.format)
+            plot_rsp_Vs_ref(check_file, emin, emax, False, False, args.oDir, args.format)
             # plot_rsp_pt_hists(check_file, emin, emax, ptBinsWide, args.oDir, args.format)
 
-        plot_rsp_Vs_l1(check_file, 0, 3, False, args.oDir, args.format)
-        plot_rsp_Vs_l1(check_file, 0, 3, True, args.oDir, args.format)
-        # plot_rsp_Vs_l1(check_file, 0, 5, False, args.oDir, args.format)
-        # plot_rsp_Vs_l1(check_file, 0, 5, True, args.oDir, args.format)
-        # plot_rsp_Vs_l1(check_file, 3, 5, False, args.oDir, args.format)
-        # plot_rsp_Vs_l1(check_file, 3, 5, True, args.oDir, args.format)
-
-        plot_rsp_pt_hists(check_file, 0, 3, ptBins, args.oDir, args.format)
-        plot_rsp_pt_hists(check_file, 0, 5, ptBins, args.oDir, args.format)
-        plot_rsp_pt_hists(check_file, 3, 5, ptBins, args.oDir, args.format)
-
-        plot_l1_Vs_ref(check_file, 0, 3, args.oDir, args.format)
-        plot_l1_Vs_ref(check_file, 0, 5, args.oDir, args.format)
-        plot_l1_Vs_ref(check_file, 3, 5, args.oDir, args.format)
-
-        plot_rsp_Vs_ref(check_file, 0, 3, False, args.oDir, args.format)
-        plot_rsp_Vs_ref(check_file, 0, 3, True, args.oDir, args.format)
-        # plot_rsp_Vs_ref(check_file, 0, 5, False, args.oDir, args.format)
-        # plot_rsp_Vs_ref(check_file, 0, 5, True, args.oDir, args.format)
-        # plot_rsp_Vs_ref(check_file, 3, 5, False, args.oDir, args.format)
-        # plot_rsp_Vs_ref(check_file, 3, 5, True, args.oDir, args.format)
-
-        # graphs, can take more than 1 file:
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
-        plot_rsp_eta(check_files, 0, 3, args.oDir, args.format)
-        plot_rsp_eta(check_files, 0, 5, args.oDir, args.format)
-        plot_rsp_eta(check_files, 3, 5, args.oDir, args.format)
+        # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
+        for (eta_min, eta_max) in product([0, 3], [3, 5]):
+            if eta_min == eta_max:
+                continue
 
-        plot_rsp_pt(check_files, 0, 3, args.oDir, args.format)
-        plot_rsp_pt(check_files, 0, 5, args.oDir, args.format)
-        plot_rsp_pt(check_files, 3, 5, args.oDir, args.format)
+            for (normX, logZ) in product([True, False], [True, False]):
+                plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, args.format)
+                plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
+                plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
 
-        plot_rsp_ptRef(check_files, 0, 3, args.oDir, args.format)
-        plot_rsp_ptRef(check_files, 0, 5, args.oDir, args.format)
-        plot_rsp_ptRef(check_files, 3, 5, args.oDir, args.format)
+            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
+            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+
+            # graphs, can take more than 1 file:
+            plot_rsp_eta(check_files, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_pt(check_files, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_ptRef(check_files, eta_min, eta_max, args.oDir, args.format)
 
         check_file.Close()
 
     # Do plots with output from runCalibration.py
     if args.calib:
         calib_file = open_root_file(args.calib)
-
-        plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-        plot_rsp_eta_bin(calib_file, eta_min, eta_max, args.oDir, args.format)
-        plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+        for eta_min, eta_max in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+            print eta_min, eta_max
+            if eta_min > 2.9:
+                ptBins = binning.pt_bins_wide
+            for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
+                plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+                plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
         calib_file.Close()
 
