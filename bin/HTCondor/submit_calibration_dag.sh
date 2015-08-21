@@ -103,7 +103,7 @@ do
 
     # Add in parent-child relationships & status file
     echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
-    statusfile="calib_${timestamp}_${rand}.status"
+    statusfile="calibration_${timestamp}_${rand}.status"
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
 
     echo ""
