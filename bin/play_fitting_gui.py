@@ -71,12 +71,10 @@ p4=   3.95751e-03
 p5=  -4.78727e+01
 params = [p0, p1, p2, p3, p4, p5]
 original_params = params[:]
-# params =[2.3457597154025396, 4.400079601058664, -7.830903453689727, 7281.304751710999, 0.017533219483811452, -35.59427760724103]
 
 # ET arrays, pre and post calibration
 # do at 0.5 GeV intervals since our pre-calibrated jets have 0.5 GeV granularity.
 et_min = 0.5
-# et_max = xpt[-1]+3*errx[-1]
 et_max = 250
 et_interval = 0.5
 et = np.arange(et_min, et_max + et_interval, et_interval)
@@ -98,15 +96,16 @@ def plot_fit_func(axes, et, params):
     axes.axis([et_min, et_max, y_min, y_max])
     axes.set_xlabel("ET")
     axes.set_ylabel("Correction Factor")
-    axes.grid(True)
+    axes.minorticks_on()
+    axes.grid(b=True, which='both')
     axes.legend(fontsize=10, loc=0)
     axes.set_title("p0 + (p1 / ((log10(et))^2 + p2)) + p3 * exp(-p4 * (np.log10(et) - p5)^2)", fontsize=12, y=1.04)
 
 
-fig = Figure(figsize=(8, 5))
+fig = Figure(figsize=(7, 7))
 axes = fig.add_subplot(111)
 
-y_min, y_max = 0, 2
+y_min, y_max = 0, 2.5
 
 draw_reference_graph(axes, xpt, ypt, errx, erry)
 plot_fit_func(axes, et, params)
@@ -191,6 +190,7 @@ for i, p in enumerate(params):
 ##############
 # Add buttons
 ##############
+
 def print_params():
     for i,p in enumerate(params):
         print 'p{0} = {1}'.format(i, p)
@@ -281,12 +281,12 @@ def sensibility_check(params):
 def approx_fit():
     """Do some Markov Chain type fitting to get a very rough approximation"""
 
-    found_fit = False
     old_params = params[:]
     min_x = float(box_min.get())
     max_x = float(box_max.get())
     finish_condition = abs(float(box_end.get()))
     old_penalty = calc_penalty(old_params, min_x, max_x)
+    found_fit = abs(old_penalty) < finish_condition
     stuck_counter = 0
 
     while not found_fit:
@@ -295,16 +295,6 @@ def approx_fit():
 
         new_params = generate_new_params(old_params)
         new_penalty = calc_penalty(new_params, min_x, max_x)
-        # subtlety - since p0 shifts the whole graph up and down, we may be able
-        # to change just p0 to get a better fit
-        # new_params[0] += -1 * new_penalty
-        # recalculate penalty in light of the adjustment, check if we stay with it
-        # new_penalty_shift = calc_penalty(new_params, min_x, max_x)
-        # print 'new_penalty_shift', new_penalty_shift
-        # if abs(new_penalty_shift) > abs(new_penalty):
-            # new_params[0] += new_penalty
-            # new_penalty_shift = new_penalty
-        # make decision to move or not
         if abs(new_penalty) < abs(old_penalty) and sensibility_check(new_params):
             print "Move"
             print 'old params:', old_params
@@ -324,19 +314,17 @@ def approx_fit():
             print "Finished fitting"
             tkMessageBox.showinfo("Done", "Finished fitting\nFinal penalty: %f" % abs(new_penalty))
             found_fit = True
-            # params = old_params[:]
 
         if stuck_counter == 100000:
             print "Got stuck, please try again"
             tkMessageBox.showwarning("Fit stalled", "Fitter got stuck, please try again")
             stuck_counter = 0
-            # params = old_params[:]
             break
 
 
-fit_button = Tk.Button(master=root, text='Fit', command=approx_fit)
-# fit_button.pack(side=Tk.LEFT, expand=True)
-fitting_pane.add(fit_button)
+fit_button = Tk.Button(fit_frame, text='Fit', command=approx_fit)
+fit_button.pack(side=Tk.RIGHT)
+
 
 ##############
 # Draw!
