@@ -185,7 +185,10 @@ def print_table(dag_status, node_statuses, status_end):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("-v", "--verbose", help="enable debugging mesages", action='store_true')
     parser.add_argument("statusFile", help="name(s) of DAG status file(s), separated by spaces", nargs="*")
     args = parser.parse_args()
+    if args.verbose:
+        log.setLevel(logging.DEBUG)
     for f in args.statusFile:
         process(f)
