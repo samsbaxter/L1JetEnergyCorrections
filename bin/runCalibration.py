@@ -270,88 +270,96 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}> [GeV]")
         gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
-    # Fit correction function to response vs pT graph, add to list
+    # Fit correction function to response vs pT graph, add params list
     fit_params = []
 
     if do_correction_fit:
-        thisfit = fitfcn.Clone(fitfcn.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
-        fit_min = 20
-        # some forward - specific settings
-        if absetamin >= 3.:
-            fit_min = 20
-            # fix_fit_params(thisfit)
-
-        xarr, yarr = get_xy(gr)
-        max_pt = max(xarr)  # Maxmimum pt for upper range of fit
-        # For lower bound of fit, use either fit_min or the pt
-        # of the maximum corr value, which ever is larger.
-        # Check to make sure it's not the last point on the graph
-        # (e.g. if no turnover), in which case just use the default fit_min
-        max_corr = max(yarr[:len(yarr)/2])
-        max_corr_ind = yarr.index(max_corr)
-        max_corr_pt = xarr[max_corr_ind]
-        fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != max_pt) else fit_min
-
-        print "Correction fn fit range:", fit_min, max_pt
-        fit_graph, fit_params = fit_correction(gr, thisfit, fit_min, max_pt)
-        print_function(thisfit, "cpp")
-        print_function(thisfit, "py")
-        outputfile.WriteTObject(fit_graph)
-
+        sub_graph, this_fit = setup_fit(gr, fitfcn, absetamin, absetamax, outputfile)
+        fit_graph, fit_params = fit_correction(sub_graph, this_fit)
+        outputfile.WriteTObject(this_fit)  # function by itself
+        outputfile.WriteTObject(fit_graph)  # has the function stored in it as well
 
     # Save these to file
     outputfile.WriteTObject(gr)
-    if do_correction_fit:
-        outputfile.WriteTObject(thisfit)
     if do_genjet_plots:
         outputfile.WriteTObject(gr_gen)
 
     return fit_params
 
 
-def fit_correction(graph, function, fit_min, fit_max):
+def setup_fit(graph, function, absetamin, absetamax, outputfile):
+    """Setup for fitting (auto-calculate sensible range).
+
+    Returns a sub-graph of only sensible points (chop off turnover at low pT,
+    and any high pT tail), along with a corresponding fit function
+    whose range has been set to match the sub graph.
+    """
+
+    xarr, yarr = get_xy(graph)
+    exarr, eyarr = get_exey(graph)
+
+    fit_max = max(xarr)  # Maxmimum pt for upper range of fit
+    fit_min = 20 if absetamin > 2.9 else 20
+
+    # For lower bound of fit, use either fit_min or the pt
+    # of the maximum corr value, whichever has the larger pT.
+    # Check to make sure it's not the last point on the graph
+    # (e.g. if no turnover), in which case just use the default fit_min
+    # Then find the index of the closest corresponding value in xarr
+    max_corr = max(yarr[:len(yarr) / 2])
+    max_corr_ind = yarr.index(max_corr)
+    max_corr_pt = xarr[max_corr_ind]
+    fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != xarr[-1]) else fit_min
+    min_ind = next(i for i, x in enumerate(xarr) if x >= fit_min)
+
+    # For HF, the upper end flicks up, ruining the fit. Remove these points.
+    # Start from halfway along the graph to ignore the initial turnover,
+    # then look for a point where the next 2 points have consecutively
+    # larger correction values. That's your fit maximum.
+    max_ind = len(xarr)-1
+    starting_ind = len(xarr) / 2
+    for i, y in enumerate(yarr[starting_ind:-2]):
+        if yarr[i + 2 + starting_ind] > yarr[i + 1 + starting_ind] > y:
+            max_ind = i + starting_ind + 1
+            break
+    fit_max = xarr[max_ind]
+    print "Correction fn fit range:", fit_min, fit_max
+
+    # Generate a correction fucntion with suitable range
+    this_fit = function.Clone(function.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
+    this_fit.SetRange(fit_min, fit_max)
+
+    # Make a sub-graph with only the points used for fitting
+    # Do not user graph.RemovePoint()! It doesn't work, and only removes every other point
+    # Instead make a graph with the bit of array we want
+    fit_graph = ROOT.TGraphErrors(max_ind-min_ind,
+                                  np.array(xarr[min_ind:max_ind]),
+                                  np.array(yarr[min_ind:max_ind]),
+                                  np.array(exarr[min_ind:max_ind]),
+                                  np.array(eyarr[min_ind:max_ind]))
+    fit_graph.SetName(graph.GetName()+"_fit")
+
+    return fit_graph, this_fit
+
+
+def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     """
     Fit response curve with given correction function, within given bounds.
+    If fit_min and fit_max are < 0, then just use the range of the function supplied.
 
     Note that sometime the fit fails - if so, we try raising the lower
     bound of the fit until it suceeds (sometimes it works at e.g. 45, but not 40).
     If that fails, then we lower the upper bound and try fitting whilst raising
     the lower bound again.
 
-    If fit_min and fit_max are set to < 0, then it will try and figure out
-    sensible settings to avoid a low pT turnover, and a high pT tail.
-
-    Returns parameters of successful fit.
+    Returns graph (with fitted function) and parameters of successful fit.
     """
+    # Get the min and max of the fit function
+    if fit_min < 0  and fit_max < 0:
+        fit_min, fit_max = ROOT.Double(), ROOT.Double()
+        function.GetRange(fit_min, fit_max)
+
     print "Fitting", fit_min, fit_max
-
-    # Sometimes have 2 points with very different correction values within a given
-    # pt range due to turnover
-    # To make the fit better/easier, we make a Graph with the subset of points we want to fit to
-    xarr, yarr = get_xy(graph)
-    exarr, eyarr = get_exey(graph)
-    min_ind = xarr.index(next(x for x in xarr if x >= fit_min and xarr[xarr.index(x)+1] > x))
-    print "min_ind:", min_ind, "x,y of fit graph:", xarr[min_ind:], yarr[min_ind:]
-
-    print "Graph points"
-    print "x", xarr
-    print "y", yarr
-    print "errx", exarr
-    print "erry", eyarr
-
-    # For HF, the upper end flicks up, ruining the fit. Remove these points:
-    max_ind = len(xarr)-1
-    # starting_ind = len(yarr)/2
-    # for i, y in enumerate(yarr[starting_ind:]):
-    #     if yarr[i + 1 + starting_ind] > y:
-    #         max_ind = i + starting_ind + 1
-    #         break
-    # print "max_ind:", max_ind, "x,y of fit graph:", xarr[min_ind:max_ind], yarr[min_ind:max_ind]
-
-    # Do not user graph.RemovePoint()! It doesn't work, and only removes every-other point
-    # Instead make a graph with the bit of array we want
-    fit_graph = ROOT.TGraphErrors(max_ind-min_ind, np.array(xarr[min_ind:max_ind]), np.array(yarr[min_ind:max_ind]), np.array(exarr[min_ind:max_ind]), np.array(eyarr[min_ind:max_ind]))
-    fit_graph.SetName(graph.GetName()+"_fit")
 
     # Now do the fitting, incrementing the fit min if failure
     fit_result = -1
@@ -365,7 +373,7 @@ def fit_correction(graph, function, fit_min, fit_max):
             mode = ""
             if str(function.GetExpFormula()).startswith("pol"):
                 mode = "F"
-            fit_result = int(fit_graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
+            fit_result = int(graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
             # sanity check - sometimes will have status = 0 even though rubbish
             if function.Eval(50) > 10 or function.Eval(50) < 0.01:
                 fit_result = -1
@@ -386,7 +394,7 @@ def fit_correction(graph, function, fit_min, fit_max):
         for i in range(function.GetNumberFreeParameters()):
             params.append(function.GetParameter(i))
 
-    return fit_graph, params
+    return graph, params
 
 
 
