@@ -44,6 +44,8 @@ cdir=${PWD%HTCondor}
 echo $cdir
 sed -i "s@SEDINPUTFILES@$cdir/makeResolutionPlots.py, $cdir/binning.py, $PWD/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
+declare -a statusFileNames=()
+
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
 do
@@ -124,6 +126,7 @@ do
     echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
     statusfile="resolution_${timestamp}_${rand}.status"
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
+    statusFileNames+=($statusfile)
 
     echo ""
     echo "Condor DAG script made"
@@ -138,3 +141,7 @@ do
     echo "(may take a little time to appear)"
 done
 
+if [ ${#statusFileNames[@]} -gt "1" ]; then
+    echo "To check all statuses:"
+    echo "./DAGstatus.py ${statusFileNames[@]}"
+fi

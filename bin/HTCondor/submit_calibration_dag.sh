@@ -47,6 +47,8 @@ cdir=${PWD%HTCondor}
 echo $cdir
 sed -i "s@SEDINPUTFILES@$cdir/runCalibration.py, $cdir/binning.py, $PWD/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
+declare -a statusFileNames=()
+
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
 do
@@ -92,7 +94,7 @@ do
         outFileNames+=($outRootName)
 
         echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"python runCalibration.py ${pairs} ${outRootName} --etaInd ${i}\"" >> "$dagfile"
+        echo "VARS $jobname opts=\"python runCalibration.py ${pairs} ${outRootName} --no_genjet_plots --etaInd ${i}\"" >> "$dagfile"
     done
 
     # Now add job for hadding
@@ -105,6 +107,7 @@ do
     echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
     statusfile="calibration_${timestamp}_${rand}.status"
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
+    statusFileNames+=($statusfile)
 
     echo ""
     echo "Condor DAG script made"
@@ -119,3 +122,7 @@ do
     echo "(may take a little time to appear)"
 done
 
+if [ ${#statusFileNames[@]} -gt "1" ]; then
+    echo "To check all statuses:"
+    echo "./DAGstatus.py ${statusFileNames[@]}"
+fi
