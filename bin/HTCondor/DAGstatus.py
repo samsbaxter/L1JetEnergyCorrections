@@ -25,14 +25,26 @@ def strip_doublequotes(line):
 
 
 class ClassAd(object):
+    """Base class for ClassAds."""
     def __init__(self):
         pass
 
 
 class DagStatus(ClassAd):
-    def __init__(self, timestamp, dag_status, nodes_total, nodes_done,
-                 nodes_pre, nodes_queued, nodes_post, nodes_ready,
-                 nodes_unready, nodes_failed, job_procs_held, job_procs_idle):
+    """Class to describe status of DAG as a whole."""
+    def __init__(self,
+                 timestamp,
+                 dag_status,
+                 nodes_total,
+                 nodes_done,
+                 nodes_pre,
+                 nodes_queued,
+                 nodes_post,
+                 nodes_ready,
+                 nodes_unready,
+                 nodes_failed,
+                 job_procs_held,
+                 job_procs_idle):
         self.timestamp = timestamp
         self.dag_status = strip_doublequotes(dag_status)
         self.nodes_total = int(nodes_total)
@@ -49,8 +61,14 @@ class DagStatus(ClassAd):
 
 
 class NodeStatus(ClassAd):
-    def __init__(self, node, node_status, status_details, retry_count,
-                 job_procs_queued, job_procs_held):
+    """Class to describe state of individual job node in the DAG."""
+    def __init__(self,
+                 node,
+                 node_status,
+                 status_details,
+                 retry_count,
+                 job_procs_queued,
+                 job_procs_held):
         self.node = strip_doublequotes(node)
         self.node_status = strip_doublequotes(node_status)
         self.status_details = status_details.replace('"', '')
@@ -60,7 +78,10 @@ class NodeStatus(ClassAd):
 
 
 class StatusEnd(ClassAd):
-    def __init__(self, end_time, next_update):
+    """Class to describe state of resporting."""
+    def __init__(self,
+                 end_time,
+                 next_update):
         self.end_time = strip_doublequotes(end_time)
         self.next_update = strip_doublequotes(next_update)
 
