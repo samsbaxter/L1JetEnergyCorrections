@@ -86,7 +86,7 @@ class StatusEnd(ClassAd):
         self.next_update = strip_doublequotes(next_update)
 
 
-def process(status_filename):
+def process(status_filename, summary):
     """Main function to process the status file"""
 
     print status_filename, ":"
@@ -143,10 +143,10 @@ def process(status_filename):
                 parts = line.split(" = ")
                 contents[parts[0]] = parts[1]
 
-    print_table(dag_status, node_statuses, status_end)
+    print_table(dag_status, node_statuses, status_end, summary)
 
 
-def print_table(dag_status, node_statuses, status_end):
+def print_table(dag_status, node_statuses, status_end, summary):
     """Print a pretty-ish table with important info"""
     # Here we auto-create the formatting strings for each row,
     # and auto-size each column based on max size of contents
@@ -177,7 +177,8 @@ def print_table(dag_status, node_statuses, status_end):
     summary_header = summary_format.format(*summary_dict.keys())
 
     # Now figure out how many char columns to occupy for the *** and ---
-    columns = max(len(job_header), len(summary_header)) + 1
+    columns = len(summary_header) if summary else max(len(job_header), len(summary_header))
+    columns += 1
     term_rows, term_columns = os.popen('stty size', 'r').read().split()
     term_rows = int(term_rows)
     term_columns = int(term_columns)
@@ -186,20 +187,22 @@ def print_table(dag_status, node_statuses, status_end):
 
     # Now actually print the table
     print "*" * columns
-    # Print info for each job.
-    print job_header
-    print "-" * columns
-    for n in node_statuses:
-        print job_format.format(*[n.__dict__[v] for v in job_dict.values()])
-    print "-" * columns
+    if not summary:
+        # Print info for each job.
+        print job_header
+        print "-" * columns
+        for n in node_statuses:
+            print job_format.format(*[n.__dict__[v] for v in job_dict.values()])
+        print "-" * columns
     # print summary of all jobs
     print summary_header
     print "-" * columns
     print summary_format.format(*[dag_status.__dict__[v] for v in summary_dict.values()])
-    print "-" * columns
-    # print time of next update
-    print "Status recorded at:", status_end.end_time
-    print "Next update:       ", status_end.next_update
+    if not summary:
+        print "-" * columns
+        # print time of next update
+        print "Status recorded at:", status_end.end_time
+        print "Next update:       ", status_end.next_update
     print "*" * columns
 
 
@@ -207,9 +210,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-v", "--verbose", help="enable debugging mesages", action='store_true')
+    parser.add_argument("-s", "--summary", help="only printout very short summary of all jobs", action='store_true')
     parser.add_argument("statusFile", help="name(s) of DAG status file(s), separated by spaces", nargs="*")
     args = parser.parse_args()
     if args.verbose:
         log.setLevel(logging.DEBUG)
     for f in args.statusFile:
-        process(f)
+        process(f, args.summary)
