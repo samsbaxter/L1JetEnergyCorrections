@@ -4,23 +4,25 @@ This script takes as input the output file from RunMatcher, and loops over
 matched genjet/L1 jet pairs, plotting interesting things and producing a
 correction function, as well as LUTs to put in CMSSW.
 
+It can also re-fit the correction curve to an existing graph, saving time.
+In this case, use the --redo_correction_fit option, and the input file is
+the output from a previous running of this script.
+
 Usage: see
 python runCalibration.py -h
 
-Originally by Nick Wardle, modified by Robin Aggleton
+Originally by Nick Wardle, modified(hacked to shreds) by Robin Aggleton
 """
 
 import ROOT
 import sys
 import array
 import numpy as np
-from pprint import pprint
 from itertools import izip
 import os
 import argparse
 import binning
-from correction_LUT_plot import print_function
-from common_utils import check_exp, get_xy, get_exey
+import common_utils as cu
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -121,7 +123,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     print "Running over pT bins:", ptBins_in
 
     # Input tree
-    tree_raw = inputfile.Get("valid")
+    tree_raw = cu.get_from_file(inputfile, "valid")
 
     # Output folders
     output_f = outputfile.mkdir('eta_%g_%g' % (absetamin, absetamax))
@@ -247,7 +249,8 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
 
         # check if we have a bad fit - either fit status != 0, or
         # fit mean is not close to raw mean. in either case use raw mean
-        if fitStatus != 0 or abs((mean/hrsp.GetMean()) - 1) > 0.2:
+        if fitStatus != 0 or (absetamin > 2.9 and abs((mean/hrsp.GetMean()) - 1) > 0.2):
+
             print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
                 "fit status:", fitStatus, \
                 "bin :", [xlow, xhigh], [absetamin, absetamax]
@@ -304,8 +307,8 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     whose range has been set to match the sub graph.
     """
 
-    xarr, yarr = get_xy(graph)
-    exarr, eyarr = get_exey(graph)
+    xarr, yarr = cu.get_xy(graph)
+    exarr, eyarr = cu.get_exey(graph)
 
     fit_max = max(xarr)  # Maxmimum pt for upper range of fit
     fit_min = 20 if absetamin > 2.9 else 20
@@ -486,13 +489,12 @@ def main(in_args=sys.argv[1:]):
         print "Not fitting correction curves"
 
     # Open input & output files, check
-    inputf = ROOT.TFile(args.input, "READ")
-    output_f = ROOT.TFile(args.output, "RECREATE")
     print "IN:", args.input
     print "OUT:", args.output
-    if not inputf or not output_f:
-        raise Exception("Input or output files cannot be opened")
+    input_file = cu.open_root_file(args.input, "READ")
+    output_file = cu.open_root_file(args.output, "RECREATE")
 
+    # Figure out which eta bins the user wants to run over
     etaBins = binning.eta_bins
     if args.etaInd:
         args.etaInd.append(int(args.etaInd[-1])+1) # need upper eta bin edge
@@ -505,16 +507,14 @@ def main(in_args=sys.argv[1:]):
     print "Running over eta bins:", etaBins
 
     # Do plots & fitting to get calib consts
-    for i,eta in enumerate(etaBins[:-1]):
-        emin = eta
-        emax = etaBins[i+1]
+    for i, eta_min in enumerate(etaBins[:-1]):
+        eta_max = etaBins[i+1]
 
         # whether we're doing a central or forward bin (.1 is for rounding err)
-        forward_bin = emax > 3.1
+        forward_bin = eta_max > 3.1
 
         # setup pt bins, wider ones for forward region
         ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
-        # ptBins = binning.pt_bins
 
         # Load fit function & starting params - important as wrong starting params
         # can cause fit failures

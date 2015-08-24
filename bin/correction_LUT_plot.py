@@ -169,6 +169,7 @@ def print_Stage1_lut_file(fit_functions, eta_bins, filename):
                     dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f corrPhysPt: %f RANKCALIB: %d\n" % (eta, physPt, lut_address, fit_functions[param_ind].Eval(physPt), pt_corr, RANKCALIB)
                     dump_file.write(dump_line)
 
+
 def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     """Make plot of pt before Vs after to show mapping"""
 
@@ -259,7 +260,7 @@ def main(in_args=sys.argv[1:]):
     if not args.gct and not args.stage1:
         print "You didn't pick which format for the LUT - not making a LUT unless you choose!"
 
-    in_file = open_root_file(args.input)
+    in_file = cu.open_root_file(args.input)
     out_dir = os.path.dirname(args.lut)
 
     # Canvas for plotting all fits
@@ -282,7 +283,7 @@ def main(in_args=sys.argv[1:]):
         print "Eta bin:", etamin, "-", etamax
 
         # get the fitted TF1
-        fit_func = get_from_file(in_file, "fitfcneta_%g_%g" % (etamin, etamax))
+        fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (etamin, etamax))
         if not fit_func:
             raise Exception("Couldn't get fit function fitfcneta_%g_%g" % (etamin, etamax))
 
