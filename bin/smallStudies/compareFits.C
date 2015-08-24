@@ -4,6 +4,7 @@
      */
     TFile * f1 = TFile::Open("/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/output_QCD_Pt-30to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500_better2.root");
     TFile * f2 = TFile::Open("/users/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/output_QCD_Pt-15to170_300to1000_Spring15_AVE20BX25_Stage1_jetSeed5_MCRUN2_V9_noStage1Lut_rctv4_preGt_ak4_ref14to1000_l10to500_fitMin20_HFfix.root");
+    TString oDir = "noGaussFitCheck";
 
     TLegend * leg = new TLegend(0.67, 0.67, 0.88, 0.88);
     TString leg1Label("jet seed 10");
@@ -70,7 +71,7 @@
         line.SetY1(gPad->GetUymin());
         line.SetY2(gPad->GetUymax());
         line.Draw();
-        c1->SaveAs(grName+"_compare_fn.pdf");
+        c1->SaveAs(oDir+"/"+grName+"_compare_fn.pdf");
 
         // redo plot but over small pT range
         form1->SetRange(minETZoom, maxETZoom);
@@ -87,7 +88,7 @@
         line.SetY1(gPad->GetUymin());
         line.SetY2(gPad->GetUymax());
         line.Draw();
-        c1->SaveAs(grName+"_compare_fn_zoom.pdf");
+        c1->SaveAs(oDir+"/"+grName+"_compare_fn_zoom.pdf");
 
         // plots the graphs by themselves
         grName = TString::Format("l1corr_eta_%g_%g", etaBins[i], etaBins[i+1]);
@@ -109,7 +110,7 @@
         line.SetY1(gPad->GetUymin());
         line.SetY2(gPad->GetUymax());
         line.Draw();
-        c1->SaveAs(grName+"_compare_graph.pdf");
+        c1->SaveAs(oDir+"/"+grName+"_compare_graph.pdf");
 
         // redo plot but over small pT range
         gr1->GetXaxis()->SetLimits(minETZoom, maxETZoom);
@@ -121,7 +122,7 @@
         line.SetY1(gPad->GetUymin());
         line.SetY2(gPad->GetUymax());
         line.Draw();
-        c1->SaveAs(grName+"_compare_graph_zoom.pdf");
+        c1->SaveAs(oDir+"/"+grName+"_compare_graph_zoom.pdf");
 
         // plot graphs and functions together
         gr1->GetXaxis()->SetLimits(minET, maxET);
@@ -137,7 +138,7 @@
         line.SetY1(gPad->GetUymin());
         line.SetY2(gPad->GetUymax());
         line.Draw();
-        c1->SaveAs(grName+"_compare_both.pdf");
+        c1->SaveAs(oDir+"/"+grName+"_compare_both.pdf");
 
         // redo plot but over small pT range
         gr1->GetXaxis()->SetLimits(minETZoom, maxETZoom);
@@ -153,7 +154,7 @@
         line.SetY1(gPad->GetUymin());
         line.SetY2(gPad->GetUymax());
         line.Draw();
-        c1->SaveAs(grName+"_compare_both_zoom.pdf");
+        c1->SaveAs(oDir+"/"+grName+"_compare_both_zoom.pdf");
     }
 
     f1->Close();
