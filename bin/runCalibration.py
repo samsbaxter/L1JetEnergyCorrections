@@ -62,7 +62,7 @@ def gct_fit_defaults(fitfunc):
     # fitfunc.SetParameter(5, -13.548387)
 
 def fix_fit_params(fitfunc):
-    """Fix so constant line"""
+    """Fix function so constant line"""
     fitfunc.FixParameter(1, 0)
     fitfunc.FixParameter(2, 0)
     fitfunc.FixParameter(3, 0)
@@ -70,9 +70,17 @@ def fix_fit_params(fitfunc):
     fitfunc.FixParameter(5, 0)
 
 
-def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
-                         fitfcn, do_genjet_plots, do_correction_fit,
-                         pu_min, pu_max):
+def generate_eta_graph_name(absetamin, absetamax):
+    """
+    Function to generate graph name for given eta bin,
+    so co-ordinated between functions/modules.
+    """
+    return "l1corr_eta_%g_%g" % (absetamin, absetamax)
+
+
+def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
+                           fitfcn, do_genjet_plots, do_correction_fit,
+                           pu_min, pu_max):
     """
     Do all the relevant hists and fitting, for one eta bin.
 
@@ -261,7 +269,8 @@ def makeCorrectionCurves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
         grc += 1
 
     # Label response VS pT graphs
-    gr.SetName('l1corr_eta_%g_%g' % (absetamin, absetamax))
+    graph_name = generate_eta_graph_name(absetamin, absetamax)
+    gr.SetName(graph_name)
     gr.GetXaxis().SetTitle("<p_{T}^{L1}> [GeV]")
     gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
@@ -397,6 +406,29 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     return graph, params
 
 
+def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
+    """Redo correction fit for a given eta bin.
+
+    Get TGraphErrors for the bin, and perform calibration curve fitting
+    procedure and save if successful.
+
+    inputfile: TFile. The output file from running runCalibration.py previously.
+    outputfile: TFile. The file you want to write the new graph & fit to.
+    Can be the same as inputfile.
+    absetamin: double
+    absetamax: double
+    fitfcn: TF1
+    """
+    # Get relevant graph
+    gr = cu.get_from_file(inputfile, generate_eta_graph_name(absetamin, absetamax))
+
+    # Setup fitting (calculate sensible range, make sub-graph), then do fit!
+    sub_graph, this_fit = setup_fit(gr, fitfcn, absetamin, absetamax, outputfile)
+    fit_graph, fit_params = fit_correction(sub_graph, this_fit)
+    outputfile.WriteTObject(this_fit)  # function by itself
+    outputfile.WriteTObject(fit_graph)  # has the function stored in it as well
+    outputfile.WriteTObject(gr)  # the original graph
+
 
 ########### MAIN ########################
 def main(in_args=sys.argv[1:]):
@@ -407,9 +439,13 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--no_genjet_plots", action='store_false',
                         help="Don't do genjet plots for each pt/eta bin")
     parser.add_argument("--no_correction_fit", action='store_false',
-                        help="Don't do fits to correction functions")
+                        help="Don't do fits for correction functions")
+    parser.add_argument("--redo_correction_fit", action='store_true',
+                        help="Redo fits for correction functions")
+    parser.add_argument("--gct", action='store_true',
+                        help="Load legacy GCT specifics e.g. fit defaults.")
     parser.add_argument("--stage1", action='store_true',
-                        help="Load stage 1 specifics e.g. fit defaults. If not flagged, defaults to GCT.")
+                        help="Load stage 1 specifics e.g. fit defaults.")
     parser.add_argument("--central", action='store_true',
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
@@ -432,8 +468,10 @@ def main(in_args=sys.argv[1:]):
 
     if args.stage1:
         print "Running with Stage1 defaults"
-    else:
+    elif args.gct:
         print "Running with GCT defaults"
+    else:
+        raise RuntimeError("You need to specify defaults: --gct/--stage1")
 
     # Turn off gen plots if you don't want them - they slow things down,
     # and don't affect determination of correction fn
@@ -483,13 +521,18 @@ def main(in_args=sys.argv[1:]):
         fitfunc = central_fit
         if args.stage1:
             stage1_fit_defaults(fitfunc)
-        else:
+        elif args.gct:
             gct_fit_defaults(fitfunc)
 
         # if forward_bin:
             # fitfunc = forward_fit
 
-        makeCorrectionCurves(inputf, output_f, ptBins, emin, emax, fitfunc, do_genjet_plots, do_correction_fit, args.PUmin, args.PUmax)
+        if args.redo_correction_fit:
+            redo_correction_fit(input_file, output_file, eta_min, eta_max, fitfunc)
+        else:
+            make_correction_curves(input_file, output_file, ptBins, eta_min, eta_max,
+                                   fitfunc, do_genjet_plots, do_correction_fit,
+                                   args.PUmin, args.PUmax)
 
 
 if __name__ == "__main__":
