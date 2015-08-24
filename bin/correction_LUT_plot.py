@@ -166,7 +166,7 @@ def print_Stage1_lut_file(fit_functions, eta_bins, filename):
                         RANKCALIB = 63;
                     line = "%s %s\n" % (lut_address, RANKCALIB)
                     lut_file.write(line);
-                    dump_line = "eta: %d phys pt: %f LUT address: %d corrPhysPt: %f RANKCALIB: %d\n" % (eta, physPt, lut_address, pt_corr, RANKCALIB)
+                    dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f corrPhysPt: %f RANKCALIB: %d\n" % (eta, physPt, lut_address, fit_functions[param_ind].Eval(physPt), pt_corr, RANKCALIB)
                     dump_file.write(dump_line)
 
 def plot_correction_map(corr_fn, filename="correction_map.pdf"):
