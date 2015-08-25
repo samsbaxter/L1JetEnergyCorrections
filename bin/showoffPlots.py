@@ -19,8 +19,7 @@ import sys
 import numpy as np
 import binning
 import argparse
-from subprocess import call
-from subprocess import check_output
+from subprocess import call, check_output
 from sys import platform as _platform
 from itertools import izip, product
 from common_utils import *
@@ -74,6 +73,10 @@ plot_markers = [20, 21, 22, 23]
 plot_title = "QCD 50ns"
 plot_title = "TTbar 50ns, GCT jets"
 plot_title = "Data, run 251718, Stage 1 50ns"
+plot_title = "QCD Spring15 MC, 25ns, PU20"
+plot_title = "QCD MC, 25ns, PU20"
+# plot_title = "Data, Stage 1 re-emulated, 50ns"
+
 
 def generate_canvas(title=""):
     """Generate a standard TCanvas for all plots"""
@@ -81,7 +84,7 @@ def generate_canvas(title=""):
     c.SetTicks(1, 1)
     return c
 
-def generate_legend(x1=0.4, y1=0.7, x2=0.88, y2=0.88):
+def generate_legend(x1=0.34, y1=0.7, x2=0.88, y2=0.88):
     """Generate a standard TLegend. Can optionally pass in co-ordinates. """
     leg = ROOT.TLegend(x1, y1, x2, y2)
     return leg
@@ -551,7 +554,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
-    mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
+    mg.GetYaxis().SetRangeUser(rsp_min, 2)
     mg.GetXaxis().SetLimits(0, 250)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
