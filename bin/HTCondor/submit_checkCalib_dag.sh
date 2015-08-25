@@ -27,7 +27,8 @@ declare -a etaBins=(
 )
 
 # update the setup scripts for worker nodes
-sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" checkCalib_condor.sh
+sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" condor_worker.sh
+sed -i "s@RDIR=/.*@RDIR=$ROOTSYS@" condor_worker.sh
 sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" hadd.sh
 
 # make a copy of the condor script for these jobs. Can use the same one for
@@ -39,10 +40,10 @@ echo "queue" >> "$outfile"
 
 # Replace correct parts
 sed -i 's@SEDNAME@checkCalib/checkCalib@g' $outfile
-sed -i 's/SEDEXE/checkCalib_condor.sh/g' $outfile
+sed -i 's/SEDEXE/condor_worker.sh/g' $outfile
 cdir=${PWD%HTCondor}
 echo $cdir
-sed -i "s@SEDINPUTFILES@$cdir/checkCalibration.py, $cdir/binning.py, $PWD/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
+sed -i "s@SEDINPUTFILES@$cdir/checkCalibration.py, $cdir/binning.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
 declare -a statusFileNames=()
 
@@ -68,7 +69,7 @@ do
     declare -a outFileNames=()
 
     # Special appendix, if desired (e.g. if changing a param)
-    append=""
+    append="_test"
 
     outname=${fname/pairs_/check_}
     outname=${outname%.root}
@@ -91,7 +92,7 @@ do
         outFileNames+=($outRootName)
 
         echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"python checkCalibration.py ${pairs} ${outRootName} --excl --etaInd ${i} --maxPt 250\"" >> "$dagfile"
+        echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --excl --etaInd ${i} --maxPt 250\"" >> "$dagfile"
     done
 
     # Now do inclusive bins (central, forward, all)
@@ -100,21 +101,21 @@ do
     outRootName="${fdir}/${outname}_central${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"python checkCalibration.py ${pairs} ${outRootName} --incl --central --maxPt 250\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --central --maxPt 250\"" >> "$dagfile"
 
     jobname="checkCalib_forward"
     jobNames+=($jobname)
     outRootName="${fdir}/${outname}_forward${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"python checkCalibration.py ${pairs} ${outRootName} --incl --forward --maxPt 250\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --forward --maxPt 250\"" >> "$dagfile"
 
     jobname="checkCalib_all"
     jobNames+=($jobname)
     outRootName="${fdir}/${outname}_all${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"python checkCalibration.py ${pairs} ${outRootName} --incl --maxPt 250\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --maxPt 250\"" >> "$dagfile"
 
     # Now add job for hadding
     finalRootName="${fdir}/${outname}${append}.root"
@@ -128,12 +129,23 @@ do
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
     statusFileNames+=($statusfile)
 
+    autoSub=true
+    for f in "${outFileNames[@]}"; do
+        if [ -e $f ]; then
+            autoSub=false
+            break
+        fi
+    done
     echo ""
     echo "Condor DAG script made"
     echo "Submit with:"
     echo "condor_submit_dag $dagfile"
-    echo "Submitting..."
-    condor_submit_dag "$dagfile"
+    if [ $autoSub = true ]; then
+        echo "Submitting..."
+        condor_submit_dag "$dagfile"
+    else
+        echo "Not auto submitting as output file already exists. Check your job description file is OK first!"
+    fi
     echo ""
     echo "Check status with:"
     echo "./DAGstatus.py $statusfile"

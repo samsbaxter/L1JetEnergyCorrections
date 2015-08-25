@@ -8,7 +8,7 @@
 # separate jobs, and then hadds them all after.
 
 declare -a pairsFiles=(
-/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_newLUT_3_Aug_15_Bristol/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_AVE20BX25_newRCTv2_calibrated_newLUT_3_Aug_15_Bristol_gtJets_ref14to1000_l10to500.root
+/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500.root
 )
 
 declare -a etaBins=(
@@ -27,7 +27,8 @@ declare -a etaBins=(
 )
 
 # update the setup scripts for worker nodes
-sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" resolution_condor.sh
+sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" condor_worker.sh
+sed -i "s@RDIR=/.*@RDIR=$ROOTSYS@" condor_worker.sh
 sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" hadd.sh
 
 # make a copy of the condor script for these jobs. Can use the same one for
@@ -39,10 +40,10 @@ echo "queue" >> "$outfile"
 
 # Replace correct parts
 sed -i 's@SEDNAME@resolution/resolution@g' $outfile
-sed -i 's/SEDEXE/resolution_condor.sh/g' $outfile
+sed -i 's/SEDEXE/condor_worker.sh/g' $outfile
 cdir=${PWD%HTCondor}
 echo $cdir
-sed -i "s@SEDINPUTFILES@$cdir/makeResolutionPlots.py, $cdir/binning.py, $PWD/condor_wrapper.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
+sed -i "s@SEDINPUTFILES@$cdir/makeResolutionPlots.py, $cdir/binning.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
 
 declare -a statusFileNames=()
 
@@ -91,7 +92,7 @@ do
         outFileNames+=($outRootName)
 
         echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"python makeResolutionPlots.py ${pairs} ${outRootName} --excl --etaInd ${i}\"" >> "$dagfile"
+        echo "VARS $jobname opts=\"${pairs} ${outRootName} python makeResolutionPlots.py ${pairs} ${outRootName} --excl --etaInd ${i}\"" >> "$dagfile"
     done
 
     # Now do inclusive bins (central, forward, all)
@@ -100,21 +101,21 @@ do
     outRootName="${fdir}/${outname}_central${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"python makeResolutionPlots.py ${pairs} ${outRootName} --incl --central\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python makeResolutionPlots.py ${pairs} ${outRootName} --incl --central\"" >> "$dagfile"
 
     jobname="res_forward"
     jobNames+=($jobname)
     outRootName="${fdir}/${outname}_forward${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"python makeResolutionPlots.py ${pairs} ${outRootName} --incl --forward\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python makeResolutionPlots.py ${pairs} ${outRootName} --incl --forward\"" >> "$dagfile"
 
     jobname="res_all"
     jobNames+=($jobname)
     outRootName="${fdir}/${outname}_all${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"python makeResolutionPlots.py ${pairs} ${outRootName} --incl\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python makeResolutionPlots.py ${pairs} ${outRootName} --incl\"" >> "$dagfile"
 
     # Now add job for hadding
     finalRootName="${fdir}/${outname}${append}.root"

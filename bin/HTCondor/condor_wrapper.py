@@ -1,12 +1,22 @@
 #!/usr/bin/env python
 
 """
-Wrapper for python code to run on condor. Have to do it this way,
-becasue we can't stream to hdfs, so have to manually edit the output file path
-to some temporary file, then move it to hdfs afterwards.
+Wrapper for python code to run on condor.
 
-MASSIVE PAIN IN THE ARSE
+We can't just execute the command on condor - we have to intervene in 2 ways:
 
+1) it's best to copy the input file from /hdfs to the local worker node.
+This avoids several processes trying to access the same file simultaneously
+(whish is mayhem in ROOT).
+
+2) you cannot stream the outut to /hdfs. Instead we write to a local file and
+then copy it across afterwards.
+
+So to avoid the user having to worry about those things, we take as arguments:
+
+condor_wrapper.py <input file> <output file> <full command>
+
+and this will automate the above.
 """
 
 import os
@@ -19,7 +29,8 @@ import random, string
 print "condor_wrapper, innit"
 print sys.argv
 parser = argparse.ArgumentParser()
-parser.add_argument("filestem", help="stem for output file e.g. resolution, output, check ...")
+parser.add_argument("input", help="input filename")
+parser.add_argument("output", help="output filename")
 parser.add_argument("command", help="command that you would run e.g. python runCalibration.py pairs.root output.root", nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
