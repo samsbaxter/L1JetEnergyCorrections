@@ -24,6 +24,30 @@ def strip_doublequotes(line):
     return re.search(r'\"(.*)\"', line).group(1)
 
 
+class bcolors:
+    """For terminal coloured output"""
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+    @staticmethod
+    def color(state):
+        """Return color code based on state"""
+        if state.startswith("STATUS_ERROR"):
+            return bcolors.FAIL
+        elif state.startswith("STATUS_SUBMITTED"):
+            return bcolors.OKBLUE
+        elif state.startswith("STATUS_DONE"):
+            return bcolors.OKGREEN
+        else:
+            return bcolors.ENDC
+
+
 class ClassAd(object):
     """Base class for ClassAds."""
     def __init__(self):
@@ -186,24 +210,30 @@ def print_table(dag_status, node_statuses, status_end, summary):
         columns = term_columns
 
     # Now actually print the table
-    print "*" * columns
     if not summary:
+        print "*" * columns
         # Print info for each job.
-        print job_header
+        print bcolors.ENDC, job_header
         print "-" * columns
         for n in node_statuses:
-            print job_format.format(*[n.__dict__[v] for v in job_dict.values()])
-        print "-" * columns
+            print (bcolors.color(n.node_status) +
+                job_format.format(*[n.__dict__[v] for v in job_dict.values()]))
+        print bcolors.ENDC + "-" * columns
     # print summary of all jobs
+    print "*" * columns
     print summary_header
     print "-" * columns
-    print summary_format.format(*[dag_status.__dict__[v] for v in summary_dict.values()])
+    # Make it coloured depending on job status
+    sum_col = bcolors.ENDC
+    # if summary:
+    print (bcolors.color(dag_status.dag_status) +
+        summary_format.format(*[dag_status.__dict__[v] for v in summary_dict.values()]))
     if not summary:
-        print "-" * columns
+        print bcolors.ENDC + "-" * columns
         # print time of next update
         print "Status recorded at:", status_end.end_time
         print "Next update:       ", status_end.next_update
-    print "*" * columns
+    print bcolors.ENDC + "*" * columns
 
 
 if __name__ == "__main__":
