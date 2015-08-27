@@ -111,7 +111,7 @@ def cmsRunCondor(in_args):
     with open(fileListName, "w") as file_list:
         file_list.write("fileNames = {")
         for n, chunk in enumerate(grouper(list_of_files, args.filesPerJob)):
-            file_list.write("%d: [%s]," % (n, ', '.join(filter(None, chunk))))
+            file_list.write("%d: [%s],\n" % (n, ', '.join(filter(None, chunk))))
         file_list.write("}")
     log.info("List of files for each jobs written to %s" % fileListName)
 
@@ -127,8 +127,12 @@ def cmsRunCondor(in_args):
 
     if not args.outputScript:
         args.outputScript = job_filename
-    job_description = job_template.replace("SEDINITIAL", "")  # for not, keept initialdir local, otherwise tonnes of files on hdfs
-    job_description = job_description.replace("SEDNAME", args.outputScript.replace(".condor", ""))
+    job_description = job_template.replace("SEDINITIAL", "")  # keep initialdir local, otherwise tonnes of files on hdfs
+    log_dir = "jobs/%s/%s" % (strftime("%d_%b_%y_%H%M%S"), args.dataset.split("/")[1])
+    log_str = "%s/%s" % (log_dir, args.outputScript.replace(".condor", ""))
+    if not os.path.exists(strftime("%d_%b_%y_%H%M%S")):
+        os.makedirs(log_dir)
+    job_description = job_description.replace("SEDNAME", log_str)
     args_str = "%s %s %s $(process)" % (config_filename, fileListName, args.outputDir)
     job_description = job_description.replace("SEDARGS", args_str)
     job_description = job_description.replace("SEDEXE", 'cmsRun_worker.sh')
@@ -142,6 +146,8 @@ def cmsRunCondor(in_args):
     # submit to queue
     if not args.dry:
         subprocess.call(['condor_submit', args.outputScript])
+
+    return args.outputScript
 
 
 if __name__ == "__main__":
