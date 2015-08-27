@@ -49,7 +49,8 @@ if __name__ == "__main__":
                       '--filesPerJob', str(dset_opts.unitsPerJob),
                       '--totalFiles', str(totalUnits),
                       '--outputScript', scriptName,
-                      "--verbose"])
-
-        print "Sleeping for 60s to avoid hammering the queue..."
-        sleep(60)
+                      '--dry',
+                      '--verbose'])
+        if dset != datasets[-1]:
+            print "Sleeping for 60s to avoid hammering the queue..."
+            sleep(60)
