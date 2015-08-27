@@ -29,16 +29,32 @@ log = logging.getLogger(__name__)
 
 
 def cmsRunCondor(in_args):
+    """Creates a condor job description file with the correct arguments,
+    and optionally submit it.
 
+    Returns name of job description file.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", help="CMSSW config file you want to run.")
-    parser.add_argument("--outputDir", help="Where you want your output to be stored. /hdfs is recommended")
-    parser.add_argument("--dataset", help="Name of dataset you want to run over")
-    parser.add_argument("--filesPerJob", help="Number of files to run over, per job.", type=int, default=5)
-    parser.add_argument("--totalFiles", help="Total number of files to run over. Default is ALL (-1)", type=int, default=-1)
-    parser.add_argument("--outputScript", help="Optional: name of condor submission script. Default is <config>_<time>.condor")
-    parser.add_argument("--verbose", help="Extra printout to clog up your screen.", action='store_true')
-    parser.add_argument("--dry", help="Dry-run: only make condor submission script, don't submit to queue.", action='store_true')
+    parser.add_argument("--config",
+                        help="CMSSW config file you want to run.")
+    parser.add_argument("--outputDir",
+                        help="Where you want your output to be stored. /hdfs is recommended")
+    parser.add_argument("--dataset",
+                        help="Name of dataset you want to run over")
+    parser.add_argument("--filesPerJob",
+                        help="Number of files to run over, per job.",
+                        type=int, default=5)
+    parser.add_argument("--totalFiles",
+                        help="Total number of files to run over. Default is ALL (-1)",
+                        type=int, default=-1)
+    parser.add_argument("--outputScript",
+                        help="Optional: name of condor submission script. Default is <config>_<time>.condor")
+    parser.add_argument("--verbose",
+                        help="Extra printout to clog up your screen.",
+                        action='store_true')
+    parser.add_argument("--dry",
+                        help="Dry-run: only make condor submission script, don't submit to queue.",
+                        action='store_true')
     args = parser.parse_args(args=in_args)
 
     if args.verbose:
@@ -69,7 +85,9 @@ def cmsRunCondor(in_args):
 
     # get the total number of files for this dataset using das_client
     if args.totalFiles == -1:
-        output_summary = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % args.dataset], stderr=subprocess.STDOUT)
+        output_summary = subprocess.check_output(['das_client.py','--query',
+                                                  'summary dataset=%s' % args.dataset],
+                                                  stderr=subprocess.STDOUT)
         log.debug(output_summary)
         total_num_files = int(re.search(r'nfiles +: (\d*)', output_summary).group(1))
         args.totalFiles = total_num_files
@@ -78,7 +96,10 @@ def cmsRunCondor(in_args):
     total_num_jobs = int(math.ceil(args.totalFiles / float(args.filesPerJob)))
 
     # Make a list of files for each job to avoid doing it on worker node side:
-    output_files = subprocess.check_output(['das_client.py','--query', 'file dataset=%s' % args.dataset, '--limit=%d' % args.totalFiles], stderr=subprocess.STDOUT)
+    output_files = subprocess.check_output(['das_client.py','--query',
+                                            'file dataset=%s' % args.dataset,
+                                            '--limit=%d' % args.totalFiles],
+                                            stderr=subprocess.STDOUT)
 
     list_of_files = ['"%s"' % line for line in output_files.splitlines() if line.lower().startswith("/store")]
 
