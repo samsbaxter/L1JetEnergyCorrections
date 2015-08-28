@@ -33,13 +33,14 @@ def cmsRunCondor(in_args):
     """Creates a condor job description file with the correct arguments,
     and optionally submit it.
 
-    Returns name of job description file.
+    Returns a dict of information about the job.
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config",
                         help="CMSSW config file you want to run.")
     parser.add_argument("--outputDir",
-                        help="Where you want your output to be stored. /hdfs is recommended")
+                        help="Where you want your output to be stored. "
+                        "/hdfs is recommended")
     parser.add_argument("--dataset",
                         help="Name of dataset you want to run over")
     parser.add_argument("--filesPerJob",
@@ -47,16 +48,25 @@ def cmsRunCondor(in_args):
                         type=int, default=5)
     parser.add_argument("--totalFiles",
                         help="Total number of files to run over. Default is ALL (-1)",
-                        type=int, default=-1)
+                        type=float, default=-1)
     parser.add_argument("--outputScript",
-                        help="Optional: name of condor submission script. Default is <config>_<time>.condor")
+                        help="Optional: name of condor submission script. "
+                        "Default is <config>_<time>.condor")
     parser.add_argument("--verbose",
                         help="Extra printout to clog up your screen.",
                         action='store_true')
     parser.add_argument("--dry",
                         help="Dry-run: only make condor submission script, don't submit to queue.",
                         action='store_true')
+    parser.add_argument("--dag",
+                        help="If you want to run as part of a condor DAG. "
+                        "This will queue only 1 job, and the job number is instead "
+                        "specified by the variable $(index), which should be specified in the DAG script.",
+                        action='store_true')
     args = parser.parse_args(args=in_args)
+
+    if args.dag:
+        args.dry = True
 
     if args.verbose:
         log.setLevel(logging.DEBUG)
@@ -130,27 +140,37 @@ def cmsRunCondor(in_args):
 
     if not args.outputScript:
         args.outputScript = job_filename
+
     job_description = job_template.replace("SEDINITIAL", "")  # keep initialdir local, otherwise tonnes of files on hdfs
-    log_dir = "jobs/%s/%s" % (strftime("%d_%b_%y_%H%M%S"), args.dataset.split("/")[1])
+    log_dir = "%s/%s" % (strftime("%d_%b_%y"), args.dataset.split("/")[1])
     log_str = "%s/%s" % (log_dir, args.outputScript.replace(".condor", ""))
-    if not os.path.exists(strftime("%d_%b_%y_%H%M%S")):
-        os.makedirs(log_dir)
+    if not os.path.exists("jobs/%s" % log_dir):
+        os.makedirs("jobs/%s" % log_dir)
     job_description = job_description.replace("SEDNAME", log_str)
-    args_str = "%s %s %s $(process)" % (config_filename, fileListName, args.outputDir)
+
+    args_str = "%s %s %s $(%s)" % (config_filename, fileListName, args.outputDir, "index" if args.dag else "process")
     job_description = job_description.replace("SEDARGS", args_str)
     job_description = job_description.replace("SEDEXE", 'cmsRun_worker.sh')
-    job_description = job_description.replace("SEDNJOBS", str(total_num_jobs))
+    job_description = job_description.replace("SEDNJOBS", str(1) if args.dag else str(total_num_jobs))
     job_description = job_description.replace("SEDINPUTFILES", "%s, %s" % (os.path.abspath(args.config), fileListName))
 
     with open(args.outputScript, 'w') as submit_script:
         submit_script.write(job_description)
     log.info('New condor submission script written to %s' % args.outputScript)
 
-    # submit to queue
+    # submit to queue unless dry-run
     if not args.dry:
         subprocess.call(['condor_submit', args.outputScript])
 
-    return args.outputScript
+    # Return job properties
+    return dict(dataset=args.dataset,
+                jobFile=args.outputScript,
+                totalNumJobs=total_num_jobs,
+                totaNumFiles=args.totalFiles,
+                filesPerJob=args.filesPerJob,
+                fileList=fileListName,
+                config=args.config
+                )
 
 
 if __name__ == "__main__":
