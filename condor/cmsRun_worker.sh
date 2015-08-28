@@ -96,5 +96,5 @@ ls -l
 for f in $(find . -name "*.root" -maxdepth 1)
 do
     output=$(basename $f)
-    hadoop fs -copyFromLocal $output ${outputDir///hdfs}/$output
+    hadoop fs -copyFromLocal -f $output ${outputDir///hdfs}/$output
 done
