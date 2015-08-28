@@ -24,6 +24,7 @@ import logging
 from itertools import izip_longest
 import json
 import getpass
+import shutil
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -151,7 +152,8 @@ def cmsRunCondor(in_args):
 
     args_str = "%s %s %s $(%s)" % (config_filename, fileListName, args.outputDir, "index" if args.dag else "process")
     job_description = job_description.replace("SEDARGS", args_str)
-    job_description = job_description.replace("SEDEXE", 'cmsRun_worker.sh')
+    worker_script = 'cmsRun_worker.sh'
+    job_description = job_description.replace("SEDEXE", worker_script)
     job_description = job_description.replace("SEDNJOBS", str(1) if args.dag else str(total_num_jobs))
     job_description = job_description.replace("SEDINPUTFILES", "%s, %s" % (os.path.abspath(args.config), fileListName))
     job_description = job_description.replace("SEDWHOAMI", getpass.getuser())
@@ -159,6 +161,21 @@ def cmsRunCondor(in_args):
     with open(args.outputScript, 'w') as submit_script:
         submit_script.write(job_description)
     log.info('New condor submission script written to %s' % args.outputScript)
+
+    # modify the worker node script with your credentials, and the right CMSSW
+    git_name = subprocess.check_output(['git', 'config', '--global', 'user.github']).strip('\n')
+    git_email = subprocess.check_output(['git', 'config', '--global', 'user.email']).strip('\n')
+    cmssw_version = os.environ['CMSSW_VERSION']
+    # need to make a copy of the file, then rewrite the original. If only I could sed...
+    backup_worker = worker_script+'.bak'
+    shutil.copy(worker_script, backup_worker)
+    with open(worker_script, "w") as worker, open(backup_worker, "r") as orig:
+        for line in orig:
+            line = re.sub(r'git config --global user.github ".*"', 'git config --global user.github "%s"' % git_name, line)
+            line = re.sub(r'git config --global user.email ".*"', 'git config --global user.email "%s"' % git_email, line)
+            line = re.sub(r'cmssw_version=.*', 'cmssw_version=%s' % cmssw_version , line)
+            worker.write(line)
+    os.remove(backup_worker)
 
     # submit to queue unless dry-run
     if not args.dry:

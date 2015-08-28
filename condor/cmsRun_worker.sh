@@ -17,7 +17,6 @@ export HOME=$worker # need this if getenv = false
 ######################
 # First setup CMSSW
 ######################
-# cmssw_version=CMSSW_7_4_6_patch6
 cmssw_version=CMSSW_7_4_2
 echo "Setting up ${cmssw_version} ..."
 echo "... sourcing CMS default environment from CVMFS"
@@ -29,9 +28,8 @@ eval `scramv1 runtime -sh`
 echo "${cmssw_version} has been set up"
 
 # Setup your git config, otherwise cannot check stuff out of git
-git config --global user.github "raggleton"
-git config --global user.name "Robin Aggleton"
-git config --global user.email "robin.aggleton@cern.ch"
+git config --global user.github "knobbly"
+git config --global user.email "knobbly@email"
 git config -l
 export CMSSW_GIT_REFERENCE="${worker}/.cmsgit-cache"
 
