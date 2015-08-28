@@ -24,14 +24,15 @@ from collections import namedtuple
 import re
 import das_client
 import subprocess
-
+import json
 
 # some helper functions
 
 def get_number_files(dataset):
     """Get total number of files in dataset"""
-    output = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % dataset], stderr=subprocess.STDOUT)
-    return int(re.search(r'nfiles +: (\d*)', output).group(1))
+    output = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % dataset, '--format=json'], stderr=subprocess.STDOUT)
+    summary_dict = json.loads(output)
+    return int(summary_dict['data'][0]['summary'][0]['nfiles'])
 
 
 def check_dataset(dataset):
@@ -83,13 +84,15 @@ for i, ptmin in enumerate(ptbins[:-1]):
     # Spring15 AVEPU20 25ns
     key = "QCD_Pt-%dto%d_Spring15_AVE20BX25" % (ptmin, ptmax)
     ver = "-v1"
+    tot = -1
     if ptmin == 80:
         ver = "-v2"
     elif ptmin == 15:
         ver = "_ext1-v1"
+        tot = 0.3
     # print key
     samples[key] = Dataset(inputDataset="/QCD_Pt_%dto%d_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7%s/GEN-SIM-RAW" % (ptmin, ptmax, ver),
-                            unitsPerJob=5, totalUnits=0.3)
+                            unitsPerJob=20, totalUnits=tot)
 
     # Spring15 AVEPU30 50ns
     key = "QCD_Pt-%dto%d_Spring15_AVE30BX50" % (ptmin, ptmax)
