@@ -86,7 +86,7 @@ do
     # Now add job for hadding
     echo $outname
     outname=${outname%_*}
-    outname=${outname/pairs_/pairs_$(basename $dir)}
+    outname=${outname/pairs_/pairs_$(basename $dir)_}
     finalRootName="$(dirname $dir)/pairs/${outname}${append}.root"
     haddJobName="haddCheckCalib"
     echo "JOB $haddJobName hadd.condor" >> "$dagfile"
