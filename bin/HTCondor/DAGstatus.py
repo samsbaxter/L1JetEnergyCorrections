@@ -82,6 +82,7 @@ class DagStatus(ClassAd):
         self.job_procs_held = int(job_procs_held)
         self.job_procs_idle = int(job_procs_idle)
         self.nodes_done_percent = round(100. * self.nodes_done / self.nodes_total)
+        self.job_procs_running = self.nodes_total - self.job_procs_held - self.nodes_queued - self.nodes_done - self.nodes_failed
 
 
 class NodeStatus(ClassAd):
@@ -192,7 +193,9 @@ def print_table(dag_status, node_statuses, status_end, summary):
     summary_dict["DAG status"] = "dag_status"
     summary_dict["Total"] = "nodes_total"
     summary_dict["Queued"] = "nodes_queued"
-    summary_dict["Ready"] = "nodes_ready"
+    summary_dict["Idle"] = "job_procs_idle"
+    # summary_dict["Ready"] = "nodes_ready"
+    summary_dict["Running"] = "job_procs_running"
     summary_dict["Failed"] = "nodes_failed"
     summary_dict["Done"] = "nodes_done"
     summary_dict["Done %"] = "nodes_done_percent"
