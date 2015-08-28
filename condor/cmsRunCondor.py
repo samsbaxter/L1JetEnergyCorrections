@@ -22,6 +22,7 @@ import re
 import math
 import logging
 from itertools import izip_longest
+import json
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -75,7 +76,7 @@ def cmsRunCondor(in_args):
             log.error("Cannot make output dir %s" % args.outputDir)
             raise
 
-    if args.filesPerJob > args.totalFiles and args.totalFiles != -1:
+    if args.filesPerJob > args.totalFiles and args.totalFiles > 1:
         log.error("You can't have --filesPerJob > --totalFiles!")
         raise RuntimeError
 
@@ -84,13 +85,15 @@ def cmsRunCondor(in_args):
         os.mkdir('jobs')
 
     # get the total number of files for this dataset using das_client
-    if args.totalFiles == -1:
+    if args.totalFiles < 1:
         output_summary = subprocess.check_output(['das_client.py','--query',
-                                                  'summary dataset=%s' % args.dataset],
+                                                  'summary dataset=%s' % args.dataset,
+                                                  '--format=json'],
                                                   stderr=subprocess.STDOUT)
         log.debug(output_summary)
-        total_num_files = int(re.search(r'nfiles +: (\d*)', output_summary).group(1))
-        args.totalFiles = total_num_files
+        summary_dict = json.loads(output_summary)
+        totalFiles = int(summary_dict['data'][0]['summary'][0]['nfiles'])
+        args.totalFiles = totalFiles if args.totalFiles == -1 else args.totalFiles * totalFiles
 
     # Figure out correct number of jobs
     total_num_jobs = int(math.ceil(args.totalFiles / float(args.filesPerJob)))
