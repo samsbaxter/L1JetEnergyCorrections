@@ -11,6 +11,9 @@ request_cpus = 1
 request_memory = 500
 request_disk = 30000000
 
+accounting_group = group_physics.hep
+account_group_user = ra12451
+
 # use the ENV that is provided
 getenv = true
 transfer_input_files = SEDINPUTFILES
