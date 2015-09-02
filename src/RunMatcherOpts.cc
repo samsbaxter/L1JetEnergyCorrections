@@ -43,9 +43,11 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     l1Dir_(""),
     output_(""),
     corrFilename_(""),
-    nEvents_(0),
+    nEvents_(-1),
     drawN_(0),
-    correctionMinPt_(-1)
+    correctionMinPt_(-1),
+    deltaR_(0.7), // RUN 1 GCT defaults
+    refMinPt_(14)
 {
     namespace po = boost::program_options;
 
@@ -53,7 +55,7 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     desc.add_options()
         ("help,h", "produce help message & exit")
         ("nEvents,N",
-            po::value<int>(&nEvents_)->default_value(-1),
+            po::value<int>(&nEvents_)->default_value(nEvents_),
             "number of events to run over. -1 for all.")
         ("input,I",
             po::value<std::string>(&input_)->default_value("python/L1Tree.root"),
@@ -81,14 +83,20 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
             "it will apply corrections to jets, and then only store values " \
             "for the 4 central and forward jets with highest pT.")
         ("corrMinPt",
-            po::value<float>(&correctionMinPt_)->default_value(-1),
+            po::value<float>(&correctionMinPt_)->default_value(correctionMinPt_),
             "Minimum L1 jet pT to apply corrections. If < 0, will use whatever " \
             "the fit limits were. Any other positive value will override this.")
         ("draw,d",
-            po::value<int>(&drawN_)->default_value(10),
+            po::value<int>(&drawN_)->default_value(drawN_),
             "number of events to draw 2D eta-phi plot of ref, L1 & matched " \
             "jets (for debugging). Plots saved in $PWD/match_plots." \
             " 0 for no plots.")
+        ("deltaR",
+            po::value<float>(&deltaR_)->default_value(deltaR_),
+            "Maximum deltaR(RefJet, L1 Jet) to consider a match.")
+        ("refMinPt",
+            po::value<float>(&refMinPt_)->default_value(refMinPt_),
+            "Minimum pT for reference jets")
     ;
     po::variables_map vm;
     try {

@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // SETUP JET MATCHER //
     ///////////////////////
-    double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(1000.);
+    double maxDeltaR(opts.deltaR()), minRefJetPt(opts.refJetMinPt()), maxRefJetPt(1000.);
     double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
     // use base class smart pointer for ease of swapping in/out different
     //  matchers if so desired
