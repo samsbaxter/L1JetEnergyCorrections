@@ -373,7 +373,12 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     """Plot response (l1/ref) Vs l1 pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_l1%s" % (eta_min, eta_max, app)
-    h2d_rsp_l1_orig = get_from_file(check_file, hname)
+    if exists_in_file(check_file, hname):
+        h2d_rsp_l1_orig = get_from_file(check_file, hname)
+    else:
+        h2d_rsp_l1_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max))
+        if normX:
+            h2d_rsp_l1_orig = norm_vertical_bins(h2d_rsp_l1_orig)
     h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1,2,"hnew")
     c = generate_canvas()
     if logZ:
@@ -391,10 +396,15 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
 def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf"):
     """Plot response (l1/ref) Vs ref pt"""
     app = "_normX" if normX else ""
-    c = generate_canvas()
     hname = "eta_%g_%g/Histograms/h2d_rsp_gen%s" % (eta_min, eta_max, app)
-    h2d_rsp_ref_orig = get_from_file(check_file, hname)
+    if exists_in_file(check_file, hname):
+        h2d_rsp_ref_orig = get_from_file(check_file, hname)
+    else:
+        h2d_rsp_ref_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max))
+        if normX:
+            h2d_rsp_ref_orig = norm_vertical_bins(h2d_rsp_ref_orig)
     h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1,2,"hnew")
+    c = generate_canvas()
     if logZ:
         c.SetLogz()
         app += "_log"
@@ -761,6 +771,10 @@ def main(in_args=sys.argv[1:]):
         calib_file = open_root_file(args.calib)
         for eta_min, eta_max in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
             print eta_min, eta_max
+            for (normX, logZ) in product([True, False], [True, False]):
+                plot_rsp_Vs_ref(calib_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
+                plot_rsp_Vs_l1(calib_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
+
             if eta_min > 2.9:
                 ptBins = binning.pt_bins_wide
             for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
