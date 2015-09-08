@@ -243,7 +243,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
 
         # check if we have a bad fit - either fit status != 0, or
         # fit mean is not close to raw mean. in either case use raw mean
-        if fitStatus != 0 or (absetamin > 2.9 and abs((mean/hrsp.GetMean()) - 1) > 0.2):
+        if fitStatus != 0 or (xlow > 50 and abs((mean/hrsp.GetMean()) - 1) > 0.2):
 
             print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
                 "fit status:", fitStatus, \
