@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# Submit resolution jobs on HTCondor using the DAGman feature.
-# All you need to do is add in the relevant pairs file(s) you wish to run over.
+# Submit matcher jobs on HTCondor using the DAGman feature.
+# All you need to do is add in the relevant directories of L1Ntuple files you wish to run over.
 # Use absolute path!
 #
-# For each pairs file, creates a dag file. This does all the eta bins in
-# separate jobs, and then hadds them all after.
+# For each directory, this will create a DAG file will all the necessary job and submit it.
+# It will make a pairs file for each L1Ntuple file, in the same directory as the L1Ntuple file.
+# It will then hadd all the pairs files from that directory,
+# and put them in the parent directory of the Ntuple directory, in a subdirectory called "pairs".
 
 declare -a treeDirs=(
 # /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-120to170_Spring15_AVE20BX25
