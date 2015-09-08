@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Submit calibration jobs on HTCondor using the DAGman feature.
+# Submit checkCalibration jobs on HTCondor using the DAGman feature.
 # All you need to do is add in the relevant pairs file(s) you wish to run over.
 # Use absolute path!
 #
@@ -50,7 +50,21 @@ declare -a statusFileNames=()
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
 do
+    # check file actually exists
+    if [ ! -e "$pairs" ]; then
+        echo "$Pairs does not exist!"
+        exit 1
+    fi
+
+    # Puts the output in relevant directory,
+    # e.g. if pairs in Stage1/pairs/xxx/pairs.root
+    # output goes to Stage1/check/xxx/check.root
     fdir=`dirname $pairs`
+    fdir=${fdir/pairs/check}
+    if [ ! -d "$fdir" ]; then
+        mkdir -p $fdir
+        echo "Making output dir $fdir"
+    fi
     fname=`basename $pairs`
 
     echo "Using pairs file $pairs"
@@ -69,7 +83,7 @@ do
     declare -a outFileNames=()
 
     # Special appendix, if desired (e.g. if changing a param)
-    append="_test"
+    append=""
 
     outname=${fname/pairs_/check_}
     outname=${outname%.root}
@@ -122,6 +136,7 @@ do
     haddJobName="haddCheckCalib"
     echo "JOB $haddJobName hadd.condor" >> "$dagfile"
     echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
+    echo "Output file: $finalRootName"
 
     # Add in parent-child relationships & status file
     echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
@@ -129,6 +144,7 @@ do
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
     statusFileNames+=($statusfile)
 
+    # Submit jobs
     autoSub=true
     for f in "${outFileNames[@]}"; do
         if [ -e $f ]; then

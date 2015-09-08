@@ -50,7 +50,21 @@ declare -a statusFileNames=()
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
 do
+    # check file actually exists
+    if [ ! -e "$pairs" ]; then
+        echo "$Pairs does not exist!"
+        exit 1
+    fi
+
+    # Puts the output in relevant directory,
+    # e.g. if pairs in Stage1/pairs/xxx/pairs.root
+    # output goes to Stage1/res/xxx/res.root
     fdir=`dirname $pairs`
+    fdir=${fdir/pairs/res}
+    if [ ! -d "$fdir" ]; then
+        mkdir -p $fdir
+        echo "Making res dir $fdir"
+    fi
     fname=`basename $pairs`
 
     echo "Using pairs file $pairs"
@@ -129,12 +143,24 @@ do
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
     statusFileNames+=($statusfile)
 
+    # Submit jobs
+    autoSub=true
+    for f in "${outFileNames[@]}"; do
+        if [ -e $f ]; then
+            autoSub=false
+            break
+        fi
+    done
     echo ""
     echo "Condor DAG script made"
     echo "Submit with:"
     echo "condor_submit_dag $dagfile"
-    echo "Submitting..."
-    condor_submit_dag "$dagfile"
+    if [ $autoSub = true ]; then
+        echo "Submitting..."
+        condor_submit_dag "$dagfile"
+    else
+        echo "Not auto submitting as output file already exists. Check your job description file is OK first!"
+    fi
     echo ""
     echo "Check status with:"
     echo "./DAGstatus.py $statusfile"
