@@ -4,7 +4,7 @@ This script outputs all the calibration plots in the ROOT file output by
 runCalibration.py as one long pdf, cos TBrowser sucks.
 """
 
-import ROOT as r
+import ROOT
 import sys
 import os
 import numpy
@@ -14,32 +14,13 @@ from itertools import izip
 import subprocess
 import binning
 import beamer_slide_templates as bst
+import common_utils as cu
 
 
-r.PyConfig.IgnoreCommandLineOptions = True
-r.gROOT.SetBatch(1)
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+ROOT.gROOT.SetBatch(1)
 
 etaBins = binning.eta_bins
-
-
-def open_root_file(filename):
-    """
-    Safe way to open ROOT file. Could be improved.
-    """
-    f = r.TFile(filename)
-    if f.IsZombie():
-        raise RuntimeError("Can't open file %s" % filename)
-    return f
-
-
-def check_dir_exists(d):
-    """
-    Check directory exists. If not, make it.
-    """
-    opath = os.path.abspath(d)
-    if not os.path.isdir(opath):
-        os.makedirs(opath)
-
 
 def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawopts="", drawfit=True, extend_fit=True):
     """
@@ -47,10 +28,10 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawopts
     filename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
     can optionally not draw the fit to the curve
     """
-    r.gStyle.SetPaperSize(10.,10.)
-    r.gStyle.SetOptStat("mre")
-    r.gStyle.SetOptFit(0101) # MAGIC COMBO FOR PARAMS+ERRORS - ignore the ROOT docs
-    # p = r.TGraphErrors(f.Get(plotname).Clone())
+    ROOT.gStyle.SetPaperSize(10.,10.)
+    ROOT.gStyle.SetOptStat("mre")
+    ROOT.gStyle.SetOptFit(0101) # MAGIC COMBO FOR PARAMS+ERRORS - ignore the ROOT docs
+    # p = ROOT.TGraphErrors(f.Get(plotname).Clone())
     print plotname
     obj = f.Get(plotname)
     obj2 = f.Get(plotname+"_fit")
@@ -82,7 +63,8 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawopts
             fn2.SetLineWidth(2)
             fn2.Draw("SAME")
         p.Draw(drawopts+"SAME")
-        r.gPad.Update()
+        ROOT.gPad.Update()
+        ROOT.gPad.SetTicks(1,1)
 
         # Draw fit stats box
         st = p2.FindObject("stats")
@@ -92,8 +74,8 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawopts
         st.SetY1NDC(0.55)
         st.SetY2NDC(0.9)
         for f in filename:
-            r.gPad.Print(f)
-        r.gPad.Clear()
+            ROOT.gPad.Print(f)
+        ROOT.gPad.Clear()
         return True
 
 
@@ -104,11 +86,11 @@ def plot_corr_results(in_name=""):
     # Setup input file
     print "Opening", in_name
     in_stem = os.path.basename(in_name).replace(".root", "")
-    input_file = open_root_file(in_name)
+    input_file = cu.open_root_file(in_name)
 
     # Setup output directory & filenames
     odir = os.path.dirname(os.path.abspath(in_name))+"/"+in_stem+"/"
-    check_dir_exists(odir)
+    cu.check_dir_exists_create(odir)
 
     out_name = odir+in_stem+".pdf"
     out_stem = out_name.replace(".pdf","")
@@ -174,11 +156,11 @@ def plot_bin_results(in_name=""):
     # Setup input file
     print "Opening", in_name
     in_stem = os.path.basename(in_name).replace(".root", "")
-    input_file = open_root_file(in_name)
+    input_file = cu.open_root_file(in_name)
 
     # Setup output directory & filenames
     odir = os.path.dirname(os.path.abspath(in_name))+"/"+in_stem+"/"
-    check_dir_exists(odir)
+    cu.check_dir_exists_create(odir)
 
     # only have to change output name here - reflected automatically in tex files etc
     out_name = odir+in_stem+"_bin.pdf"
@@ -212,7 +194,7 @@ def plot_bin_results(in_name=""):
             titles = []
             plotnames = []
             out_dir_eta = odir+"/eta_%g_%g/" % (emin, emax)
-            check_dir_exists(out_dir_eta)
+            cu.check_dir_exists_create(out_dir_eta)
             ptBins = binning.pt_bins if emin < 3 else binning.pt_bins_wide
             for j, pt in enumerate(ptBins[:-1]):
                 ptmin = pt
