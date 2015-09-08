@@ -97,13 +97,18 @@ do
     nJobs=${#outFileNames[@]}
     nInterHaddJobs=$((($nJobs+$groupSize+1)/$groupSize)) # ceiling
     modulus=$(($nJobs%$groupSize)) # modulus
-    # floor=$(($nJobs/$groupSize)) # floor
     # Here we adjust the group size if the last job would just be hadding 1 file
     if [ "$modulus" -eq  "1" ]; then
         groupSize=199
         nInterHaddJobs=$((($nJobs+$groupSize+1)/$groupSize)) # ceiling
-        # floor=$(($nJobs/$groupSize)) # floor
-        # modulus=$(($nJobs%$groupSize)) # modulus
+    fi
+
+    # Output directory for final hadded pairs file
+    pairsDirectory=$(dirname $dir)/pairs
+    # Check if directory exists, if not make it
+    if [ ! -e "$pairsDirectory" ]; then
+        echo "Making $pairsDirectory"
+        mkdir -p "$pairsDirectory"
     fi
 
     # Either just do 1 hadd job, or a layer of intermediate hadding jobs
@@ -125,13 +130,12 @@ do
         i=0
         while [ "$i" -lt "$nInterHaddJobs" ]; do
             # collect all the info for this job: input files, output file, job names
-            tmpOutput="$(dirname $dir)/pairs/${outname}${append}_inter$i.root"
+            tmpOutput="${pairsDirectory}/${outname}${append}_inter${i}_${timestamp}.root"
             interHaddFileNames+=($tmpOutput)
             declare -a tmpInputFiles=()
             declare -a tmpJobParentNames=()
             lim=$(( ($i+1) * $groupSize ))
-            if [ "$i" -eq "$((nInterHaddJobs-1))" ];
-            then
+            if [ "$i" -eq "$((nInterHaddJobs-1))" ]; then
                 lim=$nJobs
             fi
 
@@ -145,7 +149,6 @@ do
             interHaddJobNames+=($haddJobName)
             echo "JOB $haddJobName hadd.condor" >> "$dagfile"
             echo "VARS $haddJobName opts=\"$tmpOutput ${tmpInputFiles[@]}\"" >> "$dagfile"
-
             # Add in parent-child relationships
             echo "PARENT ${tmpJobParentNames[@]} CHILD $haddJobName" >> "$dagfile"
             (( i += 1 ))
@@ -167,15 +170,16 @@ do
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
     statusFileNames+=($statusfile)
 
+    # Submit, but check if it will overwrite anything
     autoSub=true
     for f in "${outFileNames[@]}"; do
-        if [ -e $f ]; then
+        if [ -e "$f" ]; then
             echo "One of the individual output files already exists"
             autoSub=false
             break
         fi
     done
-    if [ -e $finalRootName ]; then
+    if [ -e "$finalRootPath" ]; then
         echo "Final output file already exists"
         autoSub=false
     fi
@@ -187,7 +191,7 @@ do
         echo "Submitting..."
         condor_submit_dag "$dagfile"
     else
-        echo "Not auto submitting as output file(s) already exists. Check your job description file is OK first!"
+        echo "Not auto submitting."
     fi
     echo ""
     echo "Check status with:"
