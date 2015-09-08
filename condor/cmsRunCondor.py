@@ -48,7 +48,8 @@ def cmsRunCondor(in_args):
                         help="Number of files to run over, per job.",
                         type=int, default=5)
     parser.add_argument("--totalFiles",
-                        help="Total number of files to run over. Default is ALL (-1)",
+                        help="Total number of files to run over. Default is ALL (-1). "
+                        "A float between 0 and 1 will run that fraction of the whole dataset.",
                         type=float, default=-1)
     parser.add_argument("--outputScript",
                         help="Optional: name of condor submission script. "

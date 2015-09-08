@@ -4,7 +4,9 @@ over various datasets.
 
 User must select the correct config file, outputDir, and dataset(s).
 
-The datasets must be the name of their keys in the samples dict (in mc_scamples or data_samples)
+The datasets must be the name of their keys in the samples dict (in mc_scamples or data_samples).
+
+The results of each dataset in the datasets list will be stored in: <outputDir>/<dataset>/
 """
 
 import sys
@@ -14,9 +16,12 @@ import L1Trigger.L1JetEnergyCorrections.mc_samples as samples
 from time import strftime, sleep
 
 
-config = "../python/SimL1Emulator_Stage1_oldSetup.py"
-outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDPhys14_AVE20BX25_default"
-datasets = samples.samples_qcd_Phys14_AVE20BX25_AODSIM.keys()
+# config = "../python/SimL1Emulator_Stage1_newRCT.py"
+# outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1v2_rctv4_small"
+
+config = "../python/SimL1Emulator_Stage1_newRCT_noStage1Lut.py"
+outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDFlatSpring15BX25HCALFix_stage1NoLut_rctv4_jetSeed5"
+datasets = ['QCDFlatSpring15BX25PU10to30HCALFix', 'QCDFlatSpring15BX25FlatNoPUHCALFix']
 
 if __name__ == "__main__":
     # Run through datasets once to check all fine
@@ -31,26 +36,16 @@ if __name__ == "__main__":
         dset_opts = samples.samples[dset]
         print "*"*80
         print "Dataset key:", dset
- 
-        # to restrict total units run over
-        if dset_opts.totalUnits > 1:
-            totalUnits = dset_opts.totalUnits
-        elif 0 < dset_opts.totalUnits <= 1:
-            totalUnits = int(samples.get_number_files(dset_opts.inputDataset) * dset_opts.totalUnits)
-        else:
-            totalUnits = int(samples.get_number_files(dset_opts.inputDataset))  # make sure we reset
-        print "Total units:", totalUnits
 
+        # Make condor job description file (and optionally submit)
         scriptName = '%s_%s_%s.condor' % (os.path.basename(config).replace(".py", ""), dset, strftime("%H%M%S"))
         print "Script Name:", scriptName
-        cmsRunCondor(['--config', config,
-                      '--outputDir', outputDir+"/"+dset,
-                      '--dataset', dset_opts.inputDataset,
-                      '--filesPerJob', str(dset_opts.unitsPerJob),
-                      '--totalFiles', str(totalUnits),
-                      '--outputScript', scriptName,
-                      '--dry',
-                      '--verbose'])
-        if dset != datasets[-1]:
-            print "Sleeping for 60s to avoid hammering the queue..."
-            sleep(60)
+        job_args = cmsRunCondor(['--config', config,
+                                 '--outputDir', outputDir+"/"+dset,
+                                 '--dataset', dset_opts.inputDataset,
+                                 '--filesPerJob', str(dset_opts.unitsPerJob),
+                                 '--totalFiles', str(dset_opts.totalUnits),
+                                 '--outputScript', scriptName,
+                                 '--dry',
+                                 '--verbose'])
+        print job_args

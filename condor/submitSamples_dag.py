@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Equivalent of the crab3 scripts, this creates jobs on the HTCondor system running
 over various datasets.
@@ -5,6 +6,8 @@ over various datasets.
 User must select the correct config file, outputDir, and dataset(s).
 
 The datasets must be the name of their keys in the samples dict (in mc_scamples or data_samples)
+
+The results of each dataset in the datasets list will be stored in: <outputDir>/<dataset>/
 """
 
 import sys
@@ -15,16 +18,16 @@ from time import strftime, sleep
 from subprocess import call
 
 
-# config = "../python/SimL1Emulator_Stage1_newRCT.py"
-# outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1v2_rctv4_small"
+config = "../python/SimL1Emulator_Stage1_newRCT.py"
+outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDFlatSpring15BX25HCALFix_stage1v2_rctv4_jetSeed5"
 
-config = "../python/SimL1Emulator_Stage1_newRCT_noStage1Lut.py"
-outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0"
+# config = "../python/SimL1Emulator_Stage1_newRCT_noStage1Lut.py"
+# outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDFlatSpring15BX25HCALFix_stage1NoLut_rctv4_jetSeed5"
+datasets = ['QCDFlatSpring15BX25PU10to30HCALFix', 'QCDFlatSpring15BX25FlatNoPUHCALFix']
 
-datasets = samples.samples_qcd_Spring15_AVE20BX25.keys()
-# datasets = ['QCD_Pt-80to120_Spring15_AVE20BX25']
-datasets.remove('QCD_Pt-80to120_Spring15_AVE20BX25')
-datasets.remove('QCD_Pt-300to470_Spring15_AVE20BX25')
+# config = "../python/SimL1Emulator_Stage1_newRCT_noStage1Lut_jetSeed5_noPUS.py"
+# outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDFlatSpring15BX25HCALFix_stage1NoLut_rctv4_jetSeed5_noPUS"
+# datasets = ['QCDFlatSpring15BX25FlatNoPUHCALFix']
 
 if __name__ == "__main__":
     # Run through datasets once to check all fine
@@ -58,8 +61,11 @@ if __name__ == "__main__":
 
         # Setup DAG file for this dataset
         dag_name = "jobs_%s_%s.dag" % (dset, strftime("%d_%b_%y_%H%M%S"))
+        print "DAG Name:", dag_name
         with open(dag_name, "w") as dag_file:
             dag_file.write("# DAG for dataset %s\n" % dset_opts.inputDataset)
+            dag_file.write("# Using config file %s\n" % config)
+            # dag_file.write("# Writing to dir %s\n" % str(outputDir+"/"+dset))
             for job_ind in xrange(job_dict['totalNumJobs']):
                 jobName = "%s_%d" % (dset, job_ind)
                 dag_file.write('JOB %s %s\n' % (jobName, scriptName))
@@ -72,11 +78,7 @@ if __name__ == "__main__":
         call(['condor_submit_dag', dag_name])
 
         print "Check DAG status:"
-        print "./DAGstatus.py", dag_name
-
-        if dset != datasets[-1]:
-            print "Sleeping for 60s to avoid hammering the queue..."
-            sleep(60)
+        print "./DAGstatus.py", status_names[-1]
 
     print "To view the status of all DAGs:"
     print "./DAGstatus.py", " ".join(status_names)
