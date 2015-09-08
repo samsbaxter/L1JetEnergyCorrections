@@ -27,8 +27,69 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
-
+# Et(L1) limits used for the big plot of all functions
 etmin, etmax = 0.1, 30
+
+
+class MultiFunc(object):
+    """Class to handle using different TF1s over different ranges.
+
+    E.g. y = x for x = [0,1], then y = x^2 for [1, Inf]
+    This was created since it is so hard (impossible?) to do in ROOT.
+    """
+
+    def __init__(self, functions_dict):
+        """Constructor takes as argument a dictionary, where each key is a tuple,
+        and each value is a TF1 object.
+
+        The tuple must have 2 elements: lower and upper bounds, which define the
+        valid function range.
+
+        e.g.
+        lin = ROOT.TF1("lin", "x")
+        quad = ROOT.TF1("quad", "x*x")
+
+        functions_dict = {
+            (-np.inf, 1): lin,
+            (1, np.inf): quad
+        }
+        f = c.MultiFunc(functions_dict)
+        f.Eval(0.5) # 0.5
+        f.Eval(3) # 9
+        """
+        self.functions_dict = functions_dict
+
+
+    def Eval(self, x):
+        """Emulate TF1.Eval() but will call the correct function,
+        depending on which function is applicable for the value of x."""
+        return [func for lim, func in self.functions_dict.iteritems() if lim[0] <= x < lim[1]][0].Eval(x)
+
+
+    def Draw(self, args=None):
+        """Draw the various functions"""
+
+        # make a 'blank' function to occupy the complete range of x values:
+        lower_lim = min([lim[0] for lim in self.functions_dict.keys()])
+        if np.isneginf(lower_lim):
+            lower_lim = -999
+        upper_lim = max([lim[1] for lim in self.functions_dict.keys()])
+        if np.isposinf(lower_lim):
+            upper_lim = 999
+        blank = ROOT.TF1("blank"+str(np.random.randint(0,10000)), "1.5", lower_lim, upper_lim)
+        blank.Draw()
+        max_value = max([func.GetMaximum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 1.1
+        blank.SetMaximum(max_value)
+        min_value = min([func.GetMinimum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 0.9
+        blank.SetMinimum(min_value)
+        ROOT.SetOwnership(blank, False) # NEED THIS SO IT ACTUALLY GETS DRAWN. SERIOUSLY, WTF?!
+        blank.SetLineColor(ROOT.kWhite)
+
+        # now draw the rest of the functions
+        args = "" if not args else args
+        for func in self.functions_dict.values():
+            func.Draw("SAME" + args)
+
 
 def print_function(function, lang="cpp"):
     """Print TF1 to screen so can replicate in ROOT
@@ -160,15 +221,74 @@ def print_Stage1_lut_file(fit_functions, eta_bins, filename):
                     lut_address = (eta<<10) + pt
                     physPt = pt / 2. # convert HW pt to physical pt
                     pt_corr = physPt * fit_functions[param_ind].Eval(physPt)
-                    if pt_corr < 0:
+                    if pt_corr < 0: # avoid -ve pt
                         pt_corr = 0
                     RANKCALIB = int(pt_corr / 4);  # The 4 is to go to the 4 GeV binning at the GT
-                    if (RANKCALIB > 63):
+                    if (RANKCALIB > 63): # cap pt
                         RANKCALIB = 63;
                     line = "%s %s\n" % (lut_address, RANKCALIB)
                     lut_file.write(line);
                     dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f corrPhysPt: %f RANKCALIB: %d\n" % (eta, physPt, lut_address, fit_functions[param_ind].Eval(physPt), pt_corr, RANKCALIB)
                     dump_file.write(dump_line)
+
+
+def make_fancy_fits(fits, graphs):
+    """
+    Make fancy fit, by checking for deviations between graph and fit at low pT.
+    Then below the pT where they differ, just use the last good correction factor.
+
+    This generates a new set of correction functions, represented by MultiFunc objects.
+    """
+    new_functions = []
+
+    c = ROOT.TCanvas("c", "", 600, 600)
+
+    for i, (fit, gr) in enumerate(zip(fits, graphs)):
+        x_arr, y_arr = cu.get_xy(gr)
+        ex_arr, ey_arr = cu.get_exey(gr)
+
+        pt_merge = 0
+        corr_merge = 0
+
+        for (pt, corr, pt_err, corr_err) in izip(x_arr[::-1], y_arr[::-1], ex_arr[::-1], ey_arr[::-1]):
+            # Loop through each point of the graph in reverse,
+            # only considering points with pt < 40.
+            # Determine where the function and graph separate by
+            # looking at the difference
+            # The error arrays are redundant for now, but are included incase
+            # the user wishes to use their values in the future
+            if pt > 40:
+                continue
+            print pt, corr, fit.Eval(pt), abs(fit.Eval(pt) - corr)
+            if abs(fit.Eval(pt) - corr) > 0.05:
+                break
+            else:
+                pt_merge = pt
+                corr_merge = fit.Eval(pt)
+
+        print "pt_merge:", pt_merge, "corr val:", fit.Eval(pt_merge), "corr merge", corr_merge
+
+        # Make our new 'frankenstein' function: constant for pt < pt_merge,
+        # then the original function for pt > pt_merge
+        constant = ROOT.TF1("constant%d" % i, "%.8f" % corr_merge, 0, pt_merge)
+        constant.SetParameter(0, corr_merge)
+
+        function_str = "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))"
+        for p in xrange(fit.GetNumberFreeParameters()):
+            function_str = function_str.replace("[%d]" % p, "%.8f" % fit.GetParameter(p))
+        fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge*0.8, 512)
+        # set lower range below pt_merge just for drawing purposes
+
+        functions_dict = {(0, pt_merge): constant,
+                          (pt_merge, 512): fit_new}
+        total_fit = MultiFunc(functions_dict)
+        new_functions.append(total_fit)
+
+        c = ROOT.TCanvas("c%d" % i, "FUCK ROOT", 600, 600)
+        total_fit.Draw()
+        c.SaveAs("fancyfit_%d.pdf" % i)
+
+    return new_functions
 
 
 def plot_correction_map(corr_fn, filename="correction_map.pdf"):
@@ -260,6 +380,9 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("lut", help="output LUT filename", default="my_lut.txt")
     parser.add_argument("--gct", help="Make LUT for GCT", action='store_true')
     parser.add_argument("--stage1", help="Make LUT for Stage 1", action='store_true')
+    parser.add_argument("--fancy", help="Make fancy LUT. "
+                        "This checks for low pT deviations and caps the correction value",
+                        action='store_true')
     parser.add_argument("--plots", help="Make plots to check sensibility of correction functions.",
                         action='store_true')
     parser.add_argument("--cpp", help="print ROOT C++ code to screen", action='store_true')
@@ -309,11 +432,12 @@ def main(in_args=sys.argv[1:]):
     # Print all functions to one canvas
     plot_all_functions(all_fits, out_dir+"/all_fits.pdf", etaBins, etmin, etmax)
 
+    # Make LUTs
     if args.gct:
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
     elif args.stage1:
-        print_Stage1_lut_file(all_fits, etaBins, args.lut)
-
+        fits = make_fancy_fits(all_fits, all_graphs) if args.fancy else all_fits
+        print_Stage1_lut_file(fits, etaBins, args.lut)
 
 if __name__ == "__main__":
     main()
