@@ -216,7 +216,7 @@ def print_table(dag_status, node_statuses, status_end, summary):
     if not summary:
         print "*" * columns
         # Print info for each job.
-        print bcolors.ENDC, job_header
+        print bcolors.ENDC + job_header
         print "-" * columns
         for n in node_statuses:
             print (bcolors.color(n.node_status) +
