@@ -18,7 +18,8 @@ from itertools import izip
 import os
 import argparse
 import binning
-from common_utils import *
+import common_utils as cu
+from runCalibration import generate_eta_graph_name
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -181,7 +182,7 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     # Post calibration
     jet_pt_post = np.array([pt * corr_fn.Eval(pt) for pt in jet_pt_pre])
 
-    # Make coloured blocks to show the GCT bins
+    # Make coloured blocks to show the L1 pT bins
     blocks = []  # for persistence otherwise garbabe collected
     gct_bins = np.arange(4, 16 + (18*4), 4)
     for i, pt in enumerate(gct_bins):
@@ -217,13 +218,40 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     c.SaveAs(filename)
 
 
+def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
+    """Draw all corrections functions on one big canvas"""
+    canv = ROOT.TCanvas("canv", "", 3800, 1200)
+    nrows = 2
+    ncols = ((len(binning.eta_bins)-1) / nrows) + 1
+    canv.Divide(ncols, nrows)
 
-    # leg = ROOT.TLegend(0.7, 0.7, 0.8, 0.8)
-    # leg.SetFillColor(ROOT.kWhite)
-    # leg.AddEntry(h_pre, "Pre", "L")
-    # leg.AddEntry(h_post, "Post", "L")
-    # leg.Draw()
-    # c.SaveAs(filename.replace('correction_map', 'occupancy_map'))
+    # vertical line to intersect graph
+    vert_line = ROOT.TLine(5, 0, 5, 3)
+    vert_line.SetLineStyle(3)
+    vert_line.SetLineWidth(1)
+
+    # horizontal line to intersect graph
+    hori_line = ROOT.TLine(et_min, 2, et_max, 2)
+    hori_line.SetLineStyle(3)
+
+    for i, fit_func in enumerate(functions):
+        canv.cd(i+1)
+        fit_func.SetRange(et_min, et_max)
+        fit_func.SetLineWidth(1)
+        fit_func.SetTitle("%g - %g" % (eta_bins[i], eta_bins[i+1]))
+        fit_func.Draw()
+        corr_5 = fit_func.Eval(5)
+        vert_line.SetY1(-15)
+        vert_line.SetY2(15)
+        ROOT.gPad.SetTicks(1, 1)
+        ROOT.gPad.SetGrid(1, 1)
+        vert_line.Draw()
+        l2 = hori_line.Clone()
+        l2.SetY1(corr_5)
+        l2.SetY2(corr_5)
+        l2.Draw("SAME")
+
+    canv.SaveAs(filename)
 
 
 def main(in_args=sys.argv[1:]):
@@ -245,37 +273,26 @@ def main(in_args=sys.argv[1:]):
     in_file = cu.open_root_file(args.input)
     out_dir = os.path.dirname(args.lut)
 
-    # Canvas for plotting all fits
-    canv = ROOT.TCanvas("canv", "", 3800, 1200)
-    ncols = ((len(binning.eta_bins)-1) / 2) + 1
-    canv.Divide(ncols, 2)
-
-    line = ROOT.TLine(5, 0, 5, 3)
-    line.SetLineStyle(3)
-    line.SetLineWidth(1)
-
-    line2 = ROOT.TLine(1, 2, 20, 2)
-    line2.SetLineStyle(3)
-
     all_fit_params = []
     all_fits = []
+    all_graphs = []
 
     etaBins = binning.eta_bins
-    for i, (etamin, etamax) in enumerate(izip(etaBins[:-1], etaBins[1:])):
-        print "Eta bin:", etamin, "-", etamax
+    for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
+        print "Eta bin:", eta_min, "-", eta_max
 
         # get the fitted TF1
-        fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (etamin, etamax))
-        if not fit_func:
-            raise Exception("Couldn't get fit function fitfcneta_%g_%g" % (etamin, etamax))
-
+        fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (eta_min, eta_max))
         all_fits.append(fit_func)
         fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
         all_fit_params.append(fit_params)
         print "Fit parameters:", fit_params
 
-        corr_5 = fit_func.Eval(5)
-        print "Fit fn evaluated at 5 GeV:", corr_5
+        # get the corresponding fit graph
+        fit_graph = cu.get_from_file(in_file, generate_eta_graph_name(eta_min, eta_max))
+        all_graphs.append(fit_graph)
+
+        print "Fit fn evaluated at 5 GeV:", fit_func.Eval(5)
 
         # Print function to screen
         if args.cpp:
@@ -286,27 +303,11 @@ def main(in_args=sys.argv[1:]):
             print_function(fit_func, "numpy")
 
         if args.plots:
-            # Print function to canvas
-            canv.cd(i+1)
-            fit_func.SetRange(etmin, etmax)
-            fit_func.SetLineWidth(1)
-            fit_func.SetTitle("%g - %g" % (etamin, etamax))
-            fit_func.Draw()
-            line.SetY1(-15)
-            line.SetY2(15)
-            ROOT.gPad.SetTicks(1, 1)
-            ROOT.gPad.SetGrid(1, 1)
-            line.Draw()
-            l2 = line2.Clone()
-            l2.SetY1(corr_5)
-            l2.SetY2(corr_5)
-            l2.Draw("SAME")
-
             # Plot function mapping
-            plot_correction_map(fit_func, out_dir+"/correction_map_%g_%g.pdf" % (etamin, etamax))
+            plot_correction_map(fit_func, out_dir+"/correction_map_%g_%g.pdf" % (eta_min, eta_max))
 
-    if args.plots:
-        canv.SaveAs(out_dir+"/all_fits.pdf")
+    # Print all functions to one canvas
+    plot_all_functions(all_fits, out_dir+"/all_fits.pdf", etaBins, etmin, etmax)
 
     if args.gct:
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
