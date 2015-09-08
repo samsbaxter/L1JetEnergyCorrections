@@ -95,13 +95,13 @@ int main(int argc, char* argv[]) {
     L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
     L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
 
-    std::unique_ptr<TChain> eventChain(new TChain("l1NtupleProducer/L1Tree"));
-    std::unique_ptr<L1AnalysisEventDataFormat> eventTree(new L1AnalysisEventDataFormat());
-    int addResult = eventChain->Add(opts.inputFilename().c_str(), -1);
-    if (addResult == 0) {
-        throw runtime_error(("No L1Tree!"));
-    }
-    eventChain->SetBranchAddress("Event", &eventTree);
+    // std::unique_ptr<TChain> eventChain(new TChain("l1NtupleProducer/L1Tree"));
+    // std::unique_ptr<L1AnalysisEventDataFormat> eventTree(new L1AnalysisEventDataFormat());
+    // int addResult = eventChain->Add(opts.inputFilename().c_str(), -1);
+    // if (addResult == 0) {
+    //     throw runtime_error(("No L1Tree!"));
+    // }
+    // eventChain->SetBranchAddress("Event", &eventTree);
 
     // Map L1Analysis::L1AnalysisL1ExtraDataFormat structs to the desired
     // directories in the TFile.
@@ -177,31 +177,36 @@ int main(int argc, char* argv[]) {
 
     // setup output tree to store raw variable for quick plotting/debugging
     TTree outTree("valid", "valid");
-    // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
-    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp_inv(-1.);
-    float out_dr(99.), out_deta(99.), out_dphi(99.);
-    float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
-    float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
-    float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
-    int out_event(0);
 
+    // Quantities for L1 jets:
+    float out_pt(-1.), out_eta(99.), out_phi(99.);
     outTree.Branch("pt",     &out_pt,     "pt/Float_t");
     outTree.Branch("eta",    &out_eta,    "eta/Float_t");
     outTree.Branch("phi",    &out_phi,    "phi/Float_t");
+    // Quantities for reference jets (GenJet, etc):
+    float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
+    outTree.Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
+    outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
+    outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
+    // Quantities to describe relationship between the two:
+    float out_rsp(-1.), out_rsp_inv(-1.);
+    float out_dr(99.), out_deta(99.), out_dphi(99.);
+    float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
+    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
     outTree.Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
     outTree.Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
     outTree.Branch("dr",     &out_dr,     "dr/Float_t");
     outTree.Branch("deta",   &out_deta,   "deta/Float_t");
     outTree.Branch("dphi",   &out_dphi,   "dphi/Float_t");
-    outTree.Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
-    outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
-    outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
-    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
     outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
     outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    // PU quantities
+    float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
     outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
-    outTree.Branch("event", &out_event, "event/Int_t");
+    // Event number
+    // int out_event(0);
+    // outTree.Branch("event", &out_event, "event/Int_t");
 
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
@@ -234,7 +239,7 @@ int main(int argc, char* argv[]) {
         // jentry is the entry # in the current Tree
         Long64_t jentry = refJetExtraTree.LoadTree(iEntry);
         Long64_t jentry2 = l1JetExtraTree.LoadTree(iEntry);
-        Long64_t jentry3 = eventChain->LoadTree(iEntry);
+        // Long64_t jentry3 = eventChain->LoadTree(iEntry);
         if (jentry < 0) break;
         if (jentry2 < 0) break;
         if (iEntry % 10000 == 0) {
@@ -244,8 +249,8 @@ int main(int argc, char* argv[]) {
         l1JetExtraTree.GetEntry(iEntry);
 
         // store event info
-        eventChain->GetEntry(iEntry);
-        out_event = eventTree->event;
+        // eventChain->GetEntry(iEntry);
+        // out_event = eventTree->event;
 
         // get pileup quantities
         // note these get stored once per pair of matched jets NOT once per event
@@ -303,7 +308,7 @@ int main(int argc, char* argv[]) {
                 JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
 
                 TString pdfname = TString::Format("%splots_%s_%s_%s/jets_%lld.pdf",
-                    outDir.Data(), inStem.Data(), "reco", "l1", iEntry);
+                    outDir.Data(), inStem.Data(), "gen", "l1", iEntry);
                 drawer.drawAndSave(pdfname);
 
                 drawCounter++;
