@@ -60,6 +60,15 @@ do
         exit 1
     fi
     fdir=`dirname $pairs`
+
+    # Puts the output in relevant directory,
+    # e.g. if pairs in Stage1/pairs/xxx/pairs.root
+    # output goes to Stage1/output/xxx/output.root
+    fdir=${fdir/pairs/output}
+    if [ ! -d "$fdir" ]; then
+        mkdir -p $fdir
+        echo "Making output dir $fdir"
+    fi
     fname=`basename $pairs`
 
     echo "Using pairs file $pairs"
@@ -78,7 +87,7 @@ do
     declare -a outFileNames=()
 
     # Special appendix, if desired (e.g. if changing a param)
-    append="_fitMin20_HFfix"
+    append=""
 
     outname=${fname/pairs_/output_}
     outname=${outname%.root}
@@ -109,6 +118,7 @@ do
     haddJobName="haddCalib"
     echo "JOB $haddJobName hadd.condor" >> "$dagfile"
     echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
+    echo "Output file: $finalRootName"
 
     # Add in parent-child relationships & status file
     echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
@@ -116,6 +126,7 @@ do
     echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
     statusFileNames+=($statusfile)
 
+    # Submit jobs
     echo ""
     echo "Condor DAG script made"
     echo "Submit with:"
