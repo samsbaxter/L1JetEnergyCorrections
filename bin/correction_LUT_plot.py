@@ -216,20 +216,7 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     draw_lines(30)
     c.SaveAs(filename)
 
-    corr_fn.Eval(5)
-    # Make hists of pre & post occupancy
-    # h_pre = ROOT.TH1D("h_pre", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
-    # h_post = ROOT.TH1D("h_post", ";p_{T};N", len(gct_bins)-1, gct_bins[0], gct_bins[-1])
 
-    # for pt in jet_pt_pre:
-    #     h_pre.Fill(pt)
-
-    # for pt in jet_pt_post:
-    #     h_post.Fill(pt)
-
-    # h_post.SetLineColor(ROOT.kRed)
-    # h_pre.Draw("HIST")
-    # h_post.Draw("SAMEHIST")
 
     # leg = ROOT.TLegend(0.7, 0.7, 0.8, 0.8)
     # leg.SetFillColor(ROOT.kWhite)
