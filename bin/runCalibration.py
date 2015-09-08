@@ -55,13 +55,7 @@ def gct_fit_defaults(fitfunc):
     fitfunc.SetParameter(3, -25)
     fitfunc.SetParameter(4, 0.01)
     fitfunc.SetParameter(5, -20)
-    # trick HF fit
-    # fitfunc.SetParameter(0, 1.4527287)
-    # fitfunc.SetParameter(1, 0.4516129)
-    # fitfunc.SetParameter(2, -6.2951576)
-    # fitfunc.SetParameter(3, 6129032.0)
-    # fitfunc.SetParameter(4, 0.075557264)
-    # fitfunc.SetParameter(5, -13.548387)
+
 
 def fix_fit_params(fitfunc):
     """Fix function so constant line"""
