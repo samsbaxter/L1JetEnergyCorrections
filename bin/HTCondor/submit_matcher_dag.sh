@@ -82,10 +82,10 @@ do
 
         jobname="pairs$counter"
         jobNames+=($jobname)
-        outRootName="${fdir}/${outname}${append}.root"
-        outFileNames+=($outRootName)
+        outRootPath="${fdir}/${outname}${append}.root"
+        outFileNames+=($outRootPath)
         echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"${tree} ${outRootName} ${exe} -I ${tree} -O ${outRootName} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
         ((counter++))
     done
 
@@ -109,13 +109,13 @@ do
     # Either just do 1 hadd job, or a layer of intermediate hadding jobs
     if [ "$nInterHaddJobs" -eq 1 ]; then
         # Only 1 hadd job, proceed as usual
-        outname=${outname%_*}
-        outname=${outname/pairs_/pairs_$(basename $dir)_}
-        finalRootName="$(dirname $dir)/pairs/${outname}${append}.root"
-        echo "Final file:" $finalRootName
-        haddJobName="hadder"
+        outname=${outname%_*} # chop off the number (e.g. _99)
+        outname=${outname/pairs_/pairs_$(basename $dir)_} # add in the dataset directory
+        finalRootPath="${pairsDirectory}/${outname}${append}.root"
+        echo "Final file: $finalRootPath"
+        haddJobName="haddFinal"
         echo "JOB $haddJobName hadd.condor" >> "$dagfile"
-        echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
+        echo "VARS $haddJobName opts=\"$finalRootPath ${outFileNames[@]}\"" >> "$dagfile"
         # Add in parent-child relationships
         echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
     else
@@ -151,13 +151,13 @@ do
             (( i += 1 ))
         done
         # And now the final hadd job
-        outname=${outname%_*}
-        outname=${outname/pairs_/pairs_$(basename $dir)_}
-        finalRootName="$(dirname $dir)/pairs/${outname}${append}.root"
-        echo "Final file:" $finalRootName
+        outname=${outname%_*} # chop off the number (e.g. _99)
+        outname=${outname/pairs_/pairs_$(basename $dir)_} # add in the dataset directory
+        finalRootPath="${pairsDirectory}/${outname}${append}.root"
+        echo "Final file: $finalRootPath"
         haddJobName="haddFinal"
         echo "JOB $haddJobName hadd.condor" >> "$dagfile"
-        echo "VARS $haddJobName opts=\"$finalRootName ${interHaddFileNames[@]}\"" >> "$dagfile"
+        echo "VARS $haddJobName opts=\"$finalRootPath ${interHaddFileNames[@]}\"" >> "$dagfile"
         # Add in parent-child relationships
         echo "PARENT ${interHaddJobNames[@]} CHILD $haddJobName" >> "$dagfile"
     fi
