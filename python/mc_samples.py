@@ -45,6 +45,12 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
 # This dict holds ALL samples
 samples = {
 
+    "QCDFlatSpring15BX25PU10to30HCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
+                                                    unitsPerJob=10, totalUnits=-1),
+
+    "QCDFlatSpring15BX25FlatNoPUHCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
+                                                    unitsPerJob=10, totalUnits=-1),
+
     "TTbarSpring15AVE30BX50": Dataset(inputDataset='/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                       unitsPerJob=25, totalUnits=-1),
 
@@ -92,7 +98,7 @@ for i, ptmin in enumerate(ptbins[:-1]):
         tot = 0.3
     # print key
     samples[key] = Dataset(inputDataset="/QCD_Pt_%dto%d_TuneCUETP8M1_13TeV_pythia8/RunIISpring15Digi74-AVE_20_BX_25ns_tsg_MCRUN2_74_V7%s/GEN-SIM-RAW" % (ptmin, ptmax, ver),
-                            unitsPerJob=20, totalUnits=tot)
+                            unitsPerJob=5, totalUnits=tot)
 
     # Spring15 AVEPU30 50ns
     key = "QCD_Pt-%dto%d_Spring15_AVE30BX50" % (ptmin, ptmax)
