@@ -205,20 +205,15 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     [b.Draw() for b in blocks]
     gr.Draw("P")
     # Some helpful lines
-    # For pT_in = 30
-    l30x = ROOT.TLine(30, gr.GetYaxis().GetXmin(), 30, 30*corr_fn.Eval(30))
-    l30x.SetLineStyle(2)
-    l30x.Draw()
-    l30y = ROOT.TLine(0, 30*corr_fn.Eval(30), 30, 30*corr_fn.Eval(30))
-    l30y.SetLineStyle(2)
-    l30y.Draw()
-    # For pT_in = 30
-    l5x = ROOT.TLine(5, gr.GetYaxis().GetXmin(), 5, 5*corr_fn.Eval(5))
-    l5x.SetLineStyle(2)
-    l5x.Draw()
-    l5y = ROOT.TLine(0, 5*corr_fn.Eval(5), 5, 5*corr_fn.Eval(5))
-    l5y.SetLineStyle(2)
-    l5y.Draw()
+    def draw_lines(pt):
+        lx = ROOT.TLine(pt, gr.GetYaxis().GetXmin(), pt, pt*corr_fn.Eval(pt))
+        lx.SetLineStyle(2)
+        lx.Draw()
+        ly = ROOT.TLine(0, pt*corr_fn.Eval(pt), pt, pt*corr_fn.Eval(pt))
+        ly.SetLineStyle(2)
+        ly.Draw()
+    draw_lines(5)
+    draw_lines(30)
     c.SaveAs(filename)
 
     corr_fn.Eval(5)
