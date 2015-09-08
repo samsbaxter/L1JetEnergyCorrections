@@ -54,6 +54,11 @@ declare -a statusFileNames=()
 # Queue up jobs
 for pairs in "${pairsFiles[@]}"
 do
+    # check file actually exists
+    if [ ! -e "$pairs" ]; then
+        echo "$Pairs does not exist!"
+        exit 1
+    fi
     fdir=`dirname $pairs`
     fname=`basename $pairs`
 
