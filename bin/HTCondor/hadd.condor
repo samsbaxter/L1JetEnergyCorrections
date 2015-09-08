@@ -5,7 +5,6 @@ Error = jobs/hadd/hadd.$(cluster).$(process).err
 Log = jobs/hadd/hadd.$(cluster).$(process).log
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
-notify_user = robin.aggleton@bristol.ac.uk
 
 request_cpus = 1
 request_memory = 500
@@ -13,6 +12,9 @@ request_disk = 30000000
 
 # use the ENV that is provided
 getenv = true
+
+accounting_group = group_physics.hep
+account_group_user = $ENV(LOGNAME)
 
 arguments = "$(opts)"
 queue

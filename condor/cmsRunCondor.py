@@ -23,7 +23,6 @@ import math
 import logging
 from itertools import izip_longest
 import json
-import getpass
 import shutil
 
 
@@ -156,7 +155,6 @@ def cmsRunCondor(in_args):
     job_description = job_description.replace("SEDEXE", worker_script)
     job_description = job_description.replace("SEDNJOBS", str(1) if args.dag else str(total_num_jobs))
     job_description = job_description.replace("SEDINPUTFILES", "%s, %s" % (os.path.abspath(args.config), fileListName))
-    job_description = job_description.replace("SEDWHOAMI", getpass.getuser())
 
     with open(args.outputScript, 'w') as submit_script:
         submit_script.write(job_description)
