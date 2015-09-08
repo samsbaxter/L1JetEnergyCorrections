@@ -328,7 +328,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         if yarr[i + 2 + starting_ind] > yarr[i + 1 + starting_ind] > y:
             max_ind = i + starting_ind + 1
             break
-    fit_max = xarr[max_ind]
+    fit_max = xarr[max_ind-1]
     print "Correction fn fit range:", fit_min, fit_max
 
     # Generate a correction fucntion with suitable range
