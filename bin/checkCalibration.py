@@ -27,13 +27,12 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
 
-def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_max, save_pdf=False):
+def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_max):
     """
     Do all the relevant response 1D and 2D hists, for one eta bin.
 
-    Can optionally impose maximum pt cut on L1 jets (to avoid problems with saturation).
-
-    Can optionally save the plots to pdf.
+    Can optionally impose maximum pt cut on L1 jets (to avoid problems with saturation),
+    and on number of PU vertices.
     """
 
     print "Doing eta bin: %g - %g, max L1 jet pt: %g" % (absetamin, absetamax, max_pt)
@@ -95,29 +94,6 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
     h2d_gen_l1.SetTitle(";p_{T}^{Ref} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
-
-    # Save plots as pdf if desired
-    if save_pdf:
-        canv = ROOT.TCanvas("c_%g_%g" % (absetamin, absetamax), "", 600, 600)
-        # One linefor y = x (diag) and one for y = 1 (straight)
-        line_diag = ROOT.TLine(0, 0, pt_max, pt_max)
-        line_straight = ROOT.TLine(0, 1, pt_max, 1)
-
-        for l in [line_diag, line_straight]:
-            l.SetLineWidth(2)
-            l.SetLineStyle(2)
-
-        h2d_rsp_gen.Draw("COLZ")
-        line_straight.Draw("SAME")
-        canv.SaveAs("rsp_gen_%g_%g.pdf" % (absetamin, absetamax))
-
-        h2d_gen_l1.Draw("COLZ")
-        line_diag.Draw("SAME")
-        canv.SaveAs("gen_l1_%g_%g.pdf" % (absetamin, absetamax))
-
-        h2d_rsp_l1.Draw("COLZ")
-        line_straight.Draw("SAME")
-        canv.SaveAs("rsp_l1_%g_%g.pdf" % (absetamin, absetamax))
 
 
 def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt, pu_min, pu_max):
@@ -305,8 +281,6 @@ def main(in_args=sys.argv[1:]):
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
                         help="Do forward eta bins only (eta >= 3)")
-    parser.add_argument("--pdf", action='store_true',
-                        help="Print plots to PDF")
     parser.add_argument("--etaInd", nargs="+",
                         help="list of eta bin INDICES to run over - " \
                         "if unspecified will do all. " \
@@ -350,14 +324,14 @@ def main(in_args=sys.argv[1:]):
             eta_min = eta
             eta_max = etaBins[i+1]
 
-            plot_checks(input_file, output_file, eta_min, eta_max, args.maxPt, args.PUmin, args.PUmax, args.pdf)
+            plot_checks(input_file, output_file, eta_min, eta_max, args.maxPt, args.PUmin, args.PUmax)
             # Do a response vs pt graph
             plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "pt", args.PUmin, args.PUmax)
             plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "ptRef", args.PUmin, args.PUmax)
 
     # Do an inclusive plot for all eta bins
     if args.incl and len(etaBins) > 2:
-        plot_checks(input_file, output_file, etaBins[0], etaBins[-1], args.maxPt, args.PUmin, args.PUmax, args.pdf)
+        plot_checks(input_file, output_file, etaBins[0], etaBins[-1], args.maxPt, args.PUmin, args.PUmax)
         # Do a response vs pt graph
         ptBins_wide = list(np.arange(10, 250, 8))
         plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "pt", args.PUmin, args.PUmax)
