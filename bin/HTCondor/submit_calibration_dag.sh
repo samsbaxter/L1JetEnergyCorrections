@@ -51,104 +51,121 @@ sed -i "s@SEDINPUTFILES@$cdir/runCalibration.py, $cdir/binning.py, $cdir/correct
 
 declare -a statusFileNames=()
 
-# Queue up jobs
-for pairs in "${pairsFiles[@]}"
-do
-    # check file actually exists
-    if [ ! -e "$pairs" ]; then
-        echo "$Pairs does not exist!"
-        exit 1
-    fi
+# Loop over PU ranges
+declare -a puMins=(
+    0
+    15
+    30
+)
+declare -a puMaxs=(
+    10
+    25
+    40
+)
+# loop over the two arrays pairwise
+for((p=0; p<${#puMins[@]}; ++p)); do
+    puMin=${puMins[p]}
+    puMax=${puMaxs[p]}
 
-    # Puts the output in relevant directory,
-    # e.g. if pairs in Stage1/pairs/xxx/pairs.root
-    # output goes to Stage1/output/xxx/output.root
-    fdir=`dirname $pairs`
-    fdir=${fdir/pairs/output}
-    if [ ! -d "$fdir" ]; then
-        mkdir -p $fdir
-        echo "Making output dir $fdir"
-    fi
-    fname=`basename $pairs`
-
-    echo "Using pairs file $pairs"
-    echo "Writing output to directory: $fdir"
-
-    # Make DAG file for this pairs file
-    # To make sure we don't overlap with another, we give it a timestamp + random string
-    timestamp=$(date "+%H%M%S")
-    rand=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 3 | head -n 1)
-    dagfile="calibration_${timestamp}_${rand}.dag"
-    echo "# dag file for $pairs" >> $dagfile
-    echo "# output will be $fdir" >> $dagfile
-
-    # Store all jobs names and output fileNames for later
-    declare -a jobNames=()
-    declare -a outFileNames=()
-
-    # Special appendix, if desired (e.g. if changing a param)
-    append=""
-
-    outname=${fname/pairs_/output_}
-    outname=${outname%.root}
-
-    # Write jobs to DAG file
-    # Do individual eta bins first
-    len=${#etaBins[@]}
-    len=$(( len - 1 ))
-    for ((i=0;i<$len;++i));
+    # Queue up jobs
+    for pairs in "${pairsFiles[@]}"
     do
-        j=$(( i + 1 ))
-        etamin=${etaBins[i]}
-        etamax=${etaBins[j]}
-
-        jobname="calib_${etamin}to${etamax}"
-        jobname="calib_${i}"
-        jobNames+=($jobname)
-
-        outRootName="${fdir}/${outname}_${i}${append}.root"
-        outFileNames+=($outRootName)
-
-        echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"${pairs} ${outRootName} python runCalibration.py ${pairs} ${outRootName} --no_genjet_plots --stage1 --etaInd ${i}\"" >> "$dagfile"
-    done
-
-    # Now add job for hadding
-    finalRootName="${fdir}/${outname}${append}.root"
-    haddJobName="haddCalib"
-    echo "JOB $haddJobName hadd.condor" >> "$dagfile"
-    echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
-    echo "Output file: $finalRootName"
-
-    # Add in parent-child relationships & status file
-    echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
-    statusfile="calibration_${timestamp}_${rand}.status"
-    echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
-    statusFileNames+=($statusfile)
-
-    # Submit jobs
-    autoSub=true
-    for f in "${outFileNames[@]}"; do
-        if [ -e $f ]; then
-            autoSub=false
-            break
+        # check file actually exists
+        if [ ! -e "$pairs" ]; then
+            echo "$Pairs does not exist!"
+            exit 1
         fi
+
+        # Puts the output in relevant directory,
+        # e.g. if pairs in Stage1/pairs/xxx/pairs.root
+        # output goes to Stage1/output/xxx/output.root
+        fdir=`dirname $pairs`
+        fdir=${fdir/pairs/output}
+        if [ ! -d "$fdir" ]; then
+            mkdir -p $fdir
+            echo "Making output dir $fdir"
+        fi
+        fname=`basename $pairs`
+
+        echo "Using pairs file $pairs"
+        echo "Writing output to directory: $fdir"
+
+        # Make DAG file for this pairs file
+        # To make sure we don't overlap with another, we give it a timestamp + random string
+        timestamp=$(date "+%H%M%S")
+        rand=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 3 | head -n 1)
+        dagfile="calibration_${timestamp}_${rand}.dag"
+        echo "# dag file for $pairs" >> $dagfile
+        echo "# output will be $fdir" >> $dagfile
+
+        # Store all jobs names and output fileNames for later
+        declare -a jobNames=()
+        declare -a outFileNames=()
+
+        # Special appendix, if desired (e.g. if changing a param)
+        append="_PU${puMin}to${puMax}"
+
+        outname=${fname/pairs_/output_}
+        outname=${outname%.root}
+
+        # Write jobs to DAG file
+        # Do individual eta bins first
+        len=${#etaBins[@]}
+        len=$(( len - 1 ))
+        for ((i=0;i<$len;++i));
+        do
+            j=$(( i + 1 ))
+            etamin=${etaBins[i]}
+            etamax=${etaBins[j]}
+
+            jobname="calib_${etamin}to${etamax}"
+            jobname="calib_${i}"
+            jobNames+=($jobname)
+
+            outRootName="${fdir}/${outname}_${i}${append}.root"
+            outFileNames+=($outRootName)
+
+            echo "JOB $jobname $outfile" >> "$dagfile"
+            echo "VARS $jobname opts=\"${pairs} ${outRootName} python runCalibration.py ${pairs} ${outRootName} --no_genjet_plots --stage1 --PUmin ${puMin} --PUmax ${puMax} --etaInd ${i}\"" >> "$dagfile"
+        done
+
+        # Now add job for hadding
+        finalRootName="${fdir}/${outname}${append}.root"
+        haddJobName="haddCalib"
+        echo "JOB $haddJobName hadd.condor" >> "$dagfile"
+        echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
+        echo "Output file: $finalRootName"
+
+        # Add in parent-child relationships & status file
+        echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
+        statusfile="calibration_${timestamp}_${rand}.status"
+        echo "NODE_STATUS_FILE $statusfile 30" >> "$dagfile"
+        statusFileNames+=($statusfile)
+
+        # Submit jobs
+        autoSub=true
+        for f in "${outFileNames[@]}"; do
+            if [ -e $f ]; then
+                autoSub=false
+                break
+            fi
+        done
+        echo ""
+        echo "Condor DAG script made"
+        echo "Submit with:"
+        echo "condor_submit_dag $dagfile"
+        if [ $autoSub = true ]; then
+            echo "Submitting..."
+            condor_submit_dag "$dagfile"
+        else
+            echo "Not auto submitting as output file already exists. Check your job description file is OK first!"
+        fi
+        echo ""
+        echo "Check status with:"
+        echo "./DAGstatus.py $statusfile"
+        echo ""
+        echo "(may take a little time to appear)"
     done
-    echo ""
-    echo "Condor DAG script made"
-    echo "Submit with:"
-    echo "condor_submit_dag $dagfile"
-    if [ $autoSub = true ]; then
-        echo "Submitting..."
-        condor_submit_dag "$dagfile"
-    else
-        echo "Not auto submitting as output file already exists. Check your job description file is OK first!"
-    fi
-    echo ""
-    echo "Check status with:"
-    echo "./DAGstatus.py $statusfile"
-    echo ""
-    echo "(may take a little time to appear)"
 done
 
 if [ ${#statusFileNames[@]} -gt "1" ]; then
