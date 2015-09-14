@@ -38,3 +38,5 @@ crab_get_hadd_*
 *rescue*
 *.sub
 *.status
+*.tgz
+*.tar.gz
