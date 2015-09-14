@@ -2,8 +2,12 @@
 """
 This script outputs all the calibration plots in the ROOT file output by
 runCalibration.py as one long pdf, cos TBrowser sucks.
+
+It will make the PDF in the same directory as the ROOT file, under a directory
+named output_<ROOT file stem>
 """
 
+import glob
 import ROOT
 import sys
 import os
@@ -230,16 +234,21 @@ def plot_bin_results(in_name=""):
 def compile_pdf(texfile, pdffile, outdir):
     """
     Compile the pdf
-    Use lualatex for custom font. Do it twice to get TOC and page num right
+    Do it twice to get TOC and page num right
     """
 
     output = "-output-directory=%s" % outdir
     subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
     subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
-    # subprocess.call(["lualatex", output, texfile])
-    # subprocess.call(["lualatex", output, texfile])
+
     # Open the result
     # subprocess.call(["open", pdffile])
+
+    # Tidy up all the non .tex or .pdf files
+    for f in glob.glob(os.path.join(outdir, texfile.replace(".tex", ".*"))):
+        if os.path.splitext(f)[1] not in [".tex", ".pdf"]:
+            print 'deleting', f
+            os.remove(f)
 
 
 if __name__ == "__main__":
