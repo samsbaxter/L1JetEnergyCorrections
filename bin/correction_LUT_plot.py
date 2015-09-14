@@ -69,21 +69,22 @@ class MultiFunc(object):
     def Draw(self, args=None):
         """Draw the various functions"""
 
-        # make a 'blank' function to occupy the complete range of x values:
-        lower_lim = min([lim[0] for lim in self.functions_dict.keys()])
-        if np.isneginf(lower_lim):
-            lower_lim = -999
-        upper_lim = max([lim[1] for lim in self.functions_dict.keys()])
-        if np.isposinf(lower_lim):
-            upper_lim = 999
-        blank = ROOT.TF1("blank"+str(np.random.randint(0,10000)), "1.5", lower_lim, upper_lim)
-        blank.Draw()
-        max_value = max([func.GetMaximum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 1.1
-        blank.SetMaximum(max_value)
-        min_value = min([func.GetMinimum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 0.9
-        blank.SetMinimum(min_value)
-        ROOT.SetOwnership(blank, False) # NEED THIS SO IT ACTUALLY GETS DRAWN. SERIOUSLY, WTF?!
-        blank.SetLineColor(ROOT.kWhite)
+        if "SAME" not in args:
+            # make a 'blank' function to occupy the complete range of x values:
+            lower_lim = min([lim[0] for lim in self.functions_dict.keys()])
+            if np.isneginf(lower_lim):
+                lower_lim = -999
+            upper_lim = max([lim[1] for lim in self.functions_dict.keys()])
+            if np.isposinf(lower_lim):
+                upper_lim = 999
+            blank = ROOT.TF1("blank"+str(np.random.randint(0,10000)), "1.5", lower_lim, upper_lim)
+            blank.Draw()
+            max_value = max([func.GetMaximum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 1.1
+            blank.SetMaximum(max_value)
+            min_value = min([func.GetMinimum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 0.9
+            blank.SetMinimum(min_value)
+            ROOT.SetOwnership(blank, False) # NEED THIS SO IT ACTUALLY GETS DRAWN. SERIOUSLY, WTF?!
+            blank.SetLineColor(ROOT.kWhite)
 
         # now draw the rest of the functions
         args = "" if not args else args
