@@ -480,7 +480,7 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
         pt_max = pt_bins[i+1]
         hist = get_from_file(check_file, "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max))
         hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
-        hist.Draw()
+        hist.Draw("HISTE")
         c.SaveAs("%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat))
 
 
@@ -738,12 +738,16 @@ def main(in_args=sys.argv[1:]):
 
         ptBinsWide = list(np.arange(10, 250, 8))
 
-        for emin, emax in izip(etaBins[:-1], etaBins[1:]):
-            plot_l1_Vs_ref(check_file, emin, emax, False, args.oDir, args.format)
-            plot_rsp_eta_bin(check_file, emin, emax, args.oDir, args.format)
-            plot_rsp_Vs_l1(check_file, emin, emax, False, False, args.oDir, args.format)
-            plot_rsp_Vs_ref(check_file, emin, emax, False, False, args.oDir, args.format)
-            # plot_rsp_pt_hists(check_file, emin, emax, ptBinsWide, args.oDir, args.format)
+        # indiviudal eta bins
+        for eta_min, eta_max in izip(etaBins[:-1], etaBins[1:]):
+            plot_l1_Vs_ref(check_file, eta_min, eta_max, False, args.oDir, args.format)
+            plot_rsp_eta_bin(check_file, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_Vs_l1(check_file, eta_min, eta_max, False, False, args.oDir, args.format)
+            plot_rsp_Vs_ref(check_file, eta_min, eta_max, False, False, args.oDir, args.format)
+            # plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBinsWide, args.oDir, args.format)
+            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
+            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+
 
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
