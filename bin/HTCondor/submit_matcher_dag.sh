@@ -10,16 +10,7 @@
 # and put them in the parent directory of the Ntuple directory, in a subdirectory called "pairs".
 
 declare -a treeDirs=(
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-120to170_Spring15_AVE20BX25
-/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-15to30_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-170to300_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-300to470_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-30to50_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-470to600_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-50to80_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-600to800_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-800to1000_Spring15_AVE20BX25
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed0p5/QCD_Pt-80to120_Spring15_AVE20BX25
+/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDFlatSpring15BX25HCALFix_stage1HFfix_PU15to25_rctv4_jetSeed5/QCDFlatSpring15BX25FlatNoPUHCALFix
 )
 
 # update the setup scripts for worker nodes
@@ -66,7 +57,8 @@ do
     refMin=14
 
     # Special appendix, if desired (e.g. if changing a param)
-    append="_preGt_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+    # append="_preGt_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+    append="_GT_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
 
     # Add a matcher job for each L1Ntuple
     counter=0
@@ -85,7 +77,10 @@ do
         outRootPath="${fdir}/${outname}${append}.root"
         outFileNames+=($outRootPath)
         echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        # For jets sent to GT
+        echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        # For internal jets:
+        # echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
         ((counter++))
     done
 
@@ -130,7 +125,8 @@ do
         i=0
         while [ "$i" -lt "$nInterHaddJobs" ]; do
             # collect all the info for this job: input files, output file, job names
-            tmpOutput="${pairsDirectory}/${outname}${append}_inter${i}_${timestamp}.root"
+            rand=$(cat /dev/urandom | tr -cd [:alnum:] | head -c 3)
+            tmpOutput="${pairsDirectory}/${outname}${append}_inter${i}_${timestamp}_${rand}.root"
             interHaddFileNames+=($tmpOutput)
             declare -a tmpInputFiles=()
             declare -a tmpJobParentNames=()
