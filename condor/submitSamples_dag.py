@@ -49,7 +49,7 @@ if __name__ == "__main__":
         scriptName = '%s_%s_%s.condor' % (os.path.basename(config).replace(".py", ""), dset, strftime("%H%M%S"))
         print "Script Name:", scriptName
         job_dict = cmsRunCondor(['--config', config,
-                                 '--outputDir', outputDir+"/"+dset,
+                                 '--outputDir', os.path.join(outputDir, dset),
                                  '--dataset', dset_opts.inputDataset,
                                  '--filesPerJob', str(dset_opts.unitsPerJob),
                                  '--totalFiles', str(dset_opts.totalUnits),
@@ -70,6 +70,7 @@ if __name__ == "__main__":
                 jobName = "%s_%d" % (dset, job_ind)
                 dag_file.write('JOB %s %s\n' % (jobName, scriptName))
                 dag_file.write('VARS %s index="%d"\n' % (jobName, job_ind))
+                dag_file.write('RETRY %s 3\n' % jobName)
             status_file = dag_name.replace(".dag", ".status")
             status_names.append(status_file)
             dag_file.write("NODE_STATUS_FILE %s 30\n" % status_file)
