@@ -251,7 +251,10 @@ def make_fancy_fits(fits, graphs):
         pt_merge = 0
         corr_merge = 0
 
-        for (pt, corr, pt_err, corr_err) in izip(x_arr[::-1], y_arr[::-1], ex_arr[::-1], ey_arr[::-1]):
+        print "Eta bin", str(i)
+        print "pt, correction acc. to graph, correcction acc. to fit, diff"
+
+        for j, (pt, corr, pt_err, corr_err) in enumerate(izip(x_arr[::-1], y_arr[::-1], ex_arr[::-1], ey_arr[::-1])):
             # Loop through each point of the graph in reverse,
             # only considering points with pt < 40.
             # Determine where the function and graph separate by
@@ -284,10 +287,6 @@ def make_fancy_fits(fits, graphs):
                           (pt_merge, 512): fit_new}
         total_fit = MultiFunc(functions_dict)
         new_functions.append(total_fit)
-
-        c = ROOT.TCanvas("c%d" % i, "FUCK ROOT", 600, 600)
-        total_fit.Draw()
-        c.SaveAs("fancyfit_%d.pdf" % i)
 
     return new_functions
 
@@ -426,12 +425,9 @@ def main(in_args=sys.argv[1:]):
         if args.numpy:
             print_function(fit_func, "numpy")
 
-        if args.plots:
-            # Plot function mapping
-            plot_correction_map(fit_func, out_dir+"/correction_map_%g_%g.pdf" % (eta_min, eta_max))
 
     # Print all functions to one canvas
-    plot_all_functions(all_fits, out_dir+"/all_fits.pdf", etaBins, etmin, etmax)
+    plot_all_functions(all_fits, os.path.join(out_dir, "all_raw_fits.pdf"), etaBins, etmin, etmax)
 
     # Make LUTs
     if args.gct:
@@ -439,6 +435,22 @@ def main(in_args=sys.argv[1:]):
     elif args.stage1:
         fits = make_fancy_fits(all_fits, all_graphs) if args.fancy else all_fits
         print_Stage1_lut_file(fits, etaBins, args.lut)
+        if args.plots:
+            for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
+                c = ROOT.TCanvas("c%d" % i, "SCREW ROOT", 600, 600)
+                c.SetTicks(1,1)
+                gr.Draw("ALP")
+                y_ax = gr.GetYaxis()
+                y_ax.SetRangeUser(0.9*y_ax.GetXmin(), 1.1 * y_ax.GetXmax())
+                total_fit.Draw("SAME")
+                c.SaveAs(os.path.join(out_dir, "fancyfit_%d.pdf" % i))
+
+
+    if args.plots:
+        # Plot function mapping
+        for i, (eta_min, eta_max, fit_func) in enumerate(izip(etaBins[:-1], etaBins[1:], fits)):
+            plot_correction_map(fit_func, os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max)))
+
 
 if __name__ == "__main__":
     main()
