@@ -27,7 +27,7 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
 
-def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=False):
+def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_max, save_pdf=False):
     """
     Do all the relevant response 1D and 2D hists, for one eta bin.
 
@@ -49,8 +49,9 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
     eta_cutStr = " TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (absetamax, absetamin)
     # Pt cut string
     pt_cutStr = "pt < %g" % max_pt
-
-    cutStr = eta_cutStr + " && " + pt_cutStr
+    # PU cut string
+    pu_cutStr = "numPUVertices  < %f && numPUVertices > %f" % (pu_max, pu_min)
+    cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
     tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax) , cutStr)
@@ -119,7 +120,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, save_pdf=Fa
         canv.SaveAs("rsp_l1_%g_%g.pdf" % (absetamin, absetamax))
 
 
-def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
+def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt, pu_min, pu_max):
     """Plot graph of response in bins of eta
 
     If the response hist for each bin exists already, then we use that.
@@ -155,7 +156,12 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt):
         else:
             print "Doesn't exist"
             # plot response for this eta bin
-            cutStr = "pt<%g && TMath::Abs(eta)<%g && TMath::Abs(eta) > %g " % (max_pt, absetamax, absetamin)
+
+            # Cut strings
+            eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
+            pt_cutStr = "pt < %g" % (max_pt)
+            pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
+            cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
             print cutStr
             nb_rsp = 100
             rsp_min, rsp_max = 0, 5
@@ -204,7 +210,7 @@ def check_gaus_fit(hist):
     return (abs(hist.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
 
 
-def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var):
+def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pu_min, pu_max):
     """Make a graph of response Vs pt for given eta bin
 
     pt_var allows the user to specify which pT to bin in & plot against.
@@ -225,8 +231,11 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var):
 
     gr_rsp_pt = ROOT.TGraphErrors()
 
-    eta_cut = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
-    pt_cut = "%s < %g && pt < 250" % (pt_var, pt_bins[-1])
+    # Cut strings
+    eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
+    pt_cutStr = "%s < %g && pt < 250" % (pt_var, pt_bins[-1]) # keep the pt < 250 to safeguard against staurated L1 jets
+    pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
+    cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
     n_rsp_bins = 100
     rsp_min = 0
@@ -237,7 +246,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var):
 
     # First make a 2D plot
     h2d_rsp_pt = ROOT.TH2D("h2d_rsp_%s_%g_%g" % (pt_var, absetamin, absetamax), "%g < |#eta| < %g;p_{T};response" % (absetamin, absetamax), len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
-    tree_raw.Draw("rsp:%s>>+h2d_rsp_%s_%g_%g" % (pt_var, pt_var, absetamin, absetamax), "%s && %s" % (eta_cut, pt_cut))
+    tree_raw.Draw("rsp:%s>>+h2d_rsp_%s_%g_%g" % (pt_var, pt_var, absetamin, absetamax), cutStr)
 
     output_f_hists.WriteTObject(h2d_rsp_pt)
 
@@ -306,6 +315,14 @@ def main(in_args=sys.argv[1:]):
                         "IMPORTANT: MUST PUT AT VERY END")
     parser.add_argument("--maxPt", default=500, type=float,
                         help="Maximum pT for L1 Jets")
+    parser.add_argument("--PUmin", default=-99, type=float,
+                        help="Minimum number of PU vertices (refers to *actual* " \
+                             "number of PU vertices in the event, not the centre " \
+                             "of of the distribution)")
+    parser.add_argument("--PUmax", default=999, type=float,
+                        help="Maximum number of PU vertices (refers to *actual* " \
+                             "number of PU vertices in the event, not the centre " \
+                             "of of the distribution)")
     args = parser.parse_args(args=in_args)
 
     # Open input & output files, check
@@ -333,20 +350,20 @@ def main(in_args=sys.argv[1:]):
             eta_min = eta
             eta_max = etaBins[i+1]
 
-            plot_checks(input_file, output_file, eta_min, eta_max, args.maxPt, args.pdf)
+            plot_checks(input_file, output_file, eta_min, eta_max, args.maxPt, args.PUmin, args.PUmax, args.pdf)
             # Do a response vs pt graph
-            plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "pt")
-            plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "ptRef")
+            plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "pt", args.PUmin, args.PUmax)
+            plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "ptRef", args.PUmin, args.PUmax)
 
     # Do an inclusive plot for all eta bins
     if args.incl and len(etaBins) > 2:
-        plot_checks(input_file, output_file, etaBins[0], etaBins[-1], args.maxPt, args.pdf)
+        plot_checks(input_file, output_file, etaBins[0], etaBins[-1], args.maxPt, args.PUmin, args.PUmax, args.pdf)
         # Do a response vs pt graph
         ptBins_wide = list(np.arange(10, 250, 8))
-        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "pt")
-        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "ptRef")
+        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "pt", args.PUmin, args.PUmax)
+        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "ptRef", args.PUmin, args.PUmax)
         # Do a response vs eta graph
-        plot_rsp_eta(input_file, output_file, etaBins, args.maxPt)
+        plot_rsp_eta(input_file, output_file, etaBins, args.maxPt, args.PUmin, args.PUmax)
 
     input_file.Close()
     output_file.Close()
