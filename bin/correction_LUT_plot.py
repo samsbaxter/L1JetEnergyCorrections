@@ -36,6 +36,8 @@ class MultiFunc(object):
 
     E.g. y = x for x = [0,1], then y = x^2 for [1, Inf]
     This was created since it is so hard (impossible?) to do in ROOT.
+
+    It is supposed to ducktype TF1, although so far only bare basics implemented.
     """
 
     def __init__(self, functions_dict):
@@ -90,6 +92,13 @@ class MultiFunc(object):
         args = "" if not args else args
         for func in self.functions_dict.values():
             func.Draw("SAME" + args)
+
+    def __str__(self):
+        """str representation. Prints each fns name and range of validity,
+        ordered by ascending range
+        """
+        parts = ["%s: %.2f - %.2f\n%s" % (f.GetName(), r[0], r[1], f.GetExpFormula()) for r,f in self.functions_dict.iteritems()]
+        return "\n".join(sorted(parts))
 
 
 def print_function(function, lang="cpp"):
@@ -435,14 +444,29 @@ def main(in_args=sys.argv[1:]):
     elif args.stage1:
         fits = make_fancy_fits(all_fits, all_graphs) if args.fancy else all_fits
         print_Stage1_lut_file(fits, etaBins, args.lut)
+
         if args.plots:
+            # plot the fancy fits
             for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
-                c = ROOT.TCanvas("c%d" % i, "SCREW ROOT", 600, 600)
+                c = ROOT.TCanvas("c%d" % i, "SCREW ROOT", 800, 600)
                 c.SetTicks(1,1)
                 gr.Draw("ALP")
                 y_ax = gr.GetYaxis()
                 y_ax.SetRangeUser(0.9*y_ax.GetXmin(), 1.1 * y_ax.GetXmax())
+                gr.SetTitle("%g < #eta^{L1} < %g" % (binning.eta_bins[i], binning.eta_bins[i+1]))
+                # Print the functions in a text box
+                text = ROOT.TPaveText(0.2, 0.7, 0.88, 0.88, "NDC NB")
+                # TPaveText ignores \n, sigh...
+                for line in str(total_fit).split("\n"):
+                    text.AddText(line)
+                text.SetFillColor(ROOT.kWhite)
+                text.SetFillStyle(0)
+                text.SetLineStyle(0)
+                text.Draw()
                 total_fit.Draw("SAME")
+                gr.GetXaxis().SetLimits(0, 250)
+                if i == 10:
+                    y_ax.SetRangeUser(1.2, 2.4)
                 c.SaveAs(os.path.join(out_dir, "fancyfit_%d.pdf" % i))
 
 
