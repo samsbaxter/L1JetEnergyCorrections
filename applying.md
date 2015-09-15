@@ -4,6 +4,13 @@ This short file details how to apply new L1JECs to the emulator.
 
 Note that it is always wise to do a quick test run to ensure the L1 jet energies are updated when applying new corrections.
 
+- [Applying L1 Jet Energy Corrections](#applying-l1-jet-energy-corrections)
+    - [GCT](#gct)
+        - [Test it](#test-it)
+    - [Stage 1](#stage-1)
+        - [Test it](#test-it)
+    - [Stage 2 (TODO)](#stage-2-todo)
+
 ##GCT
 
 First, make your new `L1GctConfigProducers` module, see [derivation.md](derivation.md).
@@ -29,7 +36,7 @@ Calibration Style option PF
 
 For the latest LUT, look here: https://twiki.cern.ch/twiki/bin/view/CMS/L1TCaloCalibration#Jet_Calibration_Sets
 
-If you're using this package, it'll be in [data](data). If you aren't, download the txt file with the LUT, and put it somewhere in your CMSSW release (e.g. `$CMSSW_BASE/src/`).
+The LUTs are stored in [data](data).
 
 In your config file, **after** you have added the Stage 1 emulator, i.e. after
 
@@ -46,11 +53,13 @@ process.caloStage1Params.jetCalibrationType = cms.string("Stage1JEC")
 process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath(<path to LUT>)
 ```
 
-where `<path to LUT>` is **relative** to `$CMSSW_BASE/src`
+where `<path to LUT>` is **relative** to `$CMSSW_BASE/src` and msut be enclosed in single or double quotes.
 
-e.g. if you stored the LUT in `$CMSSW_BASE/src/LUT.txt` you would just use `LUT.txt`
+e.g. if you want to use the LUT `$CMSSW_BASE/src/L1Trigger/L1JetEnergyCorrections/data/LUT.txt` you would use `L1Trigger/L1JetEnergyCorrections/data/LUT.txt`
 
 Note that if it cannot find the LUT it will issue an error message.
+
+Also note that the LUT must be in a sub-directory name `data` in a package (and you've run `scram b`), since CRAB3 (and my condor scripts) will **only** pick up additional files from those directories.
 
 ###Test it
 
