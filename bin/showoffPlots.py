@@ -51,31 +51,19 @@ res_ref_str = "#sigma(E_{T}^{L1} - E_{T}^{%s})/<E_{T}^{%s}>" % (ref_str, ref_str
 alt_res_l1_str = "(E_{T}^{L1} - E_{T}^{%s})/E_{T}^{L1}" % (ref_str)
 pt_diff_str = "E_{T}^{L1} - E_{T}^{%s} [GeV]" % (ref_str)
 
+# min/max response for responve vs X graphs
 rsp_min, rsp_max = 0.5, 1.5
 # rsp_min, rsp_max = 0, 2
 
+#############################################
+# LABELS, COLOURS, AND TITLE ON PLOTS
+#############################################
 plot_labels = [
-    #"New RCT calibration, 2012 GCT calibration (GCT jets), Phys14",
-    #"New RCT calibration, 2012 GCT calibration (GCT jets), Spring15"
-     "2012 RCT calibration, 2012 GCT calibratiion, Spring15",
-     "New RCT calibration, 2012 GCT calibration, Spring15",
-     "New RCT calibration, new GCT calibration, Spring15"
+     "Spring15 + HF fix (RCTv4 + v2 LUT + new PUS)"
     ]
-plot_colors = [ROOT.kBlack, ROOT.kRed, ROOT.kBlue, 8]
+plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kBlue, 8]
 plot_markers = [20, 21, 22, 23]
-
-# compare_1_str = "2012 RCT calibration (GCT internal jets)"
-# compare_2_str = "New RCT calibration (GCT internal jets)"
-
-# compare_1_str = "New RCT + 2012 GCT"
-# compare_2_str = "New RCT + new RCT"
-
-plot_title = "QCD 50ns"
-plot_title = "TTbar 50ns, GCT jets"
-plot_title = "Data, run 251718, Stage 1 50ns"
-plot_title = "QCD Spring15 MC, 25ns, PU20"
-plot_title = "QCD MC, 25ns, PU20"
-# plot_title = "Data, Stage 1 re-emulated, 50ns"
+plot_title = "QCD Spring15 HF fix, Stage 1, 25ns"
 
 
 def generate_canvas(title=""):
@@ -83,6 +71,7 @@ def generate_canvas(title=""):
     c = ROOT.TCanvas("c", title, 1200, 900)
     c.SetTicks(1, 1)
     return c
+
 
 def generate_legend(x1=0.34, y1=0.7, x2=0.88, y2=0.88):
     """Generate a standard TLegend. Can optionally pass in co-ordinates. """
@@ -480,7 +469,7 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
         pt_max = pt_bins[i+1]
         hist = get_from_file(check_file, "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max))
         hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
-        hist.Draw("HISTE")
+        hist.Draw()
         c.SaveAs("%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat))
 
 
