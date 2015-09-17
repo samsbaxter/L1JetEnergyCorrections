@@ -61,9 +61,9 @@ rsp_min, rsp_max = 0.5, 1.5
 plot_labels = [
      "Spring15 + HF fix (RCTv4 + v3 LUT + new PUS)"
     ]
+plot_title = "QCD Spring15 HF fix, Stage 1, 25ns"
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kBlue, 8]
 plot_markers = [20, 21, 22, 23]
-plot_title = "QCD Spring15 HF fix, Stage 1, 25ns"
 
 
 def generate_canvas(title=""):
