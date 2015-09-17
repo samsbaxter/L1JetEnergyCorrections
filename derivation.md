@@ -5,14 +5,14 @@ This file explains how the calibrations are derived and which scripts are used. 
 - [Basic concept](#basic-concept)
 - [Running](#running)
 - [1) & 2) Producing ntuples](#1--2-producing-ntuples)
-  - [CRAB3](#crab3)
   - [HTCondor on soolin (Bristol only, but MUCH faster)](#htcondor-on-soolin-bristol-only-but-much-faster)
+  - [CRAB3](#crab3)
 - [3) Matching jets](#3-matching-jets)
-  - [PBS (e.g. `lxbatch` at CERN)](#pbs-eg-lxbatch-at-cern)
   - [HTCondor on soolin (Bristol only)](#htcondor-on-soolin-bristol-only)
+  - [PBS (e.g. `lxbatch` at CERN)](#pbs-eg-lxbatch-at-cern)
 - [4) Calculating calibration functions](#4-calculating-calibration-functions)
-  - [PBS](#pbs)
   - [HTCondor on soolin (Bristol only)](#htcondor-on-soolin-bristol-only-1)
+  - [PBS](#pbs)
 - [5) Making a new LUT](#5-making-a-new-lut)
 - [GCT](#gct)
 - [Stage 1](#stage-1)
@@ -95,18 +95,7 @@ There is also a module to store pileup info (such as number of vertices) in the 
 
 To run ntuple-making jobs on a batch system, there are 2 options:
 
-####CRAB3
-
-Use [crab/crab3_gct.py](crab/crab3_gct.py) for GCT config, or [crab/crab3_stage1.py](crab/crab3_stage1.py) for Stage 1:
-
-```
-python crab3_xxx.py
-```
-
-Dataset(s) to run over are specified in the list `datasets`, where the possible values are specified as key names in [python/mc_samples.py](python/mc_samples.py). Use this file to specify job splitting, and total number of files to run over.
-
 ####HTCondor on soolin (Bristol only, but MUCH faster)
-
 Use [condor/submitSamples_dag.py](condor/submitSamples_dag.py):
 
 ```
@@ -121,6 +110,15 @@ Set the variables:
 
 You can check the status of jobs using the script [bin/HTCondor/DAGstatus.py](bin/HTCondor/DAGstatus.py).
 
+####CRAB3
+Use [crab/crab3_gct.py](crab/crab3_gct.py) for GCT config, or [crab/crab3_stage1.py](crab/crab3_stage1.py) for Stage 1:
+
+```
+python crab3_xxx.py
+```
+
+Dataset(s) to run over are specified in the list `datasets`, where the possible values are specified as key names in [python/mc_samples.py](python/mc_samples.py). Use this file to specify job splitting, and total number of files to run over.
+
 ### 3) Matching jets
 
 This is done in [bin/RunMatcher](bin/RunMatcher.cpp). You can run it easily by doing `RunMatcher <options>`. For options, do `RunMatcher --help`. At a minimum, you need an input ntuple and output filename.
@@ -131,31 +129,33 @@ Note that the RunMatcher program also includes an option to plot the eta Vs phi 
 
 To run jobs on batch system, there are 2 options:
 
-####PBS (e.g. `lxbatch` at CERN)
-
-Use the script [bin/PBS/submit_matcher_jobs.sh](bin/PBS/submit_matcher_jobs.sh).
-
 ####HTCondor on soolin (Bristol only)
-
 Use [bin/HTCondor/submit_matcher_dag.sh](bin/HTCondor/submit_matcher_dag.sh). You need to change the array `treedirs` to include the directory containing your L1NTuples. You also need to set the flag `internal=true` if you want to use the internal jet collection, otherwise it will use the jets passed to the GT.
 
-You can also change the options passed to `RunMatcher`, and add an append to the auto-generated filename.
+You can also change the options passed to `RunMatcher`, and add an append to the auto-generated filename. Everything else is auto-generated.
+
+You can check the status of jobs using the script [bin/HTCondor/DAGstatus.py](bin/HTCondor/DAGstatus.py).
+
+####PBS (e.g. `lxbatch` at CERN)
+Use the script [bin/PBS/submit_matcher_jobs.sh](bin/PBS/submit_matcher_jobs.sh).
 
 ### 4) Calculating calibration functions
 
 This is done using the script [bin/runCalibration.py](bin/runCalibration.py). For options, do `python runCalibration.py --help`. At a minimum, you need a pairs file as input (from running `RunMatcher`), and the name of an output file to hold all the plots and correction functions. You also need to specify some defaults for the fits, using `--gct`/`--stage1` flags. There are also options to turn off certain plots, and to skip or redo the correction function fitting (e.g. to save time, or to try a new fitting procedure without having to remake all the same component histograms again).
 
+Note, this will not do the 'fancy' fits with plateau at low pT - this is done in [5) Making a new LUT](#5-making-a-new-lut).
+
 To run jobs on batch system, there are 2 options:
 
-####PBS
-
-Use the script [bin/PBS/submit_calibration_jobs.sh](bin/PBS/submit_calibration_jobs.sh).
-
 ####HTCondor on soolin (Bristol only)
-
 Use the script [bin/HTCondor/submit_calibration_dag.sh](bin/HTCondor/submit_calibration_dag.sh).
 
-The user must add in the input pairs files made by `RunMatcher` to the array `pairsFiles`. Can also change the PU bins to run over (by default it runs over all PU).
+The user must add in the input pairs files made by `RunMatcher` to the array `pairsFiles`. Can also change the PU bins to run over (by default it runs over all PU). Everything else is auto-generated.
+
+You can check the status of jobs using the script [bin/HTCondor/DAGstatus.py](bin/HTCondor/DAGstatus.py).
+
+####PBS
+Use the script [bin/PBS/submit_calibration_jobs.sh](bin/PBS/submit_calibration_jobs.sh).
 
 ### 5) Making a new LUT
 
