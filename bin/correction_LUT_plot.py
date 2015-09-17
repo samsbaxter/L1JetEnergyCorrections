@@ -179,30 +179,36 @@ def print_GCT_lut_file(fit_params, eta_bins, filename):
         lut_file.write(")\n")
 
 
-def print_Stage1_lut_file(fit_functions, eta_bins, filename):
+def print_Stage1_lut_file(fit_functions, filename, plot=True):
     """
-    Take fit parameters and print to file, for use in CMSSW config file with Stage 1 emulator.
+    Take fit functions, converts to LUT for use in CMSSW config file with Stage
+    1 emulator, and pints to file.
 
-    fit_params is a list, where each entry is a list of fit parameters for a given eta bin.
-    The order MUST be in physical eta, so the first entry coveres 0 - 0.348.
+    fit_functions is a list, where each entry is an object that returns a
+    correction value when its Eval() method is called. (e.g. TF1, MultiFunc)
 
-    Note that the LUT has entries for both + and - eta. It refers to eta by region number (0 - 21),
-    *not* physical eta. Thus the first bin for the LUT must be 4.5 - 5 NOT 0 - 0.348.
+    The order MUST be in physical eta, so the first entry coveres 0 - 0.348, etc
+
+    plot is a bool, if True then it'll print a 2D coloured plot of the
+    post-calib ranks for each pt,eta bin. Designed so you can visually check
+    everything looks sensible.
+
+    Note that the LUT has entries for both + and - eta. It refers to eta by
+    region number (0 - 21), *not* physical eta. Thus the first bin for the
+    LUT must be for physical eta 4.5 - 5, NOT 0 - 0.348.
     Don't worry, this method handles that conversion.
 
     Please update the header if necessary - check with Len.
 
-    Adapted by code originally by Maria Cepeda.
-
-    IMPORTANT: high precision is required, particularly if you are using the PF
-    correction function and [3] is large - then precision of [4] in particular
-    is crucial. A change from 3 d.p. to 6 d.p. changes the correction factor
-    from -1.27682 to 2.152 !!!
+    Adapted from code originally by Maria Cepeda.
     """
-        # check
-    if (1 + len(fit_functions)) != len(eta_bins):
-        print "ERROR: no. of eta bins in fit_functions not same as no. of eta bins in setup"
-        return
+
+    print "Making Stage 1 LUT..."
+
+    lut_plot = None
+    if plot:
+        plot_title = "%s;HW pT pre;eta" % os.path.basename(filename)
+        lut_plot = ROOT.TH2D("lut_plot", plot_title, 1025, 0, 1025, 22, 0, 22)
 
     with open(filename, "w") as lut_file:
         with open(filename.replace(".txt", "_dump.txt"), "w") as dump_file:
@@ -238,8 +244,42 @@ def print_Stage1_lut_file(fit_functions, eta_bins, filename):
                         RANKCALIB = 63;
                     line = "%s %s\n" % (lut_address, RANKCALIB)
                     lut_file.write(line);
-                    dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f corrPhysPt: %f RANKCALIB: %d\n" % (eta, physPt, lut_address, fit_functions[param_ind].Eval(physPt), pt_corr, RANKCALIB)
+                    dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f " \
+                                "corrPhysPt: %f RANKCALIB: %d\n" % (eta,
+                                                                    physPt,
+                                                                    lut_address,
+                                                                    fit_functions[param_ind].Eval(physPt),
+                                                                    pt_corr,
+                                                                    RANKCALIB)
                     dump_file.write(dump_line)
+                    if plot:
+                        lut_plot.SetBinContent(pt+1, eta+1, RANKCALIB)  # +1 as ROOT bins start at 1, not 0!
+
+    if plot:
+        c = ROOT.TCanvas("c", "", 800, 500)
+        c.SetTicks(0)
+        ROOT.gStyle.SetNumberContours(63)
+        ROOT.gStyle.SetPalette(55)
+        lut_plot.SetMarkerSize(1)
+        lut_plot.Draw("COLZ")
+        # Here we try and be intelligent - find the minimum pt above which all
+        # eta and pt have bincontent = 63
+        max_pt = 0
+        for i in xrange(1, lut_plot.GetNbinsX()+1):
+            all_max = True
+            for j in xrange(1, lut_plot.GetNbinsY()+1):
+                if lut_plot.GetBinContent(i, j) != 63:
+                    all_max = False
+                    break
+            if all_max:
+                max_pt = i
+                break
+
+        lut_plot.SetAxisRange(0, max_pt, "X")
+        lut_plot.GetXaxis().SetTitle(lut_plot.GetXaxis().GetTitle()+"(RANKCALIB = 63 for pt > %d for all eta)" % max_pt)
+        lut_plot.GetZaxis().SetTitle("RANK CALIB")
+        lut_plot.GetZaxis().SetTitleOffset(0.58)
+        c.SaveAs(os.path.splitext(filename)[0]+".pdf")
 
 
 def make_fancy_fits(fits, graphs):
@@ -249,9 +289,9 @@ def make_fancy_fits(fits, graphs):
 
     This generates a new set of correction functions, represented by MultiFunc objects.
     """
-    new_functions = []
+    print "Making fancy fits..."
 
-    c = ROOT.TCanvas("c", "", 600, 600)
+    new_functions = []
 
     for i, (fit, gr) in enumerate(zip(fits, graphs)):
         x_arr, y_arr = cu.get_xy(gr)
@@ -261,25 +301,25 @@ def make_fancy_fits(fits, graphs):
         corr_merge = 0
 
         print "Eta bin", str(i)
-        print "pt, correction acc. to graph, correcction acc. to fit, diff"
+        # print "pt, correction acc. to graph, correcction acc. to fit, diff"
 
         for j, (pt, corr, pt_err, corr_err) in enumerate(izip(x_arr[::-1], y_arr[::-1], ex_arr[::-1], ey_arr[::-1])):
             # Loop through each point of the graph in reverse,
             # only considering points with pt < 40.
             # Determine where the function and graph separate by
-            # looking at the difference
+            # looking at the difference.
             # The error arrays are redundant for now, but are included incase
             # the user wishes to use their values in the future
             if pt > 40:
                 continue
-            print pt, corr, fit.Eval(pt), abs(fit.Eval(pt) - corr)
+            # print pt, corr, fit.Eval(pt), abs(fit.Eval(pt) - corr)
             if abs(fit.Eval(pt) - corr) > 0.05:
                 break
             else:
                 pt_merge = pt
                 corr_merge = fit.Eval(pt)
 
-        print "pt_merge:", pt_merge, "corr val:", fit.Eval(pt_merge), "corr merge", corr_merge
+        print "pt_merge:", pt_merge, "corr fn value:", fit.Eval(pt_merge)
 
         # Make our new 'frankenstein' function: constant for pt < pt_merge,
         # then the original function for pt > pt_merge
@@ -434,8 +474,10 @@ def main(in_args=sys.argv[1:]):
         if args.numpy:
             print_function(fit_func, "numpy")
 
+    # Check we have the correct number
+    if len(all_fits)+1 != len(etaBins) or len(all_fit_params)+1 != len(etaBins):
+        raise Exception("Incorrect number of fit functions/sets of parameters for corresponding number of eta bins")
 
-    # Print all functions to one canvas
     plot_all_functions(all_fits, os.path.join(out_dir, "all_raw_fits.pdf"), etaBins, etmin, etmax)
 
     # Make LUTs
@@ -443,7 +485,7 @@ def main(in_args=sys.argv[1:]):
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
     elif args.stage1:
         fits = make_fancy_fits(all_fits, all_graphs) if args.fancy else all_fits
-        print_Stage1_lut_file(fits, etaBins, args.lut)
+        print_Stage1_lut_file(fits, args.lut, args.plots)
 
         if args.plots:
             # plot the fancy fits
