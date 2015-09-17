@@ -3,11 +3,26 @@
 This script takes as input the output file from RunMatcher, and loops over
 matched reference jet/L1 jet pairs, making resolution plots.
 
-Does 2 types of "resolution":
-L1 resolution = L1 - Ref / L1
-Ref resolution = L1 - Ref / Ref
+Does 5 types of "resolution":
 
-Usage: see
+- (pT(L1) - pT(Ref))/pT(L1), calculated on a pair-by-pair basis, binned in pT(L1).
+Stored as `resL1_<eta_min>_<eta_max>`.
+
+- (pT(L1) - pT(Ref))/pT(Ref), calculated on a pair-by-pair basis, binned in pT(L1).
+Stored as `resRefL1_<eta_min>_<eta_max>`.
+
+- (pT(L1) - pT(Ref))/pT(Ref), calculated on a pair-by-pair basis, binned in pT(L1).
+Stored as `resRefRef_<eta_min>_<eta_max>`.
+
+- use the width of the pT(L1) - pT(Ref) distribution, then divide by the average pT(L1).
+This is done in bins of pT(L1). Stored as `resL1_<eta_min>_<eta_max>_diff`.
+
+- use the width of the pT(L1) - pT(Ref) distribution, then divide by the average pT(Ref).
+This is done in bins of pT(Ref). Stored as `resRefRef_<eta_min>_<eta_max>_diff`.
+This is the correct one for performance plots, and is the one used by `showoffPlots.py`.
+
+Usage:
+
 python makeResolutionPlots -h
 
 """
