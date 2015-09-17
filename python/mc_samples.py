@@ -49,7 +49,7 @@ samples = {
                                                     unitsPerJob=10, totalUnits=-1),
 
     "QCDFlatSpring15BX25FlatNoPUHCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
-                                                    unitsPerJob=10, totalUnits=-1),
+                                                    unitsPerJob=5, totalUnits=-1), # lots of file failures so split up more
 
     "TTbarSpring15AVE30BX50": Dataset(inputDataset='/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                       unitsPerJob=25, totalUnits=-1),
