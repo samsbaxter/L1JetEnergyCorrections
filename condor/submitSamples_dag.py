@@ -5,9 +5,11 @@ over various datasets.
 
 User must select the correct config file, outputDir, and dataset(s).
 
-The datasets must be the name of their keys in the samples dict (in mc_scamples or data_samples)
+The datasets must be the name of their keys in the samples dict (in mc_samples or data_samples)
 
 The results of each dataset in the datasets list will be stored in: <outputDir>/<dataset>/
+
+outputDir should be on /hdfs !
 """
 
 import sys

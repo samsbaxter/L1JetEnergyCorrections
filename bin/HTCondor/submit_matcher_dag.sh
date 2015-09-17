@@ -13,6 +13,10 @@ declare -a treeDirs=(
 /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDFlatSpring15BX25HCALFix_stage1HFfix_PU15to25_rctv4_jetSeed5/QCDFlatSpring15BX25FlatNoPUHCALFix
 )
 
+# whether to use internal jets (for deriving calibs)
+# or jets passed to the Global Trigger (for testing calibs)
+internal=true
+
 # update the setup scripts for worker nodes
 sed -i "s/VER=CMSSW_.*/VER=$CMSSW_VERSION/" condor_worker.sh
 sed -i "s@RDIR=/.*@RDIR=$ROOTSYS@" condor_worker.sh
@@ -64,8 +68,12 @@ do
     refMin=14
 
     # Special appendix, if desired (e.g. if changing a param)
-    # append="_preGt_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
-    append="_GT_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+    append=""
+    if [ "$internal" = true ]; then
+        append="_preGt_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+    else
+        append="_GT_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+    fi
 
     # Add a matcher job for each L1Ntuple
     counter=0
@@ -84,10 +92,14 @@ do
         outRootPath="${fdir}/${outname}${append}.root"
         outFileNames+=($outRootPath)
         echo "JOB $jobname $outfile" >> "$dagfile"
-        # For internal jets:
-        # echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
-        # For jets sent to GT
-        echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        # May need to change l1Dir to l1ExtraTreeProducerGctIntern for GCT
+        if [ "$internal" = true ]; then
+            # For internal jets:
+            echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        else
+            # For jets sent to GT
+            echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        fi
         ((counter++))
     done
 

@@ -67,6 +67,14 @@ declare -a puMaxs=(
     25
     40
 )
+
+declare -a puMins=(
+    -100
+)
+declare -a puMaxs=(
+    100
+)
+
 # loop over the two arrays pairwise
 for((p=0; p<${#puMins[@]}; ++p)); do
     puMin=${puMins[p]}
@@ -108,7 +116,8 @@ for((p=0; p<${#puMins[@]}; ++p)); do
         declare -a outFileNames=()
 
         # Special appendix, if desired (e.g. if changing a param)
-        append="_PU${puMin}to${puMax}"
+        # append="_PU${puMin}to${puMax}"
+        append=""
 
         outname=${fname/pairs_/output_}
         outname=${outname%.root}

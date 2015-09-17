@@ -53,13 +53,19 @@ process.caloStage1Params.jetCalibrationType = cms.string("Stage1JEC")
 process.caloStage1Params.jetCalibrationLUTFile = cms.FileInPath(<path to LUT>)
 ```
 
-where `<path to LUT>` is **relative** to `$CMSSW_BASE/src` and msut be enclosed in single or double quotes.
+where `<path to LUT>` is **relative** to `$CMSSW_BASE/src` and must be enclosed in single or double quotes.
 
 e.g. if you want to use the LUT `$CMSSW_BASE/src/L1Trigger/L1JetEnergyCorrections/data/LUT.txt` you would use `L1Trigger/L1JetEnergyCorrections/data/LUT.txt`
 
 Note that if it cannot find the LUT it will issue an error message.
 
 Also note that the LUT must be in a sub-directory name `data` in a package (and you've run `scram b`), since CRAB3 (and my condor scripts) will **only** pick up additional files from those directories.
+
+**Important** if you are using `L1TCaloStage1_PPFromRaw.py` to setup the emualator, in 7.4.X and earlier there is a bug that overrides any RCT calibrations. The offending line is:
+
+```
+from L1Trigger.L1TCalorimeter.caloStage1RCTLuts_cff import *
+```
 
 ###Test it
 
