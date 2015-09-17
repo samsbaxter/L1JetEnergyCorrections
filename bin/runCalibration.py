@@ -307,14 +307,18 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     if len(xarr) == 0:
         raise RuntimeError("graph in setup_fit() is empty")
 
-    fit_max = max(xarr)  # Maxmimum pt for upper range of fit
-    fit_min = 20 if absetamin > 2.9 else 20
+    fit_max = max(xarr)  # Maxmimum pt for upper bound of fit
+    fit_min = 10 if absetamin > 2.9 else 10
+    # fit_min = min(xarr) # Minimum pt for lower bound of fit
 
     # For lower bound of fit, use either fit_min or the pt
-    # of the maximum corr value, whichever has the larger pT.
+    # of the maximum correction value, whichever has the larger pT.
     # Check to make sure it's not the last point on the graph
     # (e.g. if no turnover), in which case just use the default fit_min
-    # Then find the index of the closest corresponding value in xarr
+    # Then find the index of the closest corresponding value in xarr (since
+    # fit_min could correspond to a pT that isn't in the list of x-points)
+    # Note that we want the maximum in the first half of the graph to avoid
+    # the 'flick' at high pT in HF
     max_corr = max(yarr[:len(yarr) / 2])
     max_corr_ind = yarr.index(max_corr)
     max_corr_pt = xarr[max_corr_ind]
