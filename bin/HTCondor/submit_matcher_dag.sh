@@ -26,8 +26,13 @@ echo 'arguments = $(opts)' >> "$outfile"
 echo "queue" >> "$outfile"
 
 # Replace correct parts
-sed -i 's@SEDNAME@matcher/matcher@g' $outfile
-sed -i 's/SEDEXE/condor_worker.sh/g' $outfile
+datestamp=$(date "+%d_%b_%Y")
+logDir="jobs/matcher/${datestamp}"
+if [ ! -d "$logD" ]; then
+    mkdir -p $logDir
+fi
+sed -i "s@SEDNAME@${logDir}/matcher@g" $outfile # for log files
+sed -i "s/SEDEXE/condor_worker.sh/g" $outfile # thing to execute on worker node
 cdir=${PWD%HTCondor}
 # echo $cdir
 
@@ -41,6 +46,8 @@ declare -a statusFileNames=()
 # Queue up jobs
 for dir in "${treeDirs[@]}"
 do
+    echo ">>> Making jobs for $dir"
+
     # Make DAG file for this directory file
     # To make sure we don't overlap with another, we give it a timestamp + random string
     timestamp=$(date "+%H%M%S")
@@ -77,10 +84,10 @@ do
         outRootPath="${fdir}/${outname}${append}.root"
         outFileNames+=($outRootPath)
         echo "JOB $jobname $outfile" >> "$dagfile"
-        # For jets sent to GT
-        echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
         # For internal jets:
         # echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+        # For jets sent to GT
+        echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
         ((counter++))
     done
 
@@ -187,7 +194,7 @@ do
         echo "Submitting..."
         condor_submit_dag "$dagfile"
     else
-        echo "Not auto submitting."
+        echo "***** WARNING: Not auto submitting. *****"
     fi
     echo ""
     echo "Check status with:"

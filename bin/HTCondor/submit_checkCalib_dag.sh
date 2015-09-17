@@ -39,8 +39,13 @@ echo 'arguments = $(opts)' >> "$outfile"
 echo "queue" >> "$outfile"
 
 # Replace correct parts
-sed -i 's@SEDNAME@checkCalib/checkCalib@g' $outfile
-sed -i 's/SEDEXE/condor_worker.sh/g' $outfile
+datestamp=$(date "+%d_%b_%Y")
+logDir="jobs/checkCalib/${datestamp}"
+if [ ! -d "$logD" ]; then
+    mkdir -p $logDir
+fi
+sed -i "s@SEDNAME@${logDir}/checkCalib@g" $outfile # for log files
+sed -i 's/SEDEXE/condor_worker.sh/g' $outfile # thing to execute on worker node
 cdir=${PWD%HTCondor}
 echo $cdir
 sed -i "s@SEDINPUTFILES@$cdir/checkCalibration.py, $cdir/binning.py, $cdir/correction_LUT_plot.py, $cdir/common_utils.py@" $outfile
@@ -148,6 +153,7 @@ do
     autoSub=true
     for f in "${outFileNames[@]}"; do
         if [ -e $f ]; then
+            echo "One of the output files already exists, please check your setup."
             autoSub=false
             break
         fi
@@ -160,7 +166,7 @@ do
         echo "Submitting..."
         condor_submit_dag "$dagfile"
     else
-        echo "Not auto submitting as output file already exists. Check your job description file is OK first!"
+        echo "***** WARNING: Not auto submitting. *****"
     fi
     echo ""
     echo "Check status with:"
