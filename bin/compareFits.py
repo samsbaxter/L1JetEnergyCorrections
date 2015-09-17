@@ -33,6 +33,11 @@ ROOT.gStyle.SetPalette(55)
 class MultiFunc(object):
     """Class to handle multiple TF1s, like a TMultiGraph, because ROOT doesn't.
 
+    TODO: implement so can iterate over containees e.g.
+
+    for f in mulitf:
+        f.Print()
+
     NOT SOPHISTICATED, JUST A CONTAINER.
     """
     def __init__(self):
@@ -279,6 +284,45 @@ def compare():
     for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins[:-1], binning.eta_bins[1:])):
 
         # --------------------------------------------------------------------
+        # Compare v2 and v3 corrections
+        # --------------------------------------------------------------------
+        graphs = [
+            # Contribution(file_name=f_jetSeed5_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #             label="V2 (jet seed 5)", line_color=colors[3], marker_color=colors[3]),
+            Contribution(file_name=f_jetSeed10_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                        label="V2 (jet seed 10)", line_color=colors[3], marker_color=colors[3]),
+            Contribution(file_name=f_jetSeed5_new_PU15to25, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                        label="#splitline{V3 (jet seed 5,}{new PUS, HF fix)}", line_color=colors[1], marker_color=colors[1]),
+        ]
+        ylim = None
+        if eta_min == 3.5 or eta_min == 4.5:
+            ylim = [1., 2.8]
+        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                 title="Spring15 MC + no JEC, 25ns, %g < |#eta| < %g" % (eta_min, eta_max), xlim=[0, 250], ylim=ylim)
+        p.plot()
+        oDir = "smallStudies/Spring15_compareV2_V3"
+        p.save(os.path.join(oDir, "compare_V2_V3_eta_%g_%g.pdf" % (eta_min, eta_max)))
+
+        graphs2 = [
+            # Contribution(file_name=f_jetSeed5_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #             label="V2 (jet seed 5)", line_color=colors[3], marker_color=colors[3]),
+            Contribution(file_name=f_jetSeed10_old, obj_name="fitfcneta_%g_%g" % (eta_min, eta_max),
+                        label="V2 (jet seed 10)", line_color=colors[3], marker_color=colors[3]),
+            Contribution(file_name=f_jetSeed5_new_PU15to25, obj_name="fitfcneta_%g_%g" % (eta_min, eta_max),
+                        label="#splitline{V3 (jet seed 5,}{new PUS, HF fix)}", line_color=colors[1], marker_color=colors[1]),
+        ]
+        ylim = None
+        if eta_min == 3.5 or eta_min == 4.5:
+            ylim = [1., 2.8]
+        p2 = Plot(contributions=graphs2, what="function", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                  title="Spring15 MC + no JEC, 25ns, %g < |#eta| < %g" % (eta_min, eta_max), xlim=[0, 250], ylim=ylim, extend=True)
+        p2.plot("SAME")
+        p.container.GetHistogram().GetXaxis().SetRangeUser(0, 250)
+        oDir = "smallStudies/Spring15_compareV2_V3"
+        p2.save(os.path.join(oDir, "compare_V2_V3_eta_%g_%g_both.pdf" % (eta_min, eta_max)))
+
+"""
+        # --------------------------------------------------------------------
         # Compare 0, 5, 10 jet seeds (original Spring15 MC)
         # --------------------------------------------------------------------
         graphs = [
@@ -292,7 +336,7 @@ def compare():
         p = Plot(contributions=graphs, what="both", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title="Original Spring15 MC + no JEC, 25ns, PU20, %g < |#eta| < %g" % (eta_min, eta_max), xlim=[0, 250])
         p.plot()
-        oDir = "Spring15_compareSeeds"
+        oDir = "smallStudies/Spring15_compareSeeds"
         p.save(os.path.join(oDir, "compare_0_5_10_seeds_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # Add the fit functions on top
@@ -308,9 +352,10 @@ def compare():
         p2 = Plot(contributions=graphs2, what="function", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title="Original Spring15 MC + no JEC, 25ns, PU20, %g < |#eta| < %g" % (eta_min, eta_max), xlim=[0, 250], extend=True)
         p2.plot(draw_opts="SAME")
-        oDir = "Spring15_compareSeeds"
+        oDir = "smallStudies/Spring15_compareSeeds"
         p2.save(os.path.join(oDir, "compare_0_5_10_seeds_eta_%g_%g_both.pdf" % (eta_min, eta_max)))
-"""
+
+
         # --------------------------------------------------------------------
         # Compare diff PU scenarios for new MC
         # --------------------------------------------------------------------
@@ -334,7 +379,7 @@ def compare():
                  title="Spring15 MC + HF fix + no JEC, jet seed 0 GeV, %g < |#eta| < %g" % (eta_min, eta_max),
                  ylim=ylim)
         p.plot()
-        oDir = "Spring15_HFfix_pu_binning_jetSeed0"
+        oDir = "smallStudies/Spring15_HFfix_pu_binning_jetSeed0"
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # no JEC, seed 5
@@ -358,7 +403,7 @@ def compare():
                  title="Spring15 MC + HF fix + no JEC, jet seed 5 GeV, %g < |#eta| < %g" % (eta_min, eta_max),
                  ylim=ylim)
         p.plot()
-        oDir = "Spring15_HFfix_pu_binning_jetSeed5"
+        oDir = "smallStudies/Spring15_HFfix_pu_binning_jetSeed5"
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # JECv2 set seed 0
@@ -385,7 +430,7 @@ def compare():
         p.legend.SetX1(0.5)
         p.legend.SetY1(0.6)
         p.plot()
-        oDir = "Spring15_HFfix_comparePUS_jetSeed5"
+        oDir = "smallStudies/Spring15_HFfix_comparePUS_jetSeed5"
         p.save(os.path.join(oDir, "compare_old_new_PUS_seed5_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
 
@@ -409,7 +454,7 @@ def compare():
         p.legend.SetX1(0.5)
         p.legend.SetY1(0.6)
         p.plot()
-        oDir = "Spring15_compareOldVsNew_jetSeed5"
+        oDir = "smallStudies/Spring15_compareOldVsNew_jetSeed5"
         p.save(os.path.join(oDir, "compare_old_new_seed5_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # jet seed 0
@@ -424,7 +469,7 @@ def compare():
         p.legend.SetX1(0.5)
         p.legend.SetY1(0.6)
         p.plot()
-        oDir = "Spring15_compareOldVsNew_jetSeed0"
+        oDir = "smallStudies/Spring15_compareOldVsNew_jetSeed0"
         p.save(os.path.join(oDir, "compare_old_new_seed0_eta_%g_%g.pdf" % (eta_min, eta_max)))
 """
 
