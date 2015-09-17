@@ -102,9 +102,9 @@ class MultiFunc(object):
 
 
 def print_function(function, lang="cpp"):
-    """Print TF1 to screen so can replicate in ROOT
+    """Print TF1 to screen so can replicate in ROOT or numpy
 
-    Can choose language (py, cpp)
+    Can choose language (py, cpp, numpy)
     """
 
     rangemin = ROOT.Double() # eurghhhhh - fixes pass by reference
@@ -126,7 +126,7 @@ def print_function(function, lang="cpp"):
     elif lang.lower() == "numpy":
         print "import numpy as np"
         print "import matplotlib.pyplot as plt"
-        print "et = np.arange(%g, %g, 0.1)" % (etmin, etmax)
+        print "et = np.arange(%g, %g, 0.1)" % (0, 250)
         for i, param in enumerate(params):
             print "p%d = %.8f" % (i, param)
         print "def pf_func(et, p0, p1, p2, p3, p4, p5):"
