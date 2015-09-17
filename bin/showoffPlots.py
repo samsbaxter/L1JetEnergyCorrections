@@ -59,7 +59,7 @@ rsp_min, rsp_max = 0.5, 1.5
 # LABELS, COLOURS, AND TITLE ON PLOTS
 #############################################
 plot_labels = [
-     "Spring15 + HF fix (RCTv4 + v2 LUT + new PUS)"
+     "Spring15 + HF fix (RCTv4 + v3 LUT + new PUS)"
     ]
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kBlue, 8]
 plot_markers = [20, 21, 22, 23]
