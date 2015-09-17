@@ -87,8 +87,13 @@ do
     declare -a jobNames=()
     declare -a outFileNames=()
 
+    # PU cuts
+    puMin=30
+    puMax=40
+
     # Special appendix, if desired (e.g. if changing a param)
-    append=""
+    append="_PU${puMin}to${puMax}"
+    # append=""
 
     outname=${fname/pairs_/check_}
     outname=${outname%.root}
@@ -111,7 +116,7 @@ do
         outFileNames+=($outRootName)
 
         echo "JOB $jobname $outfile" >> "$dagfile"
-        echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --excl --etaInd ${i} --maxPt 250\"" >> "$dagfile"
+        echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --excl --maxPt 250 --PUmin ${puMin} --PUmax ${puMax} --etaInd ${i}\"" >> "$dagfile"
     done
 
     # Now do inclusive bins (central, forward, all)
@@ -120,21 +125,21 @@ do
     outRootName="${fdir}/${outname}_central${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --central --maxPt 250\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --central --maxPt 250 --PUmin ${puMin} --PUmax ${puMax}\"" >> "$dagfile"
 
     jobname="checkCalib_forward"
     jobNames+=($jobname)
     outRootName="${fdir}/${outname}_forward${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --forward --maxPt 250\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --forward --maxPt 250 --PUmin ${puMin} --PUmax ${puMax}\"" >> "$dagfile"
 
     jobname="checkCalib_all"
     jobNames+=($jobname)
     outRootName="${fdir}/${outname}_all${append}.root"
     outFileNames+=($outRootName)
     echo "JOB $jobname $outfile" >> "$dagfile"
-    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --maxPt 250\"" >> "$dagfile"
+    echo "VARS $jobname opts=\"${pairs} ${outRootName} python checkCalibration.py ${pairs} ${outRootName} --incl --maxPt 250 --PUmin ${puMin} --PUmax ${puMax}\"" >> "$dagfile"
 
     # Now add job for hadding
     finalRootName="${fdir}/${outname}${append}.root"
