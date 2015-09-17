@@ -303,6 +303,9 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
 
     xarr, yarr = cu.get_xy(graph)
     exarr, eyarr = cu.get_exey(graph)
+    # first test out graph isn't empty
+    if len(xarr) == 0:
+        raise RuntimeError("graph in setup_fit() is empty")
 
     fit_max = max(xarr)  # Maxmimum pt for upper range of fit
     fit_min = 20 if absetamin > 2.9 else 20

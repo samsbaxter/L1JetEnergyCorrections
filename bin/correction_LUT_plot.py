@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """
-This script pulls the correction functions from the ROOT file 
-output by runCalibration.py, and then:
+This script uses the correction functions from the ROOT file
+output by runCalibration.py and:
 
 - makes a LUT with them
 - prints them in py/cpp format so the user can play with it
-- plots them over suitable pt range, to check they are sensible
+- makes various plots to check they are sensible
+
+See options with python correction_LUT_plot.py -h
 
 Robin Aggleton
 """
@@ -26,9 +28,6 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
-
-# Et(L1) limits used for the big plot of all functions
-etmin, etmax = 0.1, 30
 
 
 class MultiFunc(object):
@@ -332,6 +331,9 @@ def make_fancy_fits(fits, graphs):
         fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge*0.8, 512)
         # set lower range below pt_merge just for drawing purposes
 
+        # Make a MultiFunc object to handle the different functions operating
+        # over different ranges since TF1 can't do this.
+        # Maybe ROOFIT can?
         functions_dict = {(0, pt_merge): constant,
                           (pt_merge, 512): fit_new}
         total_fit = MultiFunc(functions_dict)
@@ -394,7 +396,7 @@ def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
     ncols = ((len(binning.eta_bins)-1) / nrows) + 1
     canv.Divide(ncols, nrows)
 
-    # vertical line to intersect graph
+    # vertical line to intersect graph at a certain pT
     vert_line = ROOT.TLine(5, 0, 5, 3)
     vert_line.SetLineStyle(3)
     vert_line.SetLineWidth(1)
@@ -443,12 +445,15 @@ def main(in_args=sys.argv[1:]):
         print "You didn't pick which format for the LUT - not making a LUT unless you choose!"
 
     in_file = cu.open_root_file(args.input)
-    out_dir = os.path.dirname(args.lut)
+    out_dir = os.path.join(os.path.dirname(args.input), os.path.splitext(os.path.basename(args.lut))[0])
+
+    cu.check_dir_exists_create(out_dir)
 
     all_fit_params = []
     all_fits = []
     all_graphs = []
 
+    # Get all the fit functions from file and their corresponding graphs
     etaBins = binning.eta_bins
     for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
         print "Eta bin:", eta_min, "-", eta_max
@@ -458,7 +463,7 @@ def main(in_args=sys.argv[1:]):
         all_fits.append(fit_func)
         fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
         all_fit_params.append(fit_params)
-        print "Fit parameters:", fit_params
+        # print "Fit parameters:", fit_params
 
         # get the corresponding fit graph
         fit_graph = cu.get_from_file(in_file, generate_eta_graph_name(eta_min, eta_max))
@@ -478,7 +483,8 @@ def main(in_args=sys.argv[1:]):
     if len(all_fits)+1 != len(etaBins) or len(all_fit_params)+1 != len(etaBins):
         raise Exception("Incorrect number of fit functions/sets of parameters for corresponding number of eta bins")
 
-    plot_all_functions(all_fits, os.path.join(out_dir, "all_raw_fits.pdf"), etaBins, etmin, etmax)
+    # Plot all functions on one canvas
+    plot_all_functions(all_fits, os.path.join(out_dir, "all_raw_fits.pdf"), etaBins, et_min=0, et_max=30)
 
     # Make LUTs
     if args.gct:
