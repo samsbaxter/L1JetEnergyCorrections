@@ -358,14 +358,17 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
 def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     """
     Fit response curve with given correction function, within given bounds.
-    If fit_min and fit_max are < 0, then just use the range of the function supplied.
+    If fit_min and fit_max are < 0, then use the range of the function supplied.
 
     Note that sometime the fit fails - if so, we try raising the lower
     bound of the fit until it suceeds (sometimes it works at e.g. 45, but not 40).
-    If that fails, then we lower the upper bound and try fitting whilst raising
-    the lower bound again.
+    If that fails, then we lower the upper bound and try fitting, raising
+    the lower bound again if necessary. Iterative process, so fairly slow.
 
-    Returns graph (with fitted function) and parameters of successful fit.
+    We stop when the upper bound of the fit approaches the original lower bound.
+
+    Returns graph (with fitted function) and parameters of successful fit if
+    successful (otherwise an empty list).
     """
     # Get the min and max of the fit function
     if fit_min < 0  and fit_max < 0:
@@ -387,9 +390,12 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
             if str(function.GetExpFormula()).startswith("pol"):
                 mode = "F"
             fit_result = int(graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
-            # sanity check - sometimes will have status = 0 even though rubbish
-            if function.Eval(50) > 10 or function.Eval(50) < 0.01:
-                fit_result = -1
+            # sanity check - sometimes will have status = 0 even though rubbish,
+            # especially if there's a pole outside of the fitting range
+            # but in the range (0, 250)
+            for x in xrange(3, 250, 1):
+                if function.Eval(x) > 10 or function.Eval(x) < 0.01:
+                    fit_result = -1
             print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
             if fit_result == 0:
                 break
@@ -401,7 +407,8 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
         fit_max -= 0.5
 
     params = []
-    if fit_result != 0 or function.Eval(50) > 10 or function.Eval(50) < 0.01:
+
+    if fit_result != 0:
         print "Couldn't fit"
     else:
         for i in range(function.GetNumberFreeParameters()):
