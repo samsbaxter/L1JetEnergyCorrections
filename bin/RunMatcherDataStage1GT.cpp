@@ -6,8 +6,6 @@
 #include <algorithm>
 
 // ROOT headers
-#include "TCanvas.h"
-#include "TLegend.h"
 #include "TChain.h"
 #include "TFile.h"
 #include "TDirectoryFile.h"
