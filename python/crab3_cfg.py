@@ -1,5 +1,5 @@
 """
-CRAB3 template config for GCT, Stage 1 specific configs
+CRAB3 template config for more specific configs (See crab dir)
 """
 
 from WMCore.Configuration import Configuration
