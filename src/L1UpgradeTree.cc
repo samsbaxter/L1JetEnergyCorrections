@@ -3,12 +3,10 @@
 
 
 L1UpgradeTree::L1UpgradeTree(TString filename, TString treeName):
-  fCurrent_(0),
   treeName_(treeName)
 {
   chain_ = new TChain(treeName_);
   l1Upgrade_ = new L1Analysis::L1AnalysisL1UpgradeDataFormat();
-  cout << treeName_ << endl;
   addFile(filename);
   chain_->SetBranchAddress("L1Upgrade", &l1Upgrade_);
 }
@@ -16,11 +14,12 @@ L1UpgradeTree::L1UpgradeTree(TString filename, TString treeName):
 
 L1UpgradeTree::~L1UpgradeTree()
 {
+  if (chain_) delete chain_;
+  if (l1Upgrade_) delete l1Upgrade_;
 }
 
 
 void L1UpgradeTree::addFile(TString filename) {
-  cout << filename << endl;
   int addResult = chain_->Add(filename, -1);
   if (addResult == 0) {
     throw std::runtime_error(("Couldn't get " + treeName_ + " from " + filename).Data());

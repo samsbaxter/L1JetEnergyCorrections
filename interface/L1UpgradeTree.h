@@ -72,7 +72,6 @@ class L1UpgradeTree {
   private:
     L1Analysis::L1AnalysisL1UpgradeDataFormat * l1Upgrade_;
     TChain * chain_;   //!<pointer to the analyzed TTree or TChain
-    Int_t fCurrent_; //!<current Tree number in a TChain
     TString treeName_;
 };
 
