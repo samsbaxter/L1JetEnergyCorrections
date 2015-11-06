@@ -154,8 +154,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
 
-    nb = 500
-    pt_min, pt_max = 0, 500
+    nb, pt_min, pt_max = 2048, 0, 1024
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), total_cut, "goff")
