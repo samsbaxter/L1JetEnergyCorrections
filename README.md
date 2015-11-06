@@ -6,9 +6,9 @@ This applies to:
 
 - Legacy GCT
 - Stage 1
-- Stage 2 *TODO*
+- Stage 2
 
-## Installation
+## Installation (GCT or Stage 1)
 
 ```shell
 # To re-run the RCT emulator you MUST use 742 or newer otherwise untold pain
@@ -37,6 +37,20 @@ doxygen Doxyfile # html documentation in html/index.html
 ```
 
 - **WARNING:** in CMSSW_7_4_5 and later, `L1RCTProducer` uses the new AMC13 FED IDs for HF. So if you run over Spring15 MC or earlier, you'll need to change the FEDs back, or end up with nothing in the HF: https://github.com/cms-sw/cmssw/commit/8b127a6660bdb557ccc2241db022687d3c2936d0
+
+
+## Installation (Stage 2)
+
+See the L1T TWiki page for recommended release and branch to get the L1TCalorimeter package: [SWGuideL1TOfflineDev](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideL1TOfflineDev)
+Note that we now use the L1Ntuples included in the package, so no need to get the L1DPG NTuple package.
+
+```shell
+# follow instructions for CMSSW, etc
+
+#  Get this package
+git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
+scram b -j9
+```
 
 For instructions about **deriving** new calibrations, see [derivation.md](derivation.md).
 
