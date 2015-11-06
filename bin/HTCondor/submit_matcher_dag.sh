@@ -40,7 +40,8 @@ sed -i "s/SEDEXE/condor_worker.sh/g" $outfile # thing to execute on worker node
 cdir=${PWD%HTCondor}
 # echo $cdir
 
-exe='RunMatcher' # FOR MC
+# exe='RunMatcher' # FOR MC
+exe='RunMatcherStage2' # FOR MC
 # exe='RunMatcherData' # FOR DATA using l1Extra + reco jet
 exePath=`which $exe`
 sed -i "s@SEDINPUTFILES@$exePath@" $outfile
@@ -64,13 +65,14 @@ do
     declare -a jobNames=()
     declare -a outFileNames=()
 
-    deltaR=0.7
-    refMin=14
+    deltaR=0.4
+    refMin=10
 
     # Special appendix, if desired (e.g. if changing a param)
     append=""
     if [ "$internal" = true ]; then
-        append="_preGt_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+        # append="_preGt_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
+        append="_MP_ak4_ref${refMin}to5000_l10to5000_dr${deltaR/./p}"
     else
         append="_GT_ak4_ref${refMin}to1000_l10to500_dr${deltaR/./p}"
     fi
@@ -95,7 +97,8 @@ do
         # May need to change l1Dir to l1ExtraTreeProducerGctIntern for GCT
         if [ "$internal" = true ]; then
             # For internal jets:
-            echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+            # echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducerIntern --l1Branches cenJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
+            echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1UpgradeTreeProducer --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
         else
             # For jets sent to GT
             echo "VARS $jobname opts=\"${tree} ${outRootPath} ${exe} -I ${tree} -O ${outRootPath} --refDir l1ExtraTreeProducerGenAk4 --l1Dir l1ExtraTreeProducer --l1Branches cenJet fwdJet --refBranches cenJet --draw 0 --deltaR ${deltaR} --refMinPt ${refMin}\"" >> "$dagfile"
