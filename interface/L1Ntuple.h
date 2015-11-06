@@ -23,27 +23,27 @@
 #include <TH2F.h>
 #include <TCanvas.h>
 
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisEventDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisSimulationDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisGCTDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisGTDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisGMTDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisGTDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRCTDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisDTTFDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisCSCTFDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoMetDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoJetDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoClusterDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoMuonDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoRpcHitDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoVertexDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisRecoTrackDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1MenuDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisSimulationDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisGCTDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisGTDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisGMTDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisGTDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRCTDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisDTTFDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisCSCTFDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMetDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoJetDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoClusterDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMuonDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoRpcHitDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoVertexDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoTrackDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisL1MenuDataFormat.h"
 
-// using std::cout;
-// using std::endl;
+using std::cout;
+using std::endl;
 
 class L1Ntuple {
 public:
