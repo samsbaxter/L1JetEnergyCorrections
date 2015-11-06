@@ -17,16 +17,16 @@
 
 // BOOST headers
 #include <boost/filesystem.hpp>
-// #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string.hpp>
 
-// Headers from L1Ntuples
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisL1ExtraDataFormat.h"
-#include "L1TriggerDPG/L1Ntuples/interface/L1AnalysisEventDataFormat.h"
+// Headers from L1TNtuples
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
+// #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
-#include "L1ExtraTree.h"
+#include "L1GenericTree.h"
 #include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
@@ -35,7 +35,7 @@
 using std::cout;
 using std::endl;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
-using L1Analysis::L1AnalysisEventDataFormat;
+// using L1Analysis::L1AnalysisEventDataFormat;
 
 namespace fs = boost::filesystem;
 
@@ -48,6 +48,8 @@ void correctJets(std::vector<TLorentzVector>& jets,
                  std::vector<TF1>& corrFns,
                  std::vector<float>& etaBins,
                  float minPt);
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<std::string> branchNames,
+                                                L1AnalysisL1ExtraDataFormat * l1Extra);
 std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
                                                 std::vector<double> eta,
                                                 std::vector<double> phi);
@@ -78,61 +80,20 @@ int main(int argc, char* argv[]) {
 
     // get input L1Extra TDirectories/TTrees
     // assumes TTree named "L1ExtraTree", but can specify in ctor of L1ExtraTree
-    TString refJetDirectory                 = opts.refJetDirectory();
-    TString refJetSuffix                    = getSuffixFromDirectory(refJetDirectory);
+    // Reference jets
+    TString refJetDirectory = opts.refJetDirectory();
     std::vector<std::string> refJetBranches = opts.refJetBranchNames();
+    L1GenericTree<L1AnalysisL1ExtraDataFormat> refJetTree(opts.inputFilename(),
+                                                          refJetDirectory+"/L1ExtraTree",
+                                                          "L1Extra");
+    L1AnalysisL1ExtraDataFormat * refData = refJetTree.getData();
 
-    TString l1JetDirectory                  = opts.l1JetDirectory();
-    TString l1JetSuffix                     = getSuffixFromDirectory(l1JetDirectory);
-    std::vector<std::string> l1JetBranches  = opts.l1JetBranchNames();
-
-    // also specify which branches jets are stored in
-    // for genJets & gctIntern, it's just cenJet branch,
-    // for gctDigis, it's cen/fwd/tau
-    L1ExtraTree refJetExtraTree(opts.inputFilename(), refJetDirectory);
-    L1ExtraTree l1JetExtraTree(opts.inputFilename(), l1JetDirectory);
-
-    // std::unique_ptr<TChain> eventChain(new TChain("l1NtupleProducer/L1Tree"));
-    // std::unique_ptr<L1AnalysisEventDataFormat> eventTree(new L1AnalysisEventDataFormat());
-    // int addResult = eventChain->Add(opts.inputFilename().c_str(), -1);
-    // if (addResult == 0) {
-    //     throw runtime_error(("No L1Tree!"));
-    // }
-    // eventChain->SetBranchAddress("Event", &eventTree);
-
-    // Map L1Analysis::L1AnalysisL1ExtraDataFormat structs to the desired
-    // directories in the TFile.
-    // std::unique_ptr<TChain> refChain(new TChain(refJetDirectory+"/L1ExtraTree"));
-    // std::unique_ptr<L1AnalysisL1ExtraDataFormat> refJetTree(new L1AnalysisL1ExtraDataFormat());
-    // Add file to TChain. Note netries = -1. This is potentially slower, but has
-    // the advantage of actually checking that the file and tree exist, rather
-    // than waiting until later (when it could be forgotten)
-    // Int_t addResult = refChain->Add(opts.inputFilename().c_str(), -1);
-    // if (addResult == 0) {
-    //     throw runtime_error(("Couldn't open "+opts.inputFilename()+":/"+refJetDirectory).Data()) ;
-    // }
-    // refChain->SetBranchAddress("L1Extra", &refJetTree);
-
-    // std::unique_ptr<TChain> l1Chain(new TChain(l1JetDirectory+"/L1ExtraTree"));
-    // std::unique_ptr<L1AnalysisL1ExtraDataFormat> l1JetTree(new L1AnalysisL1ExtraDataFormat());
-    // addResult = l1Chain->Add(opts.inputFilename().c_str(), -1);
-    // if (addResult == 0) {
-    //     throw runtime_error(("Couldn't open "+opts.inputFilename()+":/"+l1JetDirectory).Data()) ;
-    // }
-    // l1Chain->SetBranchAddress("L1Extra", &l1JetTree);
-
-    // Long64_t nentries = refChain->GetEntries();
-    // cout << nentries << endl;
-    // nentries = 100;
-    // for (Long64_t jentry=0; jentry < nentries; jentry++) {
-    //     Long64_t ientry = refChain->LoadTree(jentry);
-    //     Long64_t ientry2 = l1Chain->LoadTree(jentry);
-    //     if (ientry < 0 || ientry2 < 0) break;
-    //     refChain->GetEntry(jentry);
-    //     l1Chain->GetEntry(jentry);
-    //     cout << refJetTree->nCenJets << endl;
-    //     cout << l1JetTree->nCenJets << endl;
-    // }
+    TString l1JetDirectory = opts.l1JetDirectory();
+    std::vector<std::string> l1JetBranches = opts.l1JetBranchNames();
+    L1GenericTree<L1AnalysisL1ExtraDataFormat> l1JetTree(opts.inputFilename(),
+                                                         l1JetDirectory+"/L1ExtraTree",
+                                                         "L1Extra");
+    L1AnalysisL1ExtraDataFormat * l1Data = l1JetTree.getData();
 
     // TTree that holds PileupInfo
     PileupInfoTree puInfoTree(opts.inputFilename());
@@ -206,8 +167,8 @@ int main(int argc, char* argv[]) {
     // outTree.Branch("event", &out_event, "event/Int_t");
 
     // check # events in boths trees is same
-    Long64_t nEntriesRef = refJetExtraTree.fChain->GetEntriesFast();
-    Long64_t nEntriesL1  = l1JetExtraTree.fChain->GetEntriesFast();
+    Long64_t nEntriesRef = refJetTree.getEntries();
+    Long64_t nEntriesL1  = l1JetTree.getEntries();
     Long64_t nEntries(0);
     if (nEntriesRef != nEntriesL1) {
         throw range_error("Different number of events in L1 & ref trees");
@@ -232,18 +193,10 @@ int main(int argc, char* argv[]) {
     // produce matching pairs and store
     Long64_t drawCounter = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
-
-        // jentry is the entry # in the current Tree
-        Long64_t jentry = refJetExtraTree.LoadTree(iEntry);
-        Long64_t jentry2 = l1JetExtraTree.LoadTree(iEntry);
-        // Long64_t jentry3 = eventChain->LoadTree(iEntry);
-        if (jentry < 0) break;
-        if (jentry2 < 0) break;
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
-        refJetExtraTree.GetEntry(iEntry);
-        l1JetExtraTree.GetEntry(iEntry);
+        if (refJetTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1) break;
 
         // store event info
         // eventChain->GetEntry(iEntry);
@@ -256,8 +209,10 @@ int main(int argc, char* argv[]) {
         out_numPUVertices = puInfoTree.numPUVertices();
 
         // Get vectors of ref & L1 jets from trees
-        std::vector<TLorentzVector> refJets = refJetExtraTree.makeTLorentzVectors(refJetBranches);
-        std::vector<TLorentzVector> l1Jets  = l1JetExtraTree.makeTLorentzVectors(l1JetBranches);
+        auto refJets = makeTLorentzVectors(refJetBranches, refData);
+        auto l1Jets  = makeTLorentzVectors(l1JetBranches, l1Data);
+
+        if (refJets.size() == 0 || l1Jets.size() == 0) continue;
 
         // If doing corrections, split into cen & fwd jets, sort & filter
         // - do it here before matching
@@ -293,7 +248,6 @@ int main(int argc, char* argv[]) {
             outTree.Fill();
         }
 
-
         // debugging plot - plots eta vs phi of jets
         if (drawCounter < opts.drawNumber()) {
             if (matchResults.size() > 0) {
@@ -311,12 +265,10 @@ int main(int argc, char* argv[]) {
                 drawCounter++;
             }
         }
-
-    }
+    } // end of event loop
 
     // save tree to new file and cleanup
     outTree.Write("", TObject::kOverwrite);
-
     outFile->Close();
 }
 
@@ -373,6 +325,36 @@ void loadCorrectionFunctions(const TString& filename,
     }
     corrFile->Close();
 }
+
+
+/**
+ * @brief Make a std::vector of TLorentxVectors out of jets stored in a
+ * L1ExtradataFormat matching branchNames.
+ * @details Not a very smart implementation. Manually implement a mapping between
+ * branchName and actual fields in the L1Extra format. Smarter way?
+ *
+ * @param branchNames Vector of branch names. Currently supports "cenJet" and "fwdJet"
+ * @param l1Extra Pointer to L1AnalysisL1ExtraDataFormat object to get collections from.
+ *
+ * @return [description]
+ */
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<std::string> branchNames,
+                                                L1AnalysisL1ExtraDataFormat * l1Extra) {
+    std::vector<TLorentzVector> jets;
+    for (auto &itr : branchNames) {
+        boost::algorithm::to_lower(itr);
+        if (itr == "cenjet") {
+            auto tmp = makeTLorentzVectors(l1Extra->cenJetEt, l1Extra->cenJetEta, l1Extra->cenJetPhi);
+            jets.insert(jets.end(), tmp.begin(), tmp.end());
+        }
+        if (itr == "fwdjet") {
+            auto tmp = makeTLorentzVectors(l1Extra->fwdJetEt, l1Extra->fwdJetEta, l1Extra->fwdJetPhi);
+            jets.insert(jets.end(), tmp.begin(), tmp.end());
+        }
+    }
+    return jets;
+}
+
 
 /**
  * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.

@@ -19,19 +19,17 @@
 #include <boost/filesystem.hpp>
 // #include <boost/algorithm/string.hpp>
 
-// Headers from L1Ntuples
+// Headers from L1TNtuples
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
-#include "L1UpgradeTree.h"
-#include "L1ExtraTree.h"
+#include "L1GenericTree.h"
 #include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
-#include "SortFilterEmulator.h"
 
 using std::cout;
 using std::endl;
@@ -71,16 +69,19 @@ int main(int argc, char* argv[]) {
 
     // get input TTrees
     // Reference jets
-    TString refJetDirectory                 = opts.refJetDirectory();
-    TString refJetSuffix                    = getSuffixFromDirectory(refJetDirectory);
+    TString refJetDirectory = opts.refJetDirectory();
     std::vector<std::string> refJetBranches = opts.refJetBranchNames();
-    L1ExtraTree refJetTree(opts.inputFilename(), refJetDirectory);
+    L1GenericTree<L1AnalysisL1ExtraDataFormat> refJetTree(opts.inputFilename(), 
+                                                          refJetDirectory+"/L1ExtraTree", 
+                                                          "L1Extra");
+    L1AnalysisL1ExtraDataFormat * refData = refJetTree.getData();
 
     // L1 jets
-    TString l1JetDirectory                  = opts.l1JetDirectory();
-    TString l1JetSuffix                     = getSuffixFromDirectory(l1JetDirectory);
+    TString l1JetDirectory = opts.l1JetDirectory();
     std::vector<std::string> l1JetBranches  = opts.l1JetBranchNames();
-    L1UpgradeTree l1JetTree(opts.inputFilename(), l1JetDirectory+"/L1UpgradeTree");
+    L1GenericTree<L1AnalysisL1UpgradeDataFormat> l1JetTree(opts.inputFilename(), 
+                                                           l1JetDirectory+"/L1UpgradeTree", 
+                                                           "L1Upgrade");
     L1AnalysisL1UpgradeDataFormat * l1Data = l1JetTree.getData();
 
     // TTree that holds PileupInfo
@@ -140,7 +141,7 @@ int main(int argc, char* argv[]) {
     // outTree.Branch("event", &out_event, "event/Int_t");
 
     // check # events in boths trees is same
-    Long64_t nEntriesRef = refJetTree.fChain->GetEntriesFast();
+    Long64_t nEntriesRef = refJetTree.getEntries();
     Long64_t nEntriesL1  = l1JetTree.getEntries();
     Long64_t nEntries(0);
     if (nEntriesRef != nEntriesL1) {
@@ -166,15 +167,10 @@ int main(int argc, char* argv[]) {
     // produce matching pairs and store
     Long64_t drawCounter = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
-
-        // jentry is the entry # in the current Tree
-        Long64_t jentry = refJetTree.LoadTree(iEntry);
-        if (jentry < 0) break;
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
-        refJetTree.GetEntry(iEntry);
-        if (l1JetTree.getEntry(iEntry) <= 0) break;
+        if (refJetTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1) break;
 
         // get pileup quantities
         // note these get stored once per pair of matched jets NOT once per event
@@ -183,8 +179,8 @@ int main(int argc, char* argv[]) {
         out_numPUVertices = puInfoTree.numPUVertices();
 
         // Get vectors of ref & L1 jets from trees
-        std::vector<TLorentzVector> refJets = refJetTree.makeTLorentzVectors(refJetBranches);
-        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
+        std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
 
         // Pass jets to matcher, do matching
         matcher->setRefJets(refJets);
@@ -211,7 +207,6 @@ int main(int argc, char* argv[]) {
             out_resRef = out_ptDiff/it.refJet().Et();
             outTree.Fill();
         }
-
 
         // debugging plot - plots eta vs phi of jets
         if (drawCounter < opts.drawNumber()) {
