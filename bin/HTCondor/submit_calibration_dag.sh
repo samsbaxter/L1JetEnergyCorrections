@@ -116,7 +116,7 @@ for((p=0; p<${#puMins[@]}; ++p)); do
         declare -a outFileNames=()
 
         # Special appendix, if desired (e.g. if changing a param)
-        # append="_PU${puMin}to${puMax}"
+        append="_PU${puMin}to${puMax}"
         append=""
 
         outname=${fname/pairs_/output_}
