@@ -25,8 +25,8 @@ ind="" # ind is the job number
 arch="" # architecture
 cmssw_version="" # cmssw version
 sandbox="" # sandbox location
-
-while getopts ":s:f:o:i:a:c:S:" opt; do
+doProfile=0
+while getopts ":s:f:o:i:a:c:S:p" opt; do
     case $opt in
         \?)
             echo "Invalid option $OPTARG" >&2
@@ -63,6 +63,10 @@ while getopts ":s:f:o:i:a:c:S:" opt; do
         S)
             echo "Sandbox location: $OPTARG"
             sandbox=$OPTARG
+            ;;
+        p)
+            echo "Profiling"
+            doProfile=1
             ;;
     esac
 done
@@ -102,7 +106,9 @@ echo "import FWCore.ParameterSet.Config as cms" >> $wrapper
 echo "import "${script%.py}" as myscript" >> $wrapper
 echo "import ${filelist%.py} as filelist" >> $wrapper
 echo "process = myscript.process" >> $wrapper
-echo "process.source.fileNames = cms.untracked.vstring(filelist.fileNames[$ind])" >> $wrapper
+if [ $doProfile != 1 ]; then
+    echo "process.source.fileNames = cms.untracked.vstring(filelist.fileNames[$ind])" >> $wrapper
+fi
 echo "process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))" >> $wrapper
 echo "if hasattr(process, 'TFileService'): process.TFileService.fileName = "\
 "cms.string(process.TFileService.fileName.value().replace('.root', '_${ind}.root'))" >> $wrapper
@@ -129,7 +135,11 @@ echo "========================="
 # Now finally run script!
 # TODO: some automated retry system
 ###############################################################################
-cmsRun $wrapper
+if [ $doProfile == 1 ]; then
+    /usr/bin/time -v cmsRun $wrapper
+else
+    cmsRun $wrapper
+fi
 echo "CMS JOB OUTPUT" $?
 
 ls -l
