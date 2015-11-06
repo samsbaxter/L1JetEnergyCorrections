@@ -19,6 +19,8 @@ pt_bins = list(np.arange(14, 254, 4))
 # wider binning at higher pt for low stats regions
 pt_bins_wide = list(np.concatenate((np.arange(14, 50, 4), np.arange(50, 270, 20)))) # larger bins at higher pt
 
+pt_bins_stage2 = list(np.arange(10, 1026, 4))
+
 # 8 GeV bins for resolution plots
 pt_bins_8 = list(np.arange(14,246,8))
 pt_bins_8.append(250)
