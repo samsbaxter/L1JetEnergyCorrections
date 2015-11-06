@@ -25,7 +25,7 @@ from itertools import izip, product
 from common_utils import *
 from array import array
 import os
-
+from runCalibration import generate_eta_graph_name
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
@@ -570,6 +570,14 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 #############################################
 # PLOTS USING OUTPUT FROM runCalibration
 #############################################
+def plot_correction_graph(calib_file, eta_min, eta_max, oDir, oFormat='pdf'):
+    """Plot the graph of correction value vs pT"""
+    gname = generate_eta_graph_name(eta_min, eta_max)
+    gr = get_from_file(calib_file, gname)
+    c = generate_canvas()
+    gr.Draw("ALP")
+    c.SaveAs('%s/%s.%s' % (oDir, gname, oFormat))
+
 
 def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one pt, eta bin"""
@@ -773,6 +781,9 @@ def main(in_args=sys.argv[1:]):
             for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
                 plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
                 plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+
+            # plot the graph
+            plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
 
         calib_file.Close()
 
