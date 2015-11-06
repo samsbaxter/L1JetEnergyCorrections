@@ -38,6 +38,16 @@ central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(lo
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
 # Some sensible defaults for the fit function
+def stage2_fit_defaults(fitfunc):
+    """Better initial starting params for Stage2"""
+    fitfunc.SetParameter(0, 1)
+    fitfunc.SetParameter(1, 5)
+    fitfunc.SetParameter(2, 1)
+    fitfunc.SetParameter(3, -25)
+    fitfunc.SetParameter(4, 0.01)
+    fitfunc.SetParameter(5, -20)
+
+
 def stage1_fit_defaults(fitfunc):
     """Better initial starting params for Stage1"""
     fitfunc.SetParameter(0, 1)
@@ -444,20 +454,21 @@ def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
 
 ########### MAIN ########################
 def main(in_args=sys.argv[1:]):
-    print in_args
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
     parser.add_argument("output", help="output ROOT filename")
-    parser.add_argument("--no_genjet_plots", action='store_false',
+    parser.add_argument("--no-genjet-plots", action='store_false',
                         help="Don't do genjet plots for each pt/eta bin")
-    parser.add_argument("--no_correction_fit", action='store_false',
+    parser.add_argument("--no-correction-fit", action='store_false',
                         help="Don't do fits for correction functions")
-    parser.add_argument("--redo_correction_fit", action='store_true',
+    parser.add_argument("--redo-correction-fit", action='store_true',
                         help="Redo fits for correction functions")
     parser.add_argument("--gct", action='store_true',
                         help="Load legacy GCT specifics e.g. fit defaults.")
     parser.add_argument("--stage1", action='store_true',
                         help="Load stage 1 specifics e.g. fit defaults.")
+    parser.add_argument("--stage2", action='store_true',
+                        help="Load stage 2 specifics e.g. fit defaults, pt bins.")
     parser.add_argument("--central", action='store_true',
                         help="Do central eta bins only (eta <= 3)")
     parser.add_argument("--forward", action='store_true',
@@ -477,13 +488,16 @@ def main(in_args=sys.argv[1:]):
                         "Handy for batch mode. " \
                         "IMPORTANT: MUST PUT AT VERY END")
     args = parser.parse_args(args=in_args)
+    print args
 
-    if args.stage1:
+    if args.stage2:
+        print "Running with Stage2 defaults"
+    elif args.stage1:
         print "Running with Stage1 defaults"
     elif args.gct:
         print "Running with GCT defaults"
     else:
-        raise RuntimeError("You need to specify defaults: --gct/--stage1")
+        raise RuntimeError("You need to specify defaults: --gct/--stage1/--stage2")
 
     # Turn off gen plots if you don't want them - they slow things down,
     # and don't affect determination of correction fn
@@ -528,7 +542,10 @@ def main(in_args=sys.argv[1:]):
         # Load fit function & starting params - important as wrong starting params
         # can cause fit failures
         fitfunc = central_fit
-        if args.stage1:
+        if args.stage2:
+            ptBins = binning.pt_bins_stage2
+            stage2_fit_defaults(fitfunc)
+        elif args.stage1:
             stage1_fit_defaults(fitfunc)
         elif args.gct:
             gct_fit_defaults(fitfunc)
