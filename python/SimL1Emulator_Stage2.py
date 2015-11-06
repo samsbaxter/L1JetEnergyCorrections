@@ -162,7 +162,7 @@ process.output = cms.OutputModule(
         'keep *_ak4GenJets_*_*',
 
         # Keep collections from Stage2
-        'keep *_*_*_L1TEMULATION'
+        'keep *_*_*_L1NTUPLE'
     ),
     fileName = cms.untracked.string(edm_filename)
 )
