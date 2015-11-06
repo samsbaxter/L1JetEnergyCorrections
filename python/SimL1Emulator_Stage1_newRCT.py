@@ -148,8 +148,8 @@ file_append += "_newPUSmc"
 ##############################
 # Put normal Stage 1 collections into L1ExtraTree
 ##############################
-process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
-# process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
+# process.load("L1TriggerDPG.L1Ntuples.l1ExtraTreeProducer_cfi")
+process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
 process.l1ExtraTreeProducer.nonIsoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:NonIsolated")
 process.l1ExtraTreeProducer.isoEmLabel = cms.untracked.InputTag("l1ExtraLayer2:Isolated")
 process.l1ExtraTreeProducer.tauJetLabel = cms.untracked.InputTag("l1ExtraLayer2:Tau")
@@ -250,16 +250,16 @@ else:
 ##############################
 # L1Ntuple producer
 ##############################
-process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
-process.l1NtupleProducer.gctCentralJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","cenJets")
-process.l1NtupleProducer.gctNonIsoEmSource    = cms.InputTag("simCaloStage1LegacyFormatDigis","nonIsoEm")
-process.l1NtupleProducer.gctForwardJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","forJets")
-process.l1NtupleProducer.gctIsoEmSource       = cms.InputTag("simCaloStage1LegacyFormatDigis","isoEm")
-process.l1NtupleProducer.gctEnergySumsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","")
-process.l1NtupleProducer.gctTauJetsSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
-process.l1NtupleProducer.gctIsoTauJetsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
-process.l1NtupleProducer.rctDigis  = cms.InputTag("simRctDigis")
-process.l1NtupleProducer.simulationSource  = cms.InputTag("addPileupInfo")
+# process.load("L1TriggerDPG.L1Ntuples.l1NtupleProducer_cfi")
+# process.l1NtupleProducer.gctCentralJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","cenJets")
+# process.l1NtupleProducer.gctNonIsoEmSource    = cms.InputTag("simCaloStage1LegacyFormatDigis","nonIsoEm")
+# process.l1NtupleProducer.gctForwardJetsSource = cms.InputTag("simCaloStage1LegacyFormatDigis","forJets")
+# process.l1NtupleProducer.gctIsoEmSource       = cms.InputTag("simCaloStage1LegacyFormatDigis","isoEm")
+# process.l1NtupleProducer.gctEnergySumsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","")
+# process.l1NtupleProducer.gctTauJetsSource     = cms.InputTag("simCaloStage1LegacyFormatDigis","tauJets")
+# process.l1NtupleProducer.gctIsoTauJetsSource  = cms.InputTag("simCaloStage1LegacyFormatDigis","isoTauJets")
+# process.l1NtupleProducer.rctDigis  = cms.InputTag("simRctDigis")
+# process.l1NtupleProducer.simulationSource  = cms.InputTag("addPileupInfo")
 
 
 ##############################
@@ -282,7 +282,7 @@ process.p = cms.Path(
     # *process.l1ExtraTreeProducerGenAk5 # ak5GenJets in cenJet branch
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
     *process.puInfo # store nVtx info
-    *process.l1NtupleProducer
+    # *process.l1NtupleProducer
     # *process.l1UpgradeTreeProducer
     )
 
