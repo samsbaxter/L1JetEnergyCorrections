@@ -319,6 +319,9 @@ def main(in_args=sys.argv[1:]):
         etaBins = binning.eta_bins_forward
     print "Running over eta bins:", etaBins
 
+    ptBins = binning.pt_bins
+    ptBins = binning.pt_bins_stage2
+
     # Do plots for each eta bin
     if args.excl:
         for i,eta in enumerate(etaBins[:-1]):
@@ -327,16 +330,16 @@ def main(in_args=sys.argv[1:]):
 
             plot_checks(input_file, output_file, eta_min, eta_max, args.maxPt, args.PUmin, args.PUmax)
             # Do a response vs pt graph
-            plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "pt", args.PUmin, args.PUmax)
-            plot_rsp_pt(input_file, output_file, eta_min, eta_max, binning.pt_bins, "ptRef", args.PUmin, args.PUmax)
+            plot_rsp_pt(input_file, output_file, eta_min, eta_max, ptBins, "pt", args.maxPt, args.PUmin, args.PUmax)
+            plot_rsp_pt(input_file, output_file, eta_min, eta_max, ptBins, "ptRef", args.maxPt, args.PUmin, args.PUmax)
 
     # Do an inclusive plot for all eta bins
     if args.incl and len(etaBins) > 2:
         plot_checks(input_file, output_file, etaBins[0], etaBins[-1], args.maxPt, args.PUmin, args.PUmax)
         # Do a response vs pt graph
         ptBins_wide = list(np.arange(10, 250, 8))
-        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "pt", args.PUmin, args.PUmax)
-        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], binning.pt_bins, "ptRef", args.PUmin, args.PUmax)
+        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], ptBins, "pt", args.maxPt, args.PUmin, args.PUmax)
+        plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], ptBins, "ptRef", args.maxPt, args.PUmin, args.PUmax)
         # Do a response vs eta graph
         plot_rsp_eta(input_file, output_file, etaBins, args.maxPt, args.PUmin, args.PUmax)
 
