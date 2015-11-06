@@ -52,17 +52,17 @@ alt_res_l1_str = "(E_{T}^{L1} - E_{T}^{%s})/E_{T}^{L1}" % (ref_str)
 pt_diff_str = "E_{T}^{L1} - E_{T}^{%s} [GeV]" % (ref_str)
 
 # min/max response for responve vs X graphs
-rsp_min, rsp_max = 0.5, 1.5
+rsp_min, rsp_max = 0.2, 1.5
 # rsp_min, rsp_max = 0, 2
 
 #############################################
 # LABELS, COLOURS, AND TITLE ON PLOTS
 #############################################
 plot_labels = [
-     "Spring15 + HF fix (RCTv4 + v3 LUT + new PUS)"
+     "Spring15 + HF fix (no JEC)"
     ]
-plot_title = "QCD Spring15 HF fix, Stage 1, 25ns"
-plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kBlue, 8]
+plot_title = "QCD Spring15 HF fix, Stage 2, 25ns"
+plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, 8]
 plot_markers = [20, 21, 22, 23]
 
 
@@ -651,6 +651,7 @@ def main(in_args=sys.argv[1:]):
     # Choice eta & pt bin
     eta_min, eta_max = binning.eta_bins[0], binning.eta_bins[-1]
     ptBins = binning.pt_bins
+    ptBins = binning.pt_bins_stage2
     pt_min, pt_max = ptBins[10], ptBins[11]
 
     if args.etaInd:
