@@ -25,6 +25,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
+ROOT.TH1.SetDefaultSumw2(True)
 
 
 def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_max):
