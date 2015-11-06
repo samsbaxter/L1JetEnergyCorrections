@@ -67,10 +67,9 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     # err = hrsp_eta.GetFunction("gaus").GetParError(1)
     output_f_hists.WriteTObject(hrsp_eta)
 
-    nb_pt = 63
-    pt_min, pt_max = 0, 252
-    nb_rsp = 100
-    rsp_min, rsp_max = 0, 5
+    # nb_pt, pt_min, pt_max = 63, 0, 252  # for GCT/Stage 1
+    nb_pt, pt_min, pt_max = 512, 0, 1024  # for Stage 2
+    nb_rsp, rsp_min, rsp_max = 100, 0, 5
 
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,%d,%g,%g)" % (nb_pt, pt_min, pt_max, nb_rsp, rsp_min, rsp_max), cutStr)
@@ -187,11 +186,13 @@ def check_gaus_fit(hist):
     return (abs(hist.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
 
 
-def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pu_min, pu_max):
+def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt_max, pu_min, pu_max):
     """Make a graph of response Vs pt for given eta bin
 
     pt_var allows the user to specify which pT to bin in & plot against.
     Should be the name of a variable in the tree
+    pt_max is a cut on maxmimum value of pt (applied to l1 pt to
+        avoid including saturation effects)
     """
 
     # Input tree
@@ -210,7 +211,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pu
 
     # Cut strings
     eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
-    pt_cutStr = "%s < %g && pt < 250" % (pt_var, pt_bins[-1]) # keep the pt < 250 to safeguard against staurated L1 jets
+    pt_cutStr = "%s < %g && pt < %g" % (pt_var, pt_bins[-1], pt_max) # keep the pt < 250 to safeguard against staurated L1 jets
     pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
     cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
