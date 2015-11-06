@@ -223,7 +223,9 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     pt_array = array('d', pt_bins)
 
     # First make a 2D plot
-    h2d_rsp_pt = ROOT.TH2D("h2d_rsp_%s_%g_%g" % (pt_var, absetamin, absetamax), "%g < |#eta| < %g;p_{T};response" % (absetamin, absetamax), len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
+    h2d_rsp_pt = ROOT.TH2D("h2d_rsp_%s_%g_%g" % (pt_var, absetamin, absetamax),
+                            "%g < |#eta| < %g;p_{T};response" % (absetamin, absetamax),
+                            len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
     tree_raw.Draw("rsp:%s>>+h2d_rsp_%s_%g_%g" % (pt_var, pt_var, absetamin, absetamax), cutStr)
 
     output_f_hists.WriteTObject(h2d_rsp_pt)
