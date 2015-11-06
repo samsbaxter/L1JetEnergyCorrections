@@ -1,5 +1,5 @@
-<flags CXXFLAGS="-O2 -g -DDEBUG"/>
-<!-- <flags CXXFLAGS="-O2 -g -DDEBUG -Wno-error=unused-variable"/> -->
+<flags CXXFLAGS="-std=c++11 -O2 -g -DDEBUG"/>
+<!-- <flags CXXFLAGS="-std=c++11 -O2 -g -DDEBUG -Wno-error=unused-variable"/> -->
 <use name="L1Trigger/L1JetEnergyCorrections"/>
 <library   file="*.cc" name="L1TriggerL1JetEnergyCorrectionsPlugins">
   <use name="root"/>

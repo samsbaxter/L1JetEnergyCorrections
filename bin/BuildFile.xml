@@ -1,5 +1,5 @@
-<!-- <flags CXXFLAGS="-O2 -g -DDEBUG"/> -->
-<flags CXXFLAGS="-O2 -g -DDEBUG -Wno-error=unused-variable -Wno-error=unused-but-set-variable"/>
+<flags CXXFLAGS="-std=c++11 -O2 -g -DDEBUG"/>
+<!-- <flags CXXFLAGS="-std=c++11 -O2 -g -DDEBUG -Wno-error=unused-variable -Wno-error=unused-but-set-variable"/> -->
 <use name="L1Trigger/L1JetEnergyCorrections"/>
 <use name="root"/>
 <use name="rootgraphics"/>
@@ -8,8 +8,8 @@
 <use name="boost_filesystem"/>
 <include_path path="../interface"/>
 <!-- <use name="L1TriggerDPG/L1Ntuples"/> -->
-<!-- <include_path path="../../../L1TriggerDPG/L1Ntuples/macros"/> -->
-<include_path path="../../../L1TriggerDPG/L1Ntuples/interface"/>
+<!-- <include_path path="../../L1TNtuples/interface"/> -->
 <bin name="RunMatcher" file="RunMatcher.cpp"/>
-<bin name="RunMatcherData" file="RunMatcherData.cpp"/>
-<bin name="RunMatcherDataStage1GT" file="RunMatcherDataStage1GT.cpp"/>
+<bin name="RunMatcherStage2" file="RunMatcherStage2.cpp"/>
+<!-- <bin name="RunMatcherData" file="RunMatcherData.cpp"/> -->
+<!-- <bin name="RunMatcherDataStage1GT" file="RunMatcherDataStage1GT.cpp"/> -->
