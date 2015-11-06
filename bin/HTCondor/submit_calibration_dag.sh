@@ -140,7 +140,7 @@ for((p=0; p<${#puMins[@]}; ++p)); do
             outFileNames+=($outRootName)
 
             echo "JOB $jobname $outfile" >> "$dagfile"
-            echo "VARS $jobname opts=\"${pairs} ${outRootName} python runCalibration.py ${pairs} ${outRootName} --no_genjet_plots --stage1 --PUmin ${puMin} --PUmax ${puMax} --etaInd ${i}\"" >> "$dagfile"
+            echo "VARS $jobname opts=\"${pairs} ${outRootName} python runCalibration.py ${pairs} ${outRootName} --no-genjet-plots --stage2 --PUmin ${puMin} --PUmax ${puMax} --etaInd ${i}\"" >> "$dagfile"
         done
 
         # Now add job for hadding
