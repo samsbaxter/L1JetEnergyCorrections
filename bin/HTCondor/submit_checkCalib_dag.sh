@@ -144,7 +144,7 @@ do
     # Now add job for hadding
     finalRootName="${fdir}/${outname}${append}.root"
     haddJobName="haddCheckCalib"
-    echo "JOB $haddJobName hadd.condor" >> "$dagfile"
+    echo "JOB $haddJobName hadd_small.condor" >> "$dagfile"
     echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
     echo "Output file: $finalRootName"
 

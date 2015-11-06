@@ -125,6 +125,12 @@ do
         mkdir -p "$pairsDirectory"
     fi
 
+    # Log directory for hadd jobs
+    if [ ! -e "jobs/hadd" ]; then
+        echo "Making jobs/hadd"
+        mkdir -p jobs/hadd
+    fi
+
     # Either just do 1 hadd job, or a layer of intermediate hadding jobs
     if [ "$nInterHaddJobs" -eq 1 ]; then
         # Only 1 hadd job, proceed as usual
@@ -133,7 +139,7 @@ do
         finalRootPath="${pairsDirectory}/${outname}${append}.root"
         echo "Final file: $finalRootPath"
         haddJobName="haddFinal"
-        echo "JOB $haddJobName hadd.condor" >> "$dagfile"
+        echo "JOB $haddJobName hadd_big.condor" >> "$dagfile"
         echo "VARS $haddJobName opts=\"$finalRootPath ${outFileNames[@]}\"" >> "$dagfile"
         # Add in parent-child relationships
         echo "PARENT ${jobNames[@]} CHILD $haddJobName" >> "$dagfile"
@@ -162,7 +168,7 @@ do
             # add a job to DAG
             haddJobName="hadderInter${i}"
             interHaddJobNames+=($haddJobName)
-            echo "JOB $haddJobName hadd.condor" >> "$dagfile"
+            echo "JOB $haddJobName hadd_big.condor" >> "$dagfile"
             echo "VARS $haddJobName opts=\"$tmpOutput ${tmpInputFiles[@]}\"" >> "$dagfile"
             # Add in parent-child relationships
             echo "PARENT ${tmpJobParentNames[@]} CHILD $haddJobName" >> "$dagfile"
@@ -174,7 +180,7 @@ do
         finalRootPath="${pairsDirectory}/${outname}${append}.root"
         echo "Final file: $finalRootPath"
         haddJobName="haddFinal"
-        echo "JOB $haddJobName hadd.condor" >> "$dagfile"
+        echo "JOB $haddJobName hadd_big.condor" >> "$dagfile"
         echo "VARS $haddJobName opts=\"$finalRootPath ${interHaddFileNames[@]}\"" >> "$dagfile"
         # Add in parent-child relationships
         echo "PARENT ${interHaddJobNames[@]} CHILD $haddJobName" >> "$dagfile"

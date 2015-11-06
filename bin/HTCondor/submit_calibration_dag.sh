@@ -146,7 +146,7 @@ for((p=0; p<${#puMins[@]}; ++p)); do
         # Now add job for hadding
         finalRootName="${fdir}/${outname}${append}.root"
         haddJobName="haddCalib"
-        echo "JOB $haddJobName hadd.condor" >> "$dagfile"
+        echo "JOB $haddJobName hadd_small.condor" >> "$dagfile"
         echo "VARS $haddJobName opts=\"$finalRootName ${outFileNames[@]}\"" >> "$dagfile"
         echo "Output file: $finalRootName"
 
