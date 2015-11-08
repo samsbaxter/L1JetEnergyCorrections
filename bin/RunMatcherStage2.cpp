@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     // SETUP JET MATCHER //
     ///////////////////////
     double maxDeltaR(opts.deltaR()), minRefJetPt(opts.refJetMinPt()), maxRefJetPt(5000.);
-    double minL1JetPt(0.), maxL1JetPt(5000.), maxJetEta(5);
+    double minL1JetPt(0.1), maxL1JetPt(5000.), maxJetEta(5);
     // use base class smart pointer for ease of swapping in/out different
     //  matchers if so desired
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
