@@ -381,17 +381,6 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     max_ind, fit_max = closest_element(xarr, x_ave[intercept_ind])
     max_ind += 1
 
-    # For HF, the upper end flicks up, ruining the fit. Remove these points.
-    # Start from halfway along the graph to ignore the initial turnover,
-    # then look for a point where the next 2 points have consecutively
-    # larger correction values. That's your fit maximum.
-    # max_ind = len(xarr) - 1
-    # starting_ind = len(xarr) / 2
-    # for i, y in enumerate(yarr[starting_ind:-2]):
-    #     if yarr[i + 2 + starting_ind] > yarr[i + 1 + starting_ind] > y:
-    #         max_ind = i + starting_ind + 1
-    #         break
-    # fit_max = xarr[max_ind - 1]
     print "Correction fn fit range:", fit_min, fit_max
 
     # Generate a correction fucntion with suitable range
