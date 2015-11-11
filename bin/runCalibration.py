@@ -600,13 +600,13 @@ def main(in_args=sys.argv[1:]):
         forward_bin = eta_max > 3.1
 
         # setup pt bins, wider ones for forward region
-        ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
+        # ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
+        ptBins = binning.pt_bins_stage2 if not forward_bin else binning.pt_bins_stage2_hf
 
         # Load fit function & starting params - important as wrong starting params
         # can cause fit failures
         fitfunc = central_fit
         if args.stage2:
-            ptBins = binning.pt_bins_stage2
             stage2_fit_defaults(fitfunc)
         elif args.stage1:
             stage1_fit_defaults(fitfunc)
