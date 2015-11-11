@@ -446,18 +446,24 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
             mode = ""
             if str(function.GetExpFormula()).startswith("pol"):
                 mode = "F"
-            fit_result = int(graph.Fit(function.GetName(), "R"+mode, "", fit_min, fit_max))
+            fit_result = int(graph.Fit(function.GetName(), "QR" + mode, "", fit_min, fit_max))
+            if fit_result != 0:
+                # print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
+                fit_min += 0.5
+                continue
+
             # sanity check - sometimes will have status = 0 even though rubbish,
-            # especially if there's a pole outside of the fitting range
-            # but in the range (0, 250)
-            for x in xrange(3, 250, 1):
-                if function.Eval(x) > 10 or function.Eval(x) < 0.01:
-                    fit_result = -1
-            print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
+            if not check_sensible_function(function):
+                fit_result = -1
+
+            # print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
+
             if fit_result == 0:
+                print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
                 break
             else:
                 fit_min += 0.5
+
         if fit_result == 0:
             break
 
@@ -472,6 +478,17 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
             params.append(function.GetParameter(i))
 
     return graph, params
+
+
+def check_sensible_function(function, lim=[3, 1000], spacing=0.05):
+    """Check if function is sensible. i.e. no large jumps or poles
+
+    lim is a tuple or list of the lower and upper bounds to check over
+    """
+    for x in np.linspace(lim[0], lim[1], ((lim[1] - lim[0]) / spacing) + 1):
+        if function.Eval(x) > 10 or function.Eval(x) < 0.5:
+            return False
+    return True
 
 
 def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
