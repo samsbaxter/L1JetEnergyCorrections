@@ -437,10 +437,12 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     print 'Starting with fit range:', orig_fit_min, orig_fit_max
 
     while fit_max_ind - orig_fit_min_ind >= 5:
+        fit_min_ind = orig_fit_min_ind
         while fit_min_ind + 5 < fit_max_ind:
             fit_min = xarr[fit_min_ind]
             fit_max = xarr[fit_max_ind]
             function.SetRange(fit_min, fit_max)
+
             mode = ""
             if str(function.GetExpFormula()).startswith("pol"):
                 mode = "F"
