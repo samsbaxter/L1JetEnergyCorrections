@@ -99,47 +99,25 @@ def check_exp(n):
     """
 
     from math import fabs, log10, frexp
-    m,e = frexp(n)
-    return fabs(log10(pow(2,e))) < 10
+    m, e = frexp(n)
+    return fabs(log10(pow(2, e))) < 10
 
 
 def get_xy(graph):
     """
     Return lists of x, y points from a graph, because it's such a PITA
-
-    ASSUMES POINTS START FROM INDEX 0!
-    Includes a check to see if any number is ridic (eg if you started from 1)
     """
-    xpt = graph.GetX()
-    ypt = graph.GetY()
-    N = graph.GetN()
-
-    xarr = [x for x in list(np.ndarray(N,'d',xpt)) if check_exp(x)]
-    yarr = [y for y in list(np.ndarray(N,'d',ypt)) if check_exp(y)]
-
-    if len(xarr) != N or len(yarr) != N:
-        raise Exception("incorrect array size from graph")
-
+    xarr = list(np.ndarray(graph.GetN(), 'd', graph.GetX()))
+    yarr = list(np.ndarray(graph.GetN(), 'd', graph.GetY()))
     return xarr, yarr
 
 
 def get_exey(graph):
     """
     Return lists of errors on x, y points from a graph, because it's such a PITA
-
-    ASSUMES POINTS START FROM INDEX 0!
-    Includes a check to see if any number is ridic (eg if you started from 1)
     """
-    expt = graph.GetEX()
-    eypt = graph.GetEY()
-    N = graph.GetN()
-
-    xarr = [x for x in list(np.ndarray(N,'d',expt)) if check_exp(x)]
-    yarr = [y for y in list(np.ndarray(N,'d',eypt)) if check_exp(y)]
-
-    if len(xarr) != N or len(yarr) != N:
-        raise Exception("incorrect array size from graph")
-
+    xarr = list(np.ndarray(graph.GetN(), 'd', graph.GetEX()))
+    yarr = list(np.ndarray(graph.GetN(), 'd', graph.GetEY()))
     return xarr, yarr
 
 
