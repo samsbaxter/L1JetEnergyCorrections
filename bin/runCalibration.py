@@ -410,12 +410,14 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     If that fails, then we lower the upper bound and try fitting, raising
     the lower bound again if necessary. Iterative process, so fairly slow.
 
+    Note that the 'stepping' is done in terms of the graph points, so non-uniform.
+
     We stop when the upper bound of the fit approaches the original lower bound.
 
     Returns graph (with fitted function) and parameters of successful fit if
     successful (otherwise an empty list).
     """
-    # Get the min and max of the fit function
+    # Get the min and max of the fit function if the user didn't define it
     if fit_min < 0 and fit_max < 0:
         fit_min, fit_max = ROOT.Double(), ROOT.Double()
         function.GetRange(fit_min, fit_max)
@@ -425,37 +427,43 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     # Now do the fitting, incrementing the fit min if failure
     fit_result = -1
 
-    orig_fit_min, orig_fit_max = fit_min, fit_max
+    xarr, yarr = cu.get_xy(graph)
 
-    while fit_max > orig_fit_min + 10:
-        fit_min = orig_fit_min
-        while fit_min < fit_max:
+    # Keep the points in the graph closest to the min/max values
+    # (and the index of the point in the graph array) for reference
+    orig_fit_min_ind, orig_fit_min = closest_element(xarr, fit_min)
+    orig_fit_max_ind, orig_fit_max = closest_element(xarr, fit_max)
+    fit_min_ind, fit_max_ind = orig_fit_min_ind, orig_fit_max_ind
+    print 'Starting with fit range:', orig_fit_min, orig_fit_max
+
+    while fit_max_ind - orig_fit_min_ind >= 5:
+        while fit_min_ind + 5 < fit_max_ind:
+            fit_min = xarr[fit_min_ind]
+            fit_max = xarr[fit_max_ind]
             function.SetRange(fit_min, fit_max)
             mode = ""
             if str(function.GetExpFormula()).startswith("pol"):
                 mode = "F"
             fit_result = int(graph.Fit(function.GetName(), "QR" + mode, "", fit_min, fit_max))
             if fit_result != 0:
-                # print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
-                fit_min += 0.5
+                fit_min_ind += 1
                 continue
 
             # sanity check - sometimes will have status = 0 even though rubbish,
             if not check_sensible_function(function):
                 fit_result = -1
 
-            # print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
-
             if fit_result == 0:
                 print "Fit result:", fit_result, "for fit min", fit_min, "to max", fit_max
                 break
             else:
-                fit_min += 0.5
+                fit_min_ind += 1
 
         if fit_result == 0:
             break
 
-        fit_max -= 0.5
+        fit_max_ind -= 1
+        print 'Trying with lowered fit_max:', xarr[fit_max_ind]
 
     params = []
 
