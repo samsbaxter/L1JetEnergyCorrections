@@ -37,13 +37,14 @@ ROOT.TH1.SetDefaultSumw2(True)
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
+
 # Some sensible defaults for the fit function
 def stage2_fit_defaults(fitfunc):
     """Better initial starting params for Stage2"""
-    fitfunc.SetParameter(0, 1)
-    fitfunc.SetParameter(1, 5)
+    fitfunc.SetParameter(0, -0.5)
+    fitfunc.SetParameter(1, 50)
     fitfunc.SetParameter(2, 1)
-    fitfunc.SetParameter(3, -25)
+    fitfunc.SetParameter(3, -80)
     fitfunc.SetParameter(4, 0.01)
     fitfunc.SetParameter(5, -20)
 
