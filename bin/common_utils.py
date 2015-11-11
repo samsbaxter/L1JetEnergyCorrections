@@ -1,9 +1,9 @@
 """Set of common functions that are used in loads of scripts."""
 
+
 import ROOT
 import os
 from subprocess import call
-from subprocess import check_output
 from sys import platform as _platform
 import numpy as np
 
@@ -23,6 +23,7 @@ def open_pdf(pdf_filename):
     elif _platform == "win32":
         # Windows
         call(["start", pdf_filename])
+
 
 #
 # Filepath/directory fns
@@ -53,8 +54,9 @@ def check_dir_exists_create(filepath):
     if not check_dir_exists(filepath):
         os.makedirs(cleanup_filepath(filepath))
 
+
 #
-# ROOT specific fns, like openign files safely
+# ROOT specific fns, like opening files safely
 #
 def open_root_file(filename, mode="READ"):
     """Safe way to open ROOT file. Could be improved."""
@@ -128,13 +130,13 @@ def norm_vertical_bins(hist):
     rather than underlying distribution across x bins.
     """
 
-    h = hist.Clone(hist.GetName()+"_normX")
+    h = hist.Clone(hist.GetName() + "_normX")
     nbins_y = h.GetNbinsY()
-    for i in xrange(1, h.GetNbinsX()+1, 1):
-        y_int = h.Integral(i, i+1, 1, nbins_y)
+    for i in xrange(1, h.GetNbinsX() + 1, 1):
+        y_int = h.Integral(i, i + 1, 1, nbins_y)
         if y_int != 0:
             scale_factor = 1. / y_int
-            for j in xrange(1, nbins_y+1, 1):
+            for j in xrange(1, nbins_y + 1, 1):
                 h.SetBinContent(i, j, h.GetBinContent(i, j) * scale_factor)
                 h.SetBinError(i, j, h.GetBinError(i, j) * scale_factor)
 
