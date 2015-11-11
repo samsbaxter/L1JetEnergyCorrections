@@ -366,13 +366,6 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
             if np.all(group > 0):
                 return i - 2 + list(group).index(np.min(group)), np.min(group)
 
-    def closest_element(arr, value):
-        """Return (index, element) in array arr that is closest to value"""
-        diff_abs = np.abs(arr - value * np.ones_like(len(arr)))
-        min_diff = np.min(diff_abs)
-        ind = list(diff_abs).index(min_diff)
-        return ind, arr[ind]
-
     n_sample = 5
     x_ave = moving_average(xarr, n_sample)
     grad = np.gradient(yarr, 1)
@@ -478,6 +471,14 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
             params.append(function.GetParameter(i))
 
     return graph, params
+
+
+def closest_element(arr, value):
+    """Return (index, element) in array arr that is closest to value"""
+    diff_abs = np.abs(arr - value * np.ones_like(len(arr)))
+    min_diff = np.min(diff_abs)
+    ind = list(diff_abs).index(min_diff)
+    return ind, arr[ind]
 
 
 def check_sensible_function(function, lim=[3, 1000], spacing=0.05):
