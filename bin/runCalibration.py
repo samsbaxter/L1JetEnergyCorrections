@@ -125,7 +125,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     """
 
     print "Doing eta bin: %g - %g" % (absetamin, absetamax)
-    print "Doing PU range: %g - %g" %(pu_min, pu_max)
+    print "Doing PU range: %g - %g" % (pu_min, pu_max)
     print "Running over pT bins:", ptBins_in
 
     # Input tree
@@ -150,7 +150,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     print total_cut
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" %(absetamin, absetamax), total_cut, "goff")
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" % (absetamin, absetamax), total_cut, "goff")
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
     output_f_hists.WriteTObject(hrsp_eta)
@@ -212,8 +212,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         xhigh = ptBins[i + 1]
 
         # Plot of response for given pT Gen bin
-        hrsp = h2d_rsp_gen.ProjectionY("prj_ResponseProj_PTBin%d" % (i), bin1, bin2)
-        hrsp.SetName("Rsp_genpt_%g_%g" % (xlow, xhigh))
+        hrsp = h2d_rsp_gen.ProjectionY("Rsp_genpt_%g_%g" % (xlow, xhigh), bin1, bin2)
 
         # cut on ref jet pt
         pt_cut = ROOT.TCut("ptRef < %g && ptRef > %g " % (xhigh, xlow))
@@ -226,6 +225,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         tree_raw.Draw("pt>>hpt(4000, 0, 2000)", total_cut, "goff")
         hpt = ROOT.gROOT.FindObject("hpt")
         hpt.SetName("L1_pt_genpt_%g_%g" % (xlow, xhigh))
+        # hpt = h2d_gen_l1.ProjectionX("L1_pt_genpt_%g_%g" % (xlow, xhigh))
 
         if hrsp.GetEntries() <= 0 or hpt.GetEntries() <= 0:
             print "Skipping as 0 entries"
@@ -254,7 +254,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
 
         # check if we have a bad fit - either fit status != 0, or
         # fit mean is not close to raw mean. in either case use raw mean
-        if fitStatus != 0 or (xlow > 50 and abs((mean/hrsp.GetMean()) - 1) > 0.2):
+        if fitStatus != 0 or (xlow > 50 and abs((mean / hrsp.GetMean()) - 1) > 0.2):
 
             print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
                 "fit status:", fitStatus, \
@@ -263,7 +263,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
             err = hrsp.GetMeanError()
 
         print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), \
-               "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
+              "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
 
         # add point to response graph vs pt
         # store if new max/min, but only max if pt > pt of previous point
@@ -428,7 +428,7 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
     successful (otherwise an empty list).
     """
     # Get the min and max of the fit function
-    if fit_min < 0  and fit_max < 0:
+    if fit_min < 0 and fit_max < 0:
         fit_min, fit_max = ROOT.Double(), ROOT.Double()
         function.GetRange(fit_min, fit_max)
 
@@ -537,18 +537,18 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--forward", action='store_true',
                         help="Do forward eta bins only (eta >= 3)")
     parser.add_argument("--PUmin", type=float, default=-100,
-                        help="Minimum number of PU vertices (refers to *actual* " \
-                             "number of PU vertices in the event, not the centre " \
-                             "of of the Poisson distribution)")
+                        help="Minimum number of PU vertices (refers to *actual* "
+                        "number of PU vertices in the event, not the centre "
+                        "of of the Poisson distribution)")
     parser.add_argument("--PUmax", type=float, default=1200,
-                        help="Maximum number of PU vertices (refers to *actual* " \
-                             "number of PU vertices in the event, not the centre " \
-                             "of of the Poisson distribution)")
+                        help="Maximum number of PU vertices (refers to *actual* "
+                        "number of PU vertices in the event, not the centre "
+                        "of of the Poisson distribution)")
     parser.add_argument("--etaInd", nargs="+",
-                        help="list of eta bin INDICES to run over - " \
-                        "if unspecified will do all. " \
-                        "This overrides --central/--forward. " \
-                        "Handy for batch mode. " \
+                        help="list of eta bin INDICES to run over - "
+                        "if unspecified will do all. "
+                        "This overrides --central/--forward. "
+                        "Handy for batch mode. "
                         "IMPORTANT: MUST PUT AT VERY END")
     args = parser.parse_args(args=in_args)
     print args
