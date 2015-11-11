@@ -17,15 +17,22 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 ############
 pt_bins = list(np.arange(14, 254, 4))
 # wider binning at higher pt for low stats regions
-pt_bins_wide = list(np.concatenate((np.arange(14, 50, 4), np.arange(50, 270, 20)))) # larger bins at higher pt
-
-pt_bins_stage2 = list(np.arange(10, 1026, 4))
+pt_bins_wide = list(np.concatenate((np.arange(14, 50, 4),
+                                    np.arange(50, 270, 20))))
+pt_bins_stage2_old = list(np.arange(10, 1026, 4))
+# wider binning for high pt
+pt_bins_stage2 = list(np.concatenate((np.arange(10, 342, 4),
+                                      np.arange(342, 1040, 20))))
+# wider binning for HF
+pt_bins_stage2_hf = list(np.concatenate((np.arange(10, 62, 4),
+                                         np.arange(62, 1040, 20))))
 
 # 8 GeV bins for resolution plots
-pt_bins_8 = list(np.arange(14,246,8))
+pt_bins_8 = list(np.arange(14, 246, 8))
 pt_bins_8.append(250)
 # and wider ones for low stat bins
-pt_bins_8_wide = list(np.concatenate((np.arange(14,54,8), np.arange(54, 242, 20))))
+pt_bins_8_wide = list(np.concatenate((np.arange(14, 54, 8),
+                                      np.arange(54, 242, 20))))
 pt_bins_8_wide.append(250)
 
 ############
