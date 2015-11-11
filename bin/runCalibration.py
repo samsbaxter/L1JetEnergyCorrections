@@ -287,6 +287,11 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}> [GeV]")
         gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
 
+    # Save these graphs to file
+    outputfile.WriteTObject(gr)
+    if do_genjet_plots:
+        outputfile.WriteTObject(gr_gen)
+
     # Fit correction function to response vs pT graph, add params list
     fit_params = []
 
@@ -295,11 +300,6 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         fit_graph, fit_params = fit_correction(sub_graph, this_fit)
         outputfile.WriteTObject(this_fit)  # function by itself
         outputfile.WriteTObject(fit_graph)  # has the function stored in it as well
-
-    # Save these to file
-    outputfile.WriteTObject(gr)
-    if do_genjet_plots:
-        outputfile.WriteTObject(gr_gen)
 
     return fit_params
 
