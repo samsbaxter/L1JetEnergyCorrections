@@ -365,6 +365,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
             group = np.concatenate((-1 * arr[i-2: i], arr[i: i+2]))
             if np.all(group > 0):
                 return i - 2 + list(group).index(np.min(group)), np.min(group)
+        return None, None
 
     n_sample = 5
     x_ave = moving_average(xarr, n_sample)
