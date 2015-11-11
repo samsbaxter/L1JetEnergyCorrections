@@ -41,5 +41,7 @@ crab_get_hadd_*
 *.status
 *.tgz
 *.tar.gz
+*.gif
+*.png
 PROOF
 GUI
