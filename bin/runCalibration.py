@@ -336,17 +336,63 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     fit_min = max(fit_min, max_corr_pt) if (max_corr_pt != xarr[-1]) and (max_corr_pt != xarr[-1]) else fit_min
     min_ind = next(i for i, x in enumerate(xarr) if x >= fit_min)
 
+    # To find upper limit of fit, we need to detect if & where there is a turnover
+    # (i.e. where the gradient goes from -ve to +ve)
+    # This is made difficult by the fact the graph may be 'noisy' and simply
+    # taking the gradient may not be enough (and give multiple points where
+    # the gradient changes). To counter this, we smooth the gradient by
+    # averaging over several points
+    def moving_average(arr, n):
+        """Returns a np.array of moving-averages of array arr, where each
+        point in the rerurned array is the average of the consecutive n points
+        in the original array.
+
+        By definition, this will return an array of length len(arr) + 1 - n
+        """
+        return np.array([np.mean(arr[i:i+n]) for i in range(0, len(arr) - n + 1)])
+
+    def calc_crossing(arr):
+        """Calculate value at which value the array crosses 0.
+
+        Looks at points in groups of 4, and finds the smallest group
+        where the first 2 points < 0, and the next 2 points > 0.
+
+        This ignores values which peak above 0 for 1 point.
+
+        Returns the array (index, value) of the point closest to 0.
+        """
+        for i in range(2, len(arr)):
+            group = np.concatenate((-1 * arr[i-2: i], arr[i: i+2]))
+            if np.all(group > 0):
+                return i - 2 + list(group).index(np.min(group)), np.min(group)
+
+    def closest_element(arr, value):
+        """Return (index, element) in array arr that is closest to value"""
+        diff_abs = np.abs(arr - value * np.ones_like(len(arr)))
+        min_diff = np.min(diff_abs)
+        ind = list(diff_abs).index(min_diff)
+        return ind, arr[ind]
+
+    n_sample = 5
+    x_ave = moving_average(xarr, n_sample)
+    grad = np.gradient(yarr, 1)
+    grad_ave = moving_average(grad, n_sample)
+    intercept_ind, intercept = calc_crossing(grad_ave)
+    # find closest x value to intercept
+    max_ind, fit_max = closest_element(xarr, x_ave[intercept_ind])
+    max_ind += 1
+
     # For HF, the upper end flicks up, ruining the fit. Remove these points.
     # Start from halfway along the graph to ignore the initial turnover,
     # then look for a point where the next 2 points have consecutively
     # larger correction values. That's your fit maximum.
-    max_ind = len(xarr)-1
-    starting_ind = len(xarr) / 2
-    for i, y in enumerate(yarr[starting_ind:-2]):
-        if yarr[i + 2 + starting_ind] > yarr[i + 1 + starting_ind] > y:
-            max_ind = i + starting_ind + 1
-            break
-    fit_max = xarr[max_ind-1]
+    # max_ind = len(xarr) - 1
+    # starting_ind = len(xarr) / 2
+    # for i, y in enumerate(yarr[starting_ind:-2]):
+    #     if yarr[i + 2 + starting_ind] > yarr[i + 1 + starting_ind] > y:
+    #         max_ind = i + starting_ind + 1
+    #         break
+    # fit_max = xarr[max_ind - 1]
     print "Correction fn fit range:", fit_min, fit_max
 
     # Generate a correction fucntion with suitable range
@@ -356,12 +402,12 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     # Make a sub-graph with only the points used for fitting
     # Do not user graph.RemovePoint()! It doesn't work, and only removes every other point
     # Instead make a graph with the bit of array we want
-    fit_graph = ROOT.TGraphErrors(max_ind-min_ind,
+    fit_graph = ROOT.TGraphErrors(max_ind - min_ind,
                                   np.array(xarr[min_ind:max_ind]),
                                   np.array(yarr[min_ind:max_ind]),
                                   np.array(exarr[min_ind:max_ind]),
                                   np.array(eyarr[min_ind:max_ind]))
-    fit_graph.SetName(graph.GetName()+"_fit")
+    fit_graph.SetName(graph.GetName() + "_fit")
 
     return fit_graph, this_fit
 
