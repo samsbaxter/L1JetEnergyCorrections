@@ -367,11 +367,16 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
                 return i - 2 + list(group).index(np.min(group)), np.min(group)
         return None, None
 
-    n_sample = 5
-    x_ave = moving_average(xarr, n_sample)
     grad = np.gradient(yarr, 1)
-    grad_ave = moving_average(grad, n_sample)
-    intercept_ind, intercept = calc_crossing(grad_ave)
+    n_sample = 5
+    intercept_ind, intercept = None, None
+    # keep incrementing the smooting value until we get a clean intercept
+    while not intercept_ind and not intercept:
+        x_ave = moving_average(xarr, n_sample)
+        grad_ave = moving_average(grad, n_sample)
+        intercept_ind, intercept = calc_crossing(grad_ave)
+        n_sample += 1
+    print 'Smoothing param:', n_sample
     # find closest x value to intercept
     max_ind, fit_max = closest_element(xarr, x_ave[intercept_ind])
     max_ind += 1
