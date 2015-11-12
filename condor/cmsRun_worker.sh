@@ -140,8 +140,11 @@ if [ $doProfile == 1 ]; then
 else
     cmsRun $wrapper
 fi
-echo "CMS JOB OUTPUT" $?
-
+cmsResult=$?
+echo "CMS JOB OUTPUT" $cmsResult
+if [ "$cmsResult" -ne 0 ]; then
+    exit $cmsResult
+fi
 ls -l
 
 ###############################################################################
@@ -159,3 +162,5 @@ do
         cp $output $outputDir
     fi
 done
+
+exit $cmsResult
