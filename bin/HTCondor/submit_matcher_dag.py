@@ -264,7 +264,8 @@ def hadd_jobs_str(job_dict, hadd_dir, final_file):
             # create an intermediate filename & jobname
             inter_filename = 'hadd_inter_%d_%s.root' % (ind, rand_str(5))
             inter_jobname = 'hadd_inter_%d' % (ind)
-            inter_job_dict[inter_jobname] = os.path.join(os.path.dirname(final_file), inter_filename)
+            inter_filename = os.path.join(os.path.dirname(final_file), inter_filename)
+            inter_job_dict[inter_jobname] = inter_filename
 
             hadd_str += 'JOB %s hadd_big.condor\n' % (inter_jobname)
             hadd_str += 'VARS %s opts="%s %s"\n' % (inter_jobname, inter_filename, ' '.join(jobfiles))
