@@ -259,10 +259,33 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     log.info('New condor submission script written to %s', args.outputScript)
 
     ###########################################################################
+    # Setup DAG file if needed
+    ###########################################################################
+    if args.dag:
+        dag_name = "jobs_%s_%s_%s.dag" % (dset_uscore, date, time)
+        status_file = dag_name.replace(".dag", ".status")
+        print "DAG Name:", dag_name
+        with open(dag_name, "w") as dag_file:
+            dag_file.write("# DAG for dataset %s\n" % args.dataset)
+            dag_file.write("# Using config file %s\n" % args.config)
+            for job_ind in xrange(total_num_jobs):
+                jobName = "%s_%d" % (dset_uscore, job_ind)
+                dag_file.write('JOB %s %s\n' % (jobName, args.outputScript))
+                dag_file.write('VARS %s index="%d"\n' % (jobName, job_ind))
+                dag_file.write('RETRY %s 3\n' % jobName)
+            dag_file.write("NODE_STATUS_FILE %s 30\n" % status_file)
+
+    ###########################################################################
     # submit to queue unless dry run
     ###########################################################################
     if not args.dry:
-        subprocess.call(['condor_submit', args.outputScript])
+        if not args.dag:
+            subprocess.call(['condor_submit', args.outputScript])
+
+        if args.dag:
+            subprocess.call(['condor_submit_dag', dag_name])
+            print "Check DAG status:"
+            print "DAGstatus.py", status_file
 
     # Return job properties
     return dict(dataset=args.dataset,
@@ -271,7 +294,8 @@ def cmsRunCondor(in_args=sys.argv[1:]):
                 totaNumFiles=args.totalFiles,
                 filesPerJob=args.filesPerJob,
                 fileList=input_file_list,
-                config=args.config
+                config=args.config,
+                condorScript=args.outputScript
                 )
 
 
