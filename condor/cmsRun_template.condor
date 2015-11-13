@@ -1,8 +1,8 @@
 Executable = SEDEXE
 Universe = vanilla
-Output = jobs/SEDNAME.$(cluster).$(process).out
-Error = jobs/SEDNAME.$(cluster).$(process).err
-Log = jobs/SEDNAME.$(cluster).$(process).log
+Output = SEDLOG.$(cluster).$(process).out
+Error = SEDLOG.$(cluster).$(process).err
+Log = SEDLOG.$(cluster).$(process).log
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
 notify_user =
@@ -11,7 +11,7 @@ accounting_group = group_physics.hep
 account_group_user = $ENV(LOGNAME)
 
 request_cpus = 1
-request_memory = 2GB
+request_memory = 500MB
 request_disk = 500MB
 
 use_x509userproxy = True
