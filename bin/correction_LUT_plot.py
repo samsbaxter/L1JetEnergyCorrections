@@ -485,6 +485,7 @@ def main(in_args=sys.argv[1:]):
 
     # Plot all functions on one canvas
     plot_all_functions(all_fits, os.path.join(out_dir, "all_raw_fits.pdf"), etaBins, et_min=0, et_max=30)
+    fits = all_fits
 
     # Make LUTs
     if args.gct:
