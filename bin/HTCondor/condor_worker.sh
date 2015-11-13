@@ -67,6 +67,13 @@ ls -l
 # run commands
 eval $commands
 
+result=$?
+
+if [[ "$result" -ne 0 ]]; then
+    cleanup
+    exit $result
+fi
+
 # copy result across
 hadoop fs -copyFromLocal -f "$newOutput" "${outputFile#/hdfs}"
 
