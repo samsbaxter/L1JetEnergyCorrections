@@ -135,7 +135,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     if args.totalFiles < 0:
         args.totalFiles = num_dataset_files
     elif args.totalFiles < 1:
-        args.totalFiles *= num_dataset_files
+        args.totalFiles = math.ceil(args.totalFiles * num_dataset_files)
     elif args.totalFiles > num_dataset_files:
         log.warning("You specified more files than exist. Using all %d files.",
                     num_dataset_files)
