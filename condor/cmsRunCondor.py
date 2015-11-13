@@ -248,7 +248,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     args_str = "-o {output} -i $({ind}) -a $ENV(SCRAM_ARCH) " \
                "-c $ENV(CMSSW_VERSION) -S {sandbox}".format(**args_dict)
     job = job.replace("SEDARGS", args_str)
-    job = job.replace("SEDEXE", 'cmsRun_worker.sh')
+    job = job.replace("SEDEXE", os.path.join(script_dir, 'cmsRun_worker.sh'))
     job = job.replace("SEDNJOBS", str(1) if args.dag else str(total_num_jobs))
     # transfers = [os.path.abspath(args.config), input_file_list, sandbox_file]
     transfers = []
