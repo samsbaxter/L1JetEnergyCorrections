@@ -1,7 +1,7 @@
 """
 Config file to run the Stage 2 emulator to make Ntuples.
 
-Stores internal jets, as well as ak5 and ak4 GenJets
+Stores internal jets, as well as ak4 GenJets
 
 """
 
