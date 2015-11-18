@@ -21,13 +21,13 @@ if __name__ == "__main__":
 
     # We want to put all the CRAB project directories from the tasks we submit
     # here into one common directory. That's why we need to set this parameter.
-    config.General.workArea = 'l1ntuple_'+job_append
+    config.General.workArea = 'l1ntuple_' + job_append
 
     config.JobType.psetName = '../python/SimL1Emulator_Stage2.py'
 
     # Run through datasets once to check all fine
     for dset in datasets:
-        if not dset in samples.samples.keys():
+        if dset not in samples.samples.keys():
             raise KeyError("Wrong dataset key name:", dset)
         if not samples.check_dataset(samples.samples[dset].inputDataset):
             raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         print dset
         # requestName will be used for name of folder inside workArea,
         # and the name of the jobs on monitoring page
-        config.General.requestName = dset+"_"+job_append
+        config.General.requestName = dset + "_" + job_append
         config.Data.inputDataset = dset_opts.inputDataset
         config.Data.unitsPerJob = dset_opts.unitsPerJob
 
@@ -55,5 +55,5 @@ if __name__ == "__main__":
         try:
             crabCommand('submit', config=config)
         except httplib.HTTPException as e:
-            print "Cannot submit dataset %s - are you sure it is right?" % d
+            print "Cannot submit dataset %s - are you sure it is right?" % dset
             raise
