@@ -24,7 +24,6 @@
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
-#include "L1ExtraTree.h"
 #include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
