@@ -9,13 +9,11 @@ python checkCalibration.py -h
 
 """
 
+
 import ROOT
 import sys
 from array import array
 import numpy as np
-from pprint import pprint
-from itertools import izip
-import os
 import argparse
 import binning
 import common_utils as cu

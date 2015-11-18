@@ -16,11 +16,8 @@ Robin Aggleton
 
 import ROOT
 import sys
-import numpy as np
 import binning
 import argparse
-from subprocess import call, check_output
-from sys import platform as _platform
 from itertools import izip, product
 from common_utils import *
 from array import array

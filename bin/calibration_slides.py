@@ -9,12 +9,8 @@ named output_<ROOT file stem>
 
 import glob
 import ROOT
-import sys
 import os
-import numpy
 import argparse
-import numpy
-from itertools import izip
 import subprocess
 import binning
 import beamer_slide_templates as bst
