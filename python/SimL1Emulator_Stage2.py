@@ -38,7 +38,7 @@ process.load("JetMETCorrections.Configuration.DefaultJEC_cff")
 process.load('Configuration/StandardSequences/SimL1Emulator_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag.globaltag = cms.string(gt)
+process.GlobalTag = GlobalTag(process.GlobalTag, gt)
 
 # Select the Message Logger output you would like to see:
 process.load('FWCore.MessageService.MessageLogger_cfi')
