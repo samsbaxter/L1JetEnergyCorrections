@@ -1,23 +1,23 @@
 """
 Config file to run the Stage 2 emulator to make Ntuples.
 
-Stores internal jets, as well as ak5 and ak4 GenJets
-
+Stores L1 jets, as well as ak4 GenJets
 """
 
 import FWCore.ParameterSet.Config as cms
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
-save_EDM = False
+save_EDM = False 
 
 # Global tag (note, you must ensure it matches input file)
 # You don't need the "::All"!
-gt = 'MCRUN2_74_V9'  # for Spring15 AVE20BX25
+# gt = 'MCRUN2_74_V9'  # for Spring15 AVE20BX25
+gt = 'MCRUN2_75_V5'  # for Spring15 AVE20BX25 in 75X
+# gt = '76X_mcRun2_asymptotic_v5'  # for 76X MC
 
 # Things to append to L1Ntuple/EDM filename
-# (if using new RCT calibs, this gets auto added)
-file_append = "_Stage2"
+file_append = "_Stage2_newLut11NovPU15to25_calibMin0"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -61,14 +61,44 @@ process.stage2JetToL1Jet = cms.EDProducer('Stage2JetToL1Jet',
     jetLsb = cms.double(0.5)
 )
 
-file_append += "_jetSeed0"
+# Change jet seed to 1.5 GeV
+process.caloStage2Params.jetSeedThreshold = cms.double(1.5)
+file_append += "_jetSeed1p5"
 
-# Change jet seed to 5 GeV
-# process.caloStage2Params.jetSeedThreshold = cms.double(5.)
-# file_append += "_jetSeed5"
+# My new calibs
+process.caloStage2Params.jetCalibrationType = cms.string("function6PtParams22EtaBins")
+# Vector with 6 parameters for eta bin, from low eta to high
+# 1,0,1,0,1,1 gives no correction
+# must be in this form as may require > 255 arguments
+jetCalibParamsVector = cms.vdouble()
+jetCalibParamsVector.extend([
+    1,0,1,0,1,1, # No calibrations in HF bins
+    1,0,1,0,1,1,
+    1,0,1,0,1,1,
+    1,0,1,0,1,1,
+    3.44405985,29.74407004,3.87875334,-75.81311979,0.00608612,-18.49338073,
+    1.17806455,30.26094268,2.17020820,-1129.07366073,0.01169917,-19.72357261,
+    2.64833976,70.39417283,3.38253666,-107.90187171,0.01643474,-9.89486507,
+    0.76120410,115.36112448,3.21992149,-3385.94255452,0.01246398,-18.84425949,
+    1.27712340,106.78277188,3.52827055,-638.52812672,0.01480519,-14.08093051,
+    0.97343209,62.80834066,3.02363325,-319.99245670,0.01750147,-12.42720978,
+    3.25542967,34.85007383,3.00869230,-88.54304700,0.00856966,-15.35484117,
+    3.25542967,34.85007383,3.00869230,-88.54304700,0.00856966,-15.35484117,
+    0.97343209,62.80834066,3.02363325,-319.99245670,0.01750147,-12.42720978,
+    1.27712340,106.78277188,3.52827055,-638.52812672,0.01480519,-14.08093051,
+    0.76120410,115.36112448,3.21992149,-3385.94255452,0.01246398,-18.84425949,
+    2.64833976,70.39417283,3.38253666,-107.90187171,0.01643474,-9.89486507,
+    1.17806455,30.26094268,2.17020820,-1129.07366073,0.01169917,-19.72357261,
+    3.44405985,29.74407004,3.87875334,-75.81311979,0.00608612,-18.49338073,
+    1,0,1,0,1,1, # No calibrations in HF bins
+    1,0,1,0,1,1,
+    1,0,1,0,1,1,
+    1,0,1,0,1,1
+])
+process.caloStage2Params.jetCalibrationParams  = jetCalibParamsVector
 
 # Turn off calibrations
-process.caloStage2Params.jetCalibrationType = cms.string("None")
+# process.caloStage2Params.jetCalibrationType = cms.string("None")
 
 process.load("L1Trigger.L1TNtuples.l1UpgradeTreeProducer_cfi")
 process.l1UpgradeTreeProducer.jetLabel = cms.untracked.InputTag('stage2JetToL1Jet')
@@ -132,8 +162,10 @@ if gt in ['PHYS14_25_V3', 'PHYS14_25_V2', 'MCRUN2_74_V8']:
     fileNames = cms.untracked.vstring(
         'root://xrootd.unl.edu//store/mc/Phys14DR/QCD_Pt-120to170_Tune4C_13TeV_pythia8/GEN-SIM-RAW/AVE20BX25_tsg_castor_PHYS14_25_V3-v1/00000/004DD38A-2B8E-E411-8E4F-003048FFD76E.root'
         )
-elif gt in ['MCRUN2_74_V9', 'MCRUN2_74_V7']:
+elif gt in ['76X_mcRun2_asymptotic_v5', 'MCRUN2_75_V5', 'MCRUN2_74_V9']:
     fileNames = cms.untracked.vstring(
+        # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
+        # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/003BEF9B-C24E-E511-B4B7-0025905A609E.root'
         'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
         )
 else:
@@ -143,7 +175,7 @@ process.source = cms.Source("PoolSource",
                             fileNames = fileNames
                             )
 
-edm_filename = 'SimStage1Emulator{0}.root'.format(file_append)
+edm_filename = 'SimStage2Emulator{0}.root'.format(file_append)
 process.output = cms.OutputModule(
     "PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
