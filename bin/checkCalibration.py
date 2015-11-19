@@ -94,11 +94,14 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     output_f_hists.WriteTObject(h2d_gen_l1)
 
 
-def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt, pu_min, pu_max):
+def plot_rsp_eta(inputfile, outputfile, eta_bins, pt_min, pt_max, pt_var, pu_min, pu_max):
     """Plot graph of response in bins of eta
 
     If the response hist for each bin exists already, then we use that.
     If not, we make the hist.
+
+    pt_min and pt_max are so that the graph can be made for a given pt interval
+    pt_var is the variable to bin on (pt or ptRef)
     """
 
     gr_rsp_eta = ROOT.TGraphErrors()
@@ -117,39 +120,35 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt, pu_min, pu_max):
 
     # Go through eta bins, get response hist, fit with Gaussian and add to
     # the overall graph
-    for i,eta in enumerate(eta_bins[:-1]):
+    for i, eta in enumerate(eta_bins[:-1]):
         absetamin = eta
-        absetamax = eta_bins[i+1]    # Eta cut string
+        absetamax = eta_bins[i + 1] # Eta cut string
 
-        # Figure out if we've made a response hist already:
-        rsp_name = "hrsp_eta_%g_%g" % (absetamin, absetamax)
-        h_rsp = None
-        if cu.exists_in_file(outputfile, "eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name)):
-            h_rsp = outputfile.Get("eta_%g_%g/Histograms/%s" % (absetamin, absetamax, rsp_name))
-            print "Using existing plot"
-        else:
-            print "Doesn't exist"
-            # plot response for this eta bin
+        # Cut strings
+        eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f" % (absetamax, absetamin)
+        pt_cutStr = "%s < %g && %s > %g" % (pt_var, pt_max, pt_var, pt_min)
+        pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
+        cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
+        print cutStr
 
-            # Cut strings
-            eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
-            pt_cutStr = "pt < %g" % (max_pt)
-            pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
-            cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
-            print cutStr
-            nb_rsp = 100
-            rsp_min, rsp_max = 0, 5
-            tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
-            h_rsp = ROOT.gROOT.FindObject(rsp_name)
-            h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
-            print h_rsp.Integral()
+        nb_rsp = 100
+        rsp_min, rsp_max = 0, 5
+        rsp_name = 'hrsp_eta_%g_%g_%s_%g_%g' % (absetamin, absetamax, pt_var, pt_min, pt_max)
+        tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
+        h_rsp = ROOT.gROOT.FindObject(rsp_name)
+        h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
+        print h_rsp.Integral()
 
         # Fit with Gaussian
         peak = h_rsp.GetBinCenter(h_rsp.GetMaximumBin())
         if absetamin < 2.9:
-            fit_result = h_rsp.Fit("gaus", "QER", "", h_rsp.GetMean() - h_rsp.GetRMS(), h_rsp.GetMean() + h_rsp.GetRMS())
+            fit_result = h_rsp.Fit("gaus", "QER", "",
+                                   h_rsp.GetMean() - h_rsp.GetRMS(),
+                                   h_rsp.GetMean() + h_rsp.GetRMS())
         else:
-            fit_result = h_rsp.Fit("gaus", "QER", "", peak - (0.5*h_rsp.GetRMS()), peak + (0.5*h_rsp.GetRMS()))
+            fit_result = h_rsp.Fit("gaus", "QER", "",
+                                   peak - (0.5 * h_rsp.GetRMS()),
+                                   peak + (0.5 * h_rsp.GetRMS()))
 
         mean = h_rsp.GetFunction("gaus").GetParameter(1)
         err = h_rsp.GetFunction("gaus").GetParError(1)
@@ -170,7 +169,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, max_pt, pu_min, pu_max):
         gr_rsp_eta.SetPointError(N, 0.5 * (absetamax - absetamin), err)
 
     gr_rsp_eta.SetTitle(";|#eta^{L1}|; <response> = <p_{T}^{L1}/p_{T}^{Ref}>")
-    gr_rsp_eta.SetName("gr_rsp_eta_%g_%g" % (eta_bins[0], eta_bins[-1]))
+    gr_rsp_eta.SetName("gr_rsp_eta_%g_%g_%s_%g_%g" % (eta_bins[0], eta_bins[-1], pt_var, pt_min, pt_max))
     output_f.WriteTObject(gr_rsp_eta)
 
 
@@ -200,7 +199,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     output_f = outputfile.GetDirectory('eta_%g_%g' % (absetamin, absetamax))
     output_f_hists = None
     if not output_f:
-        output_f = outputfile.mkdir('eta_%g_%g' % (eta_bins[0], eta_bins[-1]))
+        output_f = outputfile.mkdir('eta_%g_%g' % (absetamin, absetamax))
         output_f_hists = output_f.mkdir("Histograms")
     else:
         output_f_hists = output_f.GetDirectory("Histograms")
@@ -341,8 +340,13 @@ def main(in_args=sys.argv[1:]):
         ptBins_wide = list(np.arange(10, 250, 8))
         plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], ptBins, "pt", args.maxPt, args.PUmin, args.PUmax)
         plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], ptBins, "ptRef", args.maxPt, args.PUmin, args.PUmax)
-        # Do a response vs eta graph
-        plot_rsp_eta(input_file, output_file, etaBins, args.maxPt, args.PUmin, args.PUmax)
+        # Do a response vs eta graph, inclusive over all pt
+        plot_rsp_eta(input_file, output_file, etaBins, 0, 1000, 'pt', args.PUmin, args.PUmax)
+
+        # Sub-binned by pt
+        for pt_min, pt_max in binning.check_pt_bins:
+            plot_rsp_eta(input_file, output_file, etaBins, pt_min, pt_max, 'pt', args.PUmin, args.PUmax)
+            plot_rsp_eta(input_file, output_file, etaBins, pt_min, pt_max, 'ptRef', args.PUmin, args.PUmax)
 
     input_file.Close()
     output_file.Close()
