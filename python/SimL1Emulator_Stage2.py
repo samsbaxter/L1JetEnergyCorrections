@@ -58,7 +58,8 @@ process.load('L1Trigger.L1TCalorimeter.L1TCaloStage2_cff')
 # Convert the Stage 2 jets to L1Extra objects
 process.stage2JetToL1Jet = cms.EDProducer('Stage2JetToL1Jet',
     stage2JetSource = cms.InputTag('caloStage2Digis:MP'),
-    jetLsb = cms.double(0.5)
+    jetLsb = cms.double(0.5),
+    gtJets = cms.bool(False)
 )
 
 # Change jet seed to 1.5 GeV

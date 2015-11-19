@@ -166,7 +166,9 @@ process.l1ExtraTreeProducer.hfRingsLabel = cms.untracked.InputTag("l1ExtraLayer2
 ##############################
 # Conversion from JetBxCollection to L1JetParticles
 process.preGtJetToL1Jet = cms.EDProducer('PreGtJetToL1Jet',
-    preGtJetSource = cms.InputTag("simCaloStage1FinalDigis:preGtJets")
+    preGtJetSource = cms.InputTag("simCaloStage1FinalDigis:preGtJets"),
+    useHwValues = cms.bool(False),
+    jetLsb = cms.double(0.5)
 )
 
 # L1Extra TTree - put preGtJets in "cenJet" branch

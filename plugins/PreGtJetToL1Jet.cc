@@ -60,9 +60,14 @@ class PreGtJetToL1Jet : public edm::EDProducer {
         //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
         //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
+        virtual math::PtEtaPhiMLorentzVector l1JetToLorentzVector(int hwPt, int hwEta, int hwPhi) ;
+        virtual double trigTowerToEta(int hwEta);
+
         // ----------member data ---------------------------
         const edm::InputTag preGtJetSource_;
         edm::EDGetTokenT<l1t::JetBxCollection> preGtJetToken_;
+        const bool useHwValues_;
+        const double jetLsb_;
 };
 
 //
@@ -77,8 +82,10 @@ class PreGtJetToL1Jet : public edm::EDProducer {
 //
 // constructors and destructor
 //
-PreGtJetToL1Jet::PreGtJetToL1Jet(const edm::ParameterSet& iConfig)
-    : preGtJetSource_( iConfig.getParameter< edm::InputTag >("preGtJetSource") )
+PreGtJetToL1Jet::PreGtJetToL1Jet(const edm::ParameterSet& iConfig):
+    preGtJetSource_(iConfig.getParameter<edm::InputTag>("preGtJetSource")),
+    useHwValues_(iConfig.getParameter<bool>("useHwValues")),
+    jetLsb_(iConfig.getParameter<double>("jetLsb"))
 {
     using namespace l1extra ;
 
@@ -116,8 +123,8 @@ void
 PreGtJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
     using namespace edm;
-    using namespace l1extra ;
-    using namespace std ;
+    using namespace l1extra;
+    using namespace std;
 
     // Get the JetBxCollection
     Handle<l1t::JetBxCollection> preGtJetCollection;
@@ -133,17 +140,71 @@ PreGtJetToL1Jet::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     int lastBX = preGtJetCollection->getLastBX();
 
     for (int itBX = firstBX; itBX!=lastBX+1; ++itBX) {
-        // Loop over each obj, make a L1JetParticle obj from it
+        // Loop over each obj, make a l1extra::L1JetParticle obj from it
         l1t::JetBxCollection::const_iterator jetItr = preGtJetCollection->begin(itBX);
         l1t::JetBxCollection::const_iterator jetEnd = preGtJetCollection->end(itBX);
         for( ; jetItr != jetEnd ; ++jetItr) {
-            if (jetItr->et() != 0) {
-                jetColl->push_back(L1JetParticle(jetItr->p4(), L1JetParticle::JetType::kUndefined, itBX));
+            if (useHwValues_) {
+                // get pt, eta, phi from HW values - need to convert.
+                math::PtEtaPhiMLorentzVector fourMom = l1JetToLorentzVector(jetItr->hwPt(), jetItr->hwEta(), jetItr->hwPhi());
+                L1JetParticle::JetType jetStatus = L1JetParticle::JetType::kCentral;
+                if (abs(fourMom.eta()) > 3) {
+                    jetStatus = L1JetParticle::JetType::kForward;
+                }
+                jetColl->push_back(L1JetParticle(fourMom, jetStatus, itBX));
+            } else {
+                // use 4 momentum already stored in the object
+                if (jetItr->et() != 0) {
+                    L1JetParticle::JetType jetStatus = L1JetParticle::JetType::kCentral;
+                    if (abs(jetItr->p4().eta()) > 3) {
+                        jetStatus = L1JetParticle::JetType::kForward;
+                    }
+                    jetColl->push_back(L1JetParticle(jetItr->p4(), jetStatus, itBX));
+                }
             }
         }
     }
 
     OrphanHandle< L1JetParticleCollection > preGtJetHandle = iEvent.put(jetColl, "PreGtJets");
+}
+
+/**
+ * @brief Convert trigger tower (TT) number (aka iEta) to physical eta
+ * @details Returns physical eta corresponding to centre of each trigger tower.
+ * So tower 1 => 0.087 / 2 = 0.0435
+ *
+ * @param hwEta Hardware eta (iEta), ranges from -32 to + 32
+ * @return Physical eta, at the centre of each trigger tower.
+ */
+double
+PreGtJetToL1Jet::trigTowerToEta(int hwEta)
+{
+    double eta = 0.;
+    if (abs(hwEta) <= 20) {
+        // Up to the split HE, TT: 1 - 20, eta: 0 - 1.74. Each TT has dEta = 0.087.
+        eta = (abs(hwEta) - .5) * 0.087;
+    } else if (abs(hwEta) <= 28) {
+        // Split HE, TT: 21 - 28, eta: 1.74 - 3. Towers have non-uniform segmentation.
+        double etaEdges [] = {1.74, 1.83, 1.93, 2.043, 2.172, 2.322, 2.5, 2.65, 3};
+        eta = 0.5 * (etaEdges[abs(hwEta)-20] + etaEdges[abs(hwEta)-21]);
+    } else {
+        // HF, TT: 29 - 32, Eta: 3 - 5. Each tower has dEta = 0.5
+        eta = ((abs(hwEta) - 29) * 0.5) + 3.25;
+    }
+    int sign = (hwEta > 0) - (hwEta < 0);
+    return eta * sign;
+}
+
+
+math::PtEtaPhiMLorentzVector
+PreGtJetToL1Jet::l1JetToLorentzVector(int hwPt, int hwEta, int hwPhi)
+{
+    // get pt, eta, phi from HW values - need to convert.
+    double pt = hwPt * jetLsb_;
+    double eta = trigTowerToEta(hwEta);
+    double phi = (hwPhi - 0.5) * 2 * M_PI / 72.;
+    return math::PtEtaPhiMLorentzVector(pt, eta, phi, 0.);
+
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -198,6 +259,8 @@ void
 PreGtJetToL1Jet::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("preGtJetSource", edm::InputTag(""))->setComment("Name of module that produces JetBxCollection for preGtJets");
+  desc.add<bool>("useHwValues")->setComment("Use jet hardware et/eta/phi. Otherwise use p4().");
+  desc.add<double>("jetLsb")->setComment("LSB for jet et scale. Only used if useHwValues True.");
   descriptions.add("PreGtJetToL1Jet", desc);
 }
 
