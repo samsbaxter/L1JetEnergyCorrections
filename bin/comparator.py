@@ -173,7 +173,8 @@ class Plot(object):
 
         # First make a container
         if self.plot_what in ["graph", "both"]:
-            self.container = ROOT.TMultiGraph()
+            rand = random.randint(0, 100)  # need a unique name
+            self.container = ROOT.TMultiGraph("mg%d" % rand, "")
         else:
             self.container = MultiFunc()
 
