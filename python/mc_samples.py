@@ -46,7 +46,7 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
 samples = {
 
     "QCDFlatSpring15BX25PU10to30HCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
-                                                    unitsPerJob=10, totalUnits=-1),
+                                                    unitsPerJob=5, totalUnits=-1),
 
     "QCDFlatSpring15BX25FlatNoPUHCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
                                                     unitsPerJob=5, totalUnits=-1), # lots of file failures so split up more
