@@ -716,7 +716,30 @@ def main(in_args=sys.argv[1:]):
 
     if args.oDir == ".":
         print "Warning: I'm going to make these plots here!"
-        print "If you want to put them somewhere specific, use --oDir"
+
+    # auto determine output directory
+    if not args.oDir:
+        filename = ''
+        stem = ''
+        if args.pairs:
+            filename = args.pairs
+            stem = 'pairs_'
+        elif args.checkcal:
+            filename = args.checkcal
+            stem = 'check_'
+        elif args.res:
+            filename = args.res
+            stem = 'res_'
+        elif args.calib:
+            filename = args.calib
+            stem = 'output_'
+        new_dir = os.path.basename(filename)
+        new_dir = new_dir.replace(".root", '')
+        new_dir = new_dir.replace(stem, 'showoff_')
+
+        args.oDir = os.path.join(os.path.dirname(os.path.abspath(filename)), new_dir)
+
+    print "Output directory:", args.oDir
 
     # Check if directory exists. If not, create it.
     check_dir_exists_create(args.oDir)
