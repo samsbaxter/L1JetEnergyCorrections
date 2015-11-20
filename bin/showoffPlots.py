@@ -835,14 +835,11 @@ def main(in_args=sys.argv[1:]):
 
         # indiviudal eta bins
         for eta_min, eta_max in izip(etaBins[:-1], etaBins[1:]):
-            plot_l1_Vs_ref(check_file, eta_min, eta_max, False, args.oDir, args.format)
-            plot_rsp_eta_bin(check_file, eta_min, eta_max, args.oDir, args.format)
-            plot_rsp_Vs_l1(check_file, eta_min, eta_max, False, False, args.oDir, args.format)
-            plot_rsp_Vs_ref(check_file, eta_min, eta_max, False, False, args.oDir, args.format)
+            plot_rsp_Vs_l1(check_file, eta_min, eta_max, False, False, args.oDir, 'png')
+            plot_rsp_Vs_ref(check_file, eta_min, eta_max, False, False, args.oDir, 'png')
             # plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBinsWide, args.oDir, args.format)
             plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
             plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
-
 
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
@@ -852,9 +849,9 @@ def main(in_args=sys.argv[1:]):
                 continue
 
             for (normX, logZ) in product([True, False], [True, False]):
-                plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, args.format)
-                plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
-                plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
+                plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
+                plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
+                plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
             plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
             plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
