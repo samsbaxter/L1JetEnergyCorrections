@@ -88,7 +88,7 @@ do
     declare -a outFileNames=()
 
     # Maximum pT for L1 jets
-    maxPt=2000
+    maxPt=1022
 
     # PU cuts
     puMin=30
