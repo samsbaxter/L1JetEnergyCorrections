@@ -15,7 +15,7 @@ import httplib
 job_append = "Stage2_QCDFlatSpring15_PU10to30_HFfix_lyaer2NoLut_jetSeed0_11Oct15"
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
-datasets = ["QCDFlatSpring15BX25PU10to30HCALFix"] #, "QCDFlatSpring15BX25FlatNoPUHCALFix"]
+datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]
 
 if __name__ == "__main__":
 
