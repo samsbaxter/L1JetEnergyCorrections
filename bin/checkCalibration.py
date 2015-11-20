@@ -52,14 +52,18 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
-    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax) , cutStr)
+    tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax), cutStr)
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
     hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
     if absetamin < 2.9:
-        fit_result = hrsp_eta.Fit("gaus", "QER", "", hrsp_eta.GetMean() - hrsp_eta.GetRMS(), hrsp_eta.GetMean() + hrsp_eta.GetRMS())
+        fit_result = hrsp_eta.Fit("gaus", "QER", "",
+                                  hrsp_eta.GetMean() - hrsp_eta.GetRMS(),
+                                  hrsp_eta.GetMean() + hrsp_eta.GetRMS())
     else:
         peak = hrsp_eta.GetBinCenter(hrsp_eta.GetMaximumBin())
-        fit_result = hrsp_eta.Fit("gaus", "QER", "", peak - (0.5*hrsp_eta.GetRMS()), peak + (0.5*hrsp_eta.GetRMS()))
+        fit_result = hrsp_eta.Fit("gaus", "QER", "",
+                                  peak - (0.5 * hrsp_eta.GetRMS()),
+                                  peak + (0.5 * hrsp_eta.GetRMS()))
 
     # mean = hrsp_eta.GetFunction("gaus").GetParameter(1)
     # err = hrsp_eta.GetFunction("gaus").GetParError(1)
@@ -180,7 +184,7 @@ def check_gaus_fit(hist):
     peaks_buff = s.GetPositionX()
     x_peak = peaks_buff[0]
 
-    return (abs(hist.GetFunction('gaus').GetParameter(1) - x_peak)/abs(x_peak)) < 0.1
+    return (abs(hist.GetFunction('gaus').GetParameter(1) - x_peak) / abs(x_peak)) < 0.1
 
 
 def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt_max, pu_min, pu_max):
@@ -207,8 +211,9 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     gr_rsp_pt = ROOT.TGraphErrors()
 
     # Cut strings
-    eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f"  % (absetamax, absetamin)
-    pt_cutStr = "%s < %g && pt < %g" % (pt_var, pt_bins[-1], pt_max) # keep the pt < 250 to safeguard against staurated L1 jets
+    eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f" % (absetamax, absetamin)
+    # keep the pt < pt_max to safeguard against staurated L1 jets
+    pt_cutStr = "%s < %g && pt < %g" % (pt_var, pt_bins[-1], pt_max)
     pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
     cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
@@ -216,21 +221,21 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     rsp_min = 0
     rsp_max = 5
 
-    n_pt_bins = len(pt_bins)-1
     pt_array = array('d', pt_bins)
 
     # First make a 2D plot
     h2d_rsp_pt = ROOT.TH2D("h2d_rsp_%s_%g_%g" % (pt_var, absetamin, absetamax),
-                            "%g < |#eta| < %g;p_{T};response" % (absetamin, absetamax),
-                            len(pt_bins)-1, pt_array, n_rsp_bins, rsp_min, rsp_max)
-    tree_raw.Draw("rsp:%s>>+h2d_rsp_%s_%g_%g" % (pt_var, pt_var, absetamin, absetamax), cutStr)
+                           "%g < |#eta| < %g;p_{T};response" % (absetamin, absetamax),
+                           len(pt_bins) - 1, pt_array,
+                           n_rsp_bins, rsp_min, rsp_max)
+    tree_raw.Draw("rsp:%s>>h2d_rsp_%s_%g_%g" % (pt_var, pt_var, absetamin, absetamax), cutStr)
 
     output_f_hists.WriteTObject(h2d_rsp_pt)
 
     # Now for each pt bin, do a projection on 1D hist of response and fit a Gaussian
     print pt_bins
     for i, (pt_min, pt_max) in enumerate(zip(pt_bins[:-1], pt_bins[1:])):
-        h_rsp = h2d_rsp_pt.ProjectionY("rsp_%s_%g_%g" % (pt_var, pt_min, pt_max), i+1, i+1)
+        h_rsp = h2d_rsp_pt.ProjectionY("rsp_%s_%g_%g" % (pt_var, pt_min, pt_max), i + 1, i + 1)
         print i, pt_min, pt_max
 
         if h_rsp.Integral() < 0:
@@ -243,7 +248,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
 
         peak = h_rsp.GetBinCenter(h_rsp.GetMaximumBin())
         # if h_rsp.GetRMS() < 0.2:
-            # fit_result = h_rsp.Fit("gaus", "QER", "", peak - h_rsp.GetRMS(), peak + h_rsp.GetRMS())
+        #    fit_result = h_rsp.Fit("gaus", "QER", "", peak - h_rsp.GetRMS(), peak + h_rsp.GetRMS())
         # else:
         # fit_result = h_rsp.Fit("gaus", "QER", "", peak - 0.5*h_rsp.GetRMS(), peak + 0.5*h_rsp.GetRMS())
         fit_result = h_rsp.Fit("gaus", "QER", "", peak - h_rsp.GetRMS(), peak + h_rsp.GetRMS())
@@ -270,7 +275,6 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     output_f.WriteTObject(gr_rsp_pt)
 
 
-########### MAIN ########################
 def main(in_args=sys.argv[1:]):
     print in_args
     parser = argparse.ArgumentParser(description=__doc__)
@@ -283,20 +287,20 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--forward", action='store_true',
                         help="Do forward eta bins only (eta >= 3)")
     parser.add_argument("--etaInd", nargs="+",
-                        help="list of eta bin INDICES to run over - " \
-                        "if unspecified will do all. " \
-                        "This overrides --central/--forward. " \
-                        "Handy for batch mode. " \
+                        help="list of eta bin INDICES to run over - "
+                        "if unspecified will do all. "
+                        "This overrides --central/--forward. "
+                        "Handy for batch mode. "
                         "IMPORTANT: MUST PUT AT VERY END")
     parser.add_argument("--maxPt", default=500, type=float,
                         help="Maximum pT for L1 Jets")
     parser.add_argument("--PUmin", default=-99, type=float,
-                        help="Minimum number of PU vertices (refers to *actual* " \
-                             "number of PU vertices in the event, not the centre " \
+                        help="Minimum number of PU vertices (refers to *actual* "
+                             "number of PU vertices in the event, not the centre "
                              "of of the distribution)")
     parser.add_argument("--PUmax", default=999, type=float,
-                        help="Maximum number of PU vertices (refers to *actual* " \
-                             "number of PU vertices in the event, not the centre " \
+                        help="Maximum number of PU vertices (refers to *actual* "
+                             "number of PU vertices in the event, not the centre "
                              "of of the distribution)")
     args = parser.parse_args(args=in_args)
 
@@ -310,7 +314,7 @@ def main(in_args=sys.argv[1:]):
 
     etaBins = binning.eta_bins
     if args.etaInd:
-        args.etaInd.append(int(args.etaInd[-1])+1) # need upper eta bin edge
+        args.etaInd.append(int(args.etaInd[-1]) + 1)  # need upper eta bin edge
         # check eta bins are ok
         etaBins = [etaBins[int(x)] for x in args.etaInd]
     elif args.central:
@@ -324,9 +328,9 @@ def main(in_args=sys.argv[1:]):
 
     # Do plots for each eta bin
     if args.excl:
-        for i,eta in enumerate(etaBins[:-1]):
+        for i, eta in enumerate(etaBins[:-1]):
             eta_min = eta
-            eta_max = etaBins[i+1]
+            eta_max = etaBins[i + 1]
 
             plot_checks(input_file, output_file, eta_min, eta_max, args.maxPt, args.PUmin, args.PUmax)
             # Do a response vs pt graph
@@ -337,7 +341,7 @@ def main(in_args=sys.argv[1:]):
     if args.incl and len(etaBins) > 2:
         plot_checks(input_file, output_file, etaBins[0], etaBins[-1], args.maxPt, args.PUmin, args.PUmax)
         # Do a response vs pt graph
-        ptBins_wide = list(np.arange(10, 250, 8))
+        # ptBins_wide = list(np.arange(10, 250, 8))
         plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], ptBins, "pt", args.maxPt, args.PUmin, args.PUmax)
         plot_rsp_pt(input_file, output_file, etaBins[0], etaBins[-1], ptBins, "ptRef", args.maxPt, args.PUmin, args.PUmax)
         # Do a response vs eta graph, inclusive over all pt

@@ -26,7 +26,7 @@ from runCalibration import generate_eta_graph_name
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
-ROOT.gStyle.SetOptFit(1) # only show fit params and errors
+ROOT.gStyle.SetOptFit(1)  # only show fit params and errors
 # ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(55)
@@ -59,7 +59,7 @@ plot_labels = [
      "Spring15 + HF fix (no JEC)"
     ]
 plot_title = "QCD Spring15 HF fix, Stage 2, 25ns"
-plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen+2, 8]
+plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
 
 
@@ -100,7 +100,8 @@ def plot_pt_l1(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
 def plot_eta_l1(tree, oDir, cut="1", oFormat="pdf"):
     """Plot eta(L1)"""
     c = generate_canvas()
-    h_eta = ROOT.TH1D("h_eta", "%s;%s;N" % (cut, eta_l1_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    h_eta = ROOT.TH1D("h_eta", "%s;%s;N" % (cut, eta_l1_str),
+                      len(binning.eta_bins_all) - 1, array('d', binning.eta_bins_all))
     tree.Draw("eta>>h_eta", cut, "HISTE")
     c.SaveAs("%s/eta_l1.%s" % (oDir, oFormat))
 
@@ -117,7 +118,8 @@ def plot_pt_ref(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
 def plot_eta_ref(tree, oDir, cut="1", oFormat="pdf"):
     """Plot eta(Reference)"""
     c = generate_canvas()
-    h_eta = ROOT.TH1D("h_eta", "%s;%s;N" % (cut, eta_ref_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    h_eta = ROOT.TH1D("h_eta", "%s;%s;N" % (cut, eta_ref_str),
+                      len(binning.eta_bins_all) - 1, array('d', binning.eta_bins_all))
     tree.Draw("etaRef>>h_eta", cut, "HISTE")
     c.SaveAs("%s/eta_ref.%s" % (oDir, oFormat))
 
@@ -138,8 +140,8 @@ def plot_pt_both(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     print total_cut
     stack.GetHistogram().SetTitle("%s;%s;N" % (total_cut, pt_str))
     c.SetTitle(total_cut)
-    leg = generate_legend() #(0.7, 0.7, 0.88, 0.88)
-    leg.AddEntry(0, "|#eta|: %g - %g" %(eta_min, eta_max), "")
+    leg = generate_legend()
+    leg.AddEntry(0, "|#eta|: %g - %g" % (eta_min, eta_max), "")
     leg.AddEntry(h_pt_l1, "L1", "L")
     leg.AddEntry(h_pt_ref, "Ref", "L")
     leg.Draw()
@@ -149,14 +151,16 @@ def plot_pt_both(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
 def plot_eta_both(tree, oDir, cut="1", oFormat="pdf"):
     """Plot eta(Reference) and eta(L1) on same plot"""
     c = generate_canvas()
-    h_eta_l1 = ROOT.TH1D("h_eta_l1", "%s;%s;N" % (cut, eta_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
-    h_eta_ref = ROOT.TH1D("h_eta_ref", "%s;%s;N" % (cut, eta_str), len(binning.eta_bins_all)-1, array('d', binning.eta_bins_all))
+    h_eta_l1 = ROOT.TH1D("h_eta_l1", "%s;%s;N" % (cut, eta_str),
+                         len(binning.eta_bins_all) - 1, array('d', binning.eta_bins_all))
+    h_eta_ref = ROOT.TH1D("h_eta_ref", "%s;%s;N" % (cut, eta_str),
+                          len(binning.eta_bins_all) - 1, array('d', binning.eta_bins_all))
     tree.Draw("eta>>h_eta_l1", cut, "HISTE")
     tree.Draw("etaRef>>h_eta_ref", cut, "HISTE")
     h_eta_ref.SetLineColor(ROOT.kRed)
     h_eta_l1.Draw("HISTE")
     h_eta_ref.Draw("HISTE SAME")
-    leg = generate_legend() #(0.7, 0.7, 0.88, 0.88)
+    leg = generate_legend()
     leg.AddEntry(h_eta_l1, "L1", "L")
     leg.AddEntry(h_eta_ref, "Ref", "L")
     leg.Draw()
@@ -173,7 +177,7 @@ def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"
     h_diff = get_from_file(res_file, hname)
     c = generate_canvas()
     h_diff.Draw()
-    h_diff.SetMaximum(h_diff.GetMaximum()*1.2)
+    h_diff.SetMaximum(h_diff.GetMaximum() * 1.2)
     # h_diff.SetLineWidth(2)
     func = h_diff.GetListOfFunctions().At(0)
     func.SetLineWidth(1)
@@ -252,7 +256,7 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
 
     graphs = [get_from_file(f, grname) for f in res_files if f]
 
-    leg = generate_legend() #(0.6, 0.7, 0.87, 0.87)
+    leg = generate_legend()
     mg = ROOT.TMultiGraph()
     for i, g in enumerate(graphs):
         g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
@@ -267,7 +271,7 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     # mg.GetYaxis().SetTitle(res_l1_str)
     mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax() * 1.5)
     mg.GetYaxis().SetRangeUser(0, 0.6)
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title+', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
     mg.Draw("ALP")
     leg.Draw()
     append = "_compare" if len(res_files) > 1 else ""
@@ -284,15 +288,15 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
     will generally only be pre calib, and is binned by ref Jet pt
     """
     h_2d = ROOT.TH2D("h2d_eta_pt_rsp", ";p_{T}^{L1} [GeV];|#eta^{L1}|",
-                     len(ptBins)-1, array('d', ptBins),
-                     len(etaBins)-1, array('d', etaBins))
+                     len(ptBins) - 1, array('d', ptBins),
+                     len(etaBins) - 1, array('d', etaBins))
     for eta_ind, (eta_min, eta_max) in enumerate(zip(etaBins[:-1], etaBins[1:]), 1):
         for pt_ind, (pt_min, pt_max) in enumerate(zip(ptBins[:-1], ptBins[1:]), 1):
             h_rsp = get_from_file(calib_file, "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max))
             if h_rsp.GetEntries() > 0:
                 # we actually use the fit to (L1-Gen)/L1, so we need to * -1 and invert
                 res = h_rsp.GetListOfFunctions().At(0).GetParameter(1)
-                rsp = 1./(1 - res)
+                rsp = 1. / (1 - res)
                 print rsp
                 h_2d.SetBinContent(pt_ind, eta_ind, rsp)
             else:
@@ -301,8 +305,9 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
     ROOT.gStyle.SetPaintTextFormat(".2f")
     ROOT.gStyle.SetPalette(56)
     h_2d.Draw("COLZTEXT")
-    h_2d.GetZaxis().SetRangeUser(0,2)
+    h_2d.GetZaxis().SetRangeUser(0, 2)
     c.SaveAs("%s/h2d_eta_pt_rsp.%s" % (oDir, oFormat))
+
 
 #############################################
 # PLOTS USING OUTPUT FROM checkCalibration
@@ -348,19 +353,19 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
     line1.SetLineStyle(1)
     line1.SetLineWidth(2)
     line1.Draw()
-    line1p25 = ROOT.TLine(0, 0, 250/1.25, 250)
+    line1p25 = ROOT.TLine(0, 0, 250 / 1.25, 250)
     line1p25.SetLineStyle(2)
     line1p25.SetLineWidth(2)
     line1p25.Draw()
-    line1p5 = ROOT.TLine(0, 0, 250/1.5, 250)
+    line1p5 = ROOT.TLine(0, 0, 250 / 1.5, 250)
     line1p5.SetLineStyle(3)
     line1p5.SetLineWidth(2)
     line1p5.Draw()
-    line0p75 = ROOT.TLine(0, 0, 250, 250*0.75)
+    line0p75 = ROOT.TLine(0, 0, 250, 250 * 0.75)
     line0p75.SetLineStyle(2)
     line0p75.SetLineWidth(2)
     line0p75.Draw()
-    line0p5 = ROOT.TLine(0, 0, 250, 250*0.5)
+    line0p5 = ROOT.TLine(0, 0, 250, 250 * 0.5)
     line0p5.SetLineStyle(3)
     line0p5.SetLineWidth(2)
     line0p5.Draw()
@@ -377,7 +382,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
         h2d_rsp_l1_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max))
         if normX:
             h2d_rsp_l1_orig = norm_vertical_bins(h2d_rsp_l1_orig)
-    h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1,2,"hnew")
+    h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1, 2, "hnew")
     c = generate_canvas()
     if logZ:
         c.SetLogz()
@@ -401,7 +406,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
         h2d_rsp_ref_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max))
         if normX:
             h2d_rsp_ref_orig = norm_vertical_bins(h2d_rsp_ref_orig)
-    h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1,2,"hnew")
+    h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1, 2, "hnew")
     c = generate_canvas()
     if logZ:
         c.SetLogz()
@@ -538,7 +543,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = generate_legend() #(0.54, 0.15, 0.87, 0.3) # bottom right
+    leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -585,7 +590,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = generate_legend() #(0.54, 0.15, 0.87, 0.3) # bottom right
+    leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -673,25 +678,37 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
 def main(in_args=sys.argv[1:]):
     print in_args
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pairs", help="input ROOT file with matched pairs from RunMatcher")
+    parser.add_argument("--pairs",
+                        help="input ROOT file with matched pairs from RunMatcher")
 
-    parser.add_argument("--res", help="input ROOT file with resolution plots from makeResolutionPlots.py")
-    parser.add_argument("--res2", help="optional: 2nd input ROOT file with resolution plots from makeResolutionPlots.py. " \
-                                        "If you specify this one, then the file specified by --res will be treated as pre-calibration, " \
-                                        "whilst this one will be treated as post-calibration")
-    parser.add_argument("--res3", help="optional: 3rd input file for resolution plots")
+    parser.add_argument("--res",
+                        help="input ROOT file with resolution plots from makeResolutionPlots.py")
+    parser.add_argument("--res2",
+                        help="optional: 2nd input ROOT file with resolution plots from makeResolutionPlots.py. "
+                        "If you specify this one, then the file specified by --res will be treated as pre-calibration, "
+                        "whilst this one will be treated as post-calibration")
+    parser.add_argument("--res3",
+                        help="optional: 3rd input file for resolution plots")
 
-    parser.add_argument("--checkcal", help="input ROOT file with calibration check plots from checkCalibration.py")
-    parser.add_argument("--checkcal2", help="optional: 2nd input ROOT file with resolution plots from checkCalibration.py. " \
-                                        "If you specify this one, then the file specified by --checkcal will be treated as pre-calibration, " \
-                                        "whilst this one will be treated as post-calibration")
-    parser.add_argument("--checkcal3", help="yet another calibration check file")
+    parser.add_argument("--checkcal",
+                        help="input ROOT file with calibration check plots from checkCalibration.py")
+    parser.add_argument("--checkcal2",
+                        help="optional: 2nd input ROOT file with resolution plots from checkCalibration.py. "
+                        "If you specify this one, then the file specified by --checkcal will be treated as pre-calibration, "
+                        "whilst this one will be treated as post-calibration")
+    parser.add_argument("--checkcal3",
+                        help="yet another calibration check file")
 
-    parser.add_argument("--calib", help="input ROOT file from output of runCalibration.py")
+    parser.add_argument("--calib",
+                        help="input ROOT file from output of runCalibration.py")
 
-    parser.add_argument("--oDir", help="Directory to save plots. Default is $PWD.", default=".")
-    parser.add_argument("--format", help="Format for plots (PDF, png, etc)", default="pdf")
-    parser.add_argument("--etaInd", help="list of eta bin index to run over")
+    parser.add_argument("--oDir",
+                        help="Directory to save plots. Default is $PWD.")
+    parser.add_argument("--format",
+                        help="Format for plots (PDF, png, etc)",
+                        default="pdf")
+    parser.add_argument("--etaInd",
+                        help="list of eta bin index to run over")
 
     args = parser.parse_args(args=in_args)
 
@@ -704,14 +721,15 @@ def main(in_args=sys.argv[1:]):
     # Check if directory exists. If not, create it.
     check_dir_exists_create(args.oDir)
 
-    # Choice eta & pt bin
-    eta_min, eta_max = binning.eta_bins[0], binning.eta_bins[-1]
+    # Choose eta
     ptBins = binning.pt_bins
+    # ptBins = binning.pt_bins_stage2_old
     ptBins = binning.pt_bins_stage2
-    pt_min, pt_max = ptBins[10], ptBins[11]
+
 
     if args.etaInd:
-        eta_min, eta_max = binning.eta_bins[int(args.etaInd)], binning.eta_bins[int(args.etaInd)+1]
+        eta_min = binning.eta_bins[int(args.etaInd)]
+        eta_max = binning.eta_bins[int(args.etaInd) + 1]
 
     # Do plots with output from RunMatcher
     if args.pairs:
