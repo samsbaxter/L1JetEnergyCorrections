@@ -139,8 +139,12 @@ for((p=0; p<${#puMins[@]}; ++p)); do
             outRootName="${fdir}/${outname}_${i}${append}.root"
             outFileNames+=($outRootName)
 
+            fwdOpt=""
+            if [ "$etamin" -gt 2.9 ]; then
+                fwdOpt="--no-correction-fit"
+            fi
             echo "JOB $jobname $outfile" >> "$dagfile"
-            echo "VARS $jobname opts=\"${pairs} ${outRootName} python runCalibration.py ${pairs} ${outRootName} --no-genjet-plots --stage2 --PUmin ${puMin} --PUmax ${puMax} --etaInd ${i}\"" >> "$dagfile"
+            echo "VARS $jobname opts=\"${pairs} ${outRootName} python runCalibration.py ${pairs} ${outRootName} --no-genjet-plots ${fwdOpt} --stage2 --PUmin ${puMin} --PUmax ${puMax} --etaInd ${i}\"" >> "$dagfile"
         done
 
         # Now add job for hadding
