@@ -49,8 +49,8 @@ alt_res_l1_str = "(E_{T}^{L1} - E_{T}^{%s})/E_{T}^{L1}" % (ref_str)
 pt_diff_str = "E_{T}^{L1} - E_{T}^{%s} [GeV]" % (ref_str)
 
 # min/max response for responve vs X graphs
-rsp_min, rsp_max = 0.2, 1.5
-# rsp_min, rsp_max = 0, 2
+# rsp_min, rsp_max = 0.2, 1.5
+rsp_min, rsp_max = 0, 2
 
 #############################################
 # LABELS, COLOURS, AND TITLE ON PLOTS
@@ -741,8 +741,8 @@ def main(in_args=sys.argv[1:]):
             plot_dR(pairs_tree, eta_min=emin, eta_max=emax, cut="1", oDir=args.oDir)
             plot_pt_both(pairs_tree, eta_min=emin, eta_max=emax, cut="1", oDir=args.oDir)
 
-        plot_dR(pairs_tree, eta_min=0, eta_max=5, cut="1", oDir=args.oDir)  # all eta
-        plot_pt_both(pairs_tree, eta_min=0, eta_max=5, cut="1", oDir=args.oDir)  # all eta
+        # plot_dR(pairs_tree, eta_min=0, eta_max=5, cut="1", oDir=args.oDir)  # all eta
+        # plot_pt_both(pairs_tree, eta_min=0, eta_max=5, cut="1", oDir=args.oDir)  # all eta
         plot_eta_both(pairs_tree, oDir=args.oDir)  # all eta
 
         plot_dR(pairs_tree, eta_min=0, eta_max=3, cut="1", oDir=args.oDir)  # central
@@ -758,8 +758,8 @@ def main(in_args=sys.argv[1:]):
         res_file = open_root_file(args.res)
         if not args.res2:
             # if not doing comparison
-#            pt_min = binning.pt_bins[10]
-#            pt_max = binning.pt_bins[11]
+            # pt_min = binning.pt_bins[10]
+            # pt_max = binning.pt_bins[11]
             # for the first 4 bins - troublesome
 
             # exclusive eta graphs
@@ -767,22 +767,22 @@ def main(in_args=sys.argv[1:]):
                 # plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
                 # for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
                 #     plot_pt_diff(res_file, emin, emax, pt_min, pt_max, args.oDir, args.format)
-    #            plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+                # plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
             # inclusive eta graph
             plot_res_all_pt([res_file], 0, 3, args.oDir, args.format)
-            plot_res_all_pt([res_file], 0, 5, args.oDir, args.format)
-            plot_res_all_pt([res_file], 3, 5, args.oDir, args.format)
+            # plot_res_all_pt([res_file], 0, 5, args.oDir, args.format)
+            # plot_res_all_pt([res_file], 3, 5, args.oDir, args.format)
             plot_ptDiff_Vs_pt(res_file, 0, 3, args.oDir, args.format)
-            plot_ptDiff_Vs_pt(res_file, 0, 5, args.oDir, args.format)
-            plot_ptDiff_Vs_pt(res_file, 3, 5, args.oDir, args.format)
+            # plot_ptDiff_Vs_pt(res_file, 0, 5, args.oDir, args.format)
+            # plot_ptDiff_Vs_pt(res_file, 3, 5, args.oDir, args.format)
             # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
 
             # components of these:
             for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
                 plot_pt_diff(res_file, 0, 3, pt_min, pt_max, args.oDir, args.format)
-                plot_pt_diff(res_file, 0, 5, pt_min, pt_max, args.oDir, args.format)
-                plot_pt_diff(res_file, 3, 5, pt_min, pt_max, args.oDir, args.format)
+                # plot_pt_diff(res_file, 0, 5, pt_min, pt_max, args.oDir, args.format)
+                # plot_pt_diff(res_file, 3, 5, pt_min, pt_max, args.oDir, args.format)
 
         else:
             # if doing comparison
@@ -792,12 +792,12 @@ def main(in_args=sys.argv[1:]):
             if args.res3:
                 res_files.append(open_root_file(args.res3))
             # plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
-#            for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
-#                plot_res_all_pt(res_files, emin, emax, args.oDir, args.format)
+            # for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+            #     plot_res_all_pt(res_files, emin, emax, args.oDir, args.format)
 
             plot_res_all_pt(res_files, 0, 3, args.oDir, args.format)
-            plot_res_all_pt(res_files, 0, 5, args.oDir, args.format)
-            plot_res_all_pt(res_files, 3, 5, args.oDir, args.format)
+            # plot_res_all_pt(res_files, 0, 5, args.oDir, args.format)
+            # plot_res_all_pt(res_files, 3, 5, args.oDir, args.format)
             # plot_res_eta(res_files, binning.eta_bins, args.oDir, args.format)
 
         res_file.Close()
@@ -808,7 +808,7 @@ def main(in_args=sys.argv[1:]):
         etaBins = binning.eta_bins_central
         check_file = open_root_file(args.checkcal)
 
-        ptBinsWide = list(np.arange(10, 250, 8))
+        # ptBinsWide = list(np.arange(10, 250, 8))
 
         # indiviudal eta bins
         for eta_min, eta_max in izip(etaBins[:-1], etaBins[1:]):
@@ -823,7 +823,8 @@ def main(in_args=sys.argv[1:]):
 
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
-        for (eta_min, eta_max) in product([0, 3], [3, 5]):
+        # for (eta_min, eta_max) in product([0, 3], [3, 5]):
+        for (eta_min, eta_max) in [[0, 3]]:
             if eta_min == eta_max:
                 continue
 
@@ -862,7 +863,7 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_Vs_l1(calib_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
 
             if eta_min > 2.9:
-                ptBins = binning.pt_bins_wide
+                ptBins = binning.pt_bins_stage2_hf
             for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
                 plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
                 plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
