@@ -20,7 +20,8 @@ import common_utils as cu
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(1)
 
-etaBins = binning.eta_bins
+etaBins = binning.eta_bins_central
+
 
 def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="", drawopts="", drawfit=True, extend_fit=True):
     """

@@ -454,7 +454,7 @@ def main(in_args=sys.argv[1:]):
     all_graphs = []
 
     # Get all the fit functions from file and their corresponding graphs
-    etaBins = binning.eta_bins
+    etaBins = binning.eta_bins_central
     for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
         print "Eta bin:", eta_min, "-", eta_max
 

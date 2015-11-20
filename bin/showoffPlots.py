@@ -787,7 +787,7 @@ def main(in_args=sys.argv[1:]):
     # Do plots with output from checkCalibration.py
     if args.checkcal:
 
-        etaBins = binning.eta_bins
+        etaBins = binning.eta_bins_central
         check_file = open_root_file(args.checkcal)
 
         ptBinsWide = list(np.arange(10, 250, 8))
