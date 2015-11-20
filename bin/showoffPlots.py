@@ -654,9 +654,12 @@ def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFor
         func = h_rsp.GetListOfFunctions().At(0)
         if func:
             func.Draw("SAME")
-        c.SaveAs("%s/%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat))
+        h_rsp.SetTitle(hname)
+        filepath = "%s/%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat)
+        c.SaveAs(filepath)
+        return filepath
     except Exception:
-        pass
+        print "! No histogram %s exists" % hname
 
 
 def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
@@ -670,9 +673,11 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
         h_pt = get_from_file(calib_file, hname)
         c = generate_canvas()
         h_pt.Draw("HISTE")
-        c.SaveAs("%s/%s/L1_pt_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat))
+        filepath = "%s/%s/L1_pt_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat)
+        c.SaveAs(filepath)
+        return filepath
     except Exception:
-        pass
+        print "! No histogram %s exists" % hname
 
 
 def main(in_args=sys.argv[1:]):
@@ -884,9 +889,17 @@ def main(in_args=sys.argv[1:]):
 
             if eta_min > 2.9:
                 ptBins = binning.pt_bins_stage2_hf
+
+            # animated GIF - TODO
             for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
-                plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
-                plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+                rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'pdf')
+                rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                # img_rsp = ROOT.TImage.Open(rsp_name)
+                # gif_file = os.path.join(os.path.dirname(rsp_name), "rsp_eta_%sto%s.gif" % (str(eta_min).replace(".", "p"), str(eta_max).replace(".", "p")))
+                # if pt_min == ptBins[0] and os.path.isfile(gif_file):
+                #     os.remove(gif_file)
+                # img_rsp.WriteImage(gif_file + "+25")
+                pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
             # plot the graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
