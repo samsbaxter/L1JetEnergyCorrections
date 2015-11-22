@@ -130,8 +130,8 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
                                 input=os.path.join(tree_dir, ntuple),
                                 output=out_file,
                                 exe=exe,
-                                l1Dir='l1UpgradeTreeProducer',
-                                refDir='l1ExtraTreeProducerGenAk4',
+                                l1Dir='l1UpgradeTreeMP',
+                                refDir='l1ExtraTreeGenAk4',
                                 deltaR=deltaR,
                                 refMinPt=ref_min_pt)
                 dag.write('JOB {jobName} {jobFile}\n'.format(**job_dict))
