@@ -8,16 +8,16 @@ import FWCore.ParameterSet.Config as cms
 
 # To save the EDM content as well:
 # (WARNING: DON'T do this for big production - will be HUGE)
-save_EDM = False 
+save_EDM = False
 
 # Global tag (note, you must ensure it matches input file)
 # You don't need the "::All"!
 # gt = 'MCRUN2_74_V9'  # for Spring15 AVE20BX25
-gt = 'MCRUN2_75_V5'  # for Spring15 AVE20BX25 in 75X
-# gt = '76X_mcRun2_asymptotic_v5'  # for 76X MC
+# gt = 'MCRUN2_75_V5'  # for Spring15 AVE20BX25 in 75X
+gt = '76X_mcRun2_asymptotic_v5'  # for 76X MC
 
 # Things to append to L1Ntuple/EDM filename
-file_append = "_Stage2_newLut11NovPU15to25_calibMin0"
+file_append = "_Stage2_22Nov"
 
 # Add in a filename appendix here for your GlobalTag.
 file_append += "_" + gt
@@ -30,6 +30,8 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load("Configuration.StandardSequences.RawToDigi_cff")
+process.RawToDigi.remove(process.caloStage2Digis)
+process.RawToDigi_noTk.remove(process.caloStage2Digis)
 process.load('Configuration.StandardSequences.L1Reco_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration/StandardSequences/MagneticField_cff')
@@ -54,13 +56,6 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 ##############################
 process.load('L1Trigger.L1TCalorimeter.caloStage2Params_cfi')
 process.load('L1Trigger.L1TCalorimeter.L1TCaloStage2_cff')
-
-# Convert the Stage 2 jets to L1Extra objects
-process.stage2JetToL1Jet = cms.EDProducer('Stage2JetToL1Jet',
-    stage2JetSource = cms.InputTag('caloStage2Digis:MP'),
-    jetLsb = cms.double(0.5),
-    gtJets = cms.bool(False)
-)
 
 # Change jet seed to 1.5 GeV
 process.caloStage2Params.jetSeedThreshold = cms.double(1.5)
@@ -96,14 +91,15 @@ jetCalibParamsVector.extend([
     1,0,1,0,1,1,
     1,0,1,0,1,1
 ])
-process.caloStage2Params.jetCalibrationParams  = jetCalibParamsVector
+# process.caloStage2Params.jetCalibrationParams  = jetCalibParamsVector
+# file_append += "_newJec11Nov_calibMin0"
 
 # Turn off calibrations
-# process.caloStage2Params.jetCalibrationType = cms.string("None")
+process.caloStage2Params.jetCalibrationType = cms.string("None")
+file_append += "_noJec"
 
 process.load("L1Trigger.L1TNtuples.l1UpgradeTreeProducer_cfi")
-process.l1UpgradeTreeProducer.jetLabel = cms.untracked.InputTag('stage2JetToL1Jet')
-process.l1UpgradeTreeProducer.muonLabel = cms.untracked.InputTag('')
+process.l1UpgradeTreeProducer.jetToken = cms.untracked.InputTag('caloStage2Digis', 'MP')
 
 ##############################
 # Do ak4 GenJets
@@ -142,9 +138,7 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 process.p = cms.Path(
     process.ecalDigis # ecal unpacker
     *process.hcalDigis # hcal unpacker
-    # process.RawToDigi
     *process.L1TCaloStage2
-    *process.stage2JetToL1Jet
     *process.l1UpgradeTreeProducer
     *process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
     *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
@@ -167,7 +161,8 @@ elif gt in ['76X_mcRun2_asymptotic_v5', 'MCRUN2_75_V5', 'MCRUN2_74_V9']:
     fileNames = cms.untracked.vstring(
         # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
         # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/003BEF9B-C24E-E511-B4B7-0025905A609E.root'
-        'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
+        # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
+        'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/000E6EAA-E44E-E511-8C25-0025905A60AA.root'
         )
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)
