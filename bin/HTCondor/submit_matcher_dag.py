@@ -79,7 +79,7 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
         raise RuntimeError('Cannot find path for %s' % exe)
     log_dir = 'jobs/matcher/%s' % datestamp
     check_create_dir(log_dir)
-
+    check_create_dir('jobs/hadd')  # for Hadd jobs
     create_condor_description(template_file='submit_template.condor',
                               job_file=job_file,
                               log_dir=log_dir,
