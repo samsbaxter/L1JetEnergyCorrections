@@ -42,6 +42,12 @@ DELTA_R = 0.4
 # Minimum pt cut on reference jets
 PT_REF_MIN = 10
 
+# TDirectory name for the L1 jets
+L1_DIR = 'l1UpgradeTreeMP'
+
+# TDirectory name for the reference jets
+REF_DIR = 'l1ExtraTreeGenAk4'
+
 # Output filename append string.
 # The output filename is constructed as follows: for an input file named
 # "L1Tree_ABCDEFG_HIJKL_21.root", the output will be
@@ -56,6 +62,7 @@ APPEND = 'MP_ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace
 # DO NOT EDIT BELOW HERE
 # -----------------------------------------------------------------------------
 def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
+                       l1_dir=L1_DIR, ref_dir=REF_DIR,
                        deltaR=DELTA_R, ref_min_pt=PT_REF_MIN, force_submit=False):
     """Make DAG. Submit DAG."""
     # Before looping through the ntuple directories, we setup certain variables
@@ -130,8 +137,8 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
                                 input=os.path.join(tree_dir, ntuple),
                                 output=out_file,
                                 exe=exe,
-                                l1Dir='l1UpgradeTreeMP',
-                                refDir='l1ExtraTreeGenAk4',
+                                l1Dir=l1_dir,
+                                refDir=ref_dir,
                                 deltaR=deltaR,
                                 refMinPt=ref_min_pt)
                 dag.write('JOB {jobName} {jobFile}\n'.format(**job_dict))
