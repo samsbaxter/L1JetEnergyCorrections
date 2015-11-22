@@ -46,8 +46,9 @@ process.GlobalTag = GlobalTag(process.GlobalTag, gt)
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
-    "l1ExtraTreeProducerGenAk4",
-    "l1UpgradeTreeProducer",
+    "l1ExtraTreeGenAk4",
+    "l1UpgradeTree",
+    "l1UpgradeTreeMP",
     "csctfDigis"
 )
 
@@ -55,7 +56,11 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 # Load up Stage 2 emulator
 ##############################
 process.load('L1Trigger.L1TCalorimeter.caloStage2Params_cfi')
-process.load('L1Trigger.L1TCalorimeter.L1TCaloStage2_cff')
+process.load('L1Trigger.L1TCalorimeter.simCaloStage2Layer1Digis_cfi')
+process.load('L1Trigger.L1TCalorimeter.simCaloStage2Digis_cfi')
+
+process.simCaloStage2Layer1Digis.ecalToken = cms.InputTag('ecalDigis', 'EcalTriggerPrimitives')
+process.simCaloStage2Layer1Digis.hcalToken = cms.InputTag('hcalDigis')
 
 # Change jet seed to 1.5 GeV
 process.caloStage2Params.jetSeedThreshold = cms.double(1.5)
@@ -98,8 +103,11 @@ jetCalibParamsVector.extend([
 process.caloStage2Params.jetCalibrationType = cms.string("None")
 file_append += "_noJec"
 
-process.load("L1Trigger.L1TNtuples.l1UpgradeTreeProducer_cfi")
-process.l1UpgradeTreeProducer.jetToken = cms.untracked.InputTag('caloStage2Digis', 'MP')
+process.load("L1Trigger.L1TNtuples.l1UpgradeTree_cfi")
+process.l1UpgradeTree.jetToken = cms.untracked.InputTag('simCaloStage2Digis')
+
+process.l1UpgradeTreeMP = process.l1UpgradeTree.clone()
+process.l1UpgradeTreeMP.jetToken = cms.untracked.InputTag('simCaloStage2Digis', 'MP')
 
 ##############################
 # Do ak4 GenJets
@@ -110,19 +118,19 @@ process.genJetToL1JetAk4 = cms.EDProducer("GenJetToL1Jet",
 )
 
 # Put in another L1ExtraTree as cenJets
-process.load("L1Trigger.L1TNtuples.l1ExtraTreeProducer_cfi")
-process.l1ExtraTreeProducerGenAk4 = process.l1ExtraTreeProducer.clone()
-process.l1ExtraTreeProducerGenAk4.nonIsoEmLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.isoEmLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.tauJetLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.isoTauJetLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
-process.l1ExtraTreeProducerGenAk4.fwdJetLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.muonLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.metLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.mhtLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.hfRingsLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeProducerGenAk4.maxL1Extra = cms.uint32(50)
+process.load("L1Trigger.L1TNtuples.l1ExtraTree_cfi")
+process.l1ExtraTreeGenAk4 = process.l1ExtraTree.clone()
+process.l1ExtraTreeGenAk4.nonIsoEmLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.isoEmLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.tauJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.isoTauJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
+process.l1ExtraTreeGenAk4.fwdJetLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.muonLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.metLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.mhtLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.hfRingsLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.maxL1Extra = cms.uint32(50)
 
 ##############################
 # Store PU info (nvtx, etc)
@@ -138,10 +146,12 @@ process.puInfo = cms.EDAnalyzer("PileupInfo",
 process.p = cms.Path(
     process.ecalDigis # ecal unpacker
     *process.hcalDigis # hcal unpacker
-    *process.L1TCaloStage2
-    *process.l1UpgradeTreeProducer
+    *process.simCaloStage2Layer1Digis
+    *process.simCaloStage2Digis
+    *process.l1UpgradeTree
+    *process.l1UpgradeTreeMP
     *process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
-    *process.l1ExtraTreeProducerGenAk4 # ak4GenJets in cenJet branch
+    *process.l1ExtraTreeGenAk4 # ak4GenJets in cenJet branch
     *process.puInfo # store nVtx info
     )
 
@@ -161,8 +171,8 @@ elif gt in ['76X_mcRun2_asymptotic_v5', 'MCRUN2_75_V5', 'MCRUN2_74_V9']:
     fileNames = cms.untracked.vstring(
         # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
         # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/003BEF9B-C24E-E511-B4B7-0025905A609E.root'
-        # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
-        'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/000E6EAA-E44E-E511-8C25-0025905A60AA.root'
+        'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/00EA9A04-CD4E-E511-8F7B-001517E7410C.root'
+        # 'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/000E6EAA-E44E-E511-8C25-0025905A60AA.root'
         )
 else:
     raise RuntimeError("No file to use with GT: %s" % gt)

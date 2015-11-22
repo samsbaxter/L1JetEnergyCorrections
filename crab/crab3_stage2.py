@@ -12,7 +12,7 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage2_QCDFlatSpring15_PU10to30_HFfix_lyaer2NoLut_jetSeed0_11Oct15"
+job_append = "Stage2_QCDFlatSpring15BX25HCALFix_22Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec"
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
 datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]
