@@ -20,8 +20,8 @@ from time import strftime, sleep
 from subprocess import call
 
 
-config = "../python/SimL1Emulator_Stage2_newLut.py"
-outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_5_0_pre5/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_layer2NewLut11NovPU15to25_jetSeed0"
+config = "../python/SimL1Emulator_Stage2.py"
+outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_22Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_test"
 
 datasets = ['QCDFlatSpring15BX25PU10to30HCALFix', 'QCDFlatSpring15BX25FlatNoPUHCALFix']
 
