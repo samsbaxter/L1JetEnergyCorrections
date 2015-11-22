@@ -70,7 +70,6 @@ int main(int argc, char* argv[]) {
     // get input TTrees
     // Reference jets
     TString refJetDirectory = opts.refJetDirectory();
-    std::vector<std::string> refJetBranches = opts.refJetBranchNames();
     L1GenericTree<L1AnalysisL1ExtraDataFormat> refJetTree(opts.inputFilename(), 
                                                           refJetDirectory+"/L1ExtraTree", 
                                                           "L1Extra");
@@ -78,7 +77,6 @@ int main(int argc, char* argv[]) {
 
     // L1 jets
     TString l1JetDirectory = opts.l1JetDirectory();
-    std::vector<std::string> l1JetBranches  = opts.l1JetBranchNames();
     L1GenericTree<L1AnalysisL1UpgradeDataFormat> l1JetTree(opts.inputFilename(), 
                                                            l1JetDirectory+"/L1UpgradeTree", 
                                                            "L1Upgrade");
