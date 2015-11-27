@@ -937,8 +937,11 @@ def main(in_args=sys.argv[1:]):
 
     # Do plots with output from runCalibration.py
     if args.calib:
+
         calib_file = open_root_file(args.calib)
-        for eta_min, eta_max in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+
+        for eta_min, eta_max in zip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
+
             print eta_min, eta_max
             for (normX, logZ) in product([True, False], [True, False]):
                 plot_rsp_Vs_ref(calib_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
