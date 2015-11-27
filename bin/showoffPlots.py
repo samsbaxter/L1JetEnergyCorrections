@@ -832,6 +832,7 @@ def main(in_args=sys.argv[1:]):
         pairs_file.Close()
 
     # Do plots with output from makeResolutionPlots.py
+    # ------------------------------------------------------------------------
     if args.res:
         res_file = open_root_file(args.res)
         if not args.res2:
@@ -881,6 +882,7 @@ def main(in_args=sys.argv[1:]):
         res_file.Close()
 
     # Do plots with output from checkCalibration.py
+    # ------------------------------------------------------------------------
     if args.checkcal:
 
         etaBins = binning.eta_bins_central
@@ -939,6 +941,7 @@ def main(in_args=sys.argv[1:]):
         check_file.Close()
 
     # Do plots with output from runCalibration.py
+    # ------------------------------------------------------------------------
     if args.calib:
 
         calib_file = open_root_file(args.calib)
@@ -973,12 +976,13 @@ def main(in_args=sys.argv[1:]):
                         pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
                         if pt_name: pt_list.write(pt_name + '\n')
 
+                print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_rsp.txt):"
+                print "convert -delay 50 -loop 0 @%s/eta_0_0.348/list_rsp.txt %s/eta_0_0.348/rsp.gif" % (args.oDir.rstrip("/"), args.oDir.rstrip("/"))
+
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
 
         calib_file.Close()
-        print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_rsp.txt):"
-        print "convert -delay 50 -loop 0 @%s/eta_0_0.348/list_rsp.txt %s/eta_0_0.348/rsp.gif" % (args.oDir.rstrip("/"), args.oDir.rstrip("/"))
 
 if __name__ == "__main__":
     main()
