@@ -630,6 +630,49 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
+def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf'):
+    """Plot a graph of response vs pt_var, in bins of eta"""
+
+    mg = ROOT.TMultiGraph()
+    leg = generate_legend(x1=0.65, y1=0.65)
+    c = generate_canvas(plot_title)
+    gr_name = "eta_{0:g}_{1:g}/gr_rsp_%s_eta_{0:g}_{1:g}" % (pt_var)
+    for i, (eta_min, eta_max) in enumerate(zip(eta_bins[:-1], eta_bins[1:])):
+        g = get_from_file(check_file, gr_name.format(eta_min, eta_max))
+        g.SetLineColor(binning.eta_bin_colors[i])
+        g.SetMarkerColor(binning.eta_bin_colors[i])
+        g.SetMarkerStyle(plot_markers[0])
+        mg.Add(g)
+        # leg.AddEntry(g, plot_labels[0] + " %g < |#eta^{L1}| < %g" % (eta_min, eta_var), "LP")
+        leg.AddEntry(g, " %g < |#eta^{L1}| < %g" % (eta_min, eta_max), "LP")
+
+    pt_min, pt_max = 0, 1022
+    # lines at 1, and +/- 0.1
+    line_central = ROOT.TLine(pt_min, 1, pt_max, 1)
+    line_plus = ROOT.TLine(pt_min, 1.1, pt_max, 1.1)
+    line_minus = ROOT.TLine(pt_min, 0.9, pt_max, 0.9)
+    line_central.SetLineWidth(2)
+    line_central.SetLineStyle(2)
+    for line in [line_plus, line_minus]:
+        line.SetLineWidth(2)
+        line.SetLineStyle(3)
+
+    # bundle all graphs into a TMultiGraph - set axes limits here
+    mg.Draw("ALP")
+    mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
+    mg.GetXaxis().SetLimits(pt_min, pt_max)
+    mg.GetXaxis().SetTitleSize(0.04)
+    mg.GetXaxis().SetTitleOffset(0.9)
+    # mg.GetYaxis().SetTitleSize(0.04)
+    mg.Draw("ALP")
+    xtitle = pt_l1_str if pt_var == "pt" else pt_ref_str
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title, xtitle, rsp_str))
+
+    leg.Draw()
+    [line.Draw() for line in [line_central, line_plus, line_minus]]
+    c.SaveAs("%s/gr_rsp_%s_eta_%g_%g_binned.%s" % (oDir, pt_var, eta_bins[0], eta_bins[-1], oFormat))
+
+
 #############################################
 # PLOTS USING OUTPUT FROM runCalibration
 #############################################
@@ -847,6 +890,9 @@ def main(in_args=sys.argv[1:]):
             # plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBinsWide, args.oDir, args.format)
             plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
             plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+        # Graph of response vs pt, but in bins of eta
+        plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
+        plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format)
 
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
