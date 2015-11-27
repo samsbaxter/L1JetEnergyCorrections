@@ -141,7 +141,12 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, pt_min, pt_max, pt_var, pu_min
         tree_raw.Draw("rsp>>%s(%d,%g,%g)" % (rsp_name, nb_rsp, rsp_min, rsp_max), cutStr)
         h_rsp = ROOT.gROOT.FindObject(rsp_name)
         h_rsp.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
-        print h_rsp.Integral()
+
+        print 'Integral', h_rsp.Integral()
+
+        if h_rsp.Integral() <= 0:
+            print "No entries - skipping"
+            continue
 
         # Fit with Gaussian
         peak = h_rsp.GetBinCenter(h_rsp.GetMaximumBin())
@@ -238,7 +243,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
         h_rsp = h2d_rsp_pt.ProjectionY("rsp_%s_%g_%g" % (pt_var, pt_min, pt_max), i + 1, i + 1)
         print i, pt_min, pt_max
 
-        if h_rsp.Integral() < 0:
+        if h_rsp.Integral() <= 0:
             print "No entries - skipping"
             continue
 
