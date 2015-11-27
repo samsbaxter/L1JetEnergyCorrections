@@ -349,24 +349,25 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
     h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
     # lines of constant response
-    line1 = ROOT.TLine(0, 0, 250, 250)
+    max_pt = 1022
+    line1 = ROOT.TLine(0, 0, max_pt, max_pt)
     line1.SetLineStyle(1)
     line1.SetLineWidth(2)
     line1.Draw()
-    line1p25 = ROOT.TLine(0, 0, 250 / 1.25, 250)
-    line1p25.SetLineStyle(2)
+    line1p25 = ROOT.TLine(0, 0, max_pt / 1.25, max_pt)
+    # line1p25.SetLineStyle(2)
     line1p25.SetLineWidth(2)
     line1p25.Draw()
-    line1p5 = ROOT.TLine(0, 0, 250 / 1.5, 250)
-    line1p5.SetLineStyle(3)
+    line1p5 = ROOT.TLine(0, 0, max_pt / 1.5, max_pt)
+    # line1p5.SetLineStyle(3)
     line1p5.SetLineWidth(2)
     line1p5.Draw()
-    line0p75 = ROOT.TLine(0, 0, 250, 250 * 0.75)
-    line0p75.SetLineStyle(2)
+    line0p75 = ROOT.TLine(0, 0, max_pt, max_pt * 0.75)
+    # line0p75.SetLineStyle(2)
     line0p75.SetLineWidth(2)
     line0p75.Draw()
-    line0p5 = ROOT.TLine(0, 0, 250, 250 * 0.5)
-    line0p5.SetLineStyle(3)
+    line0p5 = ROOT.TLine(0, 0, max_pt, max_pt * 0.5)
+    # line0p5.SetLineStyle(3)
     line0p5.SetLineWidth(2)
     line0p5.Draw()
     c.SaveAs("%s/h2d_gen_l1_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
@@ -389,7 +390,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
         app += "_log"
     h2d_rsp_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_l1_str, rsp_str))
     h2d_rsp_l1.Draw("COLZ")
-    line = ROOT.TLine(0, 1, 250, 1)
+    line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
     line.Draw()
@@ -413,7 +414,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
         app += "_log"
     h2d_rsp_ref.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
     h2d_rsp_ref.Draw("COLZ")
-    line = ROOT.TLine(0, 1, 250, 1)
+    line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
     line.Draw()
@@ -554,7 +555,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
         mg.Add(g)
         leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
-    pt_min, pt_max = 0, 250
+    pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(pt_min, 1, pt_max, 1)
     line_plus = ROOT.TLine(pt_min, 1.1, pt_max, 1.1)
@@ -568,7 +569,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
     mg.GetYaxis().SetRangeUser(rsp_min, rsp_max)
-    mg.GetXaxis().SetLimits(0, 250)
+    mg.GetXaxis().SetLimits(pt_min, pt_max)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
@@ -601,7 +602,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
         mg.Add(g)
         leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
 
-    pt_min, pt_max = 0, 250
+    pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(pt_min, 1, pt_max, 1)
     line_plus = ROOT.TLine(pt_min, 1.1, pt_max, 1.1)
@@ -615,7 +616,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     # bundle all graphs into a TMultiGraph - set axes limits here
     mg.Draw("ALP")
     mg.GetYaxis().SetRangeUser(rsp_min, 2)
-    mg.GetXaxis().SetLimits(0, 250)
+    mg.GetXaxis().SetLimits(pt_min, pt_max)
     mg.GetXaxis().SetTitleSize(0.04)
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
