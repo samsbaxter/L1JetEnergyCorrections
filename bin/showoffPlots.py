@@ -483,7 +483,7 @@ def plot_rsp_eta_new(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForma
     pt_var is the varaible (pt or ptRef)
     """
     mg = ROOT.TMultiGraph()
-    leg = generate_legend()
+    leg = generate_legend(x1=0.65, y1=0.65)
     c = generate_canvas(plot_title)
     gr_name = "eta_%g_%g/gr_rsp_eta_%g_%g_{0}_{1}_{2}" % (eta_min, eta_max, eta_min, eta_max)
     for i, (pt_min, pt_max) in enumerate(pt_bins):
@@ -492,7 +492,8 @@ def plot_rsp_eta_new(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForma
         g.SetMarkerColor(binning.eta_bin_colors[i])
         g.SetMarkerStyle(plot_markers[0])
         mg.Add(g)
-        leg.AddEntry(g, plot_labels[0] + " %g < %s < %g" % (pt_min, pt_var, pt_max), "LP")
+        # leg.AddEntry(g, plot_labels[0] + " %g < %s < %g" % (pt_min, pt_var, pt_max), "LP")
+        leg.AddEntry(g, " %g < %s < %g" % (pt_min, pt_var, pt_max), "LP")
 
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
