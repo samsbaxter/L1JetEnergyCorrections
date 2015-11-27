@@ -383,7 +383,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
         h2d_rsp_l1_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max))
         if normX:
             h2d_rsp_l1_orig = norm_vertical_bins(h2d_rsp_l1_orig)
-    h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(1, 2, "hnew")
+    h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(2, 2, "hnew")
     c = generate_canvas()
     if logZ:
         c.SetLogz()
@@ -407,7 +407,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
         h2d_rsp_ref_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max))
         if normX:
             h2d_rsp_ref_orig = norm_vertical_bins(h2d_rsp_ref_orig)
-    h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(1, 2, "hnew")
+    h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(2, 2, "hnew")
     c = generate_canvas()
     if logZ:
         c.SetLogz()
