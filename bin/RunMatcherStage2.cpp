@@ -118,24 +118,31 @@ int main(int argc, char* argv[]) {
 
     // Quantities for L1 jets:
     float out_pt(-1.), out_eta(99.), out_phi(99.);
-    outTree.Branch("pt",     &out_pt,     "pt/Float_t");
-    outTree.Branch("eta",    &out_eta,    "eta/Float_t");
-    outTree.Branch("phi",    &out_phi,    "phi/Float_t");
+    int out_nL1(-1); // number of jets in the event,
+    int out_ind(-1); // index of this jet in the collection (ordered by descending pT)
+    outTree.Branch("pt", &out_pt, "pt/Float_t");
+    outTree.Branch("eta", &out_eta, "eta/Float_t");
+    outTree.Branch("phi", &out_phi, "phi/Float_t");
+    outTree.Branch("nL1", &out_nL1, "nL1/Int_t");
+    outTree.Branch("indL1", &out_ind, "indL1/Int_t");
     // Quantities for reference jets (GenJet, etc):
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
-    outTree.Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
+    int out_nRef(-1), out_indRef;
+    outTree.Branch("ptRef", &out_ptRef, "ptRef/Float_t");
     outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
     outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
+    outTree.Branch("nRef", &out_nRef, "nRef/Int_t");
+    outTree.Branch("inRef", &out_indRef, "indRef/Int_t");
     // Quantities to describe relationship between the two:
     float out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
     outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
-    outTree.Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree.Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
-    outTree.Branch("dr",     &out_dr,     "dr/Float_t");
-    outTree.Branch("deta",   &out_deta,   "deta/Float_t");
-    outTree.Branch("dphi",   &out_dphi,   "dphi/Float_t");
+    outTree.Branch("rsp", &out_rsp, "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
+    outTree.Branch("dr", &out_dr, "dr/Float_t");
+    outTree.Branch("deta", &out_deta, "deta/Float_t");
+    outTree.Branch("dphi", &out_dphi, "dphi/Float_t");
     outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
     outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
     // PU quantities
@@ -192,6 +199,9 @@ int main(int argc, char* argv[]) {
         // Get vectors of ref & L1 jets from trees
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
         std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
+
+        out_nL1 = l1Jets.size();
+        out_nRef = refJets.size();
 
         // Pass jets to matcher, do matching
         matcher->setRefJets(refJets);
