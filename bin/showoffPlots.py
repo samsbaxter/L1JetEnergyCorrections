@@ -885,11 +885,11 @@ def main(in_args=sys.argv[1:]):
 
         # indiviudal eta bins
         for eta_min, eta_max in izip(etaBins[:-1], etaBins[1:]):
-            plot_rsp_Vs_l1(check_file, eta_min, eta_max, False, False, args.oDir, 'png')
-            plot_rsp_Vs_ref(check_file, eta_min, eta_max, False, False, args.oDir, 'png')
-            # plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBinsWide, args.oDir, args.format)
-            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
-            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+            for (normX, logZ) in product([True, False], [True, False]):
+                plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
+                plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
+                plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
+
         # Graph of response vs pt, but in bins of eta
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
         plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format)
