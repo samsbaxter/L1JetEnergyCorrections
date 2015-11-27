@@ -51,7 +51,7 @@ def compare():
     f_PU30to40_stage1 = os.path.join(s1, 'output_QCDFlatSpring15BX25PU10to30HCALFix_Stage1_MCRUN2_74_V9_jetSeed0_noStage1Lut_rctv4_preGt_ak4_ref14to1000_l10to500_dr0p7_PU30to40.root')
 
     # Loop over eta bins
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins[:-1], binning.eta_bins[1:])):
+    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:])):
         """
         # --------------------------------------------------------------------
         # Compare diff PU scenarios for new MC
