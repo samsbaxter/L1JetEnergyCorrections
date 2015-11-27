@@ -20,6 +20,7 @@
 // #include <boost/algorithm/string.hpp>
 
 // Headers from L1TNtuples
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 
@@ -33,6 +34,7 @@
 
 using std::cout;
 using std::endl;
+using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 
@@ -85,6 +87,12 @@ int main(int argc, char* argv[]) {
     // TTree that holds PileupInfo
     PileupInfoTree puInfoTree(opts.inputFilename());
 
+    // hold Event tree
+    L1GenericTree<L1AnalysisEventDataFormat> eventTree(opts.inputFilename(),
+                                                         "l1Tree/L1Tree",
+                                                         "Event");
+    L1AnalysisEventDataFormat * eventData = eventTree.getData();
+
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
@@ -135,8 +143,8 @@ int main(int argc, char* argv[]) {
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
     outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
     // Event number
-    // int out_event(0);
-    // outTree.Branch("event", &out_event, "event/Int_t");
+    int out_event(0);
+    outTree.Branch("event", &out_event, "event/Int_t");
 
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetTree.getEntries();
@@ -168,7 +176,12 @@ int main(int argc, char* argv[]) {
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
-        if (refJetTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1) break;
+        if (refJetTree.getEntry(iEntry) < 1 ||
+            l1JetTree.getEntry(iEntry) < 1 || eventTree.getEntry(iEntry) < 1)
+            break;
+
+        // event number
+        out_event = eventData->event;
 
         // get pileup quantities
         // note these get stored once per pair of matched jets NOT once per event
@@ -216,7 +229,7 @@ int main(int argc, char* argv[]) {
                 // get jets post pT, eta cuts
                 JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
 
-                TString pdfname = TString::Format("%splots_%s_%s_%s/jets_%lld.pdf",
+                TString pdfname = TString::Format("%splots_%s_%s_%s/jets_%d.pdf",
                     outDir.Data(), inStem.Data(), "gen", "l1", iEntry);
                 drawer.drawAndSave(pdfname);
 
