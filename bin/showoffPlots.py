@@ -754,12 +754,14 @@ def main(in_args=sys.argv[1:]):
 
     parser.add_argument("--oDir",
                         help="Directory to save plots. Default is $PWD.")
+    parser.add_argument("--detail",
+                        help="Plot all the individual component hists for each eta bin. There are a lot!",
+                        action='store_true')
     parser.add_argument("--format",
                         help="Format for plots (PDF, png, etc)",
                         default="pdf")
     parser.add_argument("--etaInd",
                         help="list of eta bin index to run over")
-
     args = parser.parse_args(args=in_args)
 
     print args
@@ -890,11 +892,17 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
                 plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
+            if args.detail:
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBinsWide, args.oDir, args.format)
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+
         # Graph of response vs pt, but in bins of eta
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
         plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format)
 
         check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
+
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
         # for (eta_min, eta_max) in product([0, 3], [3, 5]):
         for (eta_min, eta_max) in [[0, 3]]:
@@ -906,8 +914,9 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
                 plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
-            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
-            plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+            if args.detail:
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
 
             # graphs
             plot_rsp_eta_old(check_files, eta_min, eta_max, 'pt', args.oDir, args.format)
