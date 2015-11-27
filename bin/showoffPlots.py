@@ -328,7 +328,10 @@ def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
 def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin with a pt cut"""
     hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
-    h_rsp = get_from_file(calib_file, hname)
+    try:
+        h_rsp = get_from_file(calib_file, hname)
+    except Exception:
+        return
     func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
     h_rsp.Draw("HISTE")
