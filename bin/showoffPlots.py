@@ -943,29 +943,39 @@ def main(in_args=sys.argv[1:]):
         for eta_min, eta_max in zip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
 
             print eta_min, eta_max
+
+            # 2D correlation heat maps
             for (normX, logZ) in product([True, False], [True, False]):
-                plot_rsp_Vs_ref(calib_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
-                plot_rsp_Vs_l1(calib_file, eta_min, eta_max, normX, logZ, args.oDir, args.format)
+                plot_rsp_Vs_ref(calib_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
+                plot_rsp_Vs_l1(calib_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
-            if eta_min > 2.9:
-                ptBins = binning.pt_bins_stage2_hf
+            # individual fit histograms for each pt bin
+            if args.detail:
 
-            # animated GIF - TODO
-            for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
-                rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'pdf')
-                rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                # img_rsp = ROOT.TImage.Open(rsp_name)
-                # gif_file = os.path.join(os.path.dirname(rsp_name), "rsp_eta_%sto%s.gif" % (str(eta_min).replace(".", "p"), str(eta_max).replace(".", "p")))
-                # if pt_min == ptBins[0] and os.path.isfile(gif_file):
-                #     os.remove(gif_file)
-                # img_rsp.WriteImage(gif_file + "+25")
-                pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+                list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
+                check_dir_exists_create(list_dir)
 
-            # plot the graph
+                # list of histograms (in the correct order) for converting to animated GIFs
+                # use imagemagick e.g.
+                # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
+                with open(os.path.join(list_dir, 'list_rsp.txt'), 'w') as rsp_list, \
+                     open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_list:
+
+                    if eta_min > 2.9:
+                        ptBins = binning.pt_bins_stage2_hf
+
+                    for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
+                        rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                        if rsp_name: rsp_list.write(rsp_name + '\n')
+                        pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                        if pt_name: pt_list.write(pt_name + '\n')
+
+            # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
 
         calib_file.Close()
-
+        print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_rsp.txt):"
+        print "convert -delay 50 -loop 0 @%s/eta_0_0.348/list_rsp.txt %s/eta_0_0.348/rsp.gif" % (args.oDir.rstrip("/"), args.oDir.rstrip("/"))
 
 if __name__ == "__main__":
     main()
