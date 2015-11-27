@@ -49,6 +49,8 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
     "l1ExtraTreeGenAk4",
     "l1UpgradeTree",
     "l1UpgradeTreeMP",
+    "l1UpgradeSimTree",
+    "l1UpgradeSimTreeMP",
     "csctfDigis"
 )
 
@@ -103,11 +105,17 @@ jetCalibParamsVector.extend([
 process.caloStage2Params.jetCalibrationType = cms.string("None")
 file_append += "_noJec"
 
-process.load("L1Trigger.L1TNtuples.l1UpgradeTree_cfi")
-process.l1UpgradeTree.jetToken = cms.untracked.InputTag('simCaloStage2Digis')
+process.load('L1Trigger.L1TNtuples.L1NtupleRAW_cff')
+process.l1CaloTowerSimTree.ecalToken = cms.untracked.InputTag("ecalDigis", "EcalTriggerPrimitives")
+process.l1CaloTowerSimTree.hcalToken = cms.untracked.InputTag("hcalDigis")
 
-process.l1UpgradeTreeMP = process.l1UpgradeTree.clone()
-process.l1UpgradeTreeMP.jetToken = cms.untracked.InputTag('simCaloStage2Digis', 'MP')
+process.L1NtupleRAW.remove(process.l1CaloTowerTree)  # remove HW trees
+process.L1NtupleRAW.remove(process.l1UpgradeTree)
+
+# Add in tree for MP jets (before demuxing)
+process.l1UpgradeSimTreeMP = process.l1UpgradeSimTree.clone()
+process.l1UpgradeSimTreeMP.jetToken = cms.untracked.InputTag('simCaloStage2Digis', 'MP')
+
 
 ##############################
 # Do ak4 GenJets
@@ -148,8 +156,8 @@ process.p = cms.Path(
     *process.hcalDigis # hcal unpacker
     *process.simCaloStage2Layer1Digis
     *process.simCaloStage2Digis
-    *process.l1UpgradeTree
-    *process.l1UpgradeTreeMP
+    *process.L1NtupleRAW
+    *process.l1UpgradeSimTreeMP
     *process.genJetToL1JetAk4 # convert ak4GenJets to L1Jet objs
     *process.l1ExtraTreeGenAk4 # ak4GenJets in cenJet branch
     *process.puInfo # store nVtx info
