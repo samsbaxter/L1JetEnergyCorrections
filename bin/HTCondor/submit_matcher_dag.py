@@ -120,9 +120,11 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
         with open(dag_file, 'w') as dag:
             print 'Making DAG file', dag_file
 
-            for ntuple in os.listdir(tree_dir):
-                if not ntuple.startswith('L1Tree') or not ntuple.endswith(".root"):
+            for ind, ntuple in enumerate(os.listdir(tree_dir)):
+                if not ntuple.endswith(".root") or ntuple.startswith('pairs'):
+                    print "Skipping", ntuple
                     continue
+
                 ntuple_name = os.path.splitext(os.path.basename(ntuple))[0]
                 pairs_file = '%s_%s.root' % (ntuple_name.replace('L1Tree_', 'pairs_'),
                                              append_str)
@@ -130,7 +132,10 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
                 out_file = os.path.join(tree_dir, pairs_file)
                 out_filenames.append(out_file)
 
-                index = re.findall(r'_\d*$', ntuple_name)[0]
+                index = ind
+                finder = re.findall(r'_\d*$', ntuple_name)
+                if finder:
+                    index = finder[0]
                 job_name = 'pairs%s' % index
                 job_names.append(job_name)
                 job_dict = dict(jobName=job_name, jobFile=job_file,
