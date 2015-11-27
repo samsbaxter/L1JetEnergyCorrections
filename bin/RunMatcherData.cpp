@@ -19,21 +19,26 @@
 #include <boost/filesystem.hpp>
 // #include <boost/algorithm/string.hpp>
 
+// Headers from L1TNtuples
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoJetDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
+
 // Headers from this package
 #include "DeltaR_Matcher.h"
 #include "commonRootUtils.h"
-#include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
 #include "L1GenericTree.h"
-#include "L1Ntuple.h"
 
 using std::cout;
 using std::endl;
+using L1Analysis::L1AnalysisEventDataFormat;
+using L1Analysis::L1AnalysisRecoJetDataFormat;
+using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
-TString getSuffixFromDirectory(const TString& dir);
 // bool checkTriggerFired(std::vector<TString> hlt, const TString& selection);
 std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
                                                 std::vector<double> eta,
@@ -45,19 +50,15 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
 
 
 /**
- * @brief This program implements an instance of Matcher to produce a ROOT file
- * with matching jet pairs from a L1NTuple file produced by
- * python/l1Ntuple_cfg.py. Can also optionally apply correction functions, and
- * emulate the GCT/Stage 1 by sorting & keeping top 4 cen & fwd jets.
- *
+ * @brief
  * This version is for running on data, when you want to take L1 jets from the
- * L1Extra collection, and reference jets from the RecoTree.
+ * L1Upgrade collection, and reference jets from the RecoTree.
  *
  * @author Robin Aggleton, Nov 2015
  */
 int main(int argc, char* argv[]) {
 
-    cout << "Running Matcher for data, L1 jets from L1Extra, ref jets from RecoTree" << std::endl;
+    cout << "Running Matcher for data" << std::endl;
 
     // deal with user args
     RunMatcherOpts opts(argc, argv);
@@ -65,10 +66,27 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // SETUP INPUT FILES //
     ///////////////////////
-    L1Ntuple ntuple(opts.inputFilename());
-    L1Analysis::L1AnalysisEventDataFormat * event = ntuple.event_;
-    L1Analysis::L1AnalysisL1ExtraDataFormat * l1JetTree = ntuple.l1extra_;
-    L1Analysis::L1AnalysisRecoJetDataFormat * recoJetTree = ntuple.recoJet_;
+    // get input TTrees
+    // Reco jets
+    TString refJetDirectory = opts.refJetDirectory();
+    L1GenericTree<L1AnalysisRecoJetDataFormat> refJetTree(opts.inputFilename(),
+                                                          refJetDirectory+"/JetRecoTree",
+                                                          "Jet");
+    L1AnalysisRecoJetDataFormat * refData = refJetTree.getData();
+
+    // L1 jets
+    TString l1JetDirectory = opts.l1JetDirectory();
+    L1GenericTree<L1AnalysisL1UpgradeDataFormat> l1JetTree(opts.inputFilename(),
+                                                           l1JetDirectory+"/L1UpgradeTree",
+                                                           "L1Upgrade");
+    L1AnalysisL1UpgradeDataFormat * l1Data = l1JetTree.getData();
+
+
+    // hold Event tree
+    L1GenericTree<L1AnalysisEventDataFormat> eventTree(opts.inputFilename(),
+                                                       "l1Tree/L1Tree",
+                                                       "Event");
+    L1AnalysisEventDataFormat * eventData = eventTree.getData();
 
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
@@ -92,41 +110,58 @@ int main(int argc, char* argv[]) {
 
     // setup output tree to store raw variable for quick plotting/debugging
     TTree outTree("valid", "valid");
-    // pt/eta/phi are for l1 jets, ptRef, etc are for ref jets
-    float out_pt(-1.), out_eta(99.), out_phi(99.), out_rsp(-1.), out_rsp_inv(-1.);
-    float out_dr(99.), out_deta(99.), out_dphi(99.);
+    // Quantities for L1 jets:
+    float out_pt(-1.), out_eta(99.), out_phi(99.);
+    int out_nL1(-1); // number of jets in the event,
+    int out_ind(-1); // index of this jet in the collection (ordered by descending pT)
+    outTree.Branch("pt", &out_pt, "pt/Float_t");
+    outTree.Branch("eta", &out_eta, "eta/Float_t");
+    outTree.Branch("phi", &out_phi, "phi/Float_t");
+    outTree.Branch("nL1", &out_nL1, "nL1/Int_t");
+    outTree.Branch("indL1", &out_ind, "indL1/Int_t");
+    // Quantities for reference jets (GenJet, etc):
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
-    float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
-    float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
-
-    outTree.Branch("pt",     &out_pt,     "pt/Float_t");
-    outTree.Branch("eta",    &out_eta,    "eta/Float_t");
-    outTree.Branch("phi",    &out_phi,    "phi/Float_t");
-    outTree.Branch("rsp",    &out_rsp,    "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree.Branch("rsp_inv",   &out_rsp_inv,   "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
-    outTree.Branch("dr",     &out_dr,     "dr/Float_t");
-    outTree.Branch("deta",   &out_deta,   "deta/Float_t");
-    outTree.Branch("dphi",   &out_dphi,   "dphi/Float_t");
-    outTree.Branch("ptRef",  &out_ptRef, "ptRef/Float_t");
+    int out_nRef(-1), out_indRef;
+    outTree.Branch("ptRef", &out_ptRef, "ptRef/Float_t");
     outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
     outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
+    outTree.Branch("nRef", &out_nRef, "nRef/Int_t");
+    outTree.Branch("inRef", &out_indRef, "indRef/Int_t");
+    // Quantities to describe relationship between the two:
+    float out_rsp(-1.), out_rsp_inv(-1.);
+    float out_dr(99.), out_deta(99.), out_dphi(99.);
+    float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
     outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
+    outTree.Branch("rsp", &out_rsp, "rsp/Float_t"); // response = l1 pT/ ref jet pT
+    outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
+    outTree.Branch("dr", &out_dr, "dr/Float_t");
+    outTree.Branch("deta", &out_deta, "deta/Float_t");
+    outTree.Branch("dphi", &out_dphi, "dphi/Float_t");
     outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
     outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    // PU quantities
+    float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
     outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    // Event number
+    int out_event(0);
+    outTree.Branch("event", &out_event, "event/Int_t");
 
-    Long64_t nEntries = ntuple.GetEntries();
-    if (opts.nEvents() > 0 && opts.nEvents() <= nEntries) {
-        nEntries = opts.nEvents();
+    Long64_t nEntriesRef = refJetTree.getEntries();
+    Long64_t nEntriesL1  = l1JetTree.getEntries();
+    Long64_t nEntries(0);
+    if (nEntriesRef != nEntriesL1) {
+        throw range_error("Different number of events in L1 & ref trees");
+    } else {
+        nEntries = (opts.nEvents() > 0) ? opts.nEvents() : nEntriesL1;
+        cout << "Running over " << nEntries << " events." << endl;
     }
-    cout << "Running over " << nEntries << " events." << endl;
 
     ///////////////////////
     // SETUP JET MATCHER //
     ///////////////////////
-    double maxDeltaR(0.7), minRefJetPt(14.), maxRefJetPt(1000.);
-    double minL1JetPt(0.), maxL1JetPt(500.), maxJetEta(5);
+    double maxDeltaR(opts.deltaR()), minRefJetPt(opts.refJetMinPt()), maxRefJetPt(5000.);
+    double minL1JetPt(0.1), maxL1JetPt(5000.), maxJetEta(5);
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     std::cout << *matcher << std::endl;
 
@@ -138,28 +173,27 @@ int main(int argc, char* argv[]) {
     Long64_t matchedEvent = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
-        if (ntuple.GetEntry(iEntry) == 0) {
-            break;
-        }
-
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
+        if (refJetTree.getEntry(iEntry) < 1 ||
+            l1JetTree.getEntry(iEntry) < 1 || eventTree.getEntry(iEntry) < 1)
+            break;
 
-        if (std::find(event->hlt.begin(), event->hlt.end(), "HLT_ZeroBias_v1") == event->hlt.end()) {
-            continue;
-        }
+        // event number
+        out_event = eventData->event;
+
+        // if (std::find(event->hlt.begin(), event->hlt.end(), "HLT_ZeroBias_v1") == event->hlt.end()) {
+        //     continue;
+        // }
 
         // Get vectors of ref & L1 jets from trees
         // Note that we only want BX = 0 (the collision)
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors(recoJetTree->etCorr, recoJetTree->eta, recoJetTree->phi);
-        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1JetTree->cenJetEt, l1JetTree->cenJetEta, l1JetTree->cenJetPhi, l1JetTree->cenJetBx);
-        std::vector<TLorentzVector> fwdJets  = makeTLorentzVectors(l1JetTree->fwdJetEt, l1JetTree->fwdJetEta, l1JetTree->fwdJetPhi, l1JetTree->fwdJetBx);
-        l1Jets.insert(l1Jets.end(), fwdJets.begin(), fwdJets.end());
-        // std::vector<TLorentzVector> tauJets  = makeTLorentzVectors(l1JetTree->tauJetEt, l1JetTree->tauJetEta, l1JetTree->tauJetPhi, l1JetTree->tauJetBx);  // only enable taus for GCT, not for Stage 1 or 2
-        // l1Jets.insert(l1Jets.end(), tauJets.begin(), tauJets.end());
-        // cout << "# refJets: " << refJets.size() << endl;
-        // cout << "# l1Jets: " << l1Jets.size() << endl;
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
+        std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi, l1Data->jetBx);
+
+        out_nL1 = l1Jets.size();
+        out_nRef = refJets.size();
 
         // Pass jets to matcher, do matching
         matcher->setRefJets(refJets);
@@ -218,23 +252,6 @@ int main(int argc, char* argv[]) {
     outFile->Close();
 
     cout << matchedEvent << "events had 1+ matches, out of " << nEntries << endl;
-}
-
-
-/**
- * @brief Get suffix from TDirectory name
- * @details Assumes it starts with "l1ExtraTreeProducer", so
- * e.g. "l1ExtraTreeProducerGctIntern" produces "gctIntern"
- *
- * @param dir Directory name
- * @return Suitable suffix
- */
-TString getSuffixFromDirectory(const TString& dir) {
-    TString suffix(dir);
-    TRegexp re("l1ExtraTreeProducer");
-    suffix(re) = "";
-    if (suffix == "") suffix = dir;
-    return suffix;
 }
 
 
