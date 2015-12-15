@@ -40,14 +40,24 @@ namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
 // bool checkTriggerFired(std::vector<TString> hlt, const TString& selection);
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi);
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi,
-                                                std::vector<int> bx);
-
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
+                                                std::vector<float> eta,
+                                                std::vector<float> phi);
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
+                                                std::vector<float> eta,
+                                                std::vector<float> phi,
+                                                std::vector<short> bx);
+std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality);
+int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets);
+bool looseCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
+bool tightCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
+bool tightLepVetoCleaning(float eta,
+                          float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                          short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
 
 /**
  * @brief
@@ -126,7 +136,24 @@ int main(int argc, char* argv[]) {
     outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
     outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
     outTree.Branch("nRef", &out_nRef, "nRef/Int_t");
-    outTree.Branch("inRef", &out_indRef, "indRef/Int_t");
+    outTree.Branch("indRef", &out_indRef, "indRef/Int_t");
+    // Cleaning vars
+    float out_chef(-1.), out_nhef(-1.), out_pef(-1.), out_eef(-1.), out_mef(-1.), out_hfhef(-1.), out_hfemef(-1.);
+    short out_chMult(-1), out_nhMult(-1), out_phMult(-1), out_elMult(-1), out_muMult(-1), out_hfhMult(-1), out_hfemMult(-1);
+    outTree.Branch("chef", &out_chef, "chef/Float_t");
+    outTree.Branch("nhef", &out_nhef, "nhef/Float_t");
+    outTree.Branch("pef", &out_pef, "pef/Float_t");
+    outTree.Branch("eef", &out_eef, "eef/Float_t");
+    outTree.Branch("mef", &out_mef, "mef/Float_t");
+    outTree.Branch("hfhef", &out_hfhef, "hfhef/Float_t");
+    outTree.Branch("hfemef", &out_hfemef, "hfemef/Float_t");
+    outTree.Branch("chMult", &out_chMult, "chMult/Short_t");
+    outTree.Branch("nhMult", &out_nhMult, "nhMult/Short_t");
+    outTree.Branch("phMult", &out_phMult, "phMult/Short_t");
+    outTree.Branch("elMult", &out_elMult, "elMult/Short_t");
+    outTree.Branch("muMult", &out_muMult, "muMult/Short_t");
+    outTree.Branch("hfhMult", &out_hfhMult, "hfhMult/Short_t");
+    outTree.Branch("hfemMult", &out_hfemMult, "hfemMult/Short_t");
     // Quantities to describe relationship between the two:
     float out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
@@ -189,7 +216,8 @@ int main(int argc, char* argv[]) {
 
         // Get vectors of ref & L1 jets from trees
         // Note that we only want BX = 0 (the collision)
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
+        // std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
+        std::vector<TLorentzVector> refJets = makeRecoTLorentzVectorsCleaned(*refData, "TIGHTLEPVETO");
         std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi, l1Data->jetBx);
 
         out_nL1 = l1Jets.size();
@@ -222,6 +250,23 @@ int main(int argc, char* argv[]) {
             out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
             out_resL1 = out_ptDiff/it.l1Jet().Et();
             out_resRef = out_ptDiff/it.refJet().Et();
+
+            int rInd = findRecoJetIndex(out_ptRef, out_etaRef, out_phiRef, *refData);
+            if (rInd < 0) throw range_error("No RecoJet");
+            out_chef = refData->chef[rInd];
+            out_nhef = refData->nhef[rInd];
+            out_pef = refData->pef[rInd];
+            out_eef = refData->eef[rInd];
+            out_mef = refData->mef[rInd];
+            out_hfhef = refData->hfhef[rInd];
+            out_hfemef = refData->hfemef[rInd];
+            out_chMult = refData->chMult[rInd];
+            out_nhMult = refData->nhMult[rInd];
+            out_phMult = refData->phMult[rInd];
+            out_elMult = refData->elMult[rInd];
+            out_muMult = refData->muMult[rInd];
+            out_hfhMult = refData->hfhMult[rInd];
+            out_hfemMult = refData->hfemMult[rInd];
             outTree.Fill();
         }
 
@@ -282,9 +327,9 @@ int main(int argc, char* argv[]) {
  * @param phi [description]
  * @return [description]
  */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi) {
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
+                                                std::vector<float> eta,
+                                                std::vector<float> phi) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
         throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
@@ -309,10 +354,10 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
  * @param bx [description]
  * @return [description]
  */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi,
-                                                std::vector<int> bx) {
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
+                                                std::vector<float> eta,
+                                                std::vector<float> phi,
+                                                std::vector<short> bx) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
         throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
@@ -326,4 +371,86 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
         }
     }
     return vecs;
+}
+
+
+std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality) {
+
+    std::vector<TLorentzVector> vecs;
+
+    for (int i = 0; i < jets.nJets; ++i) {
+        if (quality == "LOOSE") {
+            if (!looseCleaning(jets.eta[i],
+                               jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
+                               jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
+                continue;
+        } else if (quality == "TIGHT") {
+            if (!tightCleaning(jets.eta[i],
+                               jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
+                               jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
+                continue;
+        } else if (quality == "TIGHTLEPVETO") {
+            if (!tightLepVetoCleaning(jets.eta[i],
+                                      jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
+                                      jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
+                continue;
+        } else {
+            throw runtime_error("quality must be LOOSE/TIGHT/TIGHTLEPVETO");
+        }
+        // If got this far, then can add to list.
+        TLorentzVector v;
+        v.SetPtEtaPhiM(jets.et[i], jets.eta[i], jets.phi[i], 0);
+        vecs.push_back(v);
+    }
+
+    return vecs;
+}
+
+
+bool looseCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
+    if (fabs(eta) < 3) {
+        if ((fabs(eta) < 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
+            return false;
+        return (nhef < 0.99) && (pef < 0.99) && ((chMult+nhMult+phMult+elMult+muMult) > 1);
+    } else {
+        // TODO: HF
+        return true;
+    }
+}
+
+
+bool tightCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
+    if (fabs(eta) < 3) {
+        if ((fabs(eta) < 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
+            return false;
+        return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1);
+    } else {
+        return true;
+    }
+}
+
+
+bool tightLepVetoCleaning(float eta,
+                          float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                          short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
+    if (fabs(eta) < 3) {
+        if ((fabs(eta) < 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.9)))
+            return false;
+        return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1) && (mef < 0.8);
+    } else {
+        return true;
+    }
+}
+
+
+int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets) {
+    for (int i = 0; i < jets.nJets; ++i){
+        if (jets.et[i] == et && jets.eta[i] == eta && jets.phi[i] == phi)
+            return i;
+    }
+    return -1;
 }
