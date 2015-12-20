@@ -1,9 +1,3 @@
-// STL headers
-#include <iostream>
-#include <vector>
-#include <utility>
-#include <stdexcept>
-#include <algorithm>
 #include <fstream>
 
 // ROOT headers
@@ -12,9 +6,6 @@
 #include "TTree.h"
 #include "TROOT.h"
 #include "TSystem.h"
-#include "TLorentzVector.h"
-#include "TRegexp.h"
-#include "TString.h"
 
 // BOOST headers
 #include <boost/filesystem.hpp>

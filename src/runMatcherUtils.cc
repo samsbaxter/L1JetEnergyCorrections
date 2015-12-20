@@ -1,6 +1,7 @@
 #include "runMatcherUtils.h"
 
 // STL headers
+#include <iostream>
 #include <utility>
 #include <stdexcept>
 #include <algorithm>

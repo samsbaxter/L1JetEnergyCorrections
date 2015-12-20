@@ -2,7 +2,6 @@
 #define L1Trigger_L1JetEnergyCorrections_runMatcherUtils_h
 
 // STL headers
-#include <iostream>
 #include <vector>
 
 // ROOT headers
