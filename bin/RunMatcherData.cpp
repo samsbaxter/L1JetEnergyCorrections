@@ -213,8 +213,12 @@ int main(int argc, char* argv[]) {
             l1JetTree.getEntry(iEntry) < 1 || eventTree.getEntry(iEntry) < 1)
             break;
 
-        // event number
-        out_event = eventData->event;
+        // event info
+        // fix underflow bug from ulonglong -> int for evt number
+        int evt_num = eventData->event;
+        out_event = (evt_num < 0) ? evt_num + 4294967296 : evt_num;
+        out_ls = eventData->lumi;
+
 
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
         rescaleEnergyFractions(refData);
