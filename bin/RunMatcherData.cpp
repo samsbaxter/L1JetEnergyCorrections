@@ -4,6 +4,7 @@
 #include <utility>
 #include <stdexcept>
 #include <algorithm>
+#include <fstream>
 
 // ROOT headers
 #include "TChain.h"
@@ -17,7 +18,9 @@
 
 // BOOST headers
 #include <boost/filesystem.hpp>
-// #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 // Headers from L1TNtuples
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
@@ -36,6 +39,7 @@ using std::endl;
 using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisRecoJetDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
+using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
@@ -59,6 +63,8 @@ bool tightCleaning(float eta,
 bool tightLepVetoCleaning(float eta,
                           float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
+void getCSCList(std::string filename, std::vector<std::string> & lines);
+bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> & lines);
 
 /**
  * @brief
@@ -102,6 +108,9 @@ int main(int argc, char* argv[]) {
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
+
+    std::vector<std::string> cscList;
+    getCSCList("/hdfs/user/ra12451/L1JEC/csc2015_260627.txt", cscList);
 
     ////////////////////////
     // SETUP OUTPUT FILES //
@@ -202,6 +211,7 @@ int main(int argc, char* argv[]) {
     // produce matching pairs and store
     Long64_t drawCounter = 0;
     Long64_t matchedEvent = 0;
+    Long64_t cscFail = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         if (iEntry % 10000 == 0) {
@@ -219,6 +229,10 @@ int main(int argc, char* argv[]) {
         out_event = (evt_num < 0) ? evt_num + 4294967296 : evt_num;
         out_ls = eventData->lumi;
 
+        // Check CSC beam halo
+        std::string thisEvent = lexical_cast<std::string>(out_ls) + ":" + lexical_cast<std::string>(out_event);
+        out_passCSC = !(std::binary_search(cscList.begin(), cscList.end(), thisEvent));
+        if (!out_passCSC) cscFail++;
 
         // Check which triggers fired
         out_ZeroBias = checkTriggerFired(eventData->hlt, "HLT_ZeroBias_v");
@@ -302,6 +316,7 @@ int main(int argc, char* argv[]) {
     outTree.Write("", TObject::kOverwrite);
     outFile->Close();
     cout << matchedEvent << " events had 1+ matches, out of " << nEntries << endl;
+    cout << cscFail << " events failed CSC check, out of " << nEntries << endl;
 }
 
 
@@ -487,4 +502,26 @@ int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetData
             return i;
     }
     return -1;
+}
+
+
+void getCSCList(std::string filename, std::vector<std::string> & lines) {
+    cout << "Populating CSC list" << endl;
+    std::ifstream infile(filename);
+    std::string line = "";
+    while (infile >> line) {
+        lines.push_back(line);
+    }
+}
+
+
+bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> & lines) {
+    std::string thisEvent = lexical_cast<std::string>(eventData->lumi) + ":" + lexical_cast<std::string>(eventData->event);
+    bool found = std::binary_search(lines.begin(), lines.end(), thisEvent);
+    if (found) {
+        // Remove entry from vector to speed things up for subsequent events.
+        lines.erase(std::remove(lines.begin(), lines.end(), thisEvent), lines.end());
+        return true;
+    }
+    return false;
 }
