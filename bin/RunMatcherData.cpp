@@ -49,7 +49,6 @@ bool tightLepVetoCleaning(float eta,
                           float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
 void getCSCList(std::string filename, std::vector<std::string> & lines);
-bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> & lines);
 
 /**
  * @brief
@@ -438,16 +437,7 @@ void getCSCList(std::string filename, std::vector<std::string> & lines) {
     while (infile >> line) {
         lines.push_back(line);
     }
-}
-
-
-bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> & lines) {
-    std::string thisEvent = lexical_cast<std::string>(eventData->lumi) + ":" + lexical_cast<std::string>(eventData->event);
-    bool found = std::binary_search(lines.begin(), lines.end(), thisEvent);
-    if (found) {
-        // Remove entry from vector to speed things up for subsequent events.
-        lines.erase(std::remove(lines.begin(), lines.end(), thisEvent), lines.end());
-        return true;
+    if (lines.size() == 0) {
+        throw std::range_error("CSC list is empty - check input file exists");
     }
-    return false;
 }
