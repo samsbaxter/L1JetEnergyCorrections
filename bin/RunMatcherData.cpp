@@ -39,7 +39,7 @@ using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
-// bool checkTriggerFired(std::vector<TString> hlt, const TString& selection);
+bool checkTriggerFired(const std::vector<TString> & hlt, const std::string& selection);
 std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
                                                 std::vector<float> eta,
                                                 std::vector<float> phi);
@@ -220,6 +220,9 @@ int main(int argc, char* argv[]) {
         out_ls = eventData->lumi;
 
 
+        // Check which triggers fired
+        out_ZeroBias = checkTriggerFired(eventData->hlt, "HLT_ZeroBias_v");
+
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
         rescaleEnergyFractions(refData);
 
@@ -312,13 +315,14 @@ int main(int argc, char* argv[]) {
  *
  * @return [description]
  */
-// bool checkTriggerFired(std::vector<TString> hlt, const TString& selection) {
-//     for (const auto& hltItr: hlt) {
-//         if (*hltItr == selection)
-//             return true;
-//     }
-//     return false;
-// }
+bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & selection) {
+    for (const auto & hltItr: hlt) {
+        if (std::string(hltItr).find(selection) != std::string::npos)
+        // if (*hltItr == selection)
+            return true;
+    }
+    return false;
+}
 
 
 /**
