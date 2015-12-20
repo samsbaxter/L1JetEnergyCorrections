@@ -219,8 +219,8 @@ int main(int argc, char* argv[]) {
 
         // Get vectors of ref & L1 jets from trees
         // Note that we only want BX = 0 (the collision)
-        // std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
-        std::vector<TLorentzVector> refJets = makeRecoTLorentzVectorsCleaned(*refData, "TIGHTLEPVETO");
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
+        // std::vector<TLorentzVector> refJets = makeRecoTLorentzVectorsCleaned(*refData, "TIGHTLEPVETO"); // with JetID filters
         std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi, l1Data->jetBx);
 
         out_nL1 = l1Jets.size();
