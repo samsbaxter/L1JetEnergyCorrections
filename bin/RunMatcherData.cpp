@@ -125,55 +125,60 @@ int main(int argc, char* argv[]) {
     float out_pt(-1.), out_eta(99.), out_phi(99.);
     int out_nL1(-1); // number of jets in the event,
     int out_ind(-1); // index of this jet in the collection (ordered by descending pT)
-    outTree.Branch("pt", &out_pt, "pt/Float_t");
-    outTree.Branch("eta", &out_eta, "eta/Float_t");
-    outTree.Branch("phi", &out_phi, "phi/Float_t");
-    outTree.Branch("nL1", &out_nL1, "nL1/Int_t");
-    outTree.Branch("indL1", &out_ind, "indL1/Int_t");
+    outTree.Branch("pt", &out_pt, "pt/F");
+    outTree.Branch("eta", &out_eta, "eta/F");
+    outTree.Branch("phi", &out_phi, "phi/F");
+    outTree.Branch("nL1", &out_nL1, "nL1/I");
+    outTree.Branch("indL1", &out_ind, "indL1/I");
     // Quantities for reference jets (GenJet, etc):
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     int out_nRef(-1), out_indRef;
-    outTree.Branch("ptRef", &out_ptRef, "ptRef/Float_t");
-    outTree.Branch("etaRef", &out_etaRef, "etaRef/Float_t");
-    outTree.Branch("phiRef", &out_phiRef, "phiRef/Float_t");
-    outTree.Branch("nRef", &out_nRef, "nRef/Int_t");
-    outTree.Branch("indRef", &out_indRef, "indRef/Int_t");
+    outTree.Branch("ptRef", &out_ptRef, "ptRef/F");
+    outTree.Branch("etaRef", &out_etaRef, "etaRef/F");
+    outTree.Branch("phiRef", &out_phiRef, "phiRef/F");
+    outTree.Branch("nRef", &out_nRef, "nRef/I");
+    outTree.Branch("indRef", &out_indRef, "indRef/I");
     // Cleaning vars
     float out_chef(-1.), out_nhef(-1.), out_pef(-1.), out_eef(-1.), out_mef(-1.), out_hfhef(-1.), out_hfemef(-1.);
     short out_chMult(-1), out_nhMult(-1), out_phMult(-1), out_elMult(-1), out_muMult(-1), out_hfhMult(-1), out_hfemMult(-1);
-    outTree.Branch("chef", &out_chef, "chef/Float_t");
-    outTree.Branch("nhef", &out_nhef, "nhef/Float_t");
-    outTree.Branch("pef", &out_pef, "pef/Float_t");
-    outTree.Branch("eef", &out_eef, "eef/Float_t");
-    outTree.Branch("mef", &out_mef, "mef/Float_t");
-    outTree.Branch("hfhef", &out_hfhef, "hfhef/Float_t");
-    outTree.Branch("hfemef", &out_hfemef, "hfemef/Float_t");
-    outTree.Branch("chMult", &out_chMult, "chMult/Short_t");
-    outTree.Branch("nhMult", &out_nhMult, "nhMult/Short_t");
-    outTree.Branch("phMult", &out_phMult, "phMult/Short_t");
-    outTree.Branch("elMult", &out_elMult, "elMult/Short_t");
-    outTree.Branch("muMult", &out_muMult, "muMult/Short_t");
-    outTree.Branch("hfhMult", &out_hfhMult, "hfhMult/Short_t");
-    outTree.Branch("hfemMult", &out_hfemMult, "hfemMult/Short_t");
+    outTree.Branch("chef", &out_chef, "chef/F");
+    outTree.Branch("nhef", &out_nhef, "nhef/F");
+    outTree.Branch("pef", &out_pef, "pef/F");
+    outTree.Branch("eef", &out_eef, "eef/F");
+    outTree.Branch("mef", &out_mef, "mef/F");
+    outTree.Branch("hfhef", &out_hfhef, "hfhef/F");
+    outTree.Branch("hfemef", &out_hfemef, "hfemef/F");
+    outTree.Branch("chMult", &out_chMult, "chMult/S");
+    outTree.Branch("nhMult", &out_nhMult, "nhMult/S");
+    outTree.Branch("phMult", &out_phMult, "phMult/S");
+    outTree.Branch("elMult", &out_elMult, "elMult/S");
+    outTree.Branch("muMult", &out_muMult, "muMult/S");
+    outTree.Branch("hfhMult", &out_hfhMult, "hfhMult/S");
+    outTree.Branch("hfemMult", &out_hfemMult, "hfemMult/S");
     // Quantities to describe relationship between the two:
     float out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
-    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
-    outTree.Branch("rsp", &out_rsp, "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
-    outTree.Branch("dr", &out_dr, "dr/Float_t");
-    outTree.Branch("deta", &out_deta, "deta/Float_t");
-    outTree.Branch("dphi", &out_dphi, "dphi/Float_t");
-    outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
-    outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/F"); // L1 - Ref
+    outTree.Branch("rsp", &out_rsp, "rsp/F"); // response = l1 pT/ ref jet pT
+    outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/F"); // response = ref pT/ l1 jet pT
+    outTree.Branch("dr", &out_dr, "dr/F");
+    outTree.Branch("deta", &out_deta, "deta/F");
+    outTree.Branch("dphi", &out_dphi, "dphi/F");
+    outTree.Branch("resL1", &out_resL1, "resL1/F"); // resolution = L1 - Ref / L1
+    outTree.Branch("resRef", &out_resRef, "resRef/F"); // resolution = L1 - Ref / Ref
     // PU quantities
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
-    outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
-    outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
-    // Event number
-    int out_event(0);
-    outTree.Branch("event", &out_event, "event/Int_t");
+    outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/F");
+    outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/F");
+    // Event info
+    ULong64_t out_event(0);
+    int out_ls(0);
+    bool out_passCSC(true), out_ZeroBias(false);
+    outTree.Branch("event", &out_event, "event/l");
+    outTree.Branch("LS", &out_ls, "ls/I");
+    outTree.Branch("passCSC", &out_passCSC, "passCSC/Bool_t");
+    outTree.Branch("zeroBias", &out_ZeroBias, "zeroBias/Bool_t");
 
     Long64_t nEntriesRef = refJetTree.getEntries();
     Long64_t nEntriesL1  = l1JetTree.getEntries();
