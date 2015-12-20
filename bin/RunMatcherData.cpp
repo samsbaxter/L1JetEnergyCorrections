@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     Long64_t nEntriesL1  = l1JetTree.getEntries();
     Long64_t nEntries(0);
     if (nEntriesRef != nEntriesL1) {
-        throw range_error("Different number of events in L1 & ref trees");
+        throw std::range_error("Different number of events in L1 & ref trees");
     } else {
         nEntries = (opts.nEvents() > 0) ? opts.nEvents() : nEntriesL1;
         cout << "Running over " << nEntries << " events." << endl;
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
             out_resRef = out_ptDiff/it.refJet().Et();
 
             int rInd = findRecoJetIndex(out_ptRef, out_etaRef, out_phiRef, *refData);
-            if (rInd < 0) throw range_error("No RecoJet");
+            if (rInd < 0) throw std::range_error("No RecoJet");
             out_chef = refData->chef[rInd];
             out_nhef = refData->nhef[rInd];
             out_pef = refData->pef[rInd];
@@ -354,7 +354,7 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
                                                 std::vector<float> phi) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
@@ -382,7 +382,7 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
                                                 std::vector<short> bx) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
@@ -445,7 +445,7 @@ std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJ
                                       jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
                 continue;
         } else {
-            throw runtime_error("quality must be LOOSE/TIGHT/TIGHTLEPVETO");
+            throw std::runtime_error("quality must be LOOSE/TIGHT/TIGHTLEPVETO");
         }
         // If got this far, then can add to list.
         TLorentzVector v;

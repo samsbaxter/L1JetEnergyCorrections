@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     Long64_t nEntriesL1  = l1JetTree.getEntries();
     Long64_t nEntries(0);
     if (nEntriesRef != nEntriesL1) {
-        throw range_error("Different number of events in L1 & ref trees");
+        throw std::range_error("Different number of events in L1 & ref trees");
     } else {
         nEntries = (opts.nEvents() > 0) ? opts.nEvents() : nEntriesL1;
         cout << "Running over " << nEntries << " events." << endl;
@@ -284,7 +284,7 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
                                                 std::vector<double> phi) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
@@ -312,7 +312,7 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
                                                 std::vector<int> bx) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {

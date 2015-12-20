@@ -5,7 +5,8 @@
 #include "TFile.h"
 #include "TROOT.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 /**
  * This file contains common functions to be used in programs, e.g. opening files safely
@@ -41,15 +42,15 @@ TFile* openFile(TString filename, TString mode="") {
     if (!f || !f->IsOpen()) {
         f = new TFile(filename, mode);
     } else {
-        throw runtime_error(("Couldn't open "+filename).Data());
+        throw std::runtime_error(("Couldn't open "+filename).Data());
     }
 
     // did it actually open correctly?
     if (!f->IsZombie()) {
-        std::cout << "Opened " << filename << " in " << mode << " mode" << std::endl;
+        cout << "Opened " << filename << " in " << mode << " mode" << endl;
         return f;
     } else {
-        throw runtime_error(("Couldn't open "+filename).Data());
+        throw std::runtime_error(("Couldn't open "+filename).Data());
     }
 }
 
