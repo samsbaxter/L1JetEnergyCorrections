@@ -115,9 +115,7 @@ int main(int argc, char* argv[]) {
     TFile * outFile = openFile(opts.outputFilename(), "RECREATE");
     fs::path outPath(opts.outputFilename());
     TString outDir(outPath.parent_path().c_str());
-    if (outDir != "") {
-        outDir += "/";
-    }
+    if (outDir != "") outDir += "/";
 
     // setup output tree to store raw variable for quick plotting/debugging
     TTree outTree("valid", "valid");
@@ -209,8 +207,10 @@ int main(int argc, char* argv[]) {
         if (iEntry % 10000 == 0) {
             cout << "Entry: " << iEntry << endl;
         }
+
         if (refJetTree.getEntry(iEntry) < 1 ||
-            l1JetTree.getEntry(iEntry) < 1 || eventTree.getEntry(iEntry) < 1)
+            l1JetTree.getEntry(iEntry) < 1 ||
+            eventTree.getEntry(iEntry) < 1)
             break;
 
         // event info
@@ -222,9 +222,6 @@ int main(int argc, char* argv[]) {
 
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
         rescaleEnergyFractions(refData);
-        // if (std::find(event->hlt.begin(), event->hlt.end(), "HLT_ZeroBias_v1") == event->hlt.end()) {
-        //     continue;
-        // }
 
         // Get vectors of ref & L1 jets from trees
         // Note that we only want BX = 0 (the collision)
@@ -239,11 +236,8 @@ int main(int argc, char* argv[]) {
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
         std::vector<MatchedPair> matchResults = matcher->getMatchingPairs();
-        // matcher->printMatches(); // for debugging
 
-        if (matchResults.size()>0) {
-            matchedEvent++;
-        }
+        if (matchResults.size()>0) matchedEvent++;
 
         // store L1 & ref jet variables in tree
         for (const auto &it: matchResults) {
@@ -282,7 +276,6 @@ int main(int argc, char* argv[]) {
             outTree.Fill();
         }
 
-
         // debugging plot - plots eta vs phi of jets
         if (drawCounter < opts.drawNumber()) {
             if (matchResults.size() > 0) {
@@ -300,15 +293,12 @@ int main(int argc, char* argv[]) {
                 drawCounter++;
             }
         }
-
     }
 
     // save tree to new file and cleanup
     outTree.Write("", TObject::kOverwrite);
-
     outFile->Close();
-
-    cout << matchedEvent << "events had 1+ matches, out of " << nEntries << endl;
+    cout << matchedEvent << " events had 1+ matches, out of " << nEntries << endl;
 }
 
 
