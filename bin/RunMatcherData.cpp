@@ -194,9 +194,7 @@ int main(int argc, char* argv[]) {
     // LOOP OVER EVENTS //
     //////////////////////
     // produce matching pairs and store
-    Long64_t drawCounter = 0;
-    Long64_t matchedEvent = 0;
-    Long64_t cscFail = 0;
+    Long64_t drawCounter(0), matchedEvent(0), cscFail(0);
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         if (iEntry % 10000 == 0) {

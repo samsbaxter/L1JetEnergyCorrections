@@ -160,10 +160,12 @@ int main(int argc, char* argv[]) {
     Long64_t drawCounter = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
         if (iEntry % 10000 == 0) {
-            cout << "Entry: " << iEntry << endl;
+            cout << "Entry: " << iEntry << " at " << getCurrentTime() << endl;
         }
+
         if (refJetTree.getEntry(iEntry) < 1 ||
-            l1JetTree.getEntry(iEntry) < 1 || eventTree.getEntry(iEntry) < 1)
+            l1JetTree.getEntry(iEntry) < 1 ||
+            eventTree.getEntry(iEntry) < 1)
             break;
 
         // event number
@@ -218,7 +220,7 @@ int main(int argc, char* argv[]) {
                 // get jets post pT, eta cuts
                 JetDrawer drawer(matcher->getRefJets(), matcher->getL1Jets(), matchResults, label);
 
-                TString pdfname = TString::Format("%splots_%s_%s_%s/jets_%d.pdf",
+                TString pdfname = TString::Format("%splots_%s_%s_%s/jets_%lld.pdf",
                     outDir.Data(), inStem.Data(), "gen", "l1", iEntry);
                 drawer.drawAndSave(pdfname);
 

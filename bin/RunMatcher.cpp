@@ -170,9 +170,12 @@ int main(int argc, char* argv[]) {
     Long64_t drawCounter = 0;
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
         if (iEntry % 10000 == 0) {
-            cout << "Entry: " << iEntry << endl;
+            cout << "Entry: " << iEntry << " at " << getCurrentTime() << endl;
         }
-        if (refJetTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1) break;
+
+        if (refJetTree.getEntry(iEntry) < 1 ||
+            l1JetTree.getEntry(iEntry) < 1)
+            break;
 
         // store event info
         // eventChain->GetEntry(iEntry);
