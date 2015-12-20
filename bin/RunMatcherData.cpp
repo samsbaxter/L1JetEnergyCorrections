@@ -33,6 +33,7 @@
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
 #include "L1GenericTree.h"
+#include "runMatcherUtils.h"
 
 using std::cout;
 using std::endl;
@@ -44,13 +45,6 @@ namespace fs = boost::filesystem;
 
 // forward declare fns, implementations after main()
 bool checkTriggerFired(const std::vector<TString> & hlt, const std::string& selection);
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi);
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi,
-                                                std::vector<short> bx);
 void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets);
 std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality);
 int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets);
@@ -65,7 +59,6 @@ bool tightLepVetoCleaning(float eta,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
 void getCSCList(std::string filename, std::vector<std::string> & lines);
 bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> & lines);
-std::string getCurrentTime();
 
 /**
  * @brief
@@ -334,67 +327,10 @@ int main(int argc, char* argv[]) {
 bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & selection) {
     for (const auto & hltItr: hlt) {
         if (std::string(hltItr).find(selection) != std::string::npos)
-        // if (*hltItr == selection)
             return true;
     }
     return false;
 }
-
-
-/**
- * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
- *
- * @param et [description]
- * @param eta [description]
- * @param phi [description]
- * @return [description]
- */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi) {
-    // check all same size
-    if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
-    }
-    std::vector<TLorentzVector> vecs;
-    for (unsigned i = 0; i < et.size(); i++) {
-        TLorentzVector v;
-        v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
-        vecs.push_back(v);
-    }
-    return vecs;
-}
-
-
-/**
- * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
- * Also includes requirement that BX = 0.
- *
- * @param et [description]
- * @param eta [description]
- * @param phi [description]
- * @param bx [description]
- * @return [description]
- */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi,
-                                                std::vector<short> bx) {
-    // check all same size
-    if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
-    }
-    std::vector<TLorentzVector> vecs;
-    for (unsigned i = 0; i < et.size(); i++) {
-        if (bx.at(i) == 0) {
-            TLorentzVector v;
-            v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
-            vecs.push_back(v);
-        }
-    }
-    return vecs;
-}
-
 
 /**
  * @brief Rescale jet energy fractions to account for the fact that they are
@@ -525,17 +461,4 @@ bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> &
         return true;
     }
     return false;
-}
-
-
-/**
- * @brief Get current time & date
- * @return std::string with time & date
- */
-std::string getCurrentTime() {
-    time_t now = time(0);
-    char* dt = ctime(&now);
-    std::string str1 = std::string(dt);
-    boost::algorithm::trim(str1);
-    return str1;
 }

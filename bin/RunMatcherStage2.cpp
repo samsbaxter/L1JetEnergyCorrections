@@ -31,6 +31,7 @@
 #include "PileupInfoTree.h"
 #include "RunMatcherOpts.h"
 #include "JetDrawer.h"
+#include "runMatcherUtils.h"
 
 using std::cout;
 using std::endl;
@@ -39,17 +40,6 @@ using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 
 namespace fs = boost::filesystem;
-
-// forward declare fns, implementations after main()
-TString getSuffixFromDirectory(const TString& dir);
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi);
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi,
-                                                std::vector<int> bx);
-
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -251,76 +241,4 @@ int main(int argc, char* argv[]) {
     // save tree to new file and cleanup
     outTree.Write("", TObject::kOverwrite);
     outFile->Close();
-}
-
-
-/**
- * @brief Get suffix from TDirectory name
- * @details Assumes it starts with "l1ExtraTreeProducer", so
- * e.g. "l1ExtraTreeProducerGctIntern" produces "gctIntern"
- *
- * @param dir Directory name
- * @return Suitable suffix
- */
-TString getSuffixFromDirectory(const TString& dir) {
-    TString suffix(dir);
-    TRegexp re("l1ExtraTreeProducer");
-    suffix(re) = "";
-    if (suffix == "") suffix = dir;
-    return suffix;
-}
-
-
-/**
- * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
- *
- * @param et [description]
- * @param eta [description]
- * @param phi [description]
- * @return [description]
- */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi) {
-    // check all same size
-    if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
-    }
-    std::vector<TLorentzVector> vecs;
-    for (unsigned i = 0; i < et.size(); i++) {
-        TLorentzVector v;
-        v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
-        vecs.push_back(v);
-    }
-    return vecs;
-}
-
-
-/**
- * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
- * Also includes requirement that BX = 0.
- *
- * @param et [description]
- * @param eta [description]
- * @param phi [description]
- * @param bx [description]
- * @return [description]
- */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<double> et,
-                                                std::vector<double> eta,
-                                                std::vector<double> phi,
-                                                std::vector<int> bx) {
-    // check all same size
-    if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
-    }
-    std::vector<TLorentzVector> vecs;
-    for (unsigned i = 0; i < et.size(); i++) {
-        if (bx.at(i) == 0) {
-            TLorentzVector v;
-            v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
-            vecs.push_back(v);
-        }
-    }
-    return vecs;
 }
