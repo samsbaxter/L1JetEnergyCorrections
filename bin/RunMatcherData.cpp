@@ -65,6 +65,7 @@ bool tightLepVetoCleaning(float eta,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
 void getCSCList(std::string filename, std::vector<std::string> & lines);
 bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> & lines);
+std::string getCurrentTime();
 
 /**
  * @brief
@@ -215,7 +216,7 @@ int main(int argc, char* argv[]) {
     for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
 
         if (iEntry % 10000 == 0) {
-            cout << "Entry: " << iEntry << endl;
+            cout << "Entry: " << iEntry << " at " << getCurrentTime() << endl;
         }
 
         if (refJetTree.getEntry(iEntry) < 1 ||
@@ -524,4 +525,17 @@ bool inCSCList(L1AnalysisEventDataFormat * eventData, std::vector<std::string> &
         return true;
     }
     return false;
+}
+
+
+/**
+ * @brief Get current time & date
+ * @return std::string with time & date
+ */
+std::string getCurrentTime() {
+    time_t now = time(0);
+    char* dt = ctime(&now);
+    std::string str1 = std::string(dt);
+    boost::algorithm::trim(str1);
+    return str1;
 }
