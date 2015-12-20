@@ -1,3 +1,6 @@
+#ifndef L1Trigger_L1JetEnergyCorrections_commonRootUtils_h
+#define L1Trigger_L1JetEnergyCorrections_commonRootUtils_h
+
 #include <iostream>
 #include <exception>
 #include <stdexcept>
@@ -67,3 +70,5 @@ TFile* openFile(TString filename, TString mode="") {
 TTree* loadTree(TFile * f, TString treeName) {
     return dynamic_cast<TTree*>(f->Get(treeName));
 }
+
+#endif /* L1Trigger_L1JetEnergyCorrections_commonRootUtils_h */
