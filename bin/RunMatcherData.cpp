@@ -47,6 +47,7 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
                                                 std::vector<float> eta,
                                                 std::vector<float> phi,
                                                 std::vector<short> bx);
+void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets);
 std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality);
 int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets);
 bool looseCleaning(float eta,
@@ -210,6 +211,8 @@ int main(int argc, char* argv[]) {
         // event number
         out_event = eventData->event;
 
+        // Rescale jet energy fractions to take account of the fact that they are post-JEC
+        rescaleEnergyFractions(refData);
         // if (std::find(event->hlt.begin(), event->hlt.end(), "HLT_ZeroBias_v1") == event->hlt.end()) {
         //     continue;
         // }
@@ -374,6 +377,34 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
 }
 
 
+/**
+ * @brief Rescale jet energy fractions to account for the fact that they are
+ * stored after JEC, but cuts apply *before* JEC.
+ * @details JEC only affects the total energy, so we can just rescale by the
+ * sum of energy fractions (which should = 1)
+ */
+void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets) {
+    for (int i = 0; i < jets->nJets; ++i) {
+        float totalEf = jets->chef[i] + jets->nhef[i] + jets->pef[i] + jets->eef[i] + jets->mef[i] + jets->hfhef[i] + jets->hfemef[i];
+        jets->chef[i] /= totalEf;
+        jets->nhef[i] /= totalEf;
+        jets->pef[i] /= totalEf;
+        jets->eef[i] /= totalEf;
+        jets->mef[i] /= totalEf;
+        jets->hfhef[i] /= totalEf;
+        jets->hfemef[i] /= totalEf;
+    }
+}
+
+/**
+ * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
+ * Also applies JetID cuts.
+ *
+ * @param jets [description]
+ * @param quality Can be LOOSE, TIGHT or TIGHTLEPVETO
+ *
+ * @return [description]
+ */
 std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality) {
 
     std::vector<TLorentzVector> vecs;
