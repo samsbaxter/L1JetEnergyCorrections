@@ -51,4 +51,8 @@ samples = {
     "Express_Run2015B_50ns": Dataset(inputDataset='/ExpressPhysics/Run2015B-Express-v1/FEVT',
                                      unitsPerJob=15, totalUnits=-1),
 
+    "Express_Run2015D_v4_25ns": Dataset(inputDataset='/ExpressPhysics/Run2015D-Express-v4/FEVT',
+                                     unitsPerJob=10, totalUnits=-1),
+
+
 }
