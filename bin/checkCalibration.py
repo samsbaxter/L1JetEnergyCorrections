@@ -159,15 +159,16 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, pt_min, pt_max, pt_var, pu_min
                                    peak - (0.5 * h_rsp.GetRMS()),
                                    peak + (0.5 * h_rsp.GetRMS()))
 
-        mean = h_rsp.GetFunction("gaus").GetParameter(1)
-        err = h_rsp.GetFunction("gaus").GetParError(1)
+        mean = h_rsp.GetMean()
+        err = h_rsp.GetMeanError()
 
         check_fit = True
         if check_fit:
-            if int(fit_result) != 0:
+            if int(fit_result) == 0:
+                mean = h_rsp.GetFunction("gaus").GetParameter(1)
+                err = h_rsp.GetFunction("gaus").GetParError(1)
+            else:
                 print "cannot fit with Gaussian - using raw mean instead"
-                mean = h_rsp.GetMean()
-                err = h_rsp.GetMeanError()
 
         output_f_hists.WriteTObject(h_rsp)
 
