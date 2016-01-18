@@ -83,9 +83,9 @@ def plot_cumulative_energy(tree, cut=None, title='Cumulative Energy Fraction',
     c.SaveAs(os.path.join(oDir, output))
 
 
-def plot_energy_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
-                    logZ=False, normX=False, cut=None, title=None,
-                    oDir=os.getcwd(), output='rsp_energy.pdf'):
+def plot_energy_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
+                       logZ=False, normX=False, cut=None, title=None,
+                       oDir=os.getcwd(), output='rsp_energy.pdf'):
     """Plot energy fractions vs variable 2D hist, for each energy source, on one big canvas.
 
     var: string of varibale name in tree
@@ -111,7 +111,7 @@ def plot_energy_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
             ROOT.gPad.SetLogz()
         hname = 'h2d' + fraction
         # nbins_var = (var_max - var_min) / 0.05
-        nbins_var = 200
+        nbins_var = 100
         nbins_frac, fmin, fmax = 200, 0, 1.2
         pairs_tree.Draw('%s:%s>>%s(%d, %f, %f, %d, %f, %f)' % (fraction, var, hname,
                                                                nbins_var, var_min, var_max,
@@ -221,7 +221,7 @@ def plot_rsp_pt(pairs_tree,
         c.SetLogz()
 
     nbins_pt = 200
-    nbins_rsp, rsp_min, rsp_max = 200, 0, 5
+    nbins_rsp, rsp_min, rsp_max = 100, 0, 5
 
     # With cleaning cut
     hname = 'hrsp_pt'
@@ -272,12 +272,21 @@ if __name__ == "__main__":
     reco_tree = cu.get_from_file(f_ntuple, 'l1JetRecoTree/JetRecoTree')
 
     # Matched pairs file
-    pairs_filename = '/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/pairs.root'
-    pairs_filename = '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/pairs/pairs_Express_data_ref10to5000_l10to5000_dr0p4_noCleaning.root'
+    pairs_filename = "/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/pairs/pairs_run260627_expressNoJEC_data_ref10to5000_l10to5000_dr0p4_noCleaning_fixedEF_CSC_HLTvars.root"
+
     f_pairs = cu.open_root_file(pairs_filename)
     pairs_tree = cu.get_from_file(f_pairs, 'valid')
 
     plot_dir = '/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/Run260627/pfCleaning/'
+    if not os.path.isdir(plot_dir):
+        os.makedirs(plot_dir)
+
+    eta_cut = 'TMath::Abs(eta) < 0.348'
+    etaRef_cut = 'TMath::Abs(etaRef) < 0.348'
+    LS_cut = ("((LS > 91 && LS < 611) || (LS > 613 && LS < 757) || (LS > 760 && LS < 788) || (LS > 791 && LS < 1051) || (LS > 1054 && LS < 1530) || (LS > 1533 && LS < 1845))")
+
+    total_cut = ' && '.join([eta_cut, LS_cut])
+    total_cutRef = ' && '.join([etaRef_cut, LS_cut])
 
     # Plot cumulative contributions
     # ------------------------------------------------------------------------
@@ -295,101 +304,138 @@ if __name__ == "__main__":
     #                        log=False,
     #                        oDir=plot_dir,
     #                        output='cumulative_energy_ptRef20_eta_0_0p348.pdf')
+    """
+    plot_cumulative_energy(pairs_tree,
+                           cut='%s && ptRef > 10' % total_cutRef,
+                           title='Cumulative Energy Fraction (|#eta^{PF}| < 0.348, p_{T}^{PF} > 20 GeV, matched to L1) (Run 260627)',
+                           log=True,
+                           oDir=plot_dir,
+                           output='cumulative_energy_matched_ptRef20_eta_0_0p348_log.pdf')
 
-    # plot_cumulative_energy(pairs_tree,
-    #                        cut='TMath::Abs(etaRef) < 0.348 && ptRef > 20',
-    #                        title='Cumulative Energy Fraction (|#eta^{PF}| < 0.348, p_{T}^{PF} > 20 GeV, matched to L1) (Run 260627)',
-    #                        log=True,
-    #                        oDir=plot_dir,
-    #                        output='cumulative_energy_matched_ptRef20_eta_0_0p348_log.pdf')
-
-    # plot_cumulative_energy(pairs_tree,
-    #                        cut='TMath::Abs(etaRef) < 0.348 && ptRef > 20',
-    #                        title='Cumulative Energy Fraction (|#eta^{PF}| < 0.348, p_{T}^{PF} > 20 GeV, matched to L1) (Run 260627)',
-    #                        log=False,
-    #                        oDir=plot_dir,
-    #                        output='cumulative_energy_matched_ptRef20_eta_0_0p348.pdf')
-
-    rsp_title = 'response (p_{T}^{L1} / p_{T}^{PF})'
+    plot_cumulative_energy(pairs_tree,
+                           cut='%s && ptRef > 10' % total_cutRef,
+                           title='Cumulative Energy Fraction (|#eta^{PF}| < 0.348, p_{T}^{PF} > 20 GeV, matched to L1) (Run 260627)',
+                           log=False,
+                           oDir=plot_dir,
+                           output='cumulative_energy_matched_ptRef20_eta_0_0p348.pdf')
 
     # Plot correlations
     # ------------------------------------------------------------------------
-    #
+    rsp_title = 'response (p_{T}^{L1} / p_{T}^{PF})'
+
     # Look at contributions to big responses
-    # plot_energy_var(pairs_tree, var='rsp', var_min=0, var_max=20,
-    #                 var_title=rsp_title,
-    #                 logZ=True, normX=True,
-    #                 cut='TMath::Abs(eta) < 0.348 && ptRef > 20',
-    #                 title='|#eta^{L1}| < 0.348, p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                 oDir=plot_dir,
-    #                 output='rsp_fractions_big_rsp.png')
+    plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=20,
+                       var_title=rsp_title,
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='rsp_fractions_big_rsp.png')
 
-    # # # Look at contributions to small responses
-    # plot_energy_var(pairs_tree, var='rsp', var_min=0, var_max=1,
-    #                 var_title=rsp_title,
-    #                 logZ=True, normX=True,
-    #                 cut='TMath::Abs(eta) < 0.348 && ptRef > 20',
-    #                 title='|#eta^{L1}| < 0.348, p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                 oDir=plot_dir,
-    #                 output='rsp_fractions_small_rsp.png')
+    plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=20,
+                       var_title=rsp_title,
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150 (Run 260627)',
+                       oDir=plot_dir,
+                       output='rsp_fractions_big_rsp_highPt.png')
 
-    # plot_energy_var(pairs_tree, var='ptRef', var_min=0, var_max=1000,
-    #                 var_title='p_{T}^{PF} [GeV]',
-    #                 logZ=True, normX=True,
-    #                 cut='TMath::Abs(eta) < 0.348 && ptRef > 20',
-    #                 title='|#eta^{L1}| < 0.348, p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                 oDir=plot_dir,
-    #                 output='ptRef_fractions.png')
+    plot_energy_Vs_var(pairs_tree, var='ptDiff', var_min=100, var_max=260,
+                       var_title="p_{T}^{L1} - p_{T}^{PF} [GeV]",
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 60, p_{T}^{L1} > 150 (Run 260627)',
+                       oDir=plot_dir,
+                       output='ptDiff_fractions_big_rsp_highPt.png')
 
-    # plot_energy_var(pairs_tree, var='etaRef', var_min=-3, var_max=3,
-    #                 var_title='#eta^{PF}',
-    #                 logZ=True, normX=True,
-    #                 cut='ptRef > 20',
-    #                 title='p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                 oDir=plot_dir,
-    #                 output='eta_fractions.png')
+    plot_energy_Vs_var(pairs_tree, var='ptDiff', var_min=100, var_max=260,
+                       var_title="p_{T}^{L1} - p_{T}^{PF} [GeV]",
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150 (Run 260627)',
+                       oDir=plot_dir,
+                       output='ptDiff_fractions_big_rsp_highPt_notNorm.png')
 
-    # plot_energy_var(pairs_tree, var='phiRef', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
-    #                 var_title='#phi^{PF}',
-    #                 logZ=True, normX=True,
-    #                 cut='TMath::Abs(etaRef) < 0.348 && ptRef > 20',
-    #                 title='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                 oDir=plot_dir,
-    #                 output='phi_fractions_eta_0_0p348.pdf')
+    # # Look at contributions to small responses
+    plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=1,
+                       var_title=rsp_title,
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='rsp_fractions_small_rsp.png')
+    plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=1,
+                       var_title=rsp_title,
+                       logAle='|#eta^{L1}| < 0.348, 30 < p_{T}^{PF} < 60 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='rsp_fractions_small_rsp_ptRef20to60.png')
 
-    # plot_energy_var(pairs_tree, var='phiRef', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
-    #                 var_title='#phi^{PF}',
-    #                 logZ=True, normX=True,
-    #                 cut='TMath::Abs(etaRef) > 1.74 && TMath::Abs(etaRef) < 3 && ptRef > 20',
-    #                 title='1.74 < #eta^{PF} < 3, p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                 oDir=plot_dir,
-    #                 output='phi_fractions_eta_1p74_3.pdf')
+    plot_energy_Vs_var(pairs_tree, var='eef', var_min=0, var_max=1.2,
+                       var_title='Electron Energy Fraction',
+                       logAle='0 < #eta^{PF} < 0.348, 30 < p_{T}^{PF} < 60 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='eef_fractions_small_rsp_ptRef20to60.png')
+    """
+    """
+    plot_energy_Vs_var(pairs_tree, var='ptRef', var_min=0, var_max=1000,
+                       var_title='p_{T}^{PF} [GeV]',
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='ptRef_fractions.png')
 
-    # for ef, name in zip(fractions, sources):
-    #     plot_energy_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
-    #                     var_title=name + ' Energy Fraction',
-    #                     logZ=True, normX=True,
-    #                     cut='ptRef > 20 && TMath::Abs(eta) < 0.348',
-    #                     title='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 20 GeV (Run 260627)',
-    #                     oDir=plot_dir,
-    #                     output=ef+'_fractions.png')
+    plot_energy_Vs_var(pairs_tree, var='etaRef', var_min=-3, var_max=3,
+                       var_title='#eta^{PF}',
+                       logAle='p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='eta_fractions.png')
 
-    # Make before/after/diffs of cleaning cuts
+    plot_energy_Vs_var(pairs_tree, var='phiRef', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
+                       var_title='#phi^{PF}',
+                       logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       output='phi_fractions_eta_0_0p348.png')
+
+    plot_energy_Vs_var(pairs_tree, var='phiRef', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
+                       var_title='#phi^{PF}',
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50 GeV, p_{T}^{L1} > 150 (Run 260627)',
+                       oDir=plot_dir,
+                       output='phiRef_fractions_eta_0_0p348_highRsp.png')
+
+    plot_energy_Vs_var(pairs_tree, var='phi', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
+                       var_title='#phi^{L1}',
+                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50 GeV, p_{T}^{L1} > 150 (Run 260627)',
+                       oDir=plot_dir,
+                       output='phi_fractions_eta_0_0p348_highRsp.png')
+
+    for ef, name in zip(fractions, sources):
+        plot_energy_Vs_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
+                           var_title=name + ' Energy Fraction',
+                           logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                           oDir=plot_dir,
+                           output=ef+'_fractions.png')
+
+    for ef, name in zip(fractions, sources):
+        plot_energy_Vs_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
+                           var_title=name + ' Energy Fraction',
+                           logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150, PEF < 0.7, passCSC (Run 260627)',
+                           oDir=plot_dir,
+                           output=ef+'_fractions_ptGt150_ptRefLt50_passCSC_pefLt0p7_normX.png')
+    """
+
+    for ef, name in zip(fractions, sources):
+        plot_energy_Vs_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
+                           var_title=name + ' Energy Fraction',
+                           logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150, PEF < 0.7, passCSC (Run 260627)',
+                           oDir=plot_dir,
+                           output=ef+'_fractions_ptGt150_ptRefLt50_passCSC_pefLt0p7.png')
+
+
+    """
+
+    # Make before/after/diffs of individual cleaning cuts, and total combination
     # ------------------------------------------------------------------------
-    #
-    eta_cut = 'TMath::Abs(eta) < 0.348'
-    # plot_l1_pf(pairs_tree,
-    #            logZ=True,
-    #            cut='pt < 400 && ptRef < 400 && %s' % (eta_cut),
-    #            cleaning_cut=None,
-    #            title='|#eta^{L1}| < 0.348',
-    #            oDir=plot_dir, output='pt_ptRef_eta_0_0p348.png')
+    plot_l1_pf(pairs_tree,
+               logZ=True,
+               cut='pt < 400 && ptRef < 400 && %s' % (total_cut),
+               cleaning_cut=None,
+               title='|#eta^{L1}| < 0.348',
+               oDir=plot_dir, output='pt_ptRef_eta_0_0p348.png')
 
     plot_rsp_pt(pairs_tree,
                 pt_var='pt', pt_min=0, pt_max=400, pt_title='p_{T}^{L1} [GeV]',
                 logZ=True,
                 normX=True,
-                cut='pt < 400 && %s' % (eta_cut),
+                cut='pt < 400 && %s' % (total_cut),
                 cleaning_cut=None,
                 title='|#eta^{L1}| < 0.348',
                 oDir=plot_dir, output='rsp_pt_eta_0_0p348.png')
@@ -398,7 +444,7 @@ if __name__ == "__main__":
                 pt_var='ptRef', pt_min=0, pt_max=400, pt_title='p_{T}^{PF} [GeV]',
                 logZ=True,
                 normX=True,
-                cut='ptRef < 400 && %s' % (eta_cut),
+                cut='ptRef < 400 && %s' % (total_cut),
                 cleaning_cut=None,
                 title='|#eta^{L1}| < 0.348',
                 oDir=plot_dir, output='rsp_ptRef_eta_0_0p348.png')
@@ -406,10 +452,10 @@ if __name__ == "__main__":
     for id_cut in tight_lep_veto_cuts:
         print id_cut
         app = id_cut.replace('(', '')
-        app = re.split(r'<|>', app)[0].strip()
+        app = re.split(r'<|>|=', app)[0].strip()
         plot_l1_pf(pairs_tree,
                    logZ=True,
-                   cut='pt < 400 && ptRef < 400 && %s' % (eta_cut),
+                   cut='pt < 400 && ptRef < 400 && %s' % (total_cut),
                    cleaning_cut=id_cut,
                    title='|#eta^{L1}| < 0.348',
                    oDir=plot_dir, output='pt_ptRef_eta_0_0p348_%s.png' % app)
@@ -418,7 +464,7 @@ if __name__ == "__main__":
                     pt_var='pt', pt_min=0, pt_max=400, pt_title='p_{T}^{L1} [GeV]',
                     logZ=True,
                     normX=True,
-                    cut='pt < 400 && %s' % (eta_cut),
+                    cut='pt < 400 && %s' % (total_cut),
                     cleaning_cut=id_cut,
                     title='|#eta^{L1}| < 0.348',
                     oDir=plot_dir, output='rsp_pt_eta_0_0p348_%s.png' % app)
@@ -427,14 +473,14 @@ if __name__ == "__main__":
                     pt_var='ptRef', pt_min=0, pt_max=400, pt_title='p_{T}^{PF} [GeV]',
                     logZ=True,
                     normX=True,
-                    cut='ptRef < 400 && %s' % (eta_cut),
+                    cut='ptRef < 400 && %s' % (total_cut),
                     cleaning_cut=id_cut,
                     title='|#eta^{L1}| < 0.348',
                     oDir=plot_dir, output='rsp_ptRef_eta_0_0p348_%s.png' % app)
 
     plot_l1_pf(pairs_tree,
                logZ=True,
-               cut='pt < 400 && ptRef < 400 && %s' % (eta_cut),
+               cut='pt < 400 && ptRef < 400 && %s' % (total_cut),
                cleaning_cut=' && '.join(tight_lep_veto_cuts),
                title='|#eta^{L1}| < 0.348',
                oDir=plot_dir, output='pt_ptRef_eta_0_0p348_all.png')
@@ -443,7 +489,7 @@ if __name__ == "__main__":
                 pt_var='pt', pt_min=0, pt_max=400, pt_title='p_{T}^{L1} [GeV]',
                 logZ=True,
                 normX=True,
-                cut='pt < 400 && %s' % (eta_cut),
+                cut='pt < 400 && %s' % (total_cut),
                 cleaning_cut=' && '.join(tight_lep_veto_cuts),
                 title='|#eta^{L1}| < 0.348',
                 oDir=plot_dir, output='rsp_pt_eta_0_0p348_all.png')
@@ -452,10 +498,11 @@ if __name__ == "__main__":
                 pt_var='ptRef', pt_min=0, pt_max=400, pt_title='p_{T}^{PF} [GeV]',
                 logZ=True,
                 normX=True,
-                cut='ptRef < 400 && %s' % (eta_cut),
+                cut='ptRef < 400 && %s' % (total_cut),
                 cleaning_cut=' && '.join(tight_lep_veto_cuts),
                 title='|#eta^{L1}| < 0.348',
                 oDir=plot_dir, output='rsp_ptRef_eta_0_0p348_all.png')
+    """
 
     f_ntuple.Close()
     f_pairs.Close()
