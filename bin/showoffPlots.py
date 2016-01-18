@@ -354,28 +354,31 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
         app = "_log"
     h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
+    max_pt = 512
+    h2d_gen_l1.SetAxisRange(0, max_pt, 'X')
+    h2d_gen_l1.SetAxisRange(0, max_pt, 'Y')
     # lines of constant response
-    max_pt = 1022
     line1 = ROOT.TLine(0, 0, max_pt, max_pt)
     line1.SetLineStyle(1)
     line1.SetLineWidth(2)
     line1.Draw()
+
     line1p25 = ROOT.TLine(0, 0, max_pt / 1.25, max_pt)
-    # line1p25.SetLineStyle(2)
     line1p25.SetLineWidth(2)
-    line1p25.Draw()
+    # line1p25.Draw()
+
     line1p5 = ROOT.TLine(0, 0, max_pt / 1.5, max_pt)
-    # line1p5.SetLineStyle(3)
     line1p5.SetLineWidth(2)
-    line1p5.Draw()
+    # line1p5.Draw()
+
     line0p75 = ROOT.TLine(0, 0, max_pt, max_pt * 0.75)
-    # line0p75.SetLineStyle(2)
     line0p75.SetLineWidth(2)
-    line0p75.Draw()
+    # line0p75.Draw()
+
     line0p5 = ROOT.TLine(0, 0, max_pt, max_pt * 0.5)
-    # line0p5.SetLineStyle(3)
     line0p5.SetLineWidth(2)
-    line0p5.Draw()
+    # line0p5.Draw()
+
     c.SaveAs("%s/h2d_gen_l1_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
