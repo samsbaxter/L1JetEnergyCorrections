@@ -981,12 +981,14 @@ def main(in_args=sys.argv[1:]):
 
                     for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
                         rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                        if rsp_name: rsp_list.write(rsp_name + '\n')
+                        if rsp_name:
+                            rsp_list.write(os.path.basename(rsp_name) + '\n')
                         pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                        if pt_name: pt_list.write(pt_name + '\n')
+                        if pt_name:
+                            pt_list.write(os.path.basename(pt_name) + '\n')
 
                 print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_rsp.txt):"
-                print "convert -delay 50 -loop 0 @%s/eta_0_0.348/list_rsp.txt %s/eta_0_0.348/rsp.gif" % (args.oDir.rstrip("/"), args.oDir.rstrip("/"))
+                print "convert -delay 50 -loop 0 @list_rsp.txt rsp.gif"
 
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
