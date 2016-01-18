@@ -807,12 +807,12 @@ def main(in_args=sys.argv[1:]):
     # ptBins = binning.pt_bins_stage2_old
     ptBins = binning.pt_bins_stage2
 
-
     if args.etaInd:
         eta_min = binning.eta_bins[int(args.etaInd)]
         eta_max = binning.eta_bins[int(args.etaInd) + 1]
 
     # Do plots with output from RunMatcher
+    # ------------------------------------------------------------------------
     if args.pairs:
         pairs_file = open_root_file(args.pairs)
         pairs_tree = get_from_file(pairs_file, "valid")
@@ -901,9 +901,8 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
             if args.detail:
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBinsWide, args.oDir, args.format)
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
 
         # Graph of response vs pt, but in bins of eta
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
@@ -923,8 +922,8 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
             if args.detail:
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, args.format)
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, args.format)
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
+                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
 
             # graphs
             plot_rsp_eta_old(check_files, eta_min, eta_max, 'pt', args.oDir, args.format)
@@ -938,8 +937,8 @@ def main(in_args=sys.argv[1:]):
             for etamin, etamax in izip(etaBins[:-1], etaBins[1:]):
                 # component plots for the eta graphs, binned by pt
                 for pt_min, pt_max in binning.check_pt_bins:
-                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'pt', pt_min, pt_max, args.oDir, args.format)
-                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'ptRef', pt_min, pt_max, args.oDir, args.format)
+                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'pt', pt_min, pt_max, args.oDir, 'png')
+                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'ptRef', pt_min, pt_max, args.oDir, 'png')
 
         check_file.Close()
 
