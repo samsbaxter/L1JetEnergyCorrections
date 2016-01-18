@@ -98,6 +98,11 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
     for tree_dir in ntuple_dirs:
         print '>>> Making jobs for', tree_dir
 
+        # Copy executable to that directory for use later
+        exe_path_hdfs = os.path.join(tree_dir, EXE)
+        cmds = 'hadoop fs -copyFromLocal -f %s %s' % (exe_path, exe_path_hdfs.replace("/hdfs", ""))
+        call(cmds.split())
+
         # Create unique DAG filename for this directory
         timestamp = strftime('%H%M%S')
         dag_file = 'pairs_%s_%s.dag' % (timestamp, rand_str())
@@ -141,7 +146,7 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
                 job_dict = dict(jobName=job_name, jobFile=job_file,
                                 input=os.path.join(tree_dir, ntuple),
                                 output=out_file,
-                                exe=exe,
+                                exe=exe_path_hdfs,
                                 l1Dir=l1_dir,
                                 refDir=ref_dir,
                                 deltaR=deltaR,
