@@ -539,10 +539,14 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
     c = generate_canvas(plot_title)
     for i, pt_min in enumerate(pt_bins[:-1]):
         pt_max = pt_bins[i + 1]
-        hist = get_from_file(check_file, "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max))
-        hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
-        hist.Draw()
-        c.SaveAs("%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat))
+        hname = "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max)
+        try:
+            hist = get_from_file(check_file, hname)
+            hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
+            hist.Draw()
+            c.SaveAs("%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat))
+        except Exception:
+            print '! No histogram %s exists' % hname
 
 
 def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
