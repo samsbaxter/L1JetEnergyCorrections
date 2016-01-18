@@ -28,9 +28,10 @@ multiplicities = ['chMult', 'nhMult', 'phMult', 'elMult', 'muMult']
 sources = ['Neutral Hadron', 'Charged Hadron', 'Photon', 'Electron', 'Muon']
 
 # TightLepVeto jetID cuts
+tight_lep_veto_cuts = ['nhef < 0.9', 'pef < 0.9', 'chMult+nhMult+phMult+elMult+muMult > 1', 'mef < 0.8', 'muMult==0', "elMult==0", "passCSC"]
 eta_central = 'TMath::Abs(etaRef) < 2.4'
-tight_lep_veto_cuts = ['nhef < 0.9', 'pef < 0.9', 'chMult+nhMult+phMult+elMult+muMult > 1', 'mef < 0.8']
 tight_lep_veto_cuts.extend(['(%s && %s)' % (c, eta_central) for c in ['chef > 0', 'chMult+elMult+muMult > 0', 'eef < 0.9']])
+
 
 def random_word(length):
    return ''.join(random.choice(string.lowercase + string.uppercase) for i in range(length))
