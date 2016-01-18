@@ -152,7 +152,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     # Draw response (pT^L1/pT^Gen) for all pt bins
     tree_raw.Draw("rsp>>hrsp_eta_%g_%g(50,0,2)" % (absetamin, absetamax), total_cut, "goff")
     hrsp_eta = ROOT.gROOT.FindObject("hrsp_eta_%g_%g" % (absetamin, absetamax))
-    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Gen});")
+    hrsp_eta.SetTitle(";response (p_{T}^{L1}/p_{T}^{Ref});")
     output_f_hists.WriteTObject(hrsp_eta)
 
     nb, pt_min, pt_max = 2048, 0, 1024
@@ -160,19 +160,19 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     # Draw rsp (pT^L1/pT^Gen) Vs GenJet pT
     tree_raw.Draw("rsp:ptRef>>h2d_rsp_gen(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), total_cut, "goff")
     h2d_rsp_gen = ROOT.gROOT.FindObject("h2d_rsp_gen")
-    h2d_rsp_gen.SetTitle(";p_{T}^{Gen} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_gen.SetTitle(";p_{T}^{Ref} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_gen)
 
     # Draw rsp (pT^L1/pT^Gen) Vs L1 pT
     tree_raw.Draw("rsp:pt>>h2d_rsp_l1(%d,%g,%g,150,0,5)" % (nb, pt_min, pt_max), total_cut, "goff")
     h2d_rsp_l1 = ROOT.gROOT.FindObject("h2d_rsp_l1")
-    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Gen})")
+    h2d_rsp_l1.SetTitle(";p_{T}^{L1} [GeV];response (p_{T}^{L1}/p_{T}^{Ref})")
     output_f_hists.WriteTObject(h2d_rsp_l1)
 
     # draw pT^L1 Vs pT^Gen
     tree_raw.Draw("pt:ptRef>>h2d_gen_l1(%d,%g,%g,%d,%g,%g)" % (nb, pt_min, pt_max, nb, pt_min, pt_max), total_cut, "goff")
     h2d_gen_l1 = ROOT.gROOT.FindObject("h2d_gen_l1")
-    h2d_gen_l1.SetTitle(";p_{T}^{Gen} [GeV];p_{T}^{L1} [GeV]")
+    h2d_gen_l1.SetTitle(";p_{T}^{Ref} [GeV];p_{T}^{L1} [GeV]")
     output_f_hists.WriteTObject(h2d_gen_l1)
 
     # Go through and find histogram bin edges that are closest to the input pt
@@ -280,12 +280,12 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     graph_name = generate_eta_graph_name(absetamin, absetamax)
     gr.SetName(graph_name)
     gr.GetXaxis().SetTitle("<p_{T}^{L1}> [GeV]")
-    gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
+    gr.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Ref}>")
 
     if do_genjet_plots:
         gr_gen.SetName('gencorr_eta_%g_%g' % (absetamin, absetamax))
-        gr_gen.GetXaxis().SetTitle("<p_{T}^{Gen}> [GeV]")
-        gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Gen}>")
+        gr_gen.GetXaxis().SetTitle("<p_{T}^{Ref}> [GeV]")
+        gr_gen.GetYaxis().SetTitle("1/<p_{T}^{L1}/p_{T}^{Ref}>")
 
     # Save these graphs to file
     outputfile.WriteTObject(gr)

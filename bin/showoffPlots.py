@@ -33,7 +33,7 @@ ROOT.gStyle.SetPalette(55)
 
 # Some common strings
 ref_str = "GenJet"
-# ref_str = "CaloJet"
+ref_str = "PFJet"
 
 rsp_str = "E_{T}^{L1}/E_{T}^{%s}" % (ref_str)
 eta_str = "#eta"
@@ -56,9 +56,12 @@ rsp_min, rsp_max = 0, 2
 # LABELS, COLOURS, AND TITLE ON PLOTS
 #############################################
 plot_labels = [
-     "Spring15 + HF fix (no JEC)"
+     # "Spring15 + HF fix (no JEC)"
+     # "Without JEC"
+     "Without JEC"
     ]
-plot_title = "QCD Spring15 HF fix, Stage 2, 25ns"
+plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
+# plot_title = "Spring15 MC, Stage 2, no JEC"
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
 
@@ -702,7 +705,7 @@ def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFor
         func = h_rsp.GetListOfFunctions().At(0)
         if func:
             func.Draw("SAME")
-        h_rsp.SetTitle(hname)
+        h_rsp.SetTitle("%s;%s;" % (hname, rsp_str))
         filepath = "%s/%s/h_rsp_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat)
         c.SaveAs(filepath)
         return filepath
