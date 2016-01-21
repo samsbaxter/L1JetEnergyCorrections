@@ -170,11 +170,27 @@ int main(int argc, char* argv[]) {
     // Event info
     ULong64_t out_event(0);
     int out_ls(0);
-    bool out_passCSC(true), out_ZeroBias(false);
+    bool out_passCSC(true);
+    // triggers
+    bool out_HLT_ZeroBias(true), out_HLT_IsoMu(true), out_HLT_DiMu(true), out_HLT_DiEl(true);
+    bool out_HLT_Physics(true), out_HLT_Random(true), out_HLT_Photon(true), out_HLT_Mu(true);
+    bool out_HLT_MET(true), out_HLT_PFMET(true), out_HLT_HT(true);
+    bool out_HBHENoiseRun2Loose(true), out_HBHENoiseRun2Tight(true), out_HBHEIsoNoise(true);
     outTree.Branch("event", &out_event, "event/l");
     outTree.Branch("LS", &out_ls, "ls/I");
     outTree.Branch("passCSC", &out_passCSC, "passCSC/Bool_t");
-    outTree.Branch("zeroBias", &out_ZeroBias, "zeroBias/Bool_t");
+    outTree.Branch("hlt_zeroBias", &out_HLT_ZeroBias, "hlt_zeroBias/Bool_t");
+    outTree.Branch("hlt_isoMu", &out_HLT_IsoMu, "hlt_isoMu/Bool_t");
+    outTree.Branch("hlt_diMu", &out_HLT_DiMu, "hlt_diMu/Bool_t");
+    outTree.Branch("hlt_diEl", &out_HLT_DiEl, "hlt_diEl/Bool_t");
+    outTree.Branch("hlt_physics", &out_HLT_Physics, "hlt_physics/Bool_t");
+    outTree.Branch("hlt_random", &out_HLT_Random, "hlt_random/Bool_t");
+    outTree.Branch("hlt_photon", &out_HLT_Photon, "hlt_photon/Bool_t");
+    outTree.Branch("hlt_mu", &out_HLT_Mu, "hlt_mu/Bool_t");
+    outTree.Branch("hlt_met", &out_HLT_MET, "hlt_met/Bool_t");
+    outTree.Branch("hlt_pfmet", &out_HLT_PFMET, "hlt_pfmet/Bool_t");
+    outTree.Branch("hlt_ht", &out_HLT_HT, "hlt_ht/Bool_t");
+
 
     Long64_t nEntriesRef = refJetTree.getEntries();
     Long64_t nEntriesL1  = l1JetTree.getEntries();
@@ -212,9 +228,9 @@ int main(int argc, char* argv[]) {
 
         // event info
         // fix underflow bug from ulonglong -> int for evt number
-        int evt_num = eventData->event;
-        out_event = (evt_num < 0) ? evt_num + 4294967296 : evt_num;
-        out_ls = eventData->lumi;
+        unsigned int evt_num = (unsigned int) eventData->event;
+        out_event = (long) evt_num;
+        out_ls = (Long64_t) eventData->lumi;
 
         // Check CSC beam halo
         // std::string thisEvent = lexical_cast<std::string>(out_ls) + ":" + lexical_cast<std::string>(out_event);
@@ -228,7 +244,17 @@ int main(int argc, char* argv[]) {
         }
 
         // Check which triggers fired
-        out_ZeroBias = checkTriggerFired(eventData->hlt, "HLT_ZeroBias_v");
+        // out_HLT_ZeroBias = checkTriggerFired(eventData->hlt, "HLT_ZeroBias_v2");
+        // out_HLT_IsoMu = checkTriggerFired(eventData->hlt, "HLT_IsoMu20_v3");
+        // out_HLT_DiMu = checkTriggerFired(eventData->hlt, "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v2");
+        // out_HLT_DiEl = checkTriggerFired(eventData->hlt, "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v3");
+        // out_HLT_Physics = checkTriggerFired(eventData->hlt, "HLT_Physics_v2");
+        // out_HLT_Random = checkTriggerFired(eventData->hlt, "HLT_Random_v1");
+        // out_HLT_Photon = checkTriggerFired(eventData->hlt, "HLT_Photon500_v1");
+        // out_HLT_Mu = checkTriggerFired(eventData->hlt, "HLT_Mu300_v1");
+        // out_HLT_MET = checkTriggerFired(eventData->hlt, "HLT_MET250_v1");
+        // out_HLT_PFMET = checkTriggerFired(eventData->hlt, "HLT_PFMET300_v1");
+        // out_HLT_HT = checkTriggerFired(eventData->hlt, "HLT_HT2000_v1");
 
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
         rescaleEnergyFractions(refData);
