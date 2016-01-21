@@ -116,7 +116,6 @@ process.L1NtupleRAW.remove(process.l1UpgradeTree)
 process.l1UpgradeSimTreeMP = process.l1UpgradeSimTree.clone()
 process.l1UpgradeSimTreeMP.jetToken = cms.untracked.InputTag('simCaloStage2Digis', 'MP')
 
-
 ##############################
 # Do ak4 GenJets
 ##############################
@@ -128,16 +127,16 @@ process.genJetToL1JetAk4 = cms.EDProducer("GenJetToL1Jet",
 # Put in another L1ExtraTree as cenJets
 process.load("L1Trigger.L1TNtuples.l1ExtraTree_cfi")
 process.l1ExtraTreeGenAk4 = process.l1ExtraTree.clone()
-process.l1ExtraTreeGenAk4.nonIsoEmLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.isoEmLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.tauJetLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.isoTauJetLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.cenJetLabel = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
-process.l1ExtraTreeGenAk4.fwdJetLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.muonLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.metLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.mhtLabel = cms.untracked.InputTag("")
-process.l1ExtraTreeGenAk4.hfRingsLabel = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.nonIsoEmToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.isoEmToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.tauJetToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.isoTauJetToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.cenJetToken = cms.untracked.InputTag("genJetToL1JetAk4:GenJets")
+process.l1ExtraTreeGenAk4.fwdJetToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.muonToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.metToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.mhtToken = cms.untracked.InputTag("")
+process.l1ExtraTreeGenAk4.hfRingsToken = cms.untracked.InputTag("")
 process.l1ExtraTreeGenAk4.maxL1Extra = cms.uint32(50)
 
 ##############################
