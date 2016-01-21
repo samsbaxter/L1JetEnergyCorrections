@@ -18,10 +18,10 @@
 // Headers from this package
 #include "commonRootUtils.h"
 
-
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi) {
+template<typename T>
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
+                                                std::vector<T> & eta,
+                                                std::vector<T> & phi) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
         throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
@@ -34,12 +34,16 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
     }
     return vecs;
 }
+// need to explicity write down template implementations here, or put function implementation into header...
+template std::vector<TLorentzVector> makeTLorentzVectors<float>(std::vector<float> & et, std::vector<float> & eta, std::vector<float> & phi);
+template std::vector<TLorentzVector> makeTLorentzVectors<double>(std::vector<double> & et, std::vector<double> & eta, std::vector<double> & phi);
 
 
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi,
-                                                std::vector<short> bx) {
+template<typename T, typename T2>
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
+                                                std::vector<T> & eta,
+                                                std::vector<T> & phi,
+                                                std::vector<T2> & bx) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
         throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
@@ -54,6 +58,9 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
     }
     return vecs;
 }
+template std::vector<TLorentzVector> makeTLorentzVectors<float, short int>(std::vector<float> & et, std::vector<float> & eta, std::vector<float> & phi, std::vector<short int> & bx);
+template std::vector<TLorentzVector> makeTLorentzVectors<float, int>(std::vector<float> & et, std::vector<float> & eta, std::vector<float> & phi, std::vector<int> & bx);
+template std::vector<TLorentzVector> makeTLorentzVectors<double, int>(std::vector<double> & et, std::vector<double> & eta, std::vector<double> & phi, std::vector<int> & bx);
 
 
 void loadCorrectionFunctions(const TString& filename,

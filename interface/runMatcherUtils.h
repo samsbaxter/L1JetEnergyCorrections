@@ -18,9 +18,10 @@
  * @param phi [description]
  * @return [description]
  */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi);
+template<typename T>
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
+                                                std::vector<T> & eta,
+                                                std::vector<T> & phi);
 
 
 /**
@@ -33,10 +34,11 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
  * @param bx [description]
  * @return [description]
  */
-std::vector<TLorentzVector> makeTLorentzVectors(std::vector<float> et,
-                                                std::vector<float> eta,
-                                                std::vector<float> phi,
-                                                std::vector<short> bx);
+template<typename T, typename T2>
+std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
+                                                std::vector<T> & eta,
+                                                std::vector<T> & phi,
+                                                std::vector<T2> & bx);
 
 
 /**
