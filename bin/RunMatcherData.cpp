@@ -17,6 +17,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoJetDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
@@ -31,6 +32,7 @@ using std::endl;
 using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisRecoJetDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
+using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
