@@ -48,7 +48,8 @@ bool tightCleaning(float eta,
 bool tightLepVetoCleaning(float eta,
                           float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
-void getCSCList(std::string filename, std::vector<std::string> & lines);
+// void getCSCList(std::string filename, std::vector<std::string> & lines);
+void getCSCList(std::string filename, std::vector<ULong64_t> & lines);
 
 /**
  * @brief
@@ -93,8 +94,12 @@ int main(int argc, char* argv[]) {
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
 
-    std::vector<std::string> cscList;
-    getCSCList("/hdfs/user/ra12451/L1JEC/csc2015_260627.txt", cscList);
+    // std::vector<std::string> cscList;
+    std::vector<ULong64_t> cscList;
+    getCSCList("/hdfs/user/ra12451/L1JEC/csc2015_260627_evtOnly.txt", cscList);
+    cout << cscList.size() << " events in CSC list" << endl;
+    cout << cscList[0] << endl;
+    cout << cscList[cscList.size()-1] << endl;
 
     ////////////////////////
     // SETUP OUTPUT FILES //
@@ -212,9 +217,15 @@ int main(int argc, char* argv[]) {
         out_ls = eventData->lumi;
 
         // Check CSC beam halo
-        std::string thisEvent = lexical_cast<std::string>(out_ls) + ":" + lexical_cast<std::string>(out_event);
-        out_passCSC = !(std::binary_search(cscList.begin(), cscList.end(), thisEvent));
-        if (!out_passCSC) cscFail++;
+        // std::string thisEvent = lexical_cast<std::string>(out_ls) + ":" + lexical_cast<std::string>(out_event);
+        // std::string thisEvent = lexical_cast<std::string>(out_event);
+        // out_passCSC = !(std::binary_search(cscList.begin(), cscList.end(), out_event));
+        out_passCSC = (std::find(cscList.begin(), cscList.end(), out_event) == cscList.end());
+
+        if (!out_passCSC) {
+            // failEvents.push_back(out_event);
+            cscFail++;
+        }
 
         // Check which triggers fired
         out_ZeroBias = checkTriggerFired(eventData->hlt, "HLT_ZeroBias_v");
@@ -430,10 +441,11 @@ int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetData
 }
 
 
-void getCSCList(std::string filename, std::vector<std::string> & lines) {
+// void getCSCList(std::string filename, std::vector<std::string> & lines) {
+void getCSCList(std::string filename, std::vector<ULong64_t> & lines) {
     cout << "Populating CSC list" << endl;
     std::ifstream infile(filename);
-    std::string line = "";
+    ULong64_t line = 0;
     while (infile >> line) {
         lines.push_back(line);
     }
