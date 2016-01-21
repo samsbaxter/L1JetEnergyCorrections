@@ -38,7 +38,8 @@ namespace fs = boost::filesystem;
 bool checkTriggerFired(const std::vector<TString> & hlt, const std::string& selection);
 void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets);
 std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality);
-int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets);
+template<typename T>
+int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jets);
 bool looseCleaning(float eta,
                    float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                    short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
@@ -460,9 +461,13 @@ bool tightLepVetoCleaning(float eta,
 }
 
 
-int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets) {
+template<typename T>
+int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jets) {
     for (unsigned i = 0; i < jets.nJets; ++i){
-        if (jets.et[i] == et && jets.eta[i] == eta && jets.phi[i] == phi)
+        // match two floating-point numbers: use range of acceptibility rather than ==
+        if (((jets.et[i] < (et + 0.01)) && (jets.et[i] > (et - 0.01)))
+            && ((jets.eta[i] < (eta + 0.01)) && (jets.eta[i] > (eta - 0.01)))
+            && ((jets.phi[i] < (phi + 0.01)) && (jets.phi[i] > (phi - 0.01))))
             return i;
     }
     return -1;
