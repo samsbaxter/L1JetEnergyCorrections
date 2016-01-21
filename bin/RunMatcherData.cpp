@@ -327,7 +327,7 @@ bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & sel
  * sum of energy fractions (which should = 1)
  */
 void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets) {
-    for (int i = 0; i < jets->nJets; ++i) {
+    for (unsigned i = 0; i < jets->nJets; ++i) {
         float totalEf = jets->chef[i] + jets->nhef[i] + jets->pef[i] + jets->eef[i] + jets->mef[i] + jets->hfhef[i] + jets->hfemef[i];
         jets->chef[i] /= totalEf;
         jets->nhef[i] /= totalEf;
@@ -352,7 +352,7 @@ std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJ
 
     std::vector<TLorentzVector> vecs;
 
-    for (int i = 0; i < jets.nJets; ++i) {
+    for (unsigned i = 0; i < jets.nJets; ++i) {
         if (quality == "LOOSE") {
             if (!looseCleaning(jets.eta[i],
                                jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
@@ -422,7 +422,7 @@ bool tightLepVetoCleaning(float eta,
 
 
 int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets) {
-    for (int i = 0; i < jets.nJets; ++i){
+    for (unsigned i = 0; i < jets.nJets; ++i){
         if (jets.et[i] == et && jets.eta[i] == eta && jets.phi[i] == phi)
             return i;
     }
