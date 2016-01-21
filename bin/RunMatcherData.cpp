@@ -215,9 +215,11 @@ int main(int argc, char* argv[]) {
     //////////////////////
     // produce matching pairs and store
     Long64_t drawCounter(0), matchedEvent(0), cscFail(0);
-    for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
+    std::vector<std::string> failEvents;
+    Long64_t counter(0);
+    for (Long64_t iEntry = 0; counter < nEntries; ++iEntry, ++counter) {
 
-        if (iEntry % 10000 == 0) {
+        if (counter % 10000 == 0) {
             cout << "Entry: " << iEntry << " at " << getCurrentTime() << endl;
         }
 
