@@ -10,7 +10,7 @@
 # (i.e. the same way hadd normally works.)
 
 # setup CMSSW to get ROOT
-VER=CMSSW_7_4_2
+VER=CMSSW_7_6_0_pre7
 echo "Setting up ${VER} ..."
 echo "... sourcing CMS default environment from CVMFS"
 source /cvmfs/cms.cern.ch/cmsset_default.sh
