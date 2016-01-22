@@ -188,6 +188,40 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     c.SaveAs(filename)
 
 
+def plot_graph_function(graph, function, filename):
+    """Plot both graph and function on the same canvas. Useful for fancy fits.
+
+    Parameters
+    ----------
+    graph: TGraphErrors
+        Graph to be plotted
+    function: MultiFunc
+        Function to be drawn
+    filename: str
+        Path & filename for plot
+    """
+    c = ROOT.TCanvas("c%d" % i, "SCREW ROOT", 800, 600)
+    c.SetTicks(1,1)
+    graph.Draw("ALP")
+    y_ax = graph.GetYaxis()
+    y_ax.SetRangeUser(0.9*y_ax.GetXmin(), 1.1 * y_ax.GetXmax())
+    graph.SetTitle("%g < #eta^{L1} < %g" % (binning.eta_bins[i], binning.eta_bins[i+1]))
+    # Print the functions in a text box
+    text = ROOT.TPaveText(0.2, 0.7, 0.88, 0.88, "NDC NB")
+    # TPaveText ignores \n, sigh...
+    for line in str(function).split("\n"):
+        text.AddText(line)
+    text.SetFillColor(ROOT.kWhite)
+    text.SetFillStyle(0)
+    text.SetLineStyle(0)
+    text.Draw()
+    function.Draw("SAME")
+    graph.GetXaxis().SetLimits(0, 250)
+    if i == 10:
+        y_ax.SetRangeUser(1.2, 2.4)
+    c.SaveAs(os.path.join(out_dir, "fancyfit_%d.pdf" % i))
+
+
 def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
     """Draw all corrections functions on one big canvas"""
     canv = ROOT.TCanvas("canv", "", 3800, 1200)
@@ -289,6 +323,7 @@ def main(in_args=sys.argv[1:]):
     # Make LUTs
     if args.gct:
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
+
     elif args.stage1:
         fits = make_fancy_fits(all_fits, all_graphs) if args.fancy else all_fits
         print_Stage1_lut_file(fits, args.lut, args.plots)
@@ -296,26 +331,11 @@ def main(in_args=sys.argv[1:]):
         if args.plots:
             # plot the fancy fits
             for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
-                c = ROOT.TCanvas("c%d" % i, "SCREW ROOT", 800, 600)
-                c.SetTicks(1,1)
-                gr.Draw("ALP")
-                y_ax = gr.GetYaxis()
-                y_ax.SetRangeUser(0.9*y_ax.GetXmin(), 1.1 * y_ax.GetXmax())
-                gr.SetTitle("%g < #eta^{L1} < %g" % (binning.eta_bins[i], binning.eta_bins[i+1]))
-                # Print the functions in a text box
-                text = ROOT.TPaveText(0.2, 0.7, 0.88, 0.88, "NDC NB")
-                # TPaveText ignores \n, sigh...
-                for line in str(total_fit).split("\n"):
-                    text.AddText(line)
-                text.SetFillColor(ROOT.kWhite)
-                text.SetFillStyle(0)
-                text.SetLineStyle(0)
-                text.Draw()
-                total_fit.Draw("SAME")
-                gr.GetXaxis().SetLimits(0, 250)
-                if i == 10:
-                    y_ax.SetRangeUser(1.2, 2.4)
-                c.SaveAs(os.path.join(out_dir, "fancyfit_%d.pdf" % i))
+                plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
+                plot_graph_function(gr, total_fit, plot_file)
+
+    elif args.stage2:
+        pass
 
 
     if args.plots:
