@@ -8,15 +8,12 @@
 # separate jobs, and then hadds them all after.
 
 declare -a pairsFiles=(
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/pairs_QCD_Pt-15to170_300to1000_Spring15_AVE20BX25_Stage1_jetSeed5_MCRUN2_V9_noStage1Lut_rctv4_preGt_ak4_ref14to1000_l10to500_dr0p4.root
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/pairs_QCD_Pt-15to170_300to1000_Spring15_AVE20BX25_Stage1_jetSeed5_MCRUN2_V9_noStage1Lut_rctv4_preGt_ak4_ref14to1000_l10to500.root
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500.root
-/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/pairs/ref0to1000_l10to500/pairs_QCD_Pt-15to170_300to1000_Spring15_AVE20BX25Stage1_jetSeed5_MCRUN2_74_V9_noStage1Lut_rctv4_preGt_ak4_ref0to1000_l10to500.root
-# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/Stage1_QCDSpring15_AVE20BX25_stage1NoLut_rctv4_jetSeed5/pairs/ref0to1000_l10to500_dr0p4/pairs_QCD_Pt-80to120_Spring15_AVE20BX25Stage1_jetSeed5_MCRUN2_74_V9_noStage1Lut_rctv4_preGt_ak4_ref0to1000_l10to500_dr0p4.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root
+/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/pairs/pairs_ntuples_data_ref10to5000_l10to5000_dr0p4.root
 )
 
 declare -a etaBins=(
-0
+0.0
 0.348
 0.695
 1.044
@@ -24,10 +21,10 @@ declare -a etaBins=(
 1.74
 2.172
 3.0
-3.5
-4.0
-4.5
-5
+# 3.5
+# 4.0
+# 4.5
+# 5
 )
 
 # update the setup scripts for worker nodes
@@ -56,18 +53,19 @@ sed -i "s@SEDINPUTFILES@$cdir/runCalibration.py, $cdir/binning.py, $cdir/correct
 
 declare -a statusFileNames=()
 
-# Loop over PU ranges
-declare -a puMins=(
-    0
-    15
-    30
-)
-declare -a puMaxs=(
-    10
-    25
-    40
-)
+# Loop over PU ranges for PU10to30 sample:
+# declare -a puMins=(
+#     0
+#     15
+#     30
+# )
+# declare -a puMaxs=(
+#     10
+#     25
+#     40
+# )
 
+# Or for 0PU:
 declare -a puMins=(
     -100
 )
@@ -75,10 +73,15 @@ declare -a puMaxs=(
     100
 )
 
+
 # loop over the two arrays pairwise
 for((p=0; p<${#puMins[@]}; ++p)); do
     puMin=${puMins[p]}
     puMax=${puMaxs[p]}
+
+    # Special appendix, if desired (e.g. if changing a param)
+    append=""  # 0PU
+    # append="_PU${puMin}to${puMax}"  # PU binned
 
     # Queue up jobs
     for pairs in "${pairsFiles[@]}"
@@ -115,10 +118,6 @@ for((p=0; p<${#puMins[@]}; ++p)); do
         declare -a jobNames=()
         declare -a outFileNames=()
 
-        # Special appendix, if desired (e.g. if changing a param)
-        append="_PU${puMin}to${puMax}"
-        append=""
-
         outname=${fname/pairs_/output_}
         outname=${outname%.root}
 
@@ -140,7 +139,7 @@ for((p=0; p<${#puMins[@]}; ++p)); do
             outFileNames+=($outRootName)
 
             fwdOpt=""
-            if [ "$etamin" -gt 2.9 ]; then
+            if [[ "$etamin" > 2.9 ]]; then
                 fwdOpt="--no-correction-fit"
             fi
             echo "JOB $jobname $outfile" >> "$dagfile"
