@@ -8,7 +8,14 @@
 # separate jobs, and then hadds them all after.
 
 declare -a pairsFiles=(
-/hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_4_2/src/L1Trigger/L1JetEnergyCorrections/QCDSpring15_Stage1_AVE20BX25_newRCTv2/pairs_QCD_Pt-15to1000_Spring15_AVE20BX25_Stage1_QCDSpring15_newRCTv2_preGt_ak4_ref14to1000_l10to500.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_jec22Nov/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/pairs/pairs_ntuples_data_ref10to5000_l10to5000_dr0p4.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627_JEC/pairs/pairs_ntuples_data_ref10to5000_l10to5000_dr0p4.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/pairs/pairs_Express_data_ref10to5000_l10to5000_dr0p4_noCleaning.root
+# /hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627_JEC/pairs/pairs_Express_data_ref10to5000_l10to5000_dr0p4_noCleaning.root
+/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/pairs/pairs_Express_data_ref10to5000_l10to5000_dr0p4_tightLepVeto.root
 )
 
 declare -a etaBins=(
@@ -20,10 +27,10 @@ declare -a etaBins=(
 1.74
 2.172
 3.0
-3.5
-4.0
-4.5
-5
+# 3.5
+# 4.0
+# 4.5
+# 5
 )
 
 # update the setup scripts for worker nodes
@@ -91,13 +98,13 @@ do
     maxPt=1022
 
     # PU cuts
-    puMin=30
+    puMin=-30
     puMax=40
 
     # Special appendix, if desired (e.g. if changing a param)
     append=""
-    append="${append}_PU${puMin}to${puMax}_maxPt${maxPt}"
-    # append="${append}_maxPt${maxPt}"
+    # append="${append}_PU${puMin}to${puMax}_maxPt${maxPt}"
+    append="${append}_maxPt${maxPt}"
 
     outname=${fname/pairs_/check_}
     outname=${outname%.root}
