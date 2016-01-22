@@ -61,12 +61,10 @@ class MultiFunc(object):
         """
         self.functions_dict = functions_dict
 
-
     def Eval(self, x):
         """Emulate TF1.Eval() but will call the correct function,
         depending on which function is applicable for the value of x."""
         return [func for lim, func in self.functions_dict.iteritems() if lim[0] <= x < lim[1]][0].Eval(x)
-
 
     def Draw(self, args=None):
         """Draw the various functions"""
@@ -79,13 +77,15 @@ class MultiFunc(object):
             upper_lim = max([lim[1] for lim in self.functions_dict.keys()])
             if np.isposinf(lower_lim):
                 upper_lim = 999
-            blank = ROOT.TF1("blank"+str(np.random.randint(0,10000)), "1.5", lower_lim, upper_lim)
+            blank = ROOT.TF1("blank" + str(np.random.randint(0, 10000)), "1.5", lower_lim, upper_lim)
             blank.Draw()
-            max_value = max([func.GetMaximum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 1.1
+            max_value = max([func.GetMaximum(lim[0], lim[1])
+                             for lim, func in self.functions_dict.iteritems()]) * 1.1
             blank.SetMaximum(max_value)
-            min_value = min([func.GetMinimum(lim[0], lim[1]) for lim, func in self.functions_dict.iteritems()]) * 0.9
+            min_value = min([func.GetMinimum(lim[0], lim[1])
+                             for lim, func in self.functions_dict.iteritems()]) * 0.9
             blank.SetMinimum(min_value)
-            ROOT.SetOwnership(blank, False) # NEED THIS SO IT ACTUALLY GETS DRAWN. SERIOUSLY, WTF?!
+            ROOT.SetOwnership(blank, False)  # NEED THIS SO IT ACTUALLY GETS DRAWN. SERIOUSLY, WTF?!
             blank.SetLineColor(ROOT.kWhite)
 
         # now draw the rest of the functions
@@ -97,7 +97,8 @@ class MultiFunc(object):
         """str representation. Prints each fns name and range of validity,
         ordered by ascending range
         """
-        parts = ["%s: %.2f - %.2f\n%s" % (f.GetName(), r[0], r[1], f.GetExpFormula()) for r,f in self.functions_dict.iteritems()]
+        parts = ["%s: %.2f - %.2f\n%s" % (f.GetName(), r[0], r[1], f.GetExpFormula())
+                 for r, f in self.functions_dict.iteritems()]
         return "\n".join(sorted(parts))
 
 
@@ -107,7 +108,7 @@ def print_function(function, lang="cpp"):
     Can choose language (py, cpp, numpy)
     """
 
-    rangemin = ROOT.Double() # eurghhhhh - fixes pass by reference
+    rangemin = ROOT.Double()  # eurghhhhh - fixes pass by reference
     rangemax = ROOT.Double()
     function.GetRange(rangemin, rangemax)
     params = [function.GetParameter(i) for i in range(function.GetNumberFreeParameters())]
@@ -154,18 +155,18 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
 
     # Make coloured blocks to show the L1 pT bins
     blocks = []  # for persistence otherwise garbabe collected
-    gct_bins = np.arange(4, 16 + (18*4), 4)
+    gct_bins = np.arange(4, 16 + (18 * 4), 4)
     for i, pt in enumerate(gct_bins):
-        if pt+4 < jet_pt_post[0] or pt > jet_pt_post[-1]:
+        if (pt + 4) < jet_pt_post[0] or pt > jet_pt_post[-1]:
             continue
-        b = ROOT.TBox(min_pre, pt, max_pre, pt+4)
+        b = ROOT.TBox(min_pre, pt, max_pre, pt + 4)
         col = 30 if i % 2 else 38
         b.SetFillColor(col)
         b.SetLineStyle(0)
         blocks.append(b)
 
     # Plot
-    c = ROOT.TCanvas("c","", 800, 800)
+    c = ROOT.TCanvas("c", "", 800, 800)
     c.SetTicks(1, 1)
     c.SetGrid(1, 1)
     gr = ROOT.TGraph(len(jet_pt_pre), jet_pt_pre, jet_pt_post)
@@ -173,14 +174,16 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     gr.SetTitle("Input jets at 0.5 GeV intervals;p_{T}^{pre};p_{T}^{post}")
     gr.SetMarkerStyle(2)
     gr.Draw("AP")
-    [b.Draw() for b in blocks]
+    for bl in blocks:
+        bl.Draw()
     gr.Draw("P")
+
     # Some helpful lines
     def draw_lines(pt):
-        lx = ROOT.TLine(pt, gr.GetYaxis().GetXmin(), pt, pt*corr_fn.Eval(pt))
+        lx = ROOT.TLine(pt, gr.GetYaxis().GetXmin(), pt, pt * corr_fn.Eval(pt))
         lx.SetLineStyle(2)
         lx.Draw()
-        ly = ROOT.TLine(0, pt*corr_fn.Eval(pt), pt, pt*corr_fn.Eval(pt))
+        ly = ROOT.TLine(0, pt * corr_fn.Eval(pt), pt, pt * corr_fn.Eval(pt))
         ly.SetLineStyle(2)
         ly.Draw()
     draw_lines(5)
@@ -188,24 +191,29 @@ def plot_correction_map(corr_fn, filename="correction_map.pdf"):
     c.SaveAs(filename)
 
 
-def plot_graph_function(graph, function, filename):
+def plot_graph_function(eta_index, graph, function, filename):
     """Plot both graph and function on the same canvas. Useful for fancy fits.
 
     Parameters
     ----------
+    eta_index: int
+        Which eta bin this plot refers to
+
     graph: TGraphErrors
         Graph to be plotted
+
     function: MultiFunc
         Function to be drawn
+
     filename: str
         Path & filename for plot
     """
-    c = ROOT.TCanvas("c%d" % i, "SCREW ROOT", 800, 600)
-    c.SetTicks(1,1)
+    c = ROOT.TCanvas("c%d" % eta_index, "SCREW ROOT", 800, 600)
+    c.SetTicks(1, 1)
     graph.Draw("ALP")
     y_ax = graph.GetYaxis()
-    y_ax.SetRangeUser(0.9*y_ax.GetXmin(), 1.1 * y_ax.GetXmax())
-    graph.SetTitle("%g < #eta^{L1} < %g" % (binning.eta_bins[i], binning.eta_bins[i+1]))
+    y_ax.SetRangeUser(0.9 * y_ax.GetXmin(), 1.1 * y_ax.GetXmax())
+    graph.SetTitle("%g < #eta^{L1} < %g" % (binning.eta_bins[eta_index], binning.eta_bins[eta_index + 1]))
     # Print the functions in a text box
     text = ROOT.TPaveText(0.2, 0.7, 0.88, 0.88, "NDC NB")
     # TPaveText ignores \n, sigh...
@@ -217,16 +225,16 @@ def plot_graph_function(graph, function, filename):
     text.Draw()
     function.Draw("SAME")
     graph.GetXaxis().SetLimits(0, 250)
-    if i == 10:
+    if eta_index == 10:
         y_ax.SetRangeUser(1.2, 2.4)
-    c.SaveAs(os.path.join(out_dir, "fancyfit_%d.pdf" % i))
+    c.SaveAs(filename)
 
 
 def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
     """Draw all corrections functions on one big canvas"""
     canv = ROOT.TCanvas("canv", "", 3800, 1200)
     nrows = 2
-    ncols = ((len(binning.eta_bins)-1) / nrows) + 1
+    ncols = ((len(binning.eta_bins) - 1) / nrows) + 1
     canv.Divide(ncols, nrows)
 
     # vertical line to intersect graph at a certain pT
@@ -239,10 +247,10 @@ def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
     hori_line.SetLineStyle(3)
 
     for i, fit_func in enumerate(functions):
-        canv.cd(i+1)
+        canv.cd(i + 1)
         fit_func.SetRange(et_min, et_max)
         fit_func.SetLineWidth(1)
-        fit_func.SetTitle("%g - %g" % (eta_bins[i], eta_bins[i+1]))
+        fit_func.SetTitle("%g - %g" % (eta_bins[i], eta_bins[i + 1]))
         fit_func.Draw()
         corr_5 = fit_func.Eval(5)
         vert_line.SetY1(-15)
@@ -278,7 +286,8 @@ def main(in_args=sys.argv[1:]):
         print "You didn't pick which format for the LUT - not making a LUT unless you choose!"
 
     in_file = cu.open_root_file(args.input)
-    out_dir = os.path.join(os.path.dirname(args.input), os.path.splitext(os.path.basename(args.lut))[0])
+    out_dir = os.path.join(os.path.dirname(args.input),
+                           os.path.splitext(os.path.basename(args.lut))[0])
 
     cu.check_dir_exists_create(out_dir)
 
@@ -313,11 +322,13 @@ def main(in_args=sys.argv[1:]):
             print_function(fit_func, "numpy")
 
     # Check we have the correct number
-    if len(all_fits)+1 != len(etaBins) or len(all_fit_params)+1 != len(etaBins):
-        raise Exception("Incorrect number of fit functions/sets of parameters for corresponding number of eta bins")
+    if len(all_fits) + 1 != len(etaBins) or len(all_fit_params) + 1 != len(etaBins):
+        raise Exception("Incorrect number of fit functions/sets of parameters "
+                        "for corresponding number of eta bins")
 
     # Plot all functions on one canvas
-    plot_all_functions(all_fits, os.path.join(out_dir, "all_raw_fits.pdf"), etaBins, et_min=0, et_max=30)
+    plot_file = os.path.join(out_dir, "all_raw_fits.pdf")
+    plot_all_functions(all_fits, plot_file, etaBins, et_min=0, et_max=30)
     fits = all_fits
 
     # Make LUTs
@@ -332,16 +343,16 @@ def main(in_args=sys.argv[1:]):
             # plot the fancy fits
             for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
                 plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
-                plot_graph_function(gr, total_fit, plot_file)
+                plot_graph_function(i, gr, total_fit, plot_file)
 
     elif args.stage2:
         pass
 
-
     if args.plots:
         # Plot function mapping
         for i, (eta_min, eta_max, fit_func) in enumerate(izip(etaBins[:-1], etaBins[1:], fits)):
-            plot_correction_map(fit_func, os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max)))
+            plot_file = os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max))
+            plot_correction_map(fit_func, plot_file)
 
 
 if __name__ == "__main__":
