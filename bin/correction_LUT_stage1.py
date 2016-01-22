@@ -59,30 +59,38 @@ def print_Stage1_lut_file(fit_functions, filename, plot=True):
                 print "Eta region:", eta, " = physical eta bin:", param_ind
                 for pt in xrange(1025):
 
-                    if pt >(1<<10)-1:
-                        pt = ((1<<10) -1)
+                    if pt > (1<<10) - 1:
+                        pt = ((1<<10) - 1)
                         break
 
                     lut_address = (eta<<10) + pt
-                    physPt = pt / 2. # convert HW pt to physical pt
-                    pt_corr = physPt * fit_functions[param_ind].Eval(physPt)
-                    if pt_corr < 0: # avoid -ve pt
+                    physPt = pt / 2.  # convert HW pt to physical pt
+                    corr = fit_functions[param_ind].Eval(physPt)
+                    pt_corr = physPt * corr
+                    if pt_corr < 0:  # avoid -ve pt
                         pt_corr = 0
-                    RANKCALIB = int(pt_corr / 4);  # The 4 is to go to the 4 GeV binning at the GT
-                    if (RANKCALIB > 63): # cap pt
-                        RANKCALIB = 63;
+                    RANKCALIB = int(pt_corr / 4)  # The 4 is to go to the 4 GeV binning at the GT
+                    if (RANKCALIB > 63):  # cap pt
+                        RANKCALIB = 63
                     line = "%s %s\n" % (lut_address, RANKCALIB)
-                    lut_file.write(line);
-                    dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f " \
-                                "corrPhysPt: %f RANKCALIB: %d\n" % (eta,
-                                                                    physPt,
-                                                                    lut_address,
-                                                                    fit_functions[param_ind].Eval(physPt),
-                                                                    pt_corr,
-                                                                    RANKCALIB)
+                    lut_file.write(line)
+                    # dump_line = "eta: %d phys pt: %f LUT address: %d corrValue: %f " \
+                    #             "corrPhysPt: %f RANKCALIB: %d\n" % (eta,
+                    #                                                 physPt,
+                    #                                                 lut_address,
+                    #                                                 corr,
+                    #                                                 pt_corr,
+                    #                                                 RANKCALIB)
+                    dump_dict = {'eta': eta, 'physPt': physPt, 'lut': lut_address,
+                                 'corr': corr, 'pt_corr': pt_corr, 'rank': RANKCALIB}
+                    dump_line = "eta: ${eta:d} phys pt: ${physPt:f} " \
+                                "LUT address: ${lut:d} corrValue: ${corr:f} " \
+                                "corrPhysPt: ${pt_corr:f} RANKCALIB: ${rank:d}\n".format(dump_dict)
+
                     dump_file.write(dump_line)
                     if plot:
-                        lut_plot.SetBinContent(pt+1, eta+1, RANKCALIB)  # +1 as ROOT bins start at 1, not 0!
+                        # +1 as ROOT bins start at 1, not 0!
+                        lut_plot.SetBinContent(pt + 1, eta + 1, RANKCALIB)
 
     if plot:
         c = ROOT.TCanvas("c", "", 800, 500)
@@ -94,9 +102,9 @@ def print_Stage1_lut_file(fit_functions, filename, plot=True):
         # Here we try and be intelligent - find the minimum pt above which all
         # eta and pt have bincontent = 63
         max_pt = 0
-        for i in xrange(1, lut_plot.GetNbinsX()+1):
+        for i in xrange(1, lut_plot.GetNbinsX() + 1):
             all_max = True
-            for j in xrange(1, lut_plot.GetNbinsY()+1):
+            for j in xrange(1, lut_plot.GetNbinsY() + 1):
                 if lut_plot.GetBinContent(i, j) != 63:
                     all_max = False
                     break
@@ -105,10 +113,12 @@ def print_Stage1_lut_file(fit_functions, filename, plot=True):
                 break
 
         lut_plot.SetAxisRange(0, max_pt, "X")
-        lut_plot.GetXaxis().SetTitle(lut_plot.GetXaxis().GetTitle()+"(RANKCALIB = 63 for pt > %d for all eta)" % max_pt)
+        xtitle = lut_plot.GetXaxis().GetTitle()
+        xtitle += "(RANKCALIB = 63 for pt > %d for all eta)" % max_pt
+        lut_plot.GetXaxis().SetTitle(xtitle)
         lut_plot.GetZaxis().SetTitle("RANK CALIB")
         lut_plot.GetZaxis().SetTitleOffset(0.58)
-        c.SaveAs(os.path.splitext(filename)[0]+".pdf")
+        c.SaveAs(os.path.splitext(filename)[0] + ".pdf")
 
 
 def make_fancy_fits(fits, graphs):
@@ -124,7 +134,7 @@ def make_fancy_fits(fits, graphs):
 
     for i, (fit, gr) in enumerate(zip(fits, graphs)):
         x_arr, y_arr = cu.get_xy(gr)
-        ex_arr, ey_arr = cu.get_exey(gr)
+        # ex_arr, ey_arr = cu.get_exey(gr)
 
         pt_merge = 0
         corr_merge = 0
@@ -132,13 +142,11 @@ def make_fancy_fits(fits, graphs):
         print "Eta bin", str(i)
         # print "pt, correction acc. to graph, correcction acc. to fit, diff"
 
-        for j, (pt, corr, pt_err, corr_err) in enumerate(izip(x_arr[::-1], y_arr[::-1], ex_arr[::-1], ey_arr[::-1])):
+        for j, (pt, corr) in enumerate(izip(x_arr[::-1], y_arr[::-1])):
             # Loop through each point of the graph in reverse,
             # only considering points with pt < 40.
             # Determine where the function and graph separate by
             # looking at the difference.
-            # The error arrays are redundant for now, but are included incase
-            # the user wishes to use their values in the future
             if pt > 40:
                 continue
             # print pt, corr, fit.Eval(pt), abs(fit.Eval(pt) - corr)
@@ -158,7 +166,7 @@ def make_fancy_fits(fits, graphs):
         function_str = "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))"
         for p in xrange(fit.GetNumberFreeParameters()):
             function_str = function_str.replace("[%d]" % p, "%.8f" % fit.GetParameter(p))
-        fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge*0.8, 512)
+        fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge * 0.8, 512)
         # set lower range below pt_merge just for drawing purposes
 
         # Make a MultiFunc object to handle the different functions operating
