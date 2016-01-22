@@ -28,13 +28,18 @@ from itertools import izip_longest
 # -----------------------------------------------------------------------------
 # Locations of directories with L1Ntuple files to run over:
 NTUPLE_DIRS = [
-    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_5_0_pre5/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_layer2NoLut_jetSeed0/QCDFlatSpring15BX25FlatNoPUHCALFix'
-    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_5_0_pre5/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_layer2NewLut11NovPU15to25_jetSeed1p5_calibMin0/QCDFlatSpring15BX25PU10to30HCALFix'
-    '/hdfs/user/ra12451/L1JEC/CMSSW_7_5_0_pre5/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_layer2NewLut11NovPU15to25_jetSeed0_v2/QCDFlatSpring15BX25PU10to30HCALFix'
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_22Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_22Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25FlatNoPUHCALFix'
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_jec22Nov/QCDFlatSpring15BX25PU10to30HCALFix'
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/ntuples'
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run260627/Express'
+    '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_Run2015D_260627_31Dec_760pre7_noJEC_HBHEnoise_v2/Express'
 ]
 
 # Choose executable to run - must be located using `which <EXE>`
 EXE = 'RunMatcherStage2'  # For Stage 2 MC
+EXE = 'RunMatcherData'  # For Stage 2 DATA
 
 # DeltaR(L1, RefJet) for matching
 DELTA_R = 0.4
@@ -43,10 +48,12 @@ DELTA_R = 0.4
 PT_REF_MIN = 10
 
 # TDirectory name for the L1 jets
-L1_DIR = 'l1UpgradeTreeMP'
+L1_DIR = 'l1UpgradeSimTreeMP'
+L1_DIR = 'l1UpgradeEmuTree'
 
 # TDirectory name for the reference jets
 REF_DIR = 'l1ExtraTreeGenAk4'
+REF_DIR = 'l1JetRecoTree'
 
 # Output filename append string.
 # The output filename is constructed as follows: for an input file named
@@ -57,6 +64,8 @@ REF_DIR = 'l1ExtraTreeGenAk4'
 # Note that any decimal points in
 # numbers will be converted to "p", e.g. 0.4 => 0p4
 APPEND = 'MP_ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
+APPEND = 'data_ref%dto5000_l10to5000_dr%s_noCleaning_fixedEF_CSCfilter_HBHENoise' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
+# APPEND = 'data_ref%dto5000_l10to5000_dr%s_tightLepVeto' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
 
 
 # DO NOT EDIT BELOW HERE
@@ -126,13 +135,17 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
             print 'Making DAG file', dag_file
 
             for ind, ntuple in enumerate(os.listdir(tree_dir)):
-                if not ntuple.endswith(".root") or ntuple.startswith('pairs'):
-                    print "Skipping", ntuple
+                # if not ntuple.endswith(".root") or ntuple.startswith('pairs'):
+                #     print "Skipping", ntuple
+                #     continue
+                if not ntuple == 'L1Tree_Data_260627_noL1JEC_HBHENoise.root':
                     continue
 
                 ntuple_name = os.path.splitext(os.path.basename(ntuple))[0]
                 pairs_file = '%s_%s.root' % (ntuple_name.replace('L1Tree_', 'pairs_'),
                                              append_str)
+                if not pairs_file.startswith('pairs'):
+                    pairs_file = 'pairs_%s' % pairs_file
 
                 out_file = os.path.join(tree_dir, pairs_file)
                 out_filenames.append(out_file)
