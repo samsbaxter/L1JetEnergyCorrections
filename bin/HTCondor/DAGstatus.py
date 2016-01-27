@@ -21,7 +21,10 @@ log = logging.getLogger(__name__)
 
 
 def strip_doublequotes(line):
-    return re.search(r'\"(.*)\"', line).group(1)
+    if '"' in line:
+        return re.search(r'\"(.*)\"', line).group(1)
+    else:
+        return line
 
 
 class bcolors:
@@ -177,9 +180,9 @@ def process(status_filename, summary):
                 store_contents = False
                 continue
             elif store_contents:
-                line = line.replace("\n", "").replace(";", "").strip()
+                line = line.replace("\n", "").strip()
                 parts = line.split(" = ")
-                contents[parts[0]] = parts[1]
+                contents[parts[0]] = parts[1].split(';')[0].replace(';', '')
     dag_status.node_statuses = node_statuses
     print_table(dag_status, node_statuses, status_end, summary)
 
@@ -213,7 +216,7 @@ def print_table(dag_status, node_statuses, status_end, summary):
     summary_dict["Done"] = "nodes_done"
     summary_dict["Done %"] = "nodes_done_percent"
     summary_col_widths = [max(len(str(getattr(dag_status, v))), len(k)) for k, v in summary_dict.iteritems()]
-    summary_format = " | ".join(["{{:<{}}}"] * len(summary_dict.keys())).format(*summary_col_widths)
+    summary_format = "  |  ".join(["{{:<{}}}"] * len(summary_dict.keys())).format(*summary_col_widths)
     summary_header = summary_format.format(*summary_dict.keys())
 
     # Now figure out how many char columns to occupy for the *** and ---
