@@ -27,6 +27,7 @@ exe="$1"
 
 # sandbox our work, to avoid it being transferred over afterwards
 mkdir scratch
+# cd scratch/
 
 # setup CMSSW for ROOT
 # VO_CMS_SW_DIR=/cvmfs/cms.cern.ch
@@ -56,9 +57,14 @@ echo "New output arg: $newOutput"
 
 # copy across exe
 exeBasename=$(basename $exe)
-hadoop fs -copyToLocal "${exe#/hdfs}" "$exeBasename"
-commands=${commands/$exe/$exeBasename}
-chmod u+x "$exeBasename"
+if [[ $exe != "python" ]]; then
+    hadoop fs -copyToLocal "${exe#/hdfs}" "$exeBasename"
+    commands=${commands/$exe/$exeBasename}
+    chmod u+x "$exeBasename"
+fi
+
+hadoop fs -copyToLocal /user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/stage2_lut_pu15to25_mergeCrit1p01_corrMax6_corr.txt stage2_lut_pu15to25_corr.txt
+hadoop fs -copyToLocal /user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/stage2_lut_pu15to25_mergeCrit1p01_corrMax6_pt.txt stage2_lut_pu15to25_pt.txt
 
 # copy across inputfile
 # hadoop fs -copyToLocal "${inputFile#/hdfs}" "$newInput"
@@ -90,8 +96,6 @@ function cleanup {
     find . -name "*.root" -delete
     find . -name "*.pyc" -delete
     find . -name "scratch" -delete
-    rm RunMatcher*
-    find . -name "$exeBasename" -delete
-    # find . -name "$VER" -delete
+    find . -name "RunMatcher*" -delete
 }
 trap cleanup EXIT
