@@ -47,7 +47,7 @@ echo "queue" >> "$outfile"
 
 # Replace correct parts
 datestamp=$(date "+%d_%b_%Y")
-logDir="jobs/checkCalib/${datestamp}"
+logDir="/storage/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/jobs/checkCalib/${datestamp}"
 if [ ! -d "$logD" ]; then
     mkdir -p $logDir
 fi

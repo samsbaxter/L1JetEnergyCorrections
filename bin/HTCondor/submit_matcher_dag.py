@@ -67,12 +67,15 @@ APPEND = 'MP_ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace
 APPEND = 'data_ref%dto5000_l10to5000_dr%s_noCleaning_fixedEF_CSCfilter_HBHENoise' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
 # APPEND = 'data_ref%dto5000_l10to5000_dr%s_tightLepVeto' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
 
+LOG_DIR = '/storage/%s/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/jobs/matcher/%s' % (os.environ['LOGNAME'], strftime("%d_%b_%y"))
+
 
 # DO NOT EDIT BELOW HERE
 # -----------------------------------------------------------------------------
 def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
                        l1_dir=L1_DIR, ref_dir=REF_DIR,
-                       deltaR=DELTA_R, ref_min_pt=PT_REF_MIN, force_submit=False):
+                       deltaR=DELTA_R, ref_min_pt=PT_REF_MIN,
+                       log_dir=LOG_DIR, force_submit=False):
     """Make DAG. Submit DAG."""
     # Before looping through the ntuple directories, we setup certain variables
     # and scripts as they only need to be done once
@@ -88,12 +91,13 @@ def submit_matcher_dag(exe=EXE, ntuple_dirs=NTUPLE_DIRS, append_str=APPEND,
     update_hadd_script(hadd_script, os.environ['CMSSW_VERSION'])
 
     # Make a matcher condor job description file using the generic template
-    datestamp = strftime("%d_%b_%y")
+    # datestamp = strftime("%d_%b_%y")
     job_file = 'submit_matcher.condor'
     exe_path = find_executable(exe)
     if not exe_path:
         raise RuntimeError('Cannot find path for %s' % exe)
-    log_dir = 'jobs/matcher/%s' % datestamp
+    # log_dir = 'jobs/matcher/%s' % datestamp
+    # log_dir = '/storage/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/jobs/matcher/%s' % datestamp
     check_create_dir(log_dir)
     check_create_dir('jobs/hadd')  # for Hadd jobs
     create_condor_description(template_file='submit_template.condor',
