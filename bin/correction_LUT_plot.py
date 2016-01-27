@@ -23,6 +23,7 @@ import common_utils as cu
 from runCalibration import generate_eta_graph_name
 from correction_LUT_GCT import print_GCT_lut_file
 from correction_LUT_stage1 import print_Stage1_lut_file, make_fancy_fits
+from correction_LUT_stage2 import print_Stage2_lut_files
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -201,6 +202,7 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("lut", help="output LUT filename", default="my_lut.txt")
     parser.add_argument("--gct", help="Make LUT for GCT", action='store_true')
     parser.add_argument("--stage1", help="Make LUT for Stage 1", action='store_true')
+    parser.add_argument("--stage2", help="Make LUT for Stage 2", action='store_true')
     parser.add_argument("--fancy", help="Make fancy LUT. "
                         "This checks for low pT deviations and caps the correction value",
                         action='store_true')
@@ -211,7 +213,7 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--numpy", help="print numpy code to screen", action='store_true')
     args = parser.parse_args(args=in_args)
 
-    if not args.gct and not args.stage1:
+    if not args.gct and not args.stage1 and not args.stage2:
         print "You didn't pick which format for the LUT - not making a LUT unless you choose!"
 
     in_file = cu.open_root_file(args.input)
@@ -275,7 +277,16 @@ def main(in_args=sys.argv[1:]):
                 plot_graph_function(i, gr, total_fit, plot_file)
 
     elif args.stage2:
-        pass
+        lut_base, ext = os.path.splitext(args.lut)
+        pt_lut_filename = lut_base + '_pt' + ext
+        corr_lut_filename = lut_base + "_corr" + ext
+        print_Stage2_lut_files(fit_functions=all_fits,
+                               pt_lut_filename=pt_lut_filename,
+                               corr_lut_filename=corr_lut_filename,
+                               corr_max=6,
+                               num_corr_bits=9,
+                               target_num_pt_bins=256,
+                               merge_criterion=1.01)
 
     if args.plots:
         # Plot function mapping
