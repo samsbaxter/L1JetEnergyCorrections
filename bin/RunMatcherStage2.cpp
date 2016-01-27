@@ -1,3 +1,6 @@
+#include <fstream>
+#include <map>
+
 // ROOT headers
 #include "TChain.h"
 #include "TFile.h"
@@ -7,6 +10,9 @@
 
 // BOOST headers
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/lexical_cast.hpp>
 
 // Headers from L1TNtuples
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
@@ -27,8 +33,15 @@ using std::endl;
 using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
+using boost::lexical_cast;
 
 namespace fs = boost::filesystem;
+
+std::map<int, int> load_lut(std::string filename);
+int getAbsIEta(float eta);
+int getAddress(int iet, int ieta);
+float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
+                     float et, float eta);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -153,6 +166,16 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     std::cout << *matcher << std::endl;
 
+    ////////////////
+    // SETUP LUTS //
+    ////////////////
+    // to convert pt,eta to index (compressed)
+    // std::map<int, int> pt_lut = load_lut("/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/output/stage2_lut_pu15to25/stage2_lut_pu15to25_pt.txt");
+    std::map<int, int> pt_lut = load_lut("stage2_lut_pu15to25_pt.txt");
+    // to map index : hw correction factor
+    // std::map<int, int> corr_lut = load_lut("/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/output/stage2_lut_pu15to25/stage2_lut_pu15to25_corr.txt");
+    std::map<int, int> corr_lut = load_lut("stage2_lut_pu15to25_corr.txt");
+
     //////////////////////
     // LOOP OVER EVENTS //
     //////////////////////
@@ -193,20 +216,25 @@ int main(int argc, char* argv[]) {
         // store L1 & ref jet variables in tree
         for (const auto &it: matchResults) {
             // std::cout << it << std::endl;
-            out_pt = it.l1Jet().Et();
+            if (opts.correctionFilename() != "") {
+                out_pt = getCorrectedEt(pt_lut, corr_lut, it.l1Jet().Et(), it.l1Jet().Eta());
+            } else {
+                out_pt = it.l1Jet().Et();
+            }
+            // cout << it.l1Jet().Et() << " -> " << out_pt << " eta: " << it.l1Jet().Eta() << " ieta: " << getAbsIEta(it.l1Jet().Eta()) << endl;
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();
-            out_rsp = it.l1Jet().Et()/it.refJet().Et();
-            out_rsp_inv =  it.refJet().Et()/it.l1Jet().Et();
             out_dr = it.refJet().DeltaR(it.l1Jet());
             out_deta = it.refJet().Eta() - it.l1Jet().Eta();
             out_dphi = it.refJet().DeltaPhi(it.l1Jet());
             out_ptRef = it.refJet().Pt();
             out_etaRef = it.refJet().Eta();
             out_phiRef = it.refJet().Phi();
-            out_ptDiff = it.l1Jet().Et() - it.refJet().Et();
-            out_resL1 = out_ptDiff/it.l1Jet().Et();
-            out_resRef = out_ptDiff/it.refJet().Et();
+            out_ptDiff = out_pt - out_ptRef;
+            out_rsp = out_pt/out_ptRef;
+            out_rsp_inv =  1./out_rsp;
+            out_resL1 = out_ptDiff/out_pt;
+            out_resRef = out_ptDiff/out_ptRef;
             outTree.Fill();
         }
 
@@ -232,4 +260,60 @@ int main(int argc, char* argv[]) {
     // save tree to new file and cleanup
     outTree.Write("", TObject::kOverwrite);
     outFile->Close();
+}
+
+
+/**
+ * @brief Load a LUT from file into map.
+ * @details Ignores any lines starting with a #.
+ *
+ * @param filename filename of LUT
+ * @return std::map<int, int> with LUT contents.
+ */
+std::map<int, int> load_lut(std::string filename) {
+    cout << "Loading LUT " << filename << endl;
+    std::map<int, int> lut;
+    std::ifstream infile(filename);
+    std::string line = "";
+    while (std::getline(infile, line)) {
+        if (boost::starts_with(line, "#")) {
+            continue;
+        }
+        std::vector<std::string> parts;
+        boost::split(parts, line, boost::is_any_of(" "), boost::token_compress_on);
+        int key = lexical_cast<int>(parts[0]);
+        int value = lexical_cast<int>(parts[1]);
+        lut.insert(std::make_pair(key, value));
+    }
+    return lut;
+}
+
+
+int getAbsIEta(float eta) {
+    std::vector<float> eta_bins = {0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5};
+    float absEta = fabs(eta);
+    for (unsigned i = 0; i < eta_bins.size()-1; i++) {
+        if ((eta_bins[i] < absEta) && (absEta < eta_bins[i+1])) {
+            return i;
+        }
+    }
+    return eta_bins.size();
+}
+
+
+int getAddress(int iet, int ieta) {
+    return (iet<<4) + ieta;
+}
+
+
+float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
+                     float et, float eta) {
+    unsigned int iet = (unsigned int) et * 2;
+    unsigned int ieta = abs(getAbsIEta(eta));
+    int address = getAddress(iet, ieta);
+    int index = pt_lut[address];
+    int corr_factor = corr_lut[index];
+    int corrected_iet = (corr_factor*iet)>>7;
+    corrected_iet += iet;
+    return corrected_iet * 0.5;
 }
