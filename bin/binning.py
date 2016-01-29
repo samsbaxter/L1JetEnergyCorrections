@@ -7,10 +7,35 @@ For future, may need to split up into GCT/Stage1 Vs Stage 2...
 
 import ROOT
 import numpy as np
+from itertools import tee, izip
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
+
+# taken from https://docs.python.org/2.7/library/itertools.html#recipes
+def pairwise(iterable):
+    """s -> (s0, s1), (s1, s2), (s2, s3) ...
+
+    Example:
+    >>> for eta_min, eta_max in pairwise(binning.eta_bins):
+    ...     print eta_min, eta_max
+    (0, 0.348)
+    (0.348, 0.695)
+    (0.695, 1.044)
+    ...
+
+    Parameters
+    ----------
+    iterable : Any iterable collection.
+
+    Returns
+    -------
+    The type stored in iterable
+    """
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)
 
 ############
 # PT BINS
