@@ -13,8 +13,6 @@ For more detailed info about fractions for each T2 site, use the verbose switch,
 ./check_sample_status.py -v
 
 It ain't pretty, but it works.
-
-TODO: use JSON output instead for fewer calls to das_client? (Currently 5/sample)
 """
 
 
@@ -39,7 +37,7 @@ SAMPLES = [
     "/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat10to25TSG_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
     "/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
     "/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW"
-]
+][5:8]
 
 
 class TColour:
@@ -65,48 +63,46 @@ def check_dataset_presence(dataset, verbose=False):
     verbose : bool, optional
         True for more printout
     """
-    # a horrible way to store info about all sites
-    quantities = {'dataset_fraction': None, 'replica_fraction': None, 'block_fraction': None, 'block_completion': None}
+    quantities = ['name', 'dataset_fraction', 'replica_fraction', 'block_fraction', 'block_completion']
 
-    # yes, you prob shouldn't use shell=True, but cba to figure out how to split the string for das_client
-    out = check_output('das_client.py --query="site dataset=%s"' % dataset, shell=True)
-    sites = [x for x in out.split('\n') if 'Showing' not in x and x != '']
+    # Get site name and fractions for each site
+    # yes, you prob shouldn't use shell=True, but CBA to figure out how to split the string for das_client
+    grep_str = ' '.join(['site.%s' % q for q in quantities])
+    out = check_output('das_client --query="site dataset=%s | grep %s"' % (dataset, grep_str), shell=True)
 
-    for quantity in quantities:
-        out = check_output('das_client --query="site dataset=%s | grep site.%s"' % (dataset, quantity), shell=True)
-        result = [x for x in out.split('\n') if 'Showing' not in x and x != '']
-        quantities[quantity] = result
+    site_dicts = []  # hold info about each site
+
+    # Process the important lines, store in a dict for each site
+    results = [x for x in out.split('\n') if 'Showing' not in x and x != '']
+    for line in results:
+        # Don't care if it's at a T1
+        if line.startswith('T1'):
+            continue
+        sdict = {q : p for q, p in zip(quantities, line.split())}
+        site_dicts.append(sdict)
 
     if verbose:
         # Print output for each site with fractions, colour coded
         print TColour.OKBLUE, dataset, TColour.ENDC
-        print '\t SITE - %s' % ' - '.join(quantities.keys())
-        for i, site in enumerate(sites):
-            if site.startswith('T1'):
-                continue
-
-            line = [site]
-            fractions = [quantities[k][i] for k in quantities]
-            line.extend(fractions)
+        print '\t %s' % ' - '.join(quantities)
+        for sdict in site_dicts:
+            fracs = [sdict[k] for k in quantities]
             status_col = TColour.FAIL
-            if all([x == '100.00%' for x in fractions]):
+            if all([f == '100.00%' for f in fracs if not f.startswith('T')]):
                 status_col = TColour.OKGREEN
-            print '\t', status_col, ' - '.join(line), TColour.ENDC
+            print '\t', status_col, ' - '.join(fracs), TColour.ENDC
     else:
         # Figure out if fully transferred anywhere, in which case print in green
         transferred = False
-        for i, site in enumerate(sites):
-            if site.startswith('T1'):
-                continue
-            fractions = [quantities[k][i] for k in quantities]
-            status_col = TColour.FAIL
-            if all([x == '100.00%' for x in fractions]):
+        for sdict in site_dicts:
+            fracs = [sdict[k] for k in quantities]
+            if all([f == '100.00%' for f in fracs if not f.startswith('T')]):
                 transferred = True
                 break
 
         status_col = TColour.OKGREEN if transferred else TColour.FAIL
-        status_let = 'v' if transferred else 'x'
-        print status_col, status_let, dataset, TColour.ENDC
+        status_letter = 'v' if transferred else 'x'
+        print status_col, status_letter, dataset, TColour.ENDC
 
 
 def check_datasets(datasets, verbose):
