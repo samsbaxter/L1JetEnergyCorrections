@@ -37,16 +37,16 @@ SAMPLES = [
     "/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat10to25TSG_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
     "/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
     "/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW"
-][5:8]
+]
 
 
 class TColour:
     """For terminal coloured output"""
     HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
@@ -83,13 +83,13 @@ def check_dataset_presence(dataset, verbose=False):
 
     if verbose:
         # Print output for each site with fractions, colour coded
-        print TColour.OKBLUE, dataset, TColour.ENDC
+        print TColour.BLUE, dataset, TColour.ENDC
         print '\t %s' % ' - '.join(quantities)
         for sdict in site_dicts:
             fracs = [sdict[k] for k in quantities]
-            status_col = TColour.FAIL
+            status_col = TColour.RED
             if all([f == '100.00%' for f in fracs if not f.startswith('T')]):
-                status_col = TColour.OKGREEN
+                status_col = TColour.GREEN
             print '\t', status_col, ' - '.join(fracs), TColour.ENDC
     else:
         # Figure out if fully transferred anywhere, in which case print in green
@@ -100,7 +100,7 @@ def check_dataset_presence(dataset, verbose=False):
                 transferred = True
                 break
 
-        status_col = TColour.OKGREEN if transferred else TColour.FAIL
+        status_col = TColour.GREEN if transferred else TColour.RED
         status_letter = 'v' if transferred else 'x'
         print status_col, status_letter, dataset, TColour.ENDC
 
