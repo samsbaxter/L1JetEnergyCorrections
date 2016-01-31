@@ -152,6 +152,12 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
         already exists.
         Oherwise, program quits before submission.
     """
+    # DAG for jobs
+    stem = 'matcher_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
+    matcher_dag = ht.DAGMan(filename='%s.dag' % stem,
+                            status_file='%s.status' % stem,
+                            dot='matcher.dot')
+
     # JobSet for each matching job
     log_stem = 'matcher.$(cluster).$(process)'
 
@@ -168,11 +174,6 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
                              hdfs_store=ntuple_dir,
                              dag_mode=True)
 
-    # DAG for jobs
-    stem = 'matcher_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
-    matcher_dag = ht.DAGMan(filename='%s.dag' % stem,
-                            status_file='%s.status' % stem)
-
     # For creating filenames later
     fmt_dict = dict()
 
@@ -185,7 +186,8 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     # Add matcher job for each ntuple file
     for ind, ntuple in enumerate(os.listdir(ntuple_dir)):
         # if ind > 10:
-            # break
+        #     break
+
         # Skip non-ntuple files
         if not ntuple.endswith('.root') or ntuple.startswith('pairs'):
             continue
@@ -226,7 +228,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     # ---------------------------------------------------------------------
     if not force_submit:
         for f in [final_file] + match_output_files:
-            if os.path.isfile(final_file):
+            if os.path.isfile(f):
                 print 'ERROR: output file already exists - not submitting'
                 print 'FILE:', f
                 return 1
@@ -262,7 +264,6 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     # ---------------------------------------------------------------------
     # matcher_dag.write()
     matcher_dag.submit()
-    print 'DAGstatus.py %s.status' % stem
     return 0
 
 
