@@ -22,7 +22,7 @@ import os
 import sys
 from time import strftime
 from distutils.spawn import find_executable
-from itertools import izip_longest
+from itertools import izip_longest, chain
 import math
 import htcondenser as ht
 import condorCommon as cc
@@ -231,7 +231,32 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
                 print 'FILE:', f
                 return 1
 
-    add_hadd_jobs(matcher_dag, matcher_jobs.jobs.values(), final_file, log_dir)
+    # Add in hadding jobs
+    # ---------------------------------------------------------------------
+    hadd_jobs = add_hadd_jobs(matcher_dag, matcher_jobs.jobs.values(), final_file, log_dir)
+
+    # Add in job to delete individual and intermediate hadd files
+    # ---------------------------------------------------------------------
+    log_stem = 'matcherRm.$(cluster).$(process)'
+
+    rm_jobs = ht.JobSet(exe='hadoop',
+                        copy_exe=False,
+                        filename='submit_matcherRm.condor',
+                        out_dir=log_dir, out_file=log_stem + '.out',
+                        err_dir=log_dir, err_file=log_stem + '.err',
+                        log_dir=log_dir, log_file=log_stem + '.log',
+                        cpus=1, memory='100MB', disk='10MB',
+                        transfer_hdfs_input=False,
+                        share_exe_setup=False,
+                        hdfs_store=ntuple_dir,
+                        dag_mode=True)
+
+    for i, job in enumerate(chain(matcher_jobs.jobs.itervalues(), hadd_jobs.jobs.itervalues())):
+        pairs_file = job.output_files[0]
+        rm_job = ht.Job(name='rm%d' % i,
+                        args=' fs -rm -skipTrash %s' % pairs_file.replace('/hdfs', ''))
+        rm_jobs.add_job(rm_job)
+        matcher_dag.add_job(rm_job, requires=hadd_jobs.jobs.keys()[-1])
 
     # Submit
     # ---------------------------------------------------------------------
@@ -259,6 +284,11 @@ def add_hadd_jobs(dagman, jobs, final_file, log_dir):
 
     final_file : str
         Final hadd-ed filename.
+
+    Returns
+    -------
+    JobSet
+        JobSet for hadd jobs.
     """
     group_size = 200  # max files per hadding job
     # adjust to avoid hadding 1 file by itself
@@ -320,6 +350,8 @@ def add_hadd_jobs(dagman, jobs, final_file, log_dir):
                           output_files=[final_file])
         hadd_jobs.add_job(hadd_job)
         dagman.add_job(hadd_job, requires=intermediate_jobs)
+
+    return hadd_jobs
 
 
 def grouper(iterable, n, fillvalue=None):
