@@ -380,6 +380,8 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     # find closest x value to intercept
     max_ind, fit_max = closest_element(xarr, x_ave[intercept_ind])
     max_ind += 1
+    if fit_min > fit_max:
+        raise RuntimeError('fit_min >fit_max!')
 
     print "Correction fn fit range:", fit_min, fit_max
 
