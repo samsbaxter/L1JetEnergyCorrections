@@ -8,6 +8,12 @@ This applies to:
 - Stage 1
 - Stage 2
 
+## Prerequisites
+
+You will need to install first:
+
+- If at Bristol: [`htcondenser`](https://github.com/raggleton/htcondenser) python library for submitting HTCondor jobs at Bristol
+
 ## Installation (GCT or Stage 1)
 
 ```shell
