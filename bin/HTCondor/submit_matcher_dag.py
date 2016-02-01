@@ -30,7 +30,8 @@ import condorCommon as cc
 
 # List of ntuple directories to run over
 NTUPLE_DIRS = [
-    '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
+    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
 ]
 
 # Choose executable to run - must be located using `which <EXE>`
@@ -253,12 +254,12 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
                         hdfs_store=ntuple_dir,
                         dag_mode=True)
 
-    for i, job in enumerate(chain(matcher_jobs.jobs.itervalues(), hadd_jobs.jobs.itervalues())):
+    for i, job in enumerate(chain(matcher_jobs, hadd_jobs[:-1])):
         pairs_file = job.output_files[0]
         rm_job = ht.Job(name='rm%d' % i,
                         args=' fs -rm -skipTrash %s' % pairs_file.replace('/hdfs', ''))
         rm_jobs.add_job(rm_job)
-        matcher_dag.add_job(rm_job, requires=hadd_jobs.jobs.keys()[-1])
+        matcher_dag.add_job(rm_job, requires=hadd_jobs[-1])
 
     # Submit
     # ---------------------------------------------------------------------
@@ -329,8 +330,9 @@ def add_hadd_jobs(dagman, jobs, final_file, log_dir):
         for i, job_group in enumerate(grouper(jobs, group_size)):
             # Note, job_group is guaranteed to be length group_size, and is
             # padded with None if there arent' that many entries. So need to
-            # check j is a ht.Job
-            hadd_input = [j.output_files[0] for j in job_group if j]
+            # filter out NoneType
+            job_group = filter(None, job_group)
+            hadd_input = [j.output_files[0] for j in job_group]
             inter_file = 'hadd_inter_%d_%s.root' % (i, cc.rand_str(5))
             inter_file = os.path.join(os.path.dirname(final_file), inter_file)
             hadd_args = [inter_file] + hadd_input
@@ -339,7 +341,7 @@ def add_hadd_jobs(dagman, jobs, final_file, log_dir):
                               input_files=hadd_input,
                               output_files=[inter_file])
             hadd_jobs.add_job(hadd_job)
-            dagman.add_job(hadd_job, requires=jobs)
+            dagman.add_job(hadd_job, requires=job_group)
             intermediate_jobs.append(hadd_job)
 
         # Add final hadd job for intermediate files
@@ -357,6 +359,9 @@ def add_hadd_jobs(dagman, jobs, final_file, log_dir):
 
 def grouper(iterable, n, fillvalue=None):
     """Collect data into fixed-length chunks or blocks.
+
+    If iterable does not divide by n with modulus 0, then the remaining entries
+    in the last iterable of grouper() will be padded with fillvalue.
 
     Taken from https://docs.python.org/2/library/itertools.html#recipes
     e.g.
