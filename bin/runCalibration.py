@@ -630,7 +630,10 @@ def main(in_args=sys.argv[1:]):
             make_correction_curves(input_file, output_file, ptBins, eta_min, eta_max,
                                    fitfunc, do_genjet_plots, do_correction_fit,
                                    args.PUmin, args.PUmax)
+    input_file.Close()
+    output_file.Close()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

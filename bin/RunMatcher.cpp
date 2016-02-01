@@ -249,6 +249,7 @@ int main(int argc, char* argv[]) {
     // save tree to new file and cleanup
     outTree.Write("", TObject::kOverwrite);
     outFile->Close();
+    return 0;
 }
 
 

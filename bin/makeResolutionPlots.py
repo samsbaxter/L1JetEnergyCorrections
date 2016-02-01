@@ -361,7 +361,12 @@ def main(in_args=sys.argv[1:]):
 
     if not args.incl and not args.excl:
         print "Not doing inclusive or exclusive - you must specify at least one!"
+        return 1
+
+    inputf.Close()
+    outputf.Close()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

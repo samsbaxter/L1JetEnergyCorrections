@@ -360,6 +360,8 @@ def main(in_args=sys.argv[1:]):
 
     input_file.Close()
     output_file.Close()
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

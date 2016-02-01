@@ -341,6 +341,7 @@ int main(int argc, char* argv[]) {
     outFile->Close();
     cout << matchedEvent << " events had 1+ matches, out of " << nEntries << endl;
     cout << cscFail << " events failed CSC check, out of " << nEntries << endl;
+    return 0;
 }
 
 
