@@ -23,7 +23,7 @@ import condorCommon as cc
 
 # List of pairs files to run over
 PAIRS_FILES = [
-'/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_testCalibratePU15to25_2048bins_maxCorr5.root'
+'/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
 ]
 
 # Select eta bins to run over
@@ -144,16 +144,16 @@ def submit_runCalib_dag(pairs_file, log_dir, append,
 
         log_stem = 'runCalib.$(cluster).$(process)'
         runCalib_jobs = ht.JobSet(exe='python',
-                                    copy_exe=False,
-                                    filename='submit_runCalib.condor',
-                                    setup_script='worker_setup.sh',
-                                    out_dir=log_dir, out_file=log_stem + '.out',
-                                    err_dir=log_dir, err_file=log_stem + '.err',
-                                    log_dir=log_dir, log_file=log_stem + '.log',
-                                    cpus=1, memory='100MB', disk='100MB',
-                                    transfer_hdfs_input=False,
-                                    hdfs_store=out_dir,
-                                    dag_mode=True)
+                                  copy_exe=False,
+                                  filename='submit_runCalib.condor',
+                                  setup_script='worker_setup.sh',
+                                  out_dir=log_dir, out_file=log_stem + '.out',
+                                  err_dir=log_dir, err_file=log_stem + '.err',
+                                  log_dir=log_dir, log_file=log_stem + '.log',
+                                  cpus=1, memory='100MB', disk='100MB',
+                                  transfer_hdfs_input=False,
+                                  hdfs_store=out_dir,
+                                  dag_mode=True)
 
         # For creating filenames later
         fmt_dict = dict(puMin=pu_min, puMax=pu_max)
@@ -211,24 +211,23 @@ def submit_runCalib_dag(pairs_file, log_dir, append,
         # ---------------------------------------------------------------------
         stem = 'runCalib_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
         calib_dag = ht.DAGMan(filename='%s.dag' % stem,
-                                status_file='%s.status' % stem)
-        calib_jobs = [j for j in runCalib_jobs.jobs]
-        for jname in calib_jobs:
-            calib_dag.add_job(runCalib_jobs.jobs[jname])
+                              status_file='%s.status' % stem)
+        for job in runCalib_jobs:
+            calib_dag.add_job(job)
 
-        calib_dag.add_job(hadder, requires=calib_jobs)
+        calib_dag.add_job(hadder, requires=[j for j in runCalib_jobs])
 
         # Check if any of the output files already exists - maybe we mucked up?
         # ---------------------------------------------------------------------
         if not force_submit:
             for f in [final_file] + calib_output_files:
-                if os.path.isfile(final_file):
+                if os.path.isfile(f):
                     print 'ERROR: output file already exists - not submitting'
                     print 'FILE:', f
                     return 1
 
+        # calib_dag.write()
         calib_dag.submit()
-        print 'DAGstatus.py %s.status' % stem
 
 
 if __name__ == "__main__":

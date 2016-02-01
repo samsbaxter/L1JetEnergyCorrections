@@ -242,22 +242,22 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
         stem = 'checkCalib_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
         checker_dag = ht.DAGMan(filename='%s.dag' % stem,
                                 status_file='%s.status' % stem)
-        for jname in checkCalib_jobs.jobs:
-            checker_dag.add_job(checkCalib_jobs.jobs[jname])
+        for job in checkCalib_jobs:
+            checker_dag.add_job(job)
 
-        checker_dag.add_job(hadder, requires=check_jobs)
+        checker_dag.add_job(hadder, requires=[j for j in checkCalib_jobs])
 
         # Check if any of the output files already exists - maybe we mucked up?
         # ---------------------------------------------------------------------
         if not force_submit:
             for f in [final_file] + check_output_files:
-                if os.path.isfile(final_file):
+                if os.path.isfile(f):
                     print 'ERROR: output file already exists - not submitting'
                     print 'FILE:', f
                     return 1
 
+        # checker_dag.write()
         checker_dag.submit()
-        print 'DAGstatus.py %s.status' % stem
 
 
 if __name__ == "__main__":
