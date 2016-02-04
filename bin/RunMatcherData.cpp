@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     bool out_HLT_ZeroBias(true), out_HLT_IsoMu(true), out_HLT_DiMu(true), out_HLT_DiEl(true);
     bool out_HLT_Physics(true), out_HLT_Random(true), out_HLT_Photon(true), out_HLT_Mu(true);
     bool out_HLT_MET(true), out_HLT_PFMET(true), out_HLT_HT(true);
-    bool out_HBHENoiseRun2Loose(true), out_HBHENoiseRun2Tight(true), out_HBHEIsoNoise(true);
+    // bool out_HBHENoiseRun2Loose(true), out_HBHENoiseRun2Tight(true), out_HBHEIsoNoise(true);
     outTree.Branch("event", &out_event, "event/l");
     outTree.Branch("LS", &out_ls, "ls/I");
     outTree.Branch("passCSC", &out_passCSC, "passCSC/Bool_t");
