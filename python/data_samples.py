@@ -22,7 +22,6 @@ totalUnits can take the values:
 
 from collections import namedtuple
 import re
-import das_client
 import subprocess
 
 
@@ -34,7 +33,8 @@ def get_number_files(dataset):
     # child = subprocess.Popen(['das_client.py','--query', 'summary dataset=%s' % dataset], stdout=subprocess.PIPE)
     # output = child.communicate()[0]
     # rc = child.returncode
-    output = subprocess.check_output(['das_client.py','--query', 'summary dataset=%s' % dataset], stderr=subprocess.STDOUT)
+    output = subprocess.check_output(['das_client.py', '--query', 'summary dataset=%s' % dataset],
+                                     stderr=subprocess.STDOUT)
     return int(re.search(r'nfiles +: (\d*)', output).group(1))
 
 
@@ -52,7 +52,7 @@ samples = {
                                      unitsPerJob=15, totalUnits=-1),
 
     "Express_Run2015D_v4_25ns": Dataset(inputDataset='/ExpressPhysics/Run2015D-Express-v4/FEVT',
-                                     unitsPerJob=10, totalUnits=-1),
+                                        unitsPerJob=10, totalUnits=-1),
 
 
 }
