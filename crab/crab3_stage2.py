@@ -12,7 +12,7 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage2_QCDFlatSpring15BX25HCALFix_22Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec"
+job_append = "Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_80X_mcRun2_asymptotic_v1_2dd1043_noJEC"
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
 datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # here into one common directory. That's why we need to set this parameter.
     config.General.workArea = 'l1ntuple_' + job_append
 
-    config.JobType.psetName = '../python/SimL1Emulator_Stage2.py'
+    config.JobType.psetName = '../python/SimL1Emulator_Stage2_HF_MC.py'
 
     # Run through datasets once to check all fine
     for dset in datasets:
