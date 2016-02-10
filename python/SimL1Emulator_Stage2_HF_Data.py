@@ -23,7 +23,7 @@ from Configuration.StandardSequences.Eras import eras
 save_EDM = False
 
 # Things to append to L1Ntuple/EDM filename (globalTag added later)
-file_append = "_Stage2_Data_HF_8Feb"
+file_append = "_Stage2_Data_HF_8Feb_test500fixed"
 
 #############################################################################
 
@@ -49,12 +49,13 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(
 )
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1000)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleMuon/RAW-RECO/MuTau-PromptReco-v4/000/260/627/00000/00C3E929-6D84-E511-AFDF-02163E0146A5.root'),
+    # fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleMuon/RAW-RECO/MuTau-PromptReco-v4/000/260/627/00000/00C3E929-6D84-E511-AFDF-02163E0146A5.root'),
+    fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleMuon/RAW-RECO/MuTau-PromptReco-v4/000/260/627/00000/CAB1ED60-6A84-E511-8D5A-02163E014366.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -121,9 +122,16 @@ process = L1NtupleAODRAWEMU(process)
 # Set the right ECAL input for TPs
 process.l1CaloTowerEmuTree.ecalToken = cms.untracked.InputTag("ecalDigis", "EcalTriggerPrimitives")
 
+# Use MP jets
+process.l1UpgradeEmuTree.jetToken = cms.untracked.InputTag("simCaloStage2Digis", "MP")
+file_append += "_MPjets"
+
 # Turn off L1JEC
 process.caloStage2Params.jetCalibrationType = cms.string("None")
 file_append += "_noJec"
 
 # Set the NTuple filename
 process.TFileService.fileName = cms.string("L1Ntuple%s.root" % file_append)
+
+process.l1CustomReco.remove(process.egmGsfElectronIDs)
+process.l1ntupleaod.remove(process.l1MuonRecoTree)
