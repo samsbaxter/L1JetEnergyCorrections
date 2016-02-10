@@ -45,6 +45,15 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
 # This dict holds ALL samples
 samples = {
 
+    "QCDFlatFall15PU10to25": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat10to25TSG_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
+                                     unitsPerJob=10, totalUnits=-1),
+
+    "QCDFlatFall15PU0to50NzshcalRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
+                                              unitsPerJob=10, totalUnits=-1),
+
+    "QCDFlatFall15NoPU": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
+                                 unitsPerJob=10, totalUnits=-1),
+
     "QCDFlatSpring15BX25PU10to30HCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
                                                     unitsPerJob=10, totalUnits=-1),
 
