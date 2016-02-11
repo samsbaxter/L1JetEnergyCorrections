@@ -31,7 +31,9 @@ import condorCommon as cc
 # List of ntuple directories to run over
 NTUPLE_DIRS = [
     # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
-    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
+    # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/QCDFlatSpring15BX25FlatNoPUHCALFix'
+    '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/QCDFlatSpring15BX25PU10to30HCALFix'
 ]
 
 # Choose executable to run - must be located using `which <EXE>`
@@ -45,8 +47,8 @@ DELTA_R = 0.4
 PT_REF_MIN = 10
 
 # TDirectory name for the L1 jets
-L1_DIR = 'l1UpgradeSimTreeMP'
-# L1_DIR = 'l1UpgradeEmuTree'
+# L1_DIR = 'l1UpgradeSimTreeMP'
+L1_DIR = 'l1UpgradeEmuTree'
 
 # TDirectory name for the reference jets
 REF_DIR = 'l1ExtraTreeGenAk4'
@@ -55,7 +57,7 @@ REF_DIR = 'l1ExtraTreeGenAk4'
 # String to append to output ROOT filename
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-APPEND = 'MP_ak4_ref%dto5000_l10to5000_dr%s_testRRR' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
+APPEND = 'MP_ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
 
 # Directory for logs (should be on /storage)
 # Will be created automatically by htcondenser
