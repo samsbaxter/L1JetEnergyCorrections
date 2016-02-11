@@ -121,7 +121,6 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
 
     """
 
-    print "Doing eta bin: %g - %g" % (absetamin, absetamax)
     print "Doing PU range: %g - %g" % (pu_min, pu_max)
     print "Running over pT bins:", ptBins_in
 
@@ -185,7 +184,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         ptBins.append(xlow)
     ptBins.append(xup)  # only need this last one
 
-    gr = ROOT.TGraphErrors() # 1/<rsp> VS ptL1
+    gr = ROOT.TGraphErrors()  # 1/<rsp> VS ptL1
     gr_gen = ROOT.TGraphErrors()  # 1/<rsp> VS ptGen
     grc = 0
 
@@ -204,7 +203,6 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         # print "Binning mis-matches", ptR, ptBins[i+1],
         # h2d_calib.GetXaxis().GetBinLowEdge(bin1),h2d_calib.GetXaxis().GetBinLowEdge(bin2+1)
 
-        ########################### CALIBRATION #############################
         xlow = ptR
         xhigh = ptBins[i + 1]
 
@@ -243,7 +241,9 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         mean = -999
         err = -999
         if hrsp.GetEntries() >= 3:
-            fitStatus = int(hrsp.Fit("gaus", "QER", "", hrsp.GetMean() - 1. * hrsp.GetRMS(), hrsp.GetMean() + 1. * hrsp.GetRMS()))
+            fitStatus = int(hrsp.Fit("gaus", "QER", "",
+                                     hrsp.GetMean() - 1. * hrsp.GetRMS(),
+                                     hrsp.GetMean() + 1. * hrsp.GetRMS()))
             if fitStatus == 0:
                 mean = hrsp.GetFunction("gaus").GetParameter(1)
                 err = hrsp.GetFunction("gaus").GetParError(1)
@@ -308,7 +308,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     and any high pT tail), along with a corresponding fit function
     whose range has been set to match the sub graph.
     """
-
+    print 'Setting up fit'
     xarr, yarr = cu.get_xy(graph)
     exarr, eyarr = cu.get_exey(graph)
     # first test out graph isn't empty
@@ -382,7 +382,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
 
     print "Correction fn fit range:", fit_min, fit_max
 
-    # Generate a correction fucntion with suitable range
+    # Generate a correction function with suitable range
     this_fit = function.Clone(function.GetName() + 'eta_%g_%g' % (absetamin, absetamax))
     this_fit.SetRange(fit_min, fit_max)
 
@@ -442,10 +442,10 @@ def fit_correction(graph, function, fit_min=-1, fit_max=-1):
             fit_max = xarr[fit_max_ind]
             function.SetRange(fit_min, fit_max)
 
-            mode = ""
+            mode = "QR"
             if str(function.GetExpFormula()).startswith("pol"):
-                mode = "F"
-            fit_result = int(graph.Fit(function.GetName(), "QR" + mode, "", fit_min, fit_max))
+                mode += "F"
+            fit_result = int(graph.Fit(function.GetName(), mode, "", fit_min, fit_max))
             if fit_result != 0:
                 fit_min_ind += 1
                 continue
@@ -520,7 +520,6 @@ def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
     outputfile.WriteTObject(gr)  # the original graph
 
 
-########### MAIN ########################
 def main(in_args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
