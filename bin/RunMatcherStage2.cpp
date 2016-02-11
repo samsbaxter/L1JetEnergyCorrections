@@ -174,11 +174,14 @@ int main(int argc, char* argv[]) {
     ////////////////
     // to convert pt,eta to index (compressed)
     // std::map<int, int> pt_lut = load_lut("/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/output/stage2_lut_pu15to25/stage2_lut_pu15to25_pt.txt");
-    std::map<int, int> pt_lut = load_lut("stage2_lut_pu15to25_pt.txt");
+    std::map<int, int> pt_lut;
     // to map index : hw correction factor
     // std::map<int, int> corr_lut = load_lut("/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/output/stage2_lut_pu15to25/stage2_lut_pu15to25_corr.txt");
-    std::map<int, int> corr_lut = load_lut("stage2_lut_pu15to25_corr.txt");
-
+    std::map<int, int> corr_lut;
+    if (opts.correctionFilename() != "") {
+        pt_lut = load_lut("stage2_lut_pu15to25_pt.txt");
+        corr_lut = load_lut("stage2_lut_pu15to25_corr.txt");
+    }
     //////////////////////
     // LOOP OVER EVENTS //
     //////////////////////
@@ -297,7 +300,12 @@ std::map<int, int> load_lut(std::string filename) {
     return lut;
 }
 
-
+/**
+ * @brief Convert physical eta to ieta using the absolute value of eta.
+ *
+ * @param eta Physical eta
+ * @return HW Eta
+ */
 int getAbsIEta(float eta) {
     std::vector<float> eta_bins = {0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5};
     float absEta = fabs(eta);
@@ -309,7 +317,15 @@ int getAbsIEta(float eta) {
     return eta_bins.size();
 }
 
-
+/**
+ * @brief Convert iet, ieta into an address
+ * @details [long description]
+ *
+ * @param iet HW et
+ * @param ieta HW eta
+ *
+ * @return Address
+ */
 int getAddress(int iet, int ieta) {
     return (iet<<4) + ieta;
 }
