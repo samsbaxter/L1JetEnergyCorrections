@@ -19,6 +19,11 @@ from binning import pairwise, eta_bins_central, eta_bins
 from time import strftime
 import htcondenser as ht
 import condorCommon as cc
+import logging
+
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 # List of pairs files to run over

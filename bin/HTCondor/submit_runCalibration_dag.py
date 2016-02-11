@@ -19,6 +19,11 @@ from binning import pairwise, eta_bins_central, eta_bins
 from time import strftime
 import htcondenser as ht
 import condorCommon as cc
+import logging
+
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 # List of pairs files to run over
@@ -139,6 +144,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
     pu_bins = pu_bins or [[-99, 999]]  # set ridiculous limits if no cut on PU
     status_files = []
     for (pu_min, pu_max) in pu_bins:
+        log.info('Doing PU bin %g - %g', pu_min, pu_max)
 
         log_stem = 'runCalib.$(cluster).$(process)'
         runCalib_jobs = ht.JobSet(exe='python',
@@ -216,6 +222,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
             calib_dag.add_job(job)
 
         calib_dag.add_job(hadder, requires=[j for j in runCalib_jobs])
+
         # Check if any of the output files already exists - maybe we mucked up?
         # ---------------------------------------------------------------------
         if not force_submit:
