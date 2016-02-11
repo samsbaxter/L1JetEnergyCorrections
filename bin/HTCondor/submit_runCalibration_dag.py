@@ -134,12 +134,10 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
     out_stem = os.path.splitext(os.path.basename(pairs_file))[0]
     out_stem = out_stem.replace("pairs_", "output_")
 
-    # Input files for jobs
-    input_files = common_input_files + [pairs_file]
-
     # Loop over PU bins
     # ---------------------------------------------------------------------
     pu_bins = pu_bins or [[-99, 999]]  # set ridiculous limits if no cut on PU
+    status_files = []
     for (pu_min, pu_max) in pu_bins:
 
         log_stem = 'runCalib.$(cluster).$(process)'
@@ -147,11 +145,13 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
                                   copy_exe=False,
                                   filename='submit_runCalib.condor',
                                   setup_script='worker_setup.sh',
+                                  share_exe_setup=True,
                                   out_dir=log_dir, out_file=log_stem + '.out',
                                   err_dir=log_dir, err_file=log_stem + '.err',
                                   log_dir=log_dir, log_file=log_stem + '.log',
                                   cpus=1, memory='100MB', disk='100MB',
                                   transfer_hdfs_input=False,
+                                  common_input_files=common_input_files,
                                   hdfs_store=out_dir)
 
         # For creating filenames later
@@ -168,12 +168,13 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
 
             job_args = ['runCalibration.py', pairs_file, out_file,
                         "--no-genjet-plots", '--stage2',
+                        '--no-correction-fit',
                         '--PUmin', pu_min, '--PUmax', pu_max,
                         '--etaInd', ind]
 
             calib_job = ht.Job(name='calib_%d' % ind,
                                args=job_args,
-                               input_files=input_files,
+                               input_files=[pairs_file],
                                output_files=[out_file])
 
             runCalib_jobs.add_job(calib_job)
@@ -184,6 +185,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
 
         hadd_jobs = ht.JobSet(exe='hadd',
                               copy_exe=False,
+                              share_exe_setup=True,
                               filename='haddSmall.condor',
                               setup_script="cmssw_setup.sh",
                               out_dir=log_dir, out_file=log_stem + '.out',
@@ -214,7 +216,6 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
             calib_dag.add_job(job)
 
         calib_dag.add_job(hadder, requires=[j for j in runCalib_jobs])
-
         # Check if any of the output files already exists - maybe we mucked up?
         # ---------------------------------------------------------------------
         if not force_submit:
@@ -226,6 +227,10 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
 
         # calib_dag.write()
         calib_dag.submit()
+        status_files.append(calib_dag.status_file)
+
+    print 'For all statuses:'
+    print 'DAGstatus.py', ' '.join(status_files)
 
 
 if __name__ == "__main__":

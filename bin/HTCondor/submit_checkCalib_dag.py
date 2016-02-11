@@ -146,12 +146,10 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
     out_stem = os.path.splitext(os.path.basename(pairs_file))[0]
     out_stem = out_stem.replace("pairs_", "check_")
 
-    # Input files for jobs
-    input_files = common_input_files + [pairs_file]
-
     # Loop over PU bins
     # ---------------------------------------------------------------------
     pu_bins = pu_bins or [[-99, 999]]  # set ridiculous limits if no cut on PU
+    status_files = []
     for (pu_min, pu_max) in pu_bins:
 
         log_stem = 'checkCalib.$(cluster).$(process)'
@@ -159,11 +157,13 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
                                     copy_exe=False,
                                     filename='submit_checkCalib.condor',
                                     setup_script='worker_setup.sh',
+                                    share_exe_setup=True,
                                     out_dir=log_dir, out_file=log_stem + '.out',
                                     err_dir=log_dir, err_file=log_stem + '.err',
                                     log_dir=log_dir, log_file=log_stem + '.log',
                                     cpus=1, memory='100MB', disk='100MB',
                                     transfer_hdfs_input=False,
+                                    common_input_files=common_input_files,
                                     hdfs_store=out_dir)
 
         # For creating filenames later
@@ -185,7 +185,7 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
 
             check_job = ht.Job(name='check_%d' % ind,
                                args=job_args,
-                               input_files=input_files,
+                               input_files=[pairs_file],
                                output_files=[out_file])
 
             checkCalib_jobs.add_job(check_job)
@@ -205,7 +205,7 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
 
             check_job = ht.Job(name='check_%s' % incl,
                                args=job_args,
-                               input_files=input_files,
+                               input_files=[pairs_file],
                                output_files=[out_file])
 
             checkCalib_jobs.add_job(check_job)
@@ -218,6 +218,7 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
                               copy_exe=False,
                               filename='haddSmall.condor',
                               setup_script="cmssw_setup.sh",
+                              share_exe_setup=True,
                               out_dir=log_dir, out_file=log_stem + '.out',
                               err_dir=log_dir, err_file=log_stem + '.err',
                               log_dir=log_dir, log_file=log_stem + '.log',
@@ -258,6 +259,10 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
 
         # checker_dag.write()
         checker_dag.submit()
+        status_files.append(checker_dag.status_file)
+
+    print 'For all statuses:'
+    print 'DAGstatus.py', ' '.join(status_files)
 
 
 if __name__ == "__main__":
