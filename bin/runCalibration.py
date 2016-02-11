@@ -16,10 +16,7 @@ Originally by Nick Wardle, modified(hacked to shreds) by Robin Aggleton
 
 import ROOT
 import sys
-import array
 import numpy as np
-from itertools import izip
-import os
 import argparse
 import binning
 import common_utils as cu
