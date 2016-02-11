@@ -194,6 +194,10 @@ int main(int argc, char* argv[]) {
     outTree.Branch("hlt_pfmet", &out_HLT_PFMET, "hlt_pfmet/Bool_t");
     outTree.Branch("hlt_ht", &out_HLT_HT, "hlt_ht/Bool_t");
 
+    // outTree.Branch("HBHENoiseRun2Loose", &out_HBHENoiseRun2Loose, "HBHENoiseRun2Loose/Bool_t");
+    // outTree.Branch("HBHENoiseRun2Tight", &out_HBHENoiseRun2Tight, "HBHENoiseRun2Tight/Bool_t");
+    // outTree.Branch("HBHEIsoNoise", &out_HBHEIsoNoise, "HBHEIsoNoise/Bool_t");
+
 
     Long64_t nEntriesRef = refJetTree.getEntries();
     Long64_t nEntriesL1  = l1JetTree.getEntries();
@@ -236,6 +240,10 @@ int main(int argc, char* argv[]) {
         unsigned int evt_num = (unsigned int) eventData->event;
         out_event = (long) evt_num;
         out_ls = (Long64_t) eventData->lumi;
+
+        // out_HBHENoiseRun2Loose = eventData->HBHENoiseFilterResultRun2Loose;
+        // out_HBHENoiseRun2Tight = eventData->HBHENoiseFilterResultRun2Tight;
+        // out_HBHEIsoNoise = eventData->HBHEIsoNoiseFilterResult;
 
         // Check CSC beam halo
         // std::string thisEvent = lexical_cast<std::string>(out_ls) + ":" + lexical_cast<std::string>(out_event);
