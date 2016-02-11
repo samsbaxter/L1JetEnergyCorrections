@@ -38,7 +38,7 @@ PU_BINS = [[0, 10], [15, 25], [30, 40]]
 # String to append to output ROOT filename, depending on PU
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-APPEND = "_PU{puMin}to{puMax}" if PU_BINS else "_"
+APPEND = "_PU{puMin}to{puMax}" if PU_BINS else ""
 
 # Directory for logs (should be on /storage)
 # Will be created automatically by htcondenser
