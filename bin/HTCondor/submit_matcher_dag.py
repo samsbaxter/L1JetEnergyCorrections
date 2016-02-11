@@ -24,6 +24,7 @@ from time import strftime
 from distutils.spawn import find_executable
 from itertools import izip_longest, chain
 import math
+import re
 import htcondenser as ht
 import condorCommon as cc
 
@@ -198,8 +199,13 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
 
         # Construct output name
         ntuple_name = os.path.splitext(ntuple)[0]
-        pairs_file = '%s_%s.root' % (ntuple_name.replace('L1Tree_', 'pairs_'),
-                                     append.format(**fmt_dict))
+        # handle anything up to first underscore (L1Tree, L1Ntuple, ...)
+        result = re.match(r'^[a-zA-Z0-9]*_', ntuple_name)
+        if result:
+            pairs_file = '%s_%s.root' % (ntuple_name.replace(result.group(), 'pairs_'),
+                                         append.format(**fmt_dict))
+        else:
+            pairs_file = 'pairs_%s_%s.root' % (ntuple_name, append.format(**fmt_dict))
         out_file = os.path.join(ntuple_dir, pairs_file)
         match_output_files.append(out_file)
 
