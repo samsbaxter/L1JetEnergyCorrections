@@ -34,45 +34,24 @@ ROOT.TH1.SetDefaultSumw2(True)
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
-
-# Some sensible defaults for the fit function
-def stage2_fit_defaults(fitfunc):
-    """Better initial starting params for Stage2"""
-    fitfunc.SetParameter(0, -0.5)
-    fitfunc.SetParameter(1, 50)
-    fitfunc.SetParameter(2, 1)
-    fitfunc.SetParameter(3, -80)
-    fitfunc.SetParameter(4, 0.01)
-    fitfunc.SetParameter(5, -20)
+# Fit defaults
+GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
+STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
+STAGE2_DEFAULT_PARAMS = [-0.5, 50, 1, -80, 0.01, -20]
 
 
-def stage1_fit_defaults(fitfunc):
-    """Better initial starting params for Stage1"""
-    fitfunc.SetParameter(0, 1)
-    fitfunc.SetParameter(1, 5)
-    fitfunc.SetParameter(2, 1)
-    fitfunc.SetParameter(3, -25)
-    fitfunc.SetParameter(4, 0.01)
-    fitfunc.SetParameter(5, -20)
+def set_fit_params(fitfunc, params):
+    """Set function parameters.
 
-
-def gct_fit_defaults(fitfunc):
-    """Better intiial starting params for GCT"""
-    fitfunc.SetParameter(0, 1)
-    fitfunc.SetParameter(1, 5)
-    fitfunc.SetParameter(2, 1)
-    fitfunc.SetParameter(3, -25)
-    fitfunc.SetParameter(4, 0.01)
-    fitfunc.SetParameter(5, -20)
-
-
-def fix_fit_params(fitfunc):
-    """Fix function so constant line"""
-    fitfunc.FixParameter(1, 0)
-    fitfunc.FixParameter(2, 0)
-    fitfunc.FixParameter(3, 0)
-    fitfunc.FixParameter(4, 0)
-    fitfunc.FixParameter(5, 0)
+    Parameters
+    ----------
+    fitfunc : TF1
+        Or anything with a SetParameter() method.
+    params : list, iterable
+        List of parameter values, must be in same order as parameter index.
+    """
+    for ind, val in enumerate(params):
+        fitfunc.SetParameter(ind, val)
 
 
 def generate_eta_graph_name(absetamin, absetamax):
@@ -529,6 +508,7 @@ def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
     outputfile.WriteTObject(this_fit)  # function by itself
     outputfile.WriteTObject(fit_graph)  # has the function stored in it as well
     outputfile.WriteTObject(gr)  # the original graph
+    return fit_params
 
 
 def main(in_args=sys.argv[1:]):
@@ -541,6 +521,9 @@ def main(in_args=sys.argv[1:]):
                         help="Don't do fits for correction functions")
     parser.add_argument("--redo-correction-fit", action='store_true',
                         help="Redo fits for correction functions")
+    parser.add_argument("--inherit-params", action='store_true',
+                        help='Use previous eta bins function parameters as starting point. '
+                        'Helpful when fits not converging.')
     parser.add_argument("--gct", action='store_true',
                         help="Load legacy GCT specifics e.g. fit defaults.")
     parser.add_argument("--stage1", action='store_true',
@@ -598,8 +581,7 @@ def main(in_args=sys.argv[1:]):
     # Figure out which eta bins the user wants to run over
     etaBins = binning.eta_bins
     if args.etaInd:
-        args.etaInd.append(int(args.etaInd[-1])+1) # need upper eta bin edge
-        # check eta bins are ok
+        args.etaInd.append(int(args.etaInd[-1]) + 1)  # need upper eta bin edge
         etaBins = [etaBins[int(x)] for x in args.etaInd]
     elif args.central:
         etaBins = [eta for eta in etaBins if eta < 3.1]
@@ -607,12 +589,17 @@ def main(in_args=sys.argv[1:]):
         etaBins = [eta for eta in etaBins if eta > 2.9]
     print "Running over eta bins:", etaBins
 
+    # Store last set of fit params if the user is doing --inherit-param
+    previous_fit_params = []
+
     # Do plots & fitting to get calib consts
     for i, eta_min in enumerate(etaBins[:-1]):
-        eta_max = etaBins[i+1]
+        eta_max = etaBins[i + 1]
 
-        # whether we're doing a central or forward bin (.1 is for rounding err)
-        forward_bin = eta_max > 3.1
+        print "Doing eta bin: %g - %g" % (eta_min, eta_max)
+
+        # whether we're doing a central or forward bin (.01 is for rounding err)
+        forward_bin = eta_max > 3.01
 
         # setup pt bins, wider ones for forward region
         # ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
@@ -620,23 +607,32 @@ def main(in_args=sys.argv[1:]):
 
         # Load fit function & starting params - important as wrong starting params
         # can cause fit failures
-        fitfunc = central_fit
+        default_params = []
         if args.stage2:
-            stage2_fit_defaults(fitfunc)
+            default_params = STAGE2_DEFAULT_PARAMS
         elif args.stage1:
-            stage1_fit_defaults(fitfunc)
+            default_params = STAGE1_DEFAULT_PARAMS
         elif args.gct:
-            gct_fit_defaults(fitfunc)
+            default_params = GCT_DEFAULT_PARAMS
 
-        # if forward_bin:
-            # fitfunc = forward_fit
+        # Ignore the genric fit defaults and use the last fit params instead
+        if args.inherit_params and previous_fit_params != []:
+            default_params = previous_fit_params[:]
 
+        fitfunc = central_fit
+        set_fit_params(fitfunc, default_params)
+
+        # Actually do the graph making and/or fitting!
         if args.redo_correction_fit:
-            redo_correction_fit(input_file, output_file, eta_min, eta_max, fitfunc)
+            fit_params = redo_correction_fit(input_file, output_file, eta_min, eta_max, fitfunc)
         else:
-            make_correction_curves(input_file, output_file, ptBins, eta_min, eta_max,
-                                   fitfunc, do_genjet_plots, do_correction_fit,
-                                   args.PUmin, args.PUmax)
+            fit_params = make_correction_curves(input_file, output_file, ptBins, eta_min, eta_max,
+                                                fitfunc, do_genjet_plots, do_correction_fit,
+                                                args.PUmin, args.PUmax)
+        # Save successful fit params
+        if fit_params != []:
+            previous_fit_params = fit_params[:]
+
     input_file.Close()
     output_file.Close()
     return 0
