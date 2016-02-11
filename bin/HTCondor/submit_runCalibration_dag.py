@@ -152,8 +152,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append,
                                   log_dir=log_dir, log_file=log_stem + '.log',
                                   cpus=1, memory='100MB', disk='100MB',
                                   transfer_hdfs_input=False,
-                                  hdfs_store=out_dir,
-                                  dag_mode=True)
+                                  hdfs_store=out_dir)
 
         # For creating filenames later
         fmt_dict = dict(puMin=pu_min, puMax=pu_max)
@@ -192,8 +191,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append,
                               log_dir=log_dir, log_file=log_stem + '.log',
                               cpus=1, memory='100MB', disk='20MB',
                               transfer_hdfs_input=False,
-                              hdfs_store=out_dir,
-                              dag_mode=True)
+                              hdfs_store=out_dir)
 
         # Construct final hadded file name
         final_file = os.path.join(out_dir, out_stem + append.format(**fmt_dict) + '.root')

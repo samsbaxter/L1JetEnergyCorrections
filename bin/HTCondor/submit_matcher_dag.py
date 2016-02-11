@@ -172,8 +172,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
                              cpus=1, memory='100MB', disk='100MB',
                              transfer_hdfs_input=False,
                              share_exe_setup=True,
-                             hdfs_store=ntuple_dir,
-                             dag_mode=True)
+                             hdfs_store=ntuple_dir)
 
     # For creating filenames later
     fmt_dict = dict()
@@ -251,8 +250,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
                         cpus=1, memory='100MB', disk='10MB',
                         transfer_hdfs_input=False,
                         share_exe_setup=False,
-                        hdfs_store=ntuple_dir,
-                        dag_mode=True)
+                        hdfs_store=ntuple_dir)
 
     for i, job in enumerate(chain(matcher_jobs, hadd_jobs[:-1])):
         pairs_file = job.output_files[0]
@@ -311,8 +309,7 @@ def add_hadd_jobs(dagman, jobs, final_file, log_dir):
                           cpus=1, memory='100MB', disk='1GB',
                           transfer_hdfs_input=False,
                           share_exe_setup=True,
-                          hdfs_store=os.path.dirname(final_file),
-                          dag_mode=True)
+                          hdfs_store=os.path.dirname(final_file))
 
     if n_inter_jobs == 1:
         hadd_input = [j.output_files[0] for j in jobs]
