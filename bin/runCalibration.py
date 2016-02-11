@@ -373,10 +373,21 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         grad_ave = moving_average(grad, n_sample)
         intercept_ind, intercept = calc_crossing(grad_ave)
         n_sample += 1
-    print 'Smoothing param:', n_sample
-    # find closest x value to intercept
-    max_ind, fit_max = closest_element(xarr, x_ave[intercept_ind])
-    max_ind += 1
+        # quit if we've got stuck
+        if n_sample == 12:
+            break
+
+    if intercept and intercept_ind:
+        print 'Found minima'
+        print 'Smoothing param:', n_sample
+        # find closest x value to intercept
+        max_ind, fit_max = closest_element(xarr, x_ave[intercept_ind])
+    else:
+        print '! Could not find minima, falling back to just using min()'
+        # Here we assume a failure to find any minima, so fallback and use
+        # the smallest point.
+        max_ind = list(yarr).index(min(yarr))
+        fit_max = xarr[max_ind]
     if fit_min > fit_max:
         raise RuntimeError('fit_min >fit_max!')
 
@@ -389,11 +400,11 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     # Make a sub-graph with only the points used for fitting
     # Do not user graph.RemovePoint()! It doesn't work, and only removes every other point
     # Instead make a graph with the bit of array we want
-    fit_graph = ROOT.TGraphErrors(max_ind - min_ind,
-                                  np.array(xarr[min_ind:max_ind]),
-                                  np.array(yarr[min_ind:max_ind]),
-                                  np.array(exarr[min_ind:max_ind]),
-                                  np.array(eyarr[min_ind:max_ind]))
+    fit_graph = ROOT.TGraphErrors(max_ind + 1 - min_ind,
+                                  np.array(xarr[min_ind:max_ind + 1]),
+                                  np.array(yarr[min_ind:max_ind + 1]),
+                                  np.array(exarr[min_ind:max_ind + 1]),
+                                  np.array(eyarr[min_ind:max_ind + 1]))
     fit_graph.SetName(graph.GetName() + "_fit")
 
     return fit_graph, this_fit
