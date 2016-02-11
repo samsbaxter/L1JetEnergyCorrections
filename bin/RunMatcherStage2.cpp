@@ -1,5 +1,6 @@
 #include <fstream>
 #include <map>
+#include <algorithm>
 
 // ROOT headers
 #include "TChain.h"
@@ -7,6 +8,7 @@
 #include "TTree.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TMath.h"
 
 // BOOST headers
 #include <boost/filesystem.hpp>
@@ -42,6 +44,7 @@ int getAbsIEta(float eta);
 int getAddress(int iet, int ieta);
 float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
                      float et, float eta);
+float iPhiToPhi(int iphi);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -202,7 +205,12 @@ int main(int argc, char* argv[]) {
 
         // Get vectors of ref & L1 jets from trees
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
-        std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
+        // Temp hack to convert iPhi to physical phi
+        std::vector<short> l1JetIPhi = l1Data->jetIPhi;
+        std::vector<float> l1JetPhi;
+        l1JetPhi.resize(l1JetIPhi.size());
+        std::transform(l1JetIPhi.begin(), l1JetIPhi.end(), l1JetPhi.begin(), iPhiToPhi);
+        std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1JetPhi);
 
         out_nL1 = l1Jets.size();
         out_nRef = refJets.size();
@@ -317,4 +325,24 @@ float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
     int corrected_iet = (corr_factor*iet)>>7;
     corrected_iet += iet;
     return corrected_iet * 0.5;
+}
+
+
+/**
+ * @brief Convert iPhi to phi as workaround for bug in ntuples
+ * @details l1UpgradeEMuTree/jetPhi not correct - use iPhi + this fn instead,
+ *
+ * @param iphi HW phi
+ * @return Physical phi (in radians)
+ */
+const float towerSizeDegrees = 5.;
+float iPhiToPhi(int iphi) {
+    if (iphi > 72)
+        throw std::range_error("iPhi > 72");
+    if (iphi < 1)
+        throw std::range_error("iPhi < 1");
+    float eta = (iphi * towerSizeDegrees) - (0.5 * towerSizeDegrees);
+    if (iphi > 36)
+        eta -= 360.;
+    return eta * TMath::Pi() / 180.;
 }
