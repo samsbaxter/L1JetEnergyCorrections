@@ -24,16 +24,19 @@ from array import array
 import os
 from runCalibration import generate_eta_graph_name
 
+
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.TH1.SetDefaultSumw2(True)
 ROOT.gStyle.SetOptFit(1)  # only show fit params and errors
 # ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(55)
+ROOT.gErrorIgnoreLevel = 1 # turn off the printing output
+
 
 # Some common strings
 ref_str = "GenJet"
-ref_str = "PFJet"
+# ref_str = "PFJet"
 
 rsp_str = "E_{T}^{L1}/E_{T}^{%s}" % (ref_str)
 eta_str = "#eta"
@@ -58,10 +61,11 @@ rsp_min, rsp_max = 0, 2
 plot_labels = [
      # "Spring15 + HF fix (no JEC)"
      # "Without JEC"
-     "Without JEC"
+     "With JEC (LUT)"
     ]
 plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
-# plot_title = "Spring15 MC, Stage 2, no JEC"
+plot_title = "Spring15 MC, Stage 2, no JEC"
+plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
 
