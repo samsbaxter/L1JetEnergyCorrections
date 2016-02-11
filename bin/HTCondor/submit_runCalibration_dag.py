@@ -15,7 +15,7 @@ Requires the htcondenser package: https://github.com/raggleton/htcondenser
 import os
 import sys
 sys.path.append(os.path.dirname(os.getcwd()))  # to import binning.py
-from binning import pairwise, eta_bins_central
+from binning import pairwise, eta_bins_central, eta_bins
 from time import strftime
 import htcondenser as ht
 import condorCommon as cc
@@ -23,20 +23,22 @@ import condorCommon as cc
 
 # List of pairs files to run over
 PAIRS_FILES = [
-'/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
+# '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
+# '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/pairs/pairs_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
+'/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/pairs/pairs_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
 ]
 
 # Select eta bins to run over
-ETA_BINS = eta_bins_central
+ETA_BINS = eta_bins
 
 # Select PU bins to run over
-PU_BINS = None  # None if you don't want to cut on PU
-PU_BINS = [[0, 10], [15, 25], [30, 40]][1:2]
+# PU_BINS = None  # None if you don't want to cut on PU
+PU_BINS = [[0, 10], [15, 25], [30, 40]]
 
 # String to append to output ROOT filename, depending on PU
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-APPEND = "_PU{puMin}to{puMax}_TESTRRR" if PU_BINS else "_"
+APPEND = "_PU{puMin}to{puMax}" if PU_BINS else "_"
 
 # Directory for logs (should be on /storage)
 # Will be created automatically by htcondenser
@@ -44,8 +46,7 @@ datestamp = strftime("%d_%b_%y")
 LOG_DIR = '/storage/%s/L1JEC/%s/L1JetEnergyCorrections/jobs/calib/%s' % (os.environ['LOGNAME'], os.environ['CMSSW_VERSION'], datestamp)
 
 
-def submit_all_runCalib_dags(pairs_files, log_dir, append,
-                               pu_bins, eta_bins, force_submit):
+def submit_all_runCalib_dags(pairs_files, log_dir, append, pu_bins, eta_bins, force_submit):
     """Create and submit DAG runCalibration jobs for all pairs files.
 
     Parameters
@@ -90,8 +91,7 @@ def submit_all_runCalib_dags(pairs_files, log_dir, append,
                             force_submit=force_submit)
 
 
-def submit_runCalib_dag(pairs_file, log_dir, append,
-                        pu_bins, eta_bins, common_input_files,
+def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_input_files,
                         force_submit=False):
     """Submit one runCalibration DAG for one pairs file.
 
