@@ -41,13 +41,13 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     input_(""),
     refDir_(""),
     l1Dir_(""),
-    output_(""),
+    output_("pairs.root"),
     corrFilename_(""),
     nEvents_(-1),
     drawN_(0),
     correctionMinPt_(-1),
-    deltaR_(0.7), // RUN 1 GCT defaults
-    refMinPt_(14)
+    deltaR_(0.4), // Stage2 defaults
+    refMinPt_(10)
 {
     namespace po = boost::program_options;
 
@@ -58,22 +58,22 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
             po::value<int>(&nEvents_)->default_value(nEvents_),
             "number of events to run over. -1 for all.")
         ("input,I",
-            po::value<std::string>(&input_)->default_value("python/L1Tree.root"),
+            po::value<std::string>(&input_)->default_value(input_),
             "input filename")
         ("refDir",
-            po::value<std::string>(&refDir_)->default_value("l1ExtraTreeProducerGenAk5"),
+            po::value<std::string>(&refDir_)->default_value(refDir_),
             "reference jet TDirectory in input file")
         ("refBranches",
             po::value<std::vector<std::string>>(&refJetBranchNames_)->multitoken()->default_value(std::vector<std::string>(1,"cenJet"), "cenJet"),
             "reference jet branches in TTree (e.g. cenJet)")
         ("l1Dir",
-            po::value<std::string>(&l1Dir_)->default_value("l1ExtraTreeProducerGctIntern"),
+            po::value<std::string>(&l1Dir_)->default_value(l1Dir_),
             "L1 jet TDirectory in input file")
         ("l1Branches",
             po::value<std::vector<std::string>>(&l1JetBranchNames_)->multitoken()->default_value(std::vector<std::string>(1,"cenJet"), "cenJet"),
             "l1 jet branches in TTree (e.g. cenJet)")
         ("output,O",
-            po::value<std::string>(&output_)->default_value("pairs.root"),
+            po::value<std::string>(&output_)->default_value(output_),
             "output filename")
         ("correct",
             po::value<std::string>(&corrFilename_),
@@ -115,6 +115,7 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
 
     if (vm.count("help")) {
         cout << desc << endl;
+
         std::exit(1);
     }
 
