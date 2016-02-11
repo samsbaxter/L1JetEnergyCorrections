@@ -899,7 +899,7 @@ def main(in_args=sys.argv[1:]):
     # ------------------------------------------------------------------------
     if args.checkcal:
 
-        etaBins = binning.eta_bins_central
+        etaBins = binning.eta_bins
         check_file = open_root_file(args.checkcal)
 
         # ptBinsWide = list(np.arange(10, 250, 8))
@@ -923,7 +923,7 @@ def main(in_args=sys.argv[1:]):
 
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
         # for (eta_min, eta_max) in product([0, 3], [3, 5]):
-        for (eta_min, eta_max) in [[0, 3]]:
+        for (eta_min, eta_max) in [[0, 3], [3, 5]]:
             if eta_min == eta_max:
                 continue
 
@@ -959,7 +959,7 @@ def main(in_args=sys.argv[1:]):
 
         calib_file = open_root_file(args.calib)
 
-        for eta_min, eta_max in zip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:]):
+        for eta_min, eta_max in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
 
             print eta_min, eta_max
 
