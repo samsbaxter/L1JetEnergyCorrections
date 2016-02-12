@@ -60,12 +60,12 @@ rsp_min, rsp_max = 0, 2
 #############################################
 plot_labels = [
      # "Spring15 + HF fix (no JEC)"
-     # "Without JEC"
-     "With JEC (LUT)"
+     "Without JEC"
+     # "With JEC (LUT)"
     ]
 plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
 plot_title = "Spring15 MC, Stage 2, no JEC"
-plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
+# plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
 
