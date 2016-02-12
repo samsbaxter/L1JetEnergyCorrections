@@ -149,7 +149,7 @@ def plot_corr_results(in_name=""):
                 titles = []
                 plotnames = []
 
-    compile_pdf(main_file, out_name, odir)
+    compile_pdf(main_file, out_name, odir, 1)
 
 
 def plot_bin_results(in_name=""):
@@ -231,16 +231,15 @@ def plot_bin_results(in_name=""):
     # compile_pdf(main_file, out_name, odir)
 
 
-def compile_pdf(texfile, pdffile, outdir):
+def compile_pdf(texfile, pdffile, outdir, num_compilation=1):
     """
     Compile the pdf
     Do it twice to get TOC and page num right
     """
 
     output = "-output-directory=%s" % outdir
-    # subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
-    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
-    # subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
+    for i in range(num_compilation):
+        subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
 
     # Open the result
     # subprocess.call(["open", pdffile])
