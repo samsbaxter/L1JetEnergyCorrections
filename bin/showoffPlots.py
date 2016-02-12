@@ -977,20 +977,20 @@ def main(in_args=sys.argv[1:]):
                 # list of histograms (in the correct order) for converting to animated GIFs
                 # use imagemagick e.g.
                 # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
-                with open(os.path.join(list_dir, 'list_rsp.txt'), 'w') as rsp_list, \
-                     open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_list:
+                rsp_file = open(os.path.join(list_dir, 'list_rsp.txt'), 'w')
+                pt_file = open(os.path.join(list_dir, 'list_pt.txt'), 'w')
 
-                    if eta_min > 2.9:
-                        ptBins = binning.pt_bins_stage2_hf
+                if eta_min > 2.9:
+                    ptBins = binning.pt_bins_stage2_hf
 
-                    for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
-                        rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                        if rsp_name:
-                            rsp_list.write(os.path.basename(rsp_name) + '\n')
-                        pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                        if pt_name:
-                            pt_list.write(os.path.basename(pt_name) + '\n')
+                for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
+                    rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                    pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                    if rsp_name: rsp_file.write(os.path.basename(rsp_name) + '\n')
+                    if pt_name: pt_file.write(os.path.basename(pt_name) + '\n')
 
+                rsp_file.close()
+                pt_file.close()
                 print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_rsp.txt):"
                 print "convert -delay 50 -loop 0 @list_rsp.txt rsp.gif"
 
