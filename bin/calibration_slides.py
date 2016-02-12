@@ -102,7 +102,7 @@ def plot_corr_results(in_name=""):
 
     # Start beamer file
     # Use template - change title, subtitle, include file
-    title = "Correction value plots, binned by $|\eta|$"
+    frontpage_title = "Correction value plots, binned by $|\eta|$"
     sub = in_stem.replace("output_", "").replace("_", "\_")
     sub = sub.replace("_ak", r"\\_ak")
     subtitle = "{\\tt " + sub + "}"
@@ -110,7 +110,7 @@ def plot_corr_results(in_name=""):
     main_file = out_stem + ".tex"
     with open("beamer_template.tex", "r") as t:
         with open(main_file, "w") as f:
-            substitute = {"@TITLE": title, "@SUBTITLE": subtitle,
+            substitute = {"@TITLE": frontpage_title, "@SUBTITLE": subtitle,
                           "@FILE": slides_file}
             for line in t:
                 for k in substitute:
@@ -131,7 +131,7 @@ def plot_corr_results(in_name=""):
                             name,
                             [odir + name + ".tex", odir + name + ".pdf"],
                             xtitle="<p_{T}^{L1}> [GeV]",
-                            ytitle="1/< p_{T}^{L1}/p_{T}^{Ref} > = correction\ value",
+                            ytitle="Correction = 1/< p_{T}^{L1}/p_{T}^{Ref} >",
                             title="",
                             drawfit=True,
                             extend_fit=True):
@@ -142,8 +142,6 @@ def plot_corr_results(in_name=""):
             print plotnames
             if (((i + 1) % 4 == 0) and (i != 0)) or (i == len(etaBins) - 2):
                 print "Writing", emin, emax
-                # slidetitle = "Correction value, $0 < p_{T}^{L1} < 500~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 500~\\mathrm{GeV}$"
-                # slidetitle = "Correction value, $0 < p_{T}^{L1} < 250~\\mathrm{GeV}$, $14 < p_{T}^{Gen} < 250~\\mathrm{GeV}$"
                 slidetitle = "Correction value"
                 slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                 titles = []
