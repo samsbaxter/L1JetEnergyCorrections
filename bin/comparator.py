@@ -1,5 +1,14 @@
 """
 Classes for use when comparing functions/graphs
+
+Example usage:
+
+>>> A = Contribution("a.root", "li1corr_eta_0_0.348")
+>>> B = Contribution("b.root", "li1corr_eta_0_0.348")
+>>> p = Plot([A, B], "graphfunction", xlim=[0, 50])
+>>> p.plot()
+>>> p.save("AB.pdf")
+
 """
 
 
