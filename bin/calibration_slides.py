@@ -238,8 +238,9 @@ def compile_pdf(texfile, pdffile, outdir):
     """
 
     output = "-output-directory=%s" % outdir
-    subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
-    subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
+    # subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
+    subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
+    # subprocess.call(["pdflatex", "-interaction", "nonstopmode", output, texfile])
 
     # Open the result
     # subprocess.call(["open", pdffile])
