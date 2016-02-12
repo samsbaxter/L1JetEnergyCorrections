@@ -31,7 +31,7 @@ ROOT.gStyle.SetOptFit(1)  # only show fit params and errors
 # ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(55)
-ROOT.gErrorIgnoreLevel = 1 # turn off the printing output
+ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
 
 # Some common strings
