@@ -15,6 +15,7 @@ Originally by Nick Wardle, modified(hacked to shreds) by Robin Aggleton
 """
 
 import ROOT
+import os
 import sys
 import numpy as np
 import argparse
@@ -575,8 +576,13 @@ def main(in_args=sys.argv[1:]):
     # Open input & output files, check
     print "IN:", args.input
     print "OUT:", args.output
-    input_file = cu.open_root_file(args.input, "READ")
-    output_file = cu.open_root_file(args.output, "RECREATE")
+    if (args.redo_correction_fit and
+        os.path.realpath(args.input) == os.path.realpath(args.output)):
+        input_file = cu.open_root_file(args.input, "UPDATE")
+        output_file = input_file
+    else:
+        input_file = cu.open_root_file(args.input, "READ")
+        output_file = cu.open_root_file(args.output, "RECREATE")
 
     # Figure out which eta bins the user wants to run over
     etaBins = binning.eta_bins
