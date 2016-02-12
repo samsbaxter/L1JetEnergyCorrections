@@ -157,85 +157,6 @@ def plot_corr_results(in_name=""):
     compile_pdf(main_file, out_name, odir, 1)
 
 
-def plot_bin_results(in_name=""):
-    """
-    To plot X for each pt/eta bin.
-    Yes that's a lot of plots.
-    """
-    # Setup input file
-    print "Opening", in_name
-    in_stem = os.path.basename(in_name).replace(".root", "")
-    input_file = cu.open_root_file(in_name)
-
-    # Setup output directory & filenames
-    odir = os.path.dirname(os.path.abspath(in_name)) + "/" + in_stem + "/"
-    cu.check_dir_exists_create(odir)
-
-    # only have to change output name here - reflected automatically in tex files etc
-    out_name = odir + in_stem + "_bin.pdf"
-    out_stem = out_name.replace(".pdf", "")
-    print "Writing to", out_name
-
-    # Start beamer file
-    # Use template - change title, subtitle, include file
-    title = "Results for each bin"
-    sub = in_stem.replace("output_", "")
-    sub = sub.replace("_", "\_")
-    sub = sub.replace("_ak", r"\\_ak")
-    subtitle = "{\\tt " + sub + "}"
-    slides_file = out_stem + "_slides.tex"
-    main_file = out_stem + ".tex"
-    with open("beamer_template.tex", "r") as t:
-        with open(main_file, "w") as f:
-            substitute = {"@TITLE": title, "@SUBTITLE": subtitle,
-                          "@FILE": slides_file}
-            for line in t:
-                for k in substitute:
-                    if k in line:
-                        line = line.replace(k, substitute[k])
-                f.write(line)
-
-    # Now make the slides file
-    with open(slides_file, "w") as slides:
-        for i, eta in enumerate(etaBins[0:-1]):
-            emin = eta
-            emax = etaBins[i + 1]
-            titles = []
-            plotnames = []
-            out_dir_eta = odir + "/eta_%g_%g/" % (emin, emax)
-            cu.check_dir_exists_create(out_dir_eta)
-            ptBins = binning.pt_bins if emin < 3 else binning.pt_bins_wide
-            for j, pt in enumerate(ptBins[:-1]):
-                ptmin = pt
-                ptmax = ptBins[j + 1]
-                # for each pt bin we have a L1 pt plot, and a response plot w/fit
-                l1name = "L1_pt_genpt_%g_%g" % (ptmin, ptmax)
-                if plot_to_file(input_file,
-                                "eta_%g_%g/Histograms/%s" % (emin, emax, l1name),
-                                [out_dir_eta + l1name + ".tex", out_dir_eta + l1name + ".pdf"],
-                                xtitle="p_{T}^{L1}", ytitle="", drawfit=True):
-                    plotnames.append(out_dir_eta + l1name + ".tex")
-
-                rspname = "Rsp_genpt_%g_%g" % (ptmin, ptmax)
-                if plot_to_file(input_file,
-                                "eta_%g_%g/Histograms/%s" % (emin, emax, rspname),
-                                [out_dir_eta + rspname + ".tex", out_dir_eta + rspname + ".pdf"],
-                                xtitle="response = p_{T}^{L1}/p_{T}^{Gen}", ytitle="", drawfit=True):
-                    plotnames.append(out_dir_eta + rspname + ".tex")
-
-                    titles.append("$%g < |p_{T}^{Gen}| < %g GeV$" % (ptmin, ptmax))
-                    titles.append("")
-
-                if (len(plotnames) == 4):
-                    print "Writing", emin, emax, ptmin, ptmax
-                    slidetitle = "$%g <  |\eta| < %g$" % (emin, emax)
-                    slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
-                    titles = []
-                    plotnames = []
-
-    # compile_pdf(main_file, out_name, odir)
-
-
 def compile_pdf(texfile, pdffile, outdir, num_compilation=1):
     """
     Compile the pdf
@@ -259,12 +180,6 @@ def compile_pdf(texfile, pdffile, outdir, num_compilation=1):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", help="input ROOT filename")
-    parser.add_argument("--detail", action="store_true", help="do all pt bin plots as well (takes much longer!)")
     args = parser.parse_args()
 
-    # Plot for each eta bin
     plot_corr_results(in_name=args.input)
-
-    # Plots for each pt bin in every eta bin (ie A LOT)
-    if args.detail:
-        plot_bin_results(in_name=args.input)
