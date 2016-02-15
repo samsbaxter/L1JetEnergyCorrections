@@ -23,6 +23,10 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
 
+# Update me if necessary!
+AUTHOR = 'Robin Aggleton'
+
+
 def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="",
                  drawopts="", drawfit=True, extend_fit=True):
     """Draw `plotname` to canvas and save. Can also draw fitted function on top.
@@ -162,7 +166,7 @@ def plot_corr_results(in_name):
     subtitle = "{\\tt " + sub + "}"
     main_file = out_stem + ".tex"
     slides_file = out_stem + "_slides.tex"
-    make_main_tex_file(frontpage_title, subtitle, main_file, slides_file)
+    make_main_tex_file(frontpage_title, subtitle, AUTHOR, main_file, slides_file)
 
     # Now make the slides file to be included in main file
     with open(slides_file, "w") as slides:
