@@ -541,6 +541,7 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
         os.mkdir("%s/%s" % (oDir, sub_dir))
 
     c = generate_canvas(plot_title)
+    filename = []
     for i, pt_min in enumerate(pt_bins[:-1]):
         pt_max = pt_bins[i + 1]
         hname = "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max)
@@ -548,9 +549,12 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
             hist = get_from_file(check_file, hname)
             hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
             hist.Draw()
-            c.SaveAs("%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat))
+            filename = "%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat)
+            c.SaveAs(filename)
+            filenames.append(filename)
         except Exception:
             print '! No histogram %s exists' % hname
+    return filenames
 
 
 def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
@@ -912,8 +916,25 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
 
             if args.detail:
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
-                plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
+                list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
+                check_dir_exists_create(list_dir)
+
+                # list of histograms (in the correct order) for converting to animated GIFs
+                # use imagemagick e.g.
+                # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
+                pt_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
+                ptRef_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
+
+                with (open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_file,
+                      open(os.path.join(list_dir, 'list_ptRef.txt'), 'w') as ptRef_file):
+
+                    if pt_names:
+                        pt_file.write('\n'.join(pt_names))
+                    if ptRef_names:
+                        ptRef_file.write('\n'.join(ptRef_names))
+
+                print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_pt.txt):"
+                print "convert -delay 50 -loop 0 @list_pt.txt rsp_pt.gif"
 
         # Graph of response vs pt, but in bins of eta
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
