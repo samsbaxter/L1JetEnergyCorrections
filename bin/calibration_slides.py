@@ -20,16 +20,38 @@ import common_utils as cu
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(1)
-
-etaBins = binning.eta_bins
+ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
 
 def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="",
                  drawopts="", drawfit=True, extend_fit=True):
-    """
-    f is a TFile
-    filename is output, can be a list of filenames (e.g. for .tex, .pdf, .png)
-    can optionally not draw the fit to the curve
+    """Draw `plotname` to canvas and save. Can also draw fitted function on top.
+
+    Parameters
+    ----------
+    f : TFile
+        Output file from runCalibration.py
+    plotname : str
+        Name of object draw.
+    filename : list[str]
+        Output filenames, can be a list of filenames (e.g. for .tex, .pdf, .png)
+    xtitle : str, optional
+        Title for x axis
+    ytitle : str, optional
+        Title for y axis
+    title : str, optional
+        Title for plot
+    drawopts : str, optional
+        Options to pass to Draw().
+    drawfit : bool, optional
+        Whether to draw the fitted function or not (should be called `plotname`_fit)
+    extend_fit : bool, optional
+        Whether to extend the fit to high and low pT, beyond the fitted range.
+
+    Returns
+    -------
+    bool
+        True if `plotname` found in file, othrwise False
     """
     ROOT.gStyle.SetPaperSize(10., 10.)
     ROOT.gStyle.SetOptStat("mre")
@@ -45,21 +67,17 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="",
         print "Can't find", plotname + "_fit, not drawing fit function"
         drawfit = False
 
-    p = obj.Clone()
-    # p.GetYaxis().SetTitle(ytitle)
-    # p.GetXaxis().SetTitle(xtitle)
-    p.SetTitle(';'.join([title, xtitle, ytitle]))
-    p.Draw(drawopts)
+    plot = obj.Clone()
+    plot.SetTitle(';'.join([title, xtitle, ytitle]))
+    plot.Draw(drawopts)
 
     if drawfit:
-        p2 = obj2.Clone()
-        # p2.GetYaxis().SetTitle(ytitle)
-        # p2.GetXaxis().SetTitle(xtitle)
-        p2.SetTitle(';'.join([title, xtitle, ytitle]))
-        fn = p2.GetListOfFunctions().At(0)
+        plot2 = obj2.Clone()
+        plot2.SetTitle(';'.join([title, xtitle, ytitle]))
+        fn = plot2.GetListOfFunctions().At(0)
         if fn:
             fn.SetLineWidth(2)
-        p2.Draw(drawopts + "SAME")
+        plot2.Draw(drawopts + "SAME")
 
         # draw fit over full range, not just fitted range
         if extend_fit:
@@ -68,14 +86,14 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="",
             fn2.SetLineStyle(3)
             fn2.SetLineWidth(2)
             fn2.Draw("SAME")
-        p.Draw(drawopts + "SAME")
+        plot.Draw(drawopts + "SAME")
 
     ROOT.gPad.Update()
     ROOT.gPad.SetTicks(1, 1)
 
     # Draw fit stats box
     if drawfit:
-        st = p2.FindObject("stats")
+        st = plot2.FindObject("stats")
         st.SetFillStyle(0)
         st.SetX1NDC(0.6)
         st.SetX2NDC(0.9)
@@ -90,65 +108,81 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="",
     return True
 
 
-def plot_corr_results(in_name=""):
+def make_main_tex_file(frontpage_title='Correction value plots', subtitle='',
+                       author=os.environ['LOGNAME'],
+                       main_tex_file='', slides_tex_file=''):
+    """Generate main TeX file for set of slides, usign a template.
+
+    Parameters
+    ----------
+    frontpage_title : str, optional
+        Title for title slide
+    subtitle : str, optional
+        Subtitle for title slide
+    main_tex_file : str, optional
+        Filename for main TeX file to be written.
+    slides_tex_file : str, optional
+        Filename for slides file to be included.
     """
-    Puts correction plots in one pdf.
-    """
-    # Setup input file
-    print "Opening", in_name
-    in_stem = os.path.basename(in_name).replace(".root", "")
-    input_file = cu.open_root_file(in_name)
-
-    # Setup output directory & filenames
-    odir = os.path.dirname(os.path.abspath(in_name)) + "/" + in_stem + "/"
-    cu.check_dir_exists_create(odir)
-
-    out_name = odir + in_stem + ".pdf"
-    out_stem = out_name.replace(".pdf", "")
-    print "Writing to", out_name
-
-    # Start beamer file
-    # Use template - change title, subtitle, include file
-    frontpage_title = "Correction value plots, binned by $|\eta|$"
-    sub = in_stem.replace("output_", "").replace("_", "\_")
-    sub = sub.replace("_ak", r"\\_ak")
-    subtitle = "{\\tt " + sub + "}"
-    slides_file = out_stem + "_slides.tex"
-    main_file = out_stem + ".tex"
-    with open("beamer_template.tex", "r") as t:
-        with open(main_file, "w") as f:
+    with open("beamer_template.tex", "r") as template:
+        with open(main_tex_file, "w") as f:
             substitute = {"@TITLE": frontpage_title, "@SUBTITLE": subtitle,
-                          "@FILE": slides_file}
-            for line in t:
+                          "@FILE": slides_tex_file, "@AUTHOR": author}
+            for line in template:
                 for k in substitute:
                     if k in line:
                         line = line.replace(k, substitute[k])
                 f.write(line)
 
-    # Now make the slides file
+
+def plot_corr_results(in_name):
+    """Puts correction plots from ROOT file in one pdf.
+
+    Parameters
+    ----------
+    in_name : str
+        Name of ROOT file to process (output from runCalibration.py)
+    """
+    print "Opening", in_name
+    in_stem = os.path.basename(in_name).replace(".root", "")
+    input_file = cu.open_root_file(in_name)
+
+    # Setup output directory & filenames
+    odir = os.path.join(os.path.dirname(os.path.abspath(in_name)), in_stem)
+    cu.check_dir_exists_create(odir)
+
+    out_name = os.path.join(odir, in_stem + ".pdf")
+    out_stem = out_name.replace(".pdf", "")
+    print "Writing to", out_name
+
+    # Start beamer file - make main tex file
+    # Use template - change title, subtitle, include file
+    frontpage_title = "Correction value plots, binned by $|\eta|$"
+    sub = in_stem.replace("output_", "").replace("_", "\_").replace("_ak", r"\\_ak")
+    subtitle = "{\\tt " + sub + "}"
+    main_file = out_stem + ".tex"
+    slides_file = out_stem + "_slides.tex"
+    make_main_tex_file(frontpage_title, subtitle, main_file, slides_file)
+
+    # Now make the slides file to be included in main file
     with open(slides_file, "w") as slides:
         titles = []
         plotnames = []
-        for i, eta in enumerate(etaBins[0:-1]):
-            emin = eta
-            emax = etaBins[i + 1]
-            name = "l1corr_eta_%g_%g" % (emin, emax)
-            bin_title = "%g <  |\eta^{L1}| < %g" % (emin, emax)
-            if plot_to_file(input_file,
-                            name,
-                            [odir + name + ".tex", odir + name + ".pdf"],
-                            xtitle="<p_{T}^{L1}> [GeV]",
-                            ytitle="Correction = 1/< p_{T}^{L1}/p_{T}^{Ref} >",
-                            title="",
-                            drawfit=True,
-                            extend_fit=True):
+        etaBins = binning.eta_bins
+        for i, (eta_min, eta_max) in enumerate(binning.pairwise(etaBins)):
+            plotname = "l1corr_eta_%g_%g" % (eta_min, eta_max)
+            bin_title = "%g <  |\eta^{L1}| < %g" % (eta_min, eta_max)
+            xtitle = "<p_{T}^{L1}> [GeV]"
+            ytitle = "Correction = 1/#langle p_{T}^{L1}/p_{T}^{Ref}#rangle"
+            output_plots = [os.path.join(odir, plotname + ext) for ext in ['.tex', '.pdf']]
+            if plot_to_file(input_file, plotname, output_plots,
+                            xtitle=xtitle, ytitle=ytitle, title="",
+                            drawfit=True, extend_fit=True):
                 titles.append("$%s$" % bin_title)
-                plotnames.append(odir + name + ".tex")
-            print i
-            print titles
-            print plotnames
+                plotnames.append(os.path.join(odir, plotname + ".tex"))
+            # When we have 4 plots, or reached the end, write to a slide
             if (((i + 1) % 4 == 0) and (i != 0)) or (i == len(etaBins) - 2):
-                print "Writing", emin, emax
+                print "Writing slide"
                 slidetitle = "Correction value"
                 slides.write(bst.make_slide(bst.four_plot_slide, titles, plotnames, slidetitle))
                 titles = []
@@ -157,21 +191,30 @@ def plot_corr_results(in_name=""):
     compile_pdf(main_file, out_name, odir, 1)
 
 
-def compile_pdf(texfile, pdffile, outdir, num_compilation=1):
-    """
-    Compile the pdf
-    Do it twice to get TOC and page num right
+def compile_pdf(tex_filename, pdf_filename, outdir, num_compilation=1, latex_cmd='lualatex'):
+    """Compile the pdf. Deletes all non-tex/pdf files afterwards.
+
+    Parameters
+    ----------
+    tex_filename : str
+        Name of TeX file to compile
+    pdf_filename : str
+        Name of output PDF file
+    outdir : str
+        Output directory for PDF file
+    num_compilation : int, optional
+        Number of times to run tex command
+    latex_cmd : str, optional
+        Which latex command to run.
     """
 
     output = "-output-directory=%s" % outdir
     for i in range(num_compilation):
-        subprocess.call(["lualatex", "-interaction", "nonstopmode", output, texfile])
-
-    # Open the result
-    # subprocess.call(["open", pdffile])
+        subprocess.call(["nice", "-n", "19", latex_cmd, "-interaction", "nonstopmode",
+                         output, tex_filename])
 
     # Tidy up all the non .tex or .pdf files
-    for f in glob.glob(os.path.join(outdir, texfile.replace(".tex", ".*"))):
+    for f in glob.glob(os.path.join(outdir, tex_filename.replace(".tex", ".*"))):
         if os.path.splitext(f)[1] not in [".tex", ".pdf"]:
             print 'deleting', f
             os.remove(f)
