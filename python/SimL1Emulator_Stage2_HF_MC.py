@@ -121,7 +121,13 @@ process = L1NtupleEMU(process)
 
 # Get rid of unnecessary Stage 1 modules
 remove_modules = [
-    process.L1TRawToDigi
+    process.L1TRawToDigi,
+    process.siPixelDigis,
+    process.siStripDigis,
+    process.muonCSCDigis,
+    process.muonDTDigis,
+    process.muonRPCDigis,
+    process.castorDigis
 ]
 for mod in remove_modules:
     result = process.RawToDigi.remove(mod)
