@@ -2,7 +2,7 @@
 """
 This script takes as input the output file from RunMatcher, and loops over
 matched genjet/L1 jet pairs, plotting interesting things and producing a
-correction function, as well as LUTs to put in CMSSW.
+correction function for each eta bin. By default it goes over all eta bins.
 
 It can also re-fit the correction curve to an existing graph, saving time.
 In this case, use the --redo_correction_fit option, and the input file is
@@ -369,7 +369,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         max_ind = list(yarr).index(min(yarr))
         fit_max = xarr[max_ind]
     if fit_min > fit_max:
-        raise RuntimeError('fit_min >fit_max!')
+        raise RuntimeError('fit_min > fit_max! (%f > %f)' % (fit_min, fit_max))
 
     print "Correction fn fit range:", fit_min, fit_max
 

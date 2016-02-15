@@ -925,8 +925,8 @@ def main(in_args=sys.argv[1:]):
                 pt_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
                 ptRef_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
 
-                with (open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_file,
-                      open(os.path.join(list_dir, 'list_ptRef.txt'), 'w') as ptRef_file):
+                with open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_file, \
+                     open(os.path.join(list_dir, 'list_ptRef.txt'), 'w') as ptRef_file:
 
                     if pt_names:
                         pt_file.write('\n'.join(pt_names))
