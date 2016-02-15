@@ -25,8 +25,8 @@ def make_plot_eta_binned(input_filename, output_filename, title=''):
     # eta_bins = [0, 3, 5]
     for i, (eta_min, eta_max) in enumerate(binning.pairwise(eta_bins)):
         hname = "h_%g_%g" % (eta_min, eta_max)
-        h = ROOT.TH1D(hname, title + ";response;p.d.f", 30, 0, 3)
-        tree.Draw("rsp>>%s" % hname, "%g < TMath::Abs(eta) && TMath::Abs(eta) < %g" % (eta_min, eta_max))
+        h = ROOT.TH1D(hname, title + " PU15 - 25;response;p.d.f", 30, 0, 3)
+        tree.Draw("rsp>>%s" % hname, "%g < TMath::Abs(eta) && TMath::Abs(eta) < %g && numPUVertices<25 && numPUVertices >15" % (eta_min, eta_max))
         h.SetLineColor(binning.eta_bin_colors[i])
         h.SetLineWidth(2)
         h.Scale(1. / h.Integral())
@@ -34,7 +34,7 @@ def make_plot_eta_binned(input_filename, output_filename, title=''):
 
     canv = ROOT.TCanvas("c", "", 600, 600)
     canv.SetTicks(1, 1)
-    hstack = ROOT.THStack("hst", title + ";response;p.d.f")
+    hstack = ROOT.THStack("hst", title + " PU15 - 25;response;p.d.f")
     leg = ROOT.TLegend(0.6, 0.6, 0.88, 0.88)
     for i, h in enumerate(hists):
         hstack.Add(h)
@@ -46,9 +46,9 @@ def make_plot_eta_binned(input_filename, output_filename, title=''):
 
 
 if __name__ == "__main__":
-    make_plot_eta_binned('../Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output/pairs_noJEC.root',
-                         '../Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output/quick_check_noJEC.pdf',
-                         'Spring15 MC, No JEC')
-    make_plot_eta_binned('../Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output/pairs_JEC.root',
-                         '../Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output/quick_check_JEC.pdf',
+    # make_plot_eta_binned('../Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output/pairs_noJEC.root',
+    #                      '../Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output/quick_check_noJEC.pdf',
+    #                      'Spring15 MC, No JEC')
+    make_plot_eta_binned('/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/python/pairs_JEC.root',
+                         '../Stage2_HF_QCDFlatSpring15BX25HCALFix_12Feb_85a0ccf_noJEC_fixedPUS/output/quick_check_JEC.pdf',
                          'Spring15 MC, JEC')
