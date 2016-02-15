@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     // hold Event tree
     L1GenericTree<L1AnalysisEventDataFormat> eventTree(opts.inputFilename(),
-                                                         "l1Tree/L1Tree",
+                                                         "l1EventTree/L1EventTree",
                                                          "Event");
     L1AnalysisEventDataFormat * eventData = eventTree.getData();
 
