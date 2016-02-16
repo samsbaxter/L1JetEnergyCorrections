@@ -61,13 +61,66 @@ def process_file(filename, eta_bins=binning.eta_bins_forward):
                 start += 1
             end -= 1
 
+        # Jackknife means
+        jack_means = [np.delete(yarr, i).mean() for i in range(len(yarr))]
+
         # Do plotting & peak finding in both ROOT and MPL...not sure which is better?
-        peak = plot_find_peak_mpl(means, eta_min, eta_max, os.path.dirname(os.path.realpath(filename)))
+        # peak = plot_find_peak_mpl(means, eta_min, eta_max, os.path.dirname(os.path.realpath(filename)))
         peak = plot_find_peak_root(means, eta_min, eta_max, os.path.dirname(os.path.realpath(filename)))
+        jackpeak = plot_jacknife_root(jack_means, eta_min, eta_max, os.path.dirname(os.path.realpath(filename)))
         print 'Eta bin:', eta_min, '-', eta_max
         print peak
+        print 'jackknife mean:'
+        print np.array(jack_means).mean()
 
     f.Close()
+
+
+def plot_jacknife_root(means, eta_min, eta_max, output_dir):
+    """Plot histogram of mean, and extract peak, using ROOT.
+    This uses jackknifing means.
+
+    Parameters
+    ----------
+    means: list[float]
+        Collection of mean values
+    eta_min, eta_max: float
+        Eta bin edges
+    output_dir: str
+        Output directory for plot.
+
+    Returns
+    -------
+    float
+        Peak mean.
+    """
+    means = np.array(means)
+    # auto-generate histogram x axis limits using min/max of means + spacer
+    num_bins = 75 if len(means) > 200 else 50
+    hist = ROOT.TH1D('h_mean', '', num_bins, 0.95 * means.min(), 1.05 * means.max())
+    for m in means:
+        hist.Fill(m)
+    # find peak
+    peak_bin = hist.GetMaximumBin()
+    peak = hist.GetBinCenter(peak_bin)
+    # plot
+    canv = ROOT.TCanvas('c', '', 600, 600)
+    canv.SetTicks(1, 1)
+    hist.Draw("HISTE")
+    title = '%g < #eta^{L1} < %g, peak at %g;Subgraph mean correction' % (eta_min, eta_max, peak)
+    hist.SetTitle(title)
+    # Draw a marker for peak value
+    arrow_peak = ROOT.TArrow(peak, 25, peak, 0)
+    arrow_peak.SetLineWidth(2)
+    arrow_peak.SetLineColor(ROOT.kRed)
+    arrow_peak.Draw()
+    # Draw a marker for mean value
+    arrow_mean = ROOT.TArrow(means.mean(), 5, means.mean(), 0)
+    arrow_mean.SetLineWidth(2)
+    arrow_mean.SetLineColor(ROOT.kBlue)
+    arrow_mean.Draw()
+    canv.SaveAs(os.path.join(output_dir, 'means_hist_%g_%g_rootjack_.pdf' % (eta_min, eta_max)))
+    return peak
 
 
 def plot_find_peak_root(means, eta_min, eta_max, output_dir):
