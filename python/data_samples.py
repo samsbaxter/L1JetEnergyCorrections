@@ -38,8 +38,10 @@ def get_number_files(dataset):
     return int(re.search(r'nfiles +: (\d*)', output).group(1))
 
 
-def check_dataset(dataset):
-    return True
+def check_dataset_exists(dataset):
+    """Check dataset exists in DAS"""
+    result = subprocess.call(['das_client.py', '--query', 'dataset dataset=%s' % dataset])
+    return result == 0
 
 
 # handy data structure to store some attributes for each dataset

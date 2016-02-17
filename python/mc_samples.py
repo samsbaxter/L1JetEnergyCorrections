@@ -36,7 +36,9 @@ def get_number_files(dataset):
 
 
 def check_dataset(dataset):
-    return True
+    """Check dataset exists in DAS"""
+    result = subprocess.call(['das_client.py', '--query', 'dataset dataset=%s' % dataset])
+    return result == 0
 
 
 # handy data structure to store some attributes for each dataset
