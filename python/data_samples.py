@@ -1,14 +1,15 @@
 """
 Data samples to be used in CRAB3 configs
 
-For each sample, we have a simple Dataset namedtuple. Fields are inputDataset
-and unitsPerJob. We then store all samples in a dict.
+For each sample, we have a simple Dataset namedtuple. Fields are inputDataset,
+unitsPerJob, and totalUnits. (see CRAB documentationf or meaning).
+We then store all samples in a dict.
 
 Usage:
 
-from samples import samples
+from data_samples import samples
 
-dataset = "TTbarFall13PU20bx25"
+dataset = "Express_Run2015B_50ns"
 config.General.requestName = dataset
 config.Data.inputDataset = samples[dataset].inputDataset
 config.Data.unitsPerJob = samples[dataset].unitsPerJob
@@ -21,7 +22,6 @@ totalUnits can take the values:
 """
 
 from collections import namedtuple
-import re
 import subprocess
 import json
 
@@ -29,7 +29,8 @@ import json
 # some helper functions
 def get_number_files(dataset):
     """Get total number of files in dataset"""
-    output = subprocess.check_output(['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json'], stderr=subprocess.STDOUT)
+    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json']
+    output = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
     summary_dict = json.loads(output)
     return int(summary_dict['data'][0]['summary'][0]['nfiles'])
 
