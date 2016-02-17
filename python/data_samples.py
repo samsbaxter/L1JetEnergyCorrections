@@ -23,19 +23,15 @@ totalUnits can take the values:
 from collections import namedtuple
 import re
 import subprocess
+import json
 
 
 # some helper functions
-#
-# THIS DOESN'T WORK. STALLS.
-# COS SUBPROCESS/das_client IS A POS.
 def get_number_files(dataset):
-    # child = subprocess.Popen(['das_client.py','--query', 'summary dataset=%s' % dataset], stdout=subprocess.PIPE)
-    # output = child.communicate()[0]
-    # rc = child.returncode
-    output = subprocess.check_output(['das_client.py', '--query', 'summary dataset=%s' % dataset],
-                                     stderr=subprocess.STDOUT)
-    return int(re.search(r'nfiles +: (\d*)', output).group(1))
+    """Get total number of files in dataset"""
+    output = subprocess.check_output(['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json'], stderr=subprocess.STDOUT)
+    summary_dict = json.loads(output)
+    return int(summary_dict['data'][0]['summary'][0]['nfiles'])
 
 
 def check_dataset_exists(dataset):
