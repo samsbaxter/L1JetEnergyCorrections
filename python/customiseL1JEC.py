@@ -87,7 +87,7 @@ def L1NtupleJEC(process):
         process.castorDigis
     ]
     for mod in remove_modules:
-        if mod in process.__dict__.keys():
+        if mod.label() in process.__dict__.keys():
             result = process.RawToDigi.remove(mod)
             if not result:
                 raise RuntimeError('Could not remove %s' % mod.label())
