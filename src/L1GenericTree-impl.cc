@@ -21,7 +21,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1MenuDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1CaloTowerDataFormat.h"
-
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMetFilterDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoTauDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMuon2DataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoElectronDataFormat.h"
@@ -48,6 +48,7 @@ template class L1GenericTree<L1Analysis::L1AnalysisRecoTrackDataFormat>;
 template class L1GenericTree<L1Analysis::L1AnalysisL1MenuDataFormat>;
 template class L1GenericTree<L1Analysis::L1AnalysisL1UpgradeDataFormat>;
 template class L1GenericTree<L1Analysis::L1AnalysisL1CaloTowerDataFormat>;
+template class L1GenericTree<L1Analysis::L1AnalysisRecoMetFilterDataFormat>;
 template class L1GenericTree<L1Analysis::L1AnalysisRecoTauDataFormat>;
 template class L1GenericTree<L1Analysis::L1AnalysisRecoMuon2DataFormat>;
 template class L1GenericTree<L1Analysis::L1AnalysisRecoElectronDataFormat>;
