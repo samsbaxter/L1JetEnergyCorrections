@@ -18,6 +18,7 @@ DAG.
 """
 
 
+import argparse
 import os
 import sys
 from time import strftime
@@ -382,8 +383,13 @@ def grouper(iterable, n, fillvalue=None):
 
 
 if __name__ == "__main__":
-    force_submit = len(sys.argv) == 2 and sys.argv[1] == '-f'
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--force', '-f',
+                        help='Force submit - will run jobs even if final file '
+                             'with same name already exists.',
+                        action='store_true')
+    args = parser.parse_args()
     sys.exit(submit_all_matcher_dags(exe=EXE, ntuple_dirs=NTUPLE_DIRS, log_dir=LOG_DIR,
                                      l1_dir=L1_DIR, ref_dir=REF_DIR,
                                      deltaR=DELTA_R, ref_min_pt=PT_REF_MIN,
-                                     append=APPEND, force_submit=True))
+                                     append=APPEND, force_submit=args.force))

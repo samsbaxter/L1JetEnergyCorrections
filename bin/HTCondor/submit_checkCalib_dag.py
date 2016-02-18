@@ -12,6 +12,8 @@ the output files will be put in DATASET/check/
 Requires the htcondenser package: https://github.com/raggleton/htcondenser
 """
 
+
+import argparse
 import os
 import sys
 sys.path.append(os.path.dirname(os.getcwd()))  # to import binning.py
@@ -30,7 +32,9 @@ log = logging.getLogger(__name__)
 PAIRS_FILES = [
 # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_testCalibratePU15to25_2048bins_maxCorr5.root'
 # '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/pairs/pairs_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
-'/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
+# '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
+# '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_16Feb_80X_mcRun2_asymptotic_v1_2779cb0_JEC/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
+'/hdfs/L1JEC/run260627_SingleMuReReco_HF_L1JEC_2779cb0/pairs/pairs_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4.root'
 ]
 
 # Maximum L1 pt to be included in plots (to avoid saturation effects)
@@ -271,8 +275,13 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
 
 
 if __name__ == "__main__":
-    force_submit = len(sys.argv) == 2 and sys.argv[1] == '-f'
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--force', '-f',
+                        help='Force submit - will run jobs even if final file '
+                             'with same name already exists.',
+                        action='store_true')
+    args = parser.parse_args()
     submit_all_checkCalib_dags(pairs_files=PAIRS_FILES, max_l1_pt=MAX_L1_PT,
                                log_dir=LOG_DIR, append=APPEND,
                                pu_bins=PU_BINS, eta_bins=ETA_BINS,
-                               force_submit=force_submit)
+                               force_submit=args.force)

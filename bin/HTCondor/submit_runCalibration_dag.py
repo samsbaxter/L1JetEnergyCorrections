@@ -12,6 +12,8 @@ the output files will be put in DATASET/output/
 Requires the htcondenser package: https://github.com/raggleton/htcondenser
 """
 
+
+import argparse
 import os
 import sys
 sys.path.append(os.path.dirname(os.getcwd()))  # to import binning.py
@@ -241,6 +243,11 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
 
 
 if __name__ == "__main__":
-    force_submit = len(sys.argv) == 2 and sys.argv[1] == '-f'
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--force', '-f',
+                        help='Force submit - will run jobs even if final file '
+                             'with same name already exists.',
+                        action='store_true')
+    args = parser.parse_args()
     submit_all_runCalib_dags(pairs_files=PAIRS_FILES, log_dir=LOG_DIR, append=APPEND,
-                             pu_bins=PU_BINS, eta_bins=ETA_BINS, force_submit=force_submit)
+                             pu_bins=PU_BINS, eta_bins=ETA_BINS, force_submit=args.force)
