@@ -217,6 +217,15 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<Matcher> matcher(new DeltaR_Matcher(maxDeltaR, minRefJetPt, maxRefJetPt, minL1JetPt, maxL1JetPt, maxJetEta));
     std::cout << *matcher << std::endl;
 
+    ///////////////////////
+    // JET CLEANING CUTS //
+    ///////////////////////
+    bool doCleaningCuts = opts.cleanJets();
+    std::string jetId = "TIGHTLEPVETO";
+    if (doCleaningCuts) {
+        cout << "Applying " << jetId << " jet cleaning cuts" << endl;
+    }
+
     //////////////////////
     // LOOP OVER EVENTS //
     //////////////////////
@@ -245,13 +254,20 @@ int main(int argc, char* argv[]) {
         if (!out_passCSC) cscFail++;
         out_HBHENoise = metFilterData->hbheNoiseFilter;
         out_HBHEIsoNoise = metFilterData->hbheNoiseIsoFilter;
+        if (doCleaningCuts && !(out_passCSC && out_HBHENoise && out_HBHEIsoNoise)) {
+            continue;
+        }
 
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
         rescaleEnergyFractions(refData);
 
         // Get vectors of ref & L1 jets from trees, only want BX = 0 (the collision)
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
-        // std::vector<TLorentzVector> refJets = makeRecoTLorentzVectorsCleaned(*refData, "TIGHTLEPVETO"); // with JetID filters
+        std::vector<TLorentzVector> refJets;
+        if (doCleaningCuts) {
+            refJets = makeRecoTLorentzVectorsCleaned(*refData, jetId); // with JetID filters
+        } else {
+            refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
+        }
         std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi, l1Data->jetBx);
 
         out_nL1 = l1Jets.size();

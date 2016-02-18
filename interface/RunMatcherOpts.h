@@ -125,6 +125,12 @@ class RunMatcherOpts
          */
         float deltaR() { return deltaR_; };
 
+        /**
+         * @brief Apply jet cleaning cuts to reference Jets.
+         * @details Only makes sense for RECO (PF) jets
+         */
+        bool cleanJets() { return cleanJets_; };
+
     private:
         RunMatcherOpts(const RunMatcherOpts&); // stop default
 
@@ -136,6 +142,7 @@ class RunMatcherOpts
         float correctionMinPt_;
         std::vector<std::string> refJetBranchNames_, l1JetBranchNames_;
         float deltaR_, refMinPt_;
+        bool cleanJets_;
 };
 
 
