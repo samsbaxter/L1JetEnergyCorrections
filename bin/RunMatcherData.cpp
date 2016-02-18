@@ -427,13 +427,12 @@ std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJ
 bool looseCleaning(float eta,
                    float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                    short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
-    if (fabs(eta) < 3) {
-        if ((fabs(eta) < 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
+    if (fabs(eta) <= 3) {
+        if ((fabs(eta) <= 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
             return false;
         return (nhef < 0.99) && (pef < 0.99) && ((chMult+nhMult+phMult+elMult+muMult) > 1);
     } else {
-        // TODO: HF
-        return true;
+        return (pef < 0.9 && (nhMult + phMult) > 10);
     }
 }
 
@@ -441,25 +440,29 @@ bool looseCleaning(float eta,
 bool tightCleaning(float eta,
                    float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                    short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
-    if (fabs(eta) < 3) {
-        if ((fabs(eta) < 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
+    if (fabs(eta) <= 3) {
+        if ((fabs(eta) <= 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
             return false;
         return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1);
     } else {
-        return true;
+        return (pef < 0.9 && (nhMult + phMult) > 10);
     }
 }
 
 
+/**
+ * @brief TightLepVeto JetID + custom muon multiplicity cut
+ * @return bool If jet passed cuts or not
+ */
 bool tightLepVetoCleaning(float eta,
                           float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
-    if (fabs(eta) < 3) {
-        if ((fabs(eta) < 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.9)))
+    if (fabs(eta) <= 3) {
+        if ((fabs(eta) <= 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.9)))
             return false;
-        return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1) && (mef < 0.8);
+        return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1) && (mef < 0.8) && (muMult == 0) && (elMult == 0);
     } else {
-        return true;
+        return (pef < 0.9 && (nhMult + phMult) > 10);
     }
 }
 
