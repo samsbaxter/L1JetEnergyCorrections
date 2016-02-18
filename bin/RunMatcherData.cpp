@@ -18,6 +18,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoJetDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMetFilterDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
@@ -33,6 +34,7 @@ using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisRecoJetDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
+using L1Analysis::L1AnalysisRecoMetFilterDataFormat;
 using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
@@ -89,20 +91,19 @@ int main(int argc, char* argv[]) {
 
     // hold Event tree
     L1GenericTree<L1AnalysisEventDataFormat> eventTree(opts.inputFilename(),
-                                                       "l1Tree/L1Tree",
+                                                       "l1EventTree/L1EventTree",
                                                        "Event");
     L1AnalysisEventDataFormat * eventData = eventTree.getData();
+
+    // hold met filter info
+    L1GenericTree<L1AnalysisRecoMetFilterDataFormat> metFilterTree(opts.inputFilename(),
+                                                                   "l1MetFilterRecoTree/MetFilterRecoTree",
+                                                                   "MetFilters");
+    L1AnalysisRecoMetFilterDataFormat * metFilterData = metFilterTree.getData();
 
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
     TString inStem(inPath.stem().c_str());
-
-    // std::vector<std::string> cscList;
-    std::vector<ULong64_t> cscList;
-    getCSCList("/hdfs/user/ra12451/L1JEC/csc2015_260627_evtOnly.txt", cscList);
-    cout << cscList.size() << " events in CSC list" << endl;
-    cout << cscList[0] << endl;
-    cout << cscList[cscList.size()-1] << endl;
 
     ////////////////////////
     // SETUP OUTPUT FILES //
@@ -123,20 +124,17 @@ int main(int argc, char* argv[]) {
     // Quantities for L1 jets:
     float out_pt(-1.), out_eta(99.), out_phi(99.);
     int out_nL1(-1); // number of jets in the event,
-    int out_ind(-1); // index of this jet in the collection (ordered by descending pT)
     outTree.Branch("pt", &out_pt, "pt/F");
     outTree.Branch("eta", &out_eta, "eta/F");
     outTree.Branch("phi", &out_phi, "phi/F");
     outTree.Branch("nL1", &out_nL1, "nL1/I");
-    outTree.Branch("indL1", &out_ind, "indL1/I");
     // Quantities for reference jets (GenJet, etc):
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
-    int out_nRef(-1), out_indRef;
+    int out_nRef(-1);
     outTree.Branch("ptRef", &out_ptRef, "ptRef/F");
     outTree.Branch("etaRef", &out_etaRef, "etaRef/F");
     outTree.Branch("phiRef", &out_phiRef, "phiRef/F");
     outTree.Branch("nRef", &out_nRef, "nRef/I");
-    outTree.Branch("indRef", &out_indRef, "indRef/I");
     // Cleaning vars
     float out_chef(-1.), out_nhef(-1.), out_pef(-1.), out_eef(-1.), out_mef(-1.), out_hfhef(-1.), out_hfemef(-1.);
     short out_chMult(-1), out_nhMult(-1), out_phMult(-1), out_elMult(-1), out_muMult(-1), out_hfhMult(-1), out_hfemMult(-1);
@@ -166,38 +164,40 @@ int main(int argc, char* argv[]) {
     outTree.Branch("dphi", &out_dphi, "dphi/F");
     outTree.Branch("resL1", &out_resL1, "resL1/F"); // resolution = L1 - Ref / L1
     outTree.Branch("resRef", &out_resRef, "resRef/F"); // resolution = L1 - Ref / Ref
+
     // PU quantities
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/F");
     outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/F");
+
     // Event info
     ULong64_t out_event(0);
     int out_ls(0);
-    bool out_passCSC(true);
-    // triggers
-    bool out_HLT_ZeroBias(true), out_HLT_IsoMu(true), out_HLT_DiMu(true), out_HLT_DiEl(true);
-    bool out_HLT_Physics(true), out_HLT_Random(true), out_HLT_Photon(true), out_HLT_Mu(true);
-    bool out_HLT_MET(true), out_HLT_PFMET(true), out_HLT_HT(true);
-    // bool out_HBHENoiseRun2Loose(true), out_HBHENoiseRun2Tight(true), out_HBHEIsoNoise(true);
     outTree.Branch("event", &out_event, "event/l");
     outTree.Branch("LS", &out_ls, "ls/I");
+
+    // triggers
+    // bool out_HLT_ZeroBias(true), out_HLT_IsoMu(true), out_HLT_DiMu(true), out_HLT_DiEl(true);
+    // bool out_HLT_Physics(true), out_HLT_Random(true), out_HLT_Photon(true), out_HLT_Mu(true);
+    // bool out_HLT_MET(true), out_HLT_PFMET(true), out_HLT_HT(true);
+    // outTree.Branch("hlt_zeroBias", &out_HLT_ZeroBias, "hlt_zeroBias/Bool_t");
+    // outTree.Branch("hlt_isoMu", &out_HLT_IsoMu, "hlt_isoMu/Bool_t");
+    // outTree.Branch("hlt_diMu", &out_HLT_DiMu, "hlt_diMu/Bool_t");
+    // outTree.Branch("hlt_diEl", &out_HLT_DiEl, "hlt_diEl/Bool_t");
+    // outTree.Branch("hlt_physics", &out_HLT_Physics, "hlt_physics/Bool_t");
+    // outTree.Branch("hlt_random", &out_HLT_Random, "hlt_random/Bool_t");
+    // outTree.Branch("hlt_photon", &out_HLT_Photon, "hlt_photon/Bool_t");
+    // outTree.Branch("hlt_mu", &out_HLT_Mu, "hlt_mu/Bool_t");
+    // outTree.Branch("hlt_met", &out_HLT_MET, "hlt_met/Bool_t");
+    // outTree.Branch("hlt_pfmet", &out_HLT_PFMET, "hlt_pfmet/Bool_t");
+    // outTree.Branch("hlt_ht", &out_HLT_HT, "hlt_ht/Bool_t");
+
+    // MET filters
+    bool out_passCSC(true);
+    bool out_HBHENoise(true), out_HBHEIsoNoise(true);
     outTree.Branch("passCSC", &out_passCSC, "passCSC/Bool_t");
-    outTree.Branch("hlt_zeroBias", &out_HLT_ZeroBias, "hlt_zeroBias/Bool_t");
-    outTree.Branch("hlt_isoMu", &out_HLT_IsoMu, "hlt_isoMu/Bool_t");
-    outTree.Branch("hlt_diMu", &out_HLT_DiMu, "hlt_diMu/Bool_t");
-    outTree.Branch("hlt_diEl", &out_HLT_DiEl, "hlt_diEl/Bool_t");
-    outTree.Branch("hlt_physics", &out_HLT_Physics, "hlt_physics/Bool_t");
-    outTree.Branch("hlt_random", &out_HLT_Random, "hlt_random/Bool_t");
-    outTree.Branch("hlt_photon", &out_HLT_Photon, "hlt_photon/Bool_t");
-    outTree.Branch("hlt_mu", &out_HLT_Mu, "hlt_mu/Bool_t");
-    outTree.Branch("hlt_met", &out_HLT_MET, "hlt_met/Bool_t");
-    outTree.Branch("hlt_pfmet", &out_HLT_PFMET, "hlt_pfmet/Bool_t");
-    outTree.Branch("hlt_ht", &out_HLT_HT, "hlt_ht/Bool_t");
-
-    // outTree.Branch("HBHENoiseRun2Loose", &out_HBHENoiseRun2Loose, "HBHENoiseRun2Loose/Bool_t");
-    // outTree.Branch("HBHENoiseRun2Tight", &out_HBHENoiseRun2Tight, "HBHENoiseRun2Tight/Bool_t");
-    // outTree.Branch("HBHEIsoNoise", &out_HBHEIsoNoise, "HBHEIsoNoise/Bool_t");
-
+    outTree.Branch("HBHENoise", &out_HBHENoise, "HBHENoise/Bool_t");
+    outTree.Branch("HBHEIsoNoise", &out_HBHEIsoNoise, "HBHEIsoNoise/Bool_t");
 
     Long64_t nEntriesRef = refJetTree.getEntries();
     Long64_t nEntriesL1  = l1JetTree.getEntries();
@@ -222,7 +222,6 @@ int main(int argc, char* argv[]) {
     //////////////////////
     // produce matching pairs and store
     Long64_t drawCounter(0), matchedEvent(0), cscFail(0);
-    std::vector<std::string> failEvents;
     Long64_t counter(0);
     for (Long64_t iEntry = 0; counter < nEntries; ++iEntry, ++counter) {
 
@@ -230,50 +229,27 @@ int main(int argc, char* argv[]) {
             cout << "Entry: " << iEntry << " at " << getCurrentTime() << endl;
         }
 
+        // Make sure to add any other Trees here!
         if (refJetTree.getEntry(iEntry) < 1 ||
             l1JetTree.getEntry(iEntry) < 1 ||
-            eventTree.getEntry(iEntry) < 1)
+            eventTree.getEntry(iEntry) < 1 ||
+            metFilterTree.getEntry(iEntry) < 1)
             break;
 
         // event info
-        // fix underflow bug from ulonglong -> int for evt number
-        unsigned int evt_num = (unsigned int) eventData->event;
-        out_event = (long) evt_num;
+        out_event = eventData->event;
         out_ls = (Long64_t) eventData->lumi;
 
-        // out_HBHENoiseRun2Loose = eventData->HBHENoiseFilterResultRun2Loose;
-        // out_HBHENoiseRun2Tight = eventData->HBHENoiseFilterResultRun2Tight;
-        // out_HBHEIsoNoise = eventData->HBHEIsoNoiseFilterResult;
-
-        // Check CSC beam halo
-        // std::string thisEvent = lexical_cast<std::string>(out_ls) + ":" + lexical_cast<std::string>(out_event);
-        // std::string thisEvent = lexical_cast<std::string>(out_event);
-        // out_passCSC = !(std::binary_search(cscList.begin(), cscList.end(), out_event));
-        out_passCSC = (std::find(cscList.begin(), cscList.end(), out_event) == cscList.end());
-
-        if (!out_passCSC) {
-            // failEvents.push_back(out_event);
-            cscFail++;
-        }
-
-        // Check which triggers fired
-        // out_HLT_ZeroBias = checkTriggerFired(eventData->hlt, "HLT_ZeroBias_v2");
-        // out_HLT_IsoMu = checkTriggerFired(eventData->hlt, "HLT_IsoMu20_v3");
-        // out_HLT_DiMu = checkTriggerFired(eventData->hlt, "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v2");
-        // out_HLT_DiEl = checkTriggerFired(eventData->hlt, "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v3");
-        // out_HLT_Physics = checkTriggerFired(eventData->hlt, "HLT_Physics_v2");
-        // out_HLT_Random = checkTriggerFired(eventData->hlt, "HLT_Random_v1");
-        // out_HLT_Photon = checkTriggerFired(eventData->hlt, "HLT_Photon500_v1");
-        // out_HLT_Mu = checkTriggerFired(eventData->hlt, "HLT_Mu300_v1");
-        // out_HLT_MET = checkTriggerFired(eventData->hlt, "HLT_MET250_v1");
-        // out_HLT_PFMET = checkTriggerFired(eventData->hlt, "HLT_PFMET300_v1");
-        // out_HLT_HT = checkTriggerFired(eventData->hlt, "HLT_HT2000_v1");
+        // MET filter info
+        out_passCSC = metFilterData->cscTightHalo2015Filter;
+        if (!out_passCSC) cscFail++;
+        out_HBHENoise = metFilterData->hbheNoiseFilter;
+        out_HBHEIsoNoise = metFilterData->hbheNoiseIsoFilter;
 
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
         rescaleEnergyFractions(refData);
 
-        // Get vectors of ref & L1 jets from trees
-        // Note that we only want BX = 0 (the collision)
+        // Get vectors of ref & L1 jets from trees, only want BX = 0 (the collision)
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
         // std::vector<TLorentzVector> refJets = makeRecoTLorentzVectorsCleaned(*refData, "TIGHTLEPVETO"); // with JetID filters
         std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi, l1Data->jetBx);
