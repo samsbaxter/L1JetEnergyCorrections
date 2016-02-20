@@ -543,7 +543,7 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
         os.mkdir("%s/%s" % (oDir, sub_dir))
 
     c = generate_canvas(plot_title)
-    filename = []
+    filenames = []
     for i, pt_min in enumerate(pt_bins[:-1]):
         pt_max = pt_bins[i + 1]
         hname = "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max)
