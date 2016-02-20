@@ -18,5 +18,5 @@ config.Data.publication = False
 
 config.section_("Site")
 # Where the output files will be transmitted to
-# config.Site.storageSite = 'T2_UK_SGrid_Bristol'
-config.Site.storageSite = 'T2_UK_SGrid_RALPP'
+config.Site.storageSite = 'T2_UK_SGrid_Bristol'
+# config.Site.storageSite = 'T2_UK_SGrid_RALPP'
