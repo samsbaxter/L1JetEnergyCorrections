@@ -12,10 +12,16 @@ import httplib
 
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_80X_mcRun2_asymptotic_v1_2dd1043_noJEC"
+job_append = "Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC"
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
 datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]
+
+# FIX THIS!!!!
+reco_datasets = [
+'/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RECO',
+'/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RECO'
+]
 
 if __name__ == "__main__":
 
@@ -29,16 +35,18 @@ if __name__ == "__main__":
     for dset in datasets:
         if dset not in samples.samples.keys():
             raise KeyError("Wrong dataset key name:", dset)
-        if not samples.check_dataset_exists(samples.samples[dset].inputDataset):
-            raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
+        # if not samples.check_dataset_exists(samples.samples[dset].inputDataset):
+        #     raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
 
-    for dset in datasets:
+    for dset, reco_dset in zip(datasets, reco_datasets):
         dset_opts = samples.samples[dset]
         print dset
         # requestName will be used for name of folder inside workArea,
         # and the name of the jobs on monitoring page
+        print len(dset + "_" + job_append)
         config.General.requestName = dset + "_" + job_append
-        config.Data.inputDataset = dset_opts.inputDataset
+        config.Data.inputDataset = reco_dset
+        config.Data.secondaryInputDataset = dset_opts.inputDataset
         config.Data.unitsPerJob = dset_opts.unitsPerJob
 
         # to restrict total units run over
