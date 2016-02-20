@@ -36,7 +36,7 @@ def get_number_files(dataset):
     return int(summary_dict['data'][0]['summary'][0]['nfiles'])
 
 
-def check_dataset(dataset):
+def check_dataset_exists(dataset):
     """Check dataset exists in DAS"""
     result = subprocess.call(['das_client.py', '--query', 'dataset dataset=%s' % dataset])
     return result == 0
