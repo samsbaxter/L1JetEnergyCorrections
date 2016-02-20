@@ -24,6 +24,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
     "l1UpgradeEmuTree",
+    "l1UpgradeTree",
     "l1CaloTowerTree",
     "gtStage2Digis",
     "gmtStage2Digis"
@@ -85,6 +86,23 @@ process = L1NtupleAODRAWEMU(process)
 
 process.l1CaloTowerEmuTree.ecalToken = cms.untracked.InputTag("ecalDigis", "EcalTriggerPrimitives")
 
-process.TFileService.fileName = cms.string("L1Ntuple_HF_JEC_V6.root")
+# process.caloStage2Params.jetCalibrationType = cms.string("None")
 
-process.jec.connect = cms.string('sqlite:../data/Summer15_25nsV6_DATA.db')
+process.TFileService.fileName = cms.string("L1Ntuple_HF_noJEC.root")
+
+process.L1TRawToDigi.remove(process.gtStage2Digis)
+process.L1TRawToDigi.remove(process.gmtStage2Digis)
+# Get rid of unnecessary Stage 1 modules
+remove_modules = [
+    process.siPixelDigis,
+    process.siStripDigis,
+    process.muonCSCDigis,
+    process.muonDTDigis,
+    process.muonRPCDigis,
+    process.castorDigis
+]
+for mod in remove_modules:
+    if mod.label() in process.__dict__.keys():
+        result = process.RawToDigi.remove(mod)
+        if not result:
+            raise RuntimeError('Could not remove %s' % mod.label())
