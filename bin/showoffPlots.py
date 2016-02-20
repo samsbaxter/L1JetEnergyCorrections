@@ -326,6 +326,7 @@ def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     h_rsp = get_from_file(calib_file, hname)
     func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
+    h_rsp.SetTitle(os.path.basename(hname) + ';response (%s)' % rsp_str)
     h_rsp.Draw("HISTE")
     if func:
         func.Draw("SAME")
@@ -341,6 +342,7 @@ def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oD
         return
     func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
+    h_rsp.SetTitle(os.path.basename(hname) + ';response (%s)' % rsp_str)
     h_rsp.Draw("HISTE")
     if func:
         func.Draw("SAME")
