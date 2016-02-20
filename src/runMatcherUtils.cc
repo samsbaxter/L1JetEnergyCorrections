@@ -14,9 +14,12 @@
 // BOOST headers
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/lexical_cast.hpp>
 
 // Headers from this package
 #include "commonRootUtils.h"
+
+using boost::lexical_cast;
 
 template<typename T>
 std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
@@ -24,7 +27,9 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
                                                 std::vector<T> & phi) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+        throw std::range_error("Et/eta/phi vectors different sizes, cannot make TLorentzVectors from sizes " +
+                                lexical_cast<std::string>(et.size()) + "/" + lexical_cast<std::string>(eta.size()) +
+                                "/" + lexical_cast<std::string>(phi.size()));
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
@@ -46,7 +51,9 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
                                                 std::vector<T2> & bx) {
     // check all same size
     if (et.size() != eta.size() || et.size() != phi.size()) {
-        throw std::range_error("Eta/eta/phi vectors different sizes, cannot make TLorentzVectors");
+        throw std::range_error("Et/eta/phi vectors different sizes, cannot make TLorentzVectors from sizes " +
+                                lexical_cast<std::string>(et.size()) + "/" + lexical_cast<std::string>(eta.size()) +
+                                "/" + lexical_cast<std::string>(phi.size()));
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
