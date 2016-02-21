@@ -20,6 +20,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMetFilterDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoVertexDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
@@ -36,6 +37,7 @@ using L1Analysis::L1AnalysisRecoMetDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisRecoMetFilterDataFormat;
+using L1Analysis::L1AnalysisRecoVertexDataFormat;
 using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
@@ -87,6 +89,11 @@ int main(int argc, char* argv[]) {
                                                                    "MetFilters");
     L1AnalysisRecoMetFilterDataFormat * metFilterData = metFilterTree.getData();
 
+    // hold reco vertex info
+    L1GenericTree<L1AnalysisRecoVertexDataFormat> vertexTree(opts.inputFilename(),
+                                                             "l1RecoTree/RecoTree",
+                                                             "Vertex");
+    L1AnalysisRecoVertexDataFormat * vertexData = vertexTree.getData();
 
     // Get L1 HTT jets
     TFile * f = TFile::Open(opts.inputFilename().c_str());
@@ -191,8 +198,8 @@ int main(int argc, char* argv[]) {
     // JET CLEANING CUTS //
     ///////////////////////
     bool doCleaningCuts = opts.cleanJets();
-    std::string jetId = "MUMULT0";
-    // std::string jetId = "TIGHTLEPVETO";
+    // std::string jetId = "MUMULT0";
+    std::string jetId = "TIGHTLEPVETO";
     if (doCleaningCuts) {
         cout << "Applying " << jetId << " jet cleaning cuts" << endl;
     }
@@ -212,12 +219,14 @@ int main(int argc, char* argv[]) {
         // Make sure to add any other Trees here!
         if (refJetTree.getEntry(iEntry) < 1 || eventTree.getEntry(iEntry) < 1 ||
             metFilterTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1 ||
-            httTree->GetEntry(iEntry) < 1)
+            httTree->GetEntry(iEntry) < 1 || vertexTree.getEntry(iEntry) < 1)
             break;
 
         // event info
         out_event = eventData->event;
         out_ls = (Long64_t) eventData->lumi;
+
+        out_numPUVertices = vertexData->nVtx;
 
         // MET filter info
         out_passCSC = metFilterData->cscTightHalo2015Filter;
