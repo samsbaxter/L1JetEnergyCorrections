@@ -138,11 +138,13 @@ def norm_vertical_bins(hist):
         if y_int > 0:
             scale_factor = 1. / y_int
             for j in range(1, nbins_y + 1, 1):
-                hnew.SetBinContent(i, j, hist.GetBinContent(i, j) * scale_factor)
-                hnew.SetBinError(i, j, hist.GetBinError(i, j) * scale_factor)
+                if hnew.GetBinContent(i, j) > 0:
+                    hnew.SetBinContent(i, j, hist.GetBinContent(i, j) * scale_factor)
+                    hnew.SetBinError(i, j, hist.GetBinError(i, j) * scale_factor)
     # rescale Z axis otherwise it just removes a lot of small bins
     # set new minimum such that it includes all points, and the z axis min is
     # a negative integer power of 10
     min_bin = hnew.GetMinimum(0)
-    hnew.SetAxisRange(10**math.floor(math.log10(min_bin)), 1, 'Z')
+    max_bin = hnew.GetMaximum()
+    hnew.SetAxisRange(10**math.floor(math.log10(min_bin)), max_bin, 'Z')
     return hnew
