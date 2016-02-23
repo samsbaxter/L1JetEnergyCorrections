@@ -268,6 +268,7 @@ int main(int argc, char* argv[]) {
             } else {
                 out_pt = it.l1Jet().Et();
             }
+            // cout << it.l1Jet().Et() << " -> " << out_pt << " eta: " << it.l1Jet().Eta() << " ieta: " << getAbsIEta(it.l1Jet().Eta()) << endl;
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();
             out_dr = it.refJet().DeltaR(it.l1Jet());
@@ -278,6 +279,7 @@ int main(int argc, char* argv[]) {
             out_phiRef = it.refJet().Phi();
             out_ptDiff = out_pt - out_ptRef;
             out_rsp = out_pt/out_ptRef;
+            out_rsp_inv =  1./out_rsp;
             out_resL1 = out_ptDiff/out_pt;
             out_resRef = out_ptDiff/out_ptRef;
             outTree.Fill();

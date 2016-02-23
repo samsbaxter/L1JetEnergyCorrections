@@ -115,9 +115,24 @@ class RunMatcherOpts
         std::vector<std::string> l1JetBranchNames() { return l1JetBranchNames_; };
 
         /**
+         * @brief Get minimum pT for L1 jets to be considered in matcher
+         */
+        float l1JetMinPt() { return l1MinPt_; };
+
+        /**
          * @brief Get minimum pT for reference jets to be considered in matcher
          */
         float refJetMinPt() { return refMinPt_; };
+
+        /**
+         * @brief Get maximum fabs(eta) for L1 jets to be considered in matcher
+         */
+        float l1MaxEta() { return l1MaxEta_; };
+
+        /**
+         * @brief Get maximum fabs(eta) for reference jets to be considered in matcher
+         */
+        float refMaxEta() { return refMaxEta_; };
 
         /**
          * @brief Get maximum deltaR(Ref Jet, L1 Jet) for pair to be considered a match
@@ -141,7 +156,7 @@ class RunMatcherOpts
         int nEvents_, drawN_;
         float correctionMinPt_;
         std::vector<std::string> refJetBranchNames_, l1JetBranchNames_;
-        float deltaR_, refMinPt_;
+        float deltaR_, l1MinPt_, refMinPt_, l1MaxEta_, refMaxEta_;
         std::string cleanJets_;
 };
 

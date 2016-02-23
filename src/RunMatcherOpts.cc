@@ -47,7 +47,10 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     drawN_(0),
     correctionMinPt_(-1),
     deltaR_(0.4), // Stage2 defaults
+    l1MinPt_(0.1),
     refMinPt_(10),
+    l1MaxEta_(5.),
+    refMaxEta_(5.),
     cleanJets_("")
 {
     namespace po = boost::program_options;
@@ -95,9 +98,18 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
         ("deltaR",
             po::value<float>(&deltaR_)->default_value(deltaR_),
             "Maximum deltaR(RefJet, L1 Jet) to consider a match.")
+        ("l1MinPt",
+            po::value<float>(&l1MinPt_)->default_value(l1MinPt_),
+            "Minimum pT for L1 jets")
         ("refMinPt",
             po::value<float>(&refMinPt_)->default_value(refMinPt_),
             "Minimum pT for reference jets")
+        ("l1MaxEta",
+            po::value<float>(&l1MaxEta_)->default_value(l1MaxEta_),
+            "Maximum fabs(eta) for L1 jets")
+        ("refMaxEta",
+            po::value<float>(&refMaxEta_)->default_value(refMaxEta_),
+            "Maximum fabs(eta) for reference jets")
         ("cleanJets",
             po::value<std::string>(&cleanJets_)->default_value(cleanJets_),
             "Specify level of cleaning cuts to apply to reference jets. Only for use on RECO (PF) jets.")
