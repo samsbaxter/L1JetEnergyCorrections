@@ -132,17 +132,18 @@ int main(int argc, char* argv[]) {
     outTree.Branch("nRef", &out_nRef, "nRef/Int_t");
     outTree.Branch("inRef", &out_indRef, "indRef/Int_t");
     // Quantities to describe relationship between the two:
-    float out_rsp(-1.), out_rsp_inv(-1.);
+    float out_rsp(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
+    int out_nMatches(0);
     outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/Float_t"); // L1 - Ref
     outTree.Branch("rsp", &out_rsp, "rsp/Float_t"); // response = l1 pT/ ref jet pT
-    outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/Float_t"); // response = ref pT/ l1 jet pT
     outTree.Branch("dr", &out_dr, "dr/Float_t");
     outTree.Branch("deta", &out_deta, "deta/Float_t");
     outTree.Branch("dphi", &out_dphi, "dphi/Float_t");
     outTree.Branch("resL1", &out_resL1, "resL1/Float_t"); // resolution = L1 - Ref / L1
     outTree.Branch("resRef", &out_resRef, "resRef/Float_t"); // resolution = L1 - Ref / Ref
+    outTree.Branch("nMatches", &out_nMatches, "nMatches/Int_t");
     // PU quantities
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
@@ -259,6 +260,7 @@ int main(int argc, char* argv[]) {
         // matcher->printMatches(); // for debugging
 
         // store L1 & ref jet variables in tree
+        out_nMatches = matchResults.size();
         for (const auto &it: matchResults) {
             // std::cout << it << std::endl;
             if (opts.correctionFilename() != "") {
@@ -266,7 +268,6 @@ int main(int argc, char* argv[]) {
             } else {
                 out_pt = it.l1Jet().Et();
             }
-            // cout << it.l1Jet().Et() << " -> " << out_pt << " eta: " << it.l1Jet().Eta() << " ieta: " << getAbsIEta(it.l1Jet().Eta()) << endl;
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();
             out_dr = it.refJet().DeltaR(it.l1Jet());
@@ -277,7 +278,6 @@ int main(int argc, char* argv[]) {
             out_phiRef = it.refJet().Phi();
             out_ptDiff = out_pt - out_ptRef;
             out_rsp = out_pt/out_ptRef;
-            out_rsp_inv =  1./out_rsp;
             out_resL1 = out_ptDiff/out_pt;
             out_resRef = out_ptDiff/out_ptRef;
             outTree.Fill();
