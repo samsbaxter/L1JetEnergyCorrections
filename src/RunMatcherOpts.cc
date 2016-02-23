@@ -48,7 +48,7 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
     correctionMinPt_(-1),
     deltaR_(0.4), // Stage2 defaults
     refMinPt_(10),
-    cleanJets_(false)
+    cleanJets_("")
 {
     namespace po = boost::program_options;
 
@@ -99,8 +99,8 @@ RunMatcherOpts::RunMatcherOpts(int argc, char* argv[]):
             po::value<float>(&refMinPt_)->default_value(refMinPt_),
             "Minimum pT for reference jets")
         ("cleanJets",
-            po::bool_switch(&cleanJets_)->default_value(cleanJets_),
-            "Apply Jet cleaning cuts to reference jets. Only for use on RECO (PF) jets.")
+            po::value<std::string>(&cleanJets_)->default_value(cleanJets_),
+            "Specify level of cleaning cuts to apply to reference jets. Only for use on RECO (PF) jets.")
     ;
     po::variables_map vm;
     try {

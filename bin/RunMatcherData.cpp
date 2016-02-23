@@ -53,8 +53,6 @@ bool tightCleaning(float eta,
 bool tightLepVetoCleaning(float eta,
                           float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
-// void getCSCList(std::string filename, std::vector<std::string> & lines);
-void getCSCList(std::string filename, std::vector<ULong64_t> & lines);
 
 /**
  * @brief
@@ -220,10 +218,9 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // JET CLEANING CUTS //
     ///////////////////////
-    bool doCleaningCuts = opts.cleanJets();
-    std::string jetId = "TIGHTLEPVETO";
+    bool doCleaningCuts = opts.cleanJets() != "";
     if (doCleaningCuts) {
-        cout << "Applying " << jetId << " jet cleaning cuts" << endl;
+        cout << "Applying " << opts.cleanJets() << " jet cleaning cuts" << endl;
     }
 
     //////////////////////
@@ -264,7 +261,7 @@ int main(int argc, char* argv[]) {
         // Get vectors of ref & L1 jets from trees, only want BX = 0 (the collision)
         std::vector<TLorentzVector> refJets;
         if (doCleaningCuts) {
-            refJets = makeRecoTLorentzVectorsCleaned(*refData, jetId); // with JetID filters
+            refJets = makeRecoTLorentzVectorsCleaned(*refData, opts.cleanJets()); // with JetID filters
         } else {
             refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
         }

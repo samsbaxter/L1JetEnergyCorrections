@@ -197,11 +197,11 @@ int main(int argc, char* argv[]) {
     ///////////////////////
     // JET CLEANING CUTS //
     ///////////////////////
-    bool doCleaningCuts = opts.cleanJets();
-    // std::string jetId = "MUMULT0";
-    std::string jetId = "TIGHTLEPVETO";
+    bool doCleaningCuts = opts.cleanJets() != "";
+    std::string jetId = "MUMULT0";
+    // std::string jetId = "TIGHTLEPVETO";
     if (doCleaningCuts) {
-        cout << "Applying " << jetId << " jet cleaning cuts" << endl;
+        cout << "Applying " << opts.cleanJets() << " jet cleaning cuts" << endl;
     }
 
     //////////////////////
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
         // Get vectors of ref & L1 jets from trees, only want BX = 0 (the collision)
         std::vector<TLorentzVector> refJets;
         if (doCleaningCuts) {
-            refJets = makeRecoTLorentzVectorsCleaned(*refData, jetId); // with JetID filters
+            refJets = makeRecoTLorentzVectorsCleaned(*refData, opts.cleanJets()); // with JetID filters
         } else {
             refJets = makeTLorentzVectors(refData->httJetEt, refData->httJetEta, refData->httJetPhi);
         }
