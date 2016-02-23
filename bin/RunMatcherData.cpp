@@ -488,17 +488,3 @@ int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jet
     }
     return -1;
 }
-
-
-// void getCSCList(std::string filename, std::vector<std::string> & lines) {
-void getCSCList(std::string filename, std::vector<ULong64_t> & lines) {
-    cout << "Populating CSC list" << endl;
-    std::ifstream infile(filename);
-    ULong64_t line = 0;
-    while (infile >> line) {
-        lines.push_back(line);
-    }
-    if (lines.size() == 0) {
-        throw std::range_error("CSC list is empty - check input file exists");
-    }
-}
