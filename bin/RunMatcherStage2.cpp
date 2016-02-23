@@ -45,6 +45,9 @@ int getAddress(int iet, int ieta);
 float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
                      float et, float eta);
 float iPhiToPhi(int iphi);
+std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
+bool passHTTCut(TLorentzVector jet);
+float scalaSumPt(std::vector<TLorentzVector> jets);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -148,6 +151,18 @@ int main(int argc, char* argv[]) {
     int out_event(0);
     outTree.Branch("event", &out_event, "event/Int_t");
 
+    // L1 sums
+    int out_nL1JetsSum(0);
+    float out_httL1(0.);
+    outTree.Branch("nL1JetsSum", &out_nL1JetsSum);
+    outTree.Branch("httL1", &out_httL1);
+
+    // GenJet Sums
+    int out_nRefJetsSum(0);
+    float out_httRef(0.);
+    outTree.Branch("nRefJetsSum", &out_nRefJetsSum);
+    outTree.Branch("httRef", &out_httRef);
+
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetTree.getEntries();
     Long64_t nEntriesL1  = l1JetTree.getEntries();
@@ -219,6 +234,24 @@ int main(int argc, char* argv[]) {
         out_nL1 = l1Jets.size();
         out_nRef = refJets.size();
 
+        if (out_nL1 == 0 || out_nRef == 0) continue;
+
+        // Store sums
+        std::vector<TLorentzVector> httL1Jets = getJetsForHTT(l1Jets);
+        out_nL1JetsSum = httL1Jets.size();
+        out_httL1 = l1Data->sumEt[2];
+        float httL1_check = scalaSumPt(httL1Jets);
+
+        if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
+            cout << "HTT L1 not agreeing with calculation: " + lexical_cast<std::string>(out_httL1) + " vs " + lexical_cast<std::string>(httL1_check) << endl;
+            for (const auto& itr: l1Jets) {
+                cout << itr.Pt() << " " << itr.Eta() << endl;
+            }
+        }
+
+        std::vector<TLorentzVector> httRefJets = getJetsForHTT(refJets);
+        out_nRefJetsSum = httRefJets.size();
+        out_httRef = scalaSumPt(httRefJets);
         // Pass jets to matcher, do matching
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
@@ -362,4 +395,48 @@ float iPhiToPhi(int iphi) {
     if (iphi > 36)
         eta -= 360.;
     return eta * TMath::Pi() / 180.;
+}
+
+
+/**
+ * @brief Create vector of objects that go into calcualting HTT
+ * @details [long description]
+ *
+ * @param jets [description]
+ * @return [description]
+ */
+std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets) {
+    std::vector<TLorentzVector> outputJets;
+    for (const auto& itr: jets) {
+        if (passHTTCut(itr))
+            outputJets.push_back(itr);
+    }
+    return outputJets;
+}
+
+
+/**
+ * @brief Cut for jets to go into HTT calculation
+ * @details [long description]
+ *
+ * @param jet [description]
+ * @return [description]
+ */
+bool passHTTCut(TLorentzVector jet) {
+    return (jet.Pt() > 30.01 && fabs(jet.Eta()) <= 3);
+}
+
+
+/**
+ * @brief Scalar sum TLorentzVector pTs
+ *
+ * @param jets [description]
+ * @return [description]
+ */
+float scalaSumPt(std::vector<TLorentzVector> jets) {
+    float sum = 0.;
+    for (const auto& itr: jets) {
+        sum += itr.Pt();
+    }
+    return sum;
 }
