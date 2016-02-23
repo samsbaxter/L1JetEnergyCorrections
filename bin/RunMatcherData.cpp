@@ -162,6 +162,7 @@ int main(int argc, char* argv[]) {
     float out_rsp(-1.), out_rsp_inv(-1.);
     float out_dr(99.), out_deta(99.), out_dphi(99.);
     float out_ptDiff(99999.), out_resL1(99.), out_resRef(99.);
+    int out_nMatches(0);
     outTree.Branch("ptDiff", &out_ptDiff, "ptDiff/F"); // L1 - Ref
     outTree.Branch("rsp", &out_rsp, "rsp/F"); // response = l1 pT/ ref jet pT
     outTree.Branch("rsp_inv", &out_rsp_inv, "rsp_inv/F"); // response = ref pT/ l1 jet pT
@@ -170,6 +171,7 @@ int main(int argc, char* argv[]) {
     outTree.Branch("dphi", &out_dphi, "dphi/F");
     outTree.Branch("resL1", &out_resL1, "resL1/F"); // resolution = L1 - Ref / L1
     outTree.Branch("resRef", &out_resRef, "resRef/F"); // resolution = L1 - Ref / Ref
+    outTree.Branch("nMatches", &out_nMatches, "nMatches/Int_t");
 
     // PU quantities
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
@@ -288,6 +290,7 @@ int main(int argc, char* argv[]) {
         if (matchResults.size()>0) matchedEvent++;
 
         // store L1 & ref jet variables in tree
+        out_nMatches = matchResults.size();
         for (const auto &it: matchResults) {
             // std::cout << it << std::endl;
             out_pt = it.l1Jet().Et();
