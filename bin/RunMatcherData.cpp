@@ -19,6 +19,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoMetFilterDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoVertexDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
@@ -35,6 +36,7 @@ using L1Analysis::L1AnalysisRecoJetDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisRecoMetFilterDataFormat;
+using L1Analysis::L1AnalysisRecoVertexDataFormat;
 using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
@@ -98,6 +100,12 @@ int main(int argc, char* argv[]) {
                                                                    "l1MetFilterRecoTree/MetFilterRecoTree",
                                                                    "MetFilters");
     L1AnalysisRecoMetFilterDataFormat * metFilterData = metFilterTree.getData();
+
+    // hold nVtx info
+    L1GenericTree<L1AnalysisRecoVertexDataFormat> recoVtxTree(opts.inputFilename(),
+                                                              "l1RecoTree/RecoTree",
+                                                               "Vertex");
+    L1AnalysisRecoVertexDataFormat * recoVtxData = recoVtxTree.getData();
 
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
@@ -239,12 +247,14 @@ int main(int argc, char* argv[]) {
         if (refJetTree.getEntry(iEntry) < 1 ||
             l1JetTree.getEntry(iEntry) < 1 ||
             eventTree.getEntry(iEntry) < 1 ||
-            metFilterTree.getEntry(iEntry) < 1)
+            metFilterTree.getEntry(iEntry) < 1 ||
+            recoVtxTree.getEntry(iEntry) < 1)
             break;
 
         // event info
         out_event = eventData->event;
         out_ls = (Long64_t) eventData->lumi;
+        out_numPUVertices = recoVtxData->nVtx;
 
         // MET filter info
         out_passCSC = metFilterData->cscTightHalo2015Filter;
