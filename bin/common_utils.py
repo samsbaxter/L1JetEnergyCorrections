@@ -124,27 +124,55 @@ def get_exey(graph):
     return xarr, yarr
 
 
-def norm_vertical_bins(hist):
-    """
-    Return a copy of the 2D hist, with x bin contents normalised to 1.
+def norm_vertical_bins(hist, rescale_peaks=False):
+    """Return a copy of the 2D hist, with x bin contents normalised to 1.
     This way you can clearly see the distribution per x bin,
     rather than underlying distribution across x bins.
+
+    Parameters
+    ----------
+    hist : ROOT.TH2
+        2D histogram to use
+    rescale_peaks : bool, optional
+        Scales all bin contents such that all x bins have the same peak value.
+        This way the colour system works across all bins, but absolute values
+        are useless.
     """
 
     hnew = hist.Clone(hist.GetName() + "_normX")
     nbins_y = hnew.GetNbinsY()
+    maximums = []
     for i in range(1, hnew.GetNbinsX() + 1, 1):
         y_int = hnew.Integral(i, i + 1, 1, nbins_y)
+        peak = 0
         if y_int > 0:
             scale_factor = 1. / y_int
             for j in range(1, nbins_y + 1, 1):
                 if hnew.GetBinContent(i, j) > 0:
-                    hnew.SetBinContent(i, j, hist.GetBinContent(i, j) * scale_factor)
+                    new_bin_value = hist.GetBinContent(i, j) * scale_factor
+                    if new_bin_value > peak:
+                        peak = new_bin_value
+                    hnew.SetBinContent(i, j, new_bin_value)
                     hnew.SetBinError(i, j, hist.GetBinError(i, j) * scale_factor)
+        maximums.append(peak)
+
+    # Rescale so all peaks have same value = same color
+    if rescale_peaks:
+        max_peak = max(maximums)
+        for i in range(1, hnew.GetNbinsX() + 1, 1):
+            if maximums[i - 1] == 0:
+                continue
+            sf = 1. * max_peak / maximums[i - 1]
+            for j in range(1, hnew.GetNbinsY()):
+                if hnew.GetBinContent(i, j) > 0:
+                    hnew.SetBinContent(i, j, hnew.GetBinContent(i, j) * sf)
+                    hnew.SetBinError(i, j, hist.GetBinError(i, j) * sf)
+
     # rescale Z axis otherwise it just removes a lot of small bins
     # set new minimum such that it includes all points, and the z axis min is
     # a negative integer power of 10
     min_bin = hnew.GetMinimum(0)
+    max_bin = max(maximums) if rescale_peaks else hnew.GetMaximum()
     max_bin = hnew.GetMaximum()
     hnew.SetAxisRange(10**math.floor(math.log10(min_bin)), max_bin, 'Z')
     return hnew
