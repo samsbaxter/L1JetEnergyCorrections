@@ -19,7 +19,7 @@ import sys
 import binning
 import argparse
 from itertools import izip, product
-from common_utils import *
+import common_utils as cu
 from array import array
 import os
 from runCalibration import generate_eta_graph_name
@@ -181,7 +181,7 @@ def plot_eta_both(tree, oDir, cut="1", oFormat="pdf"):
 def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the difference between L1 and ref jet pT, for given L1 pT, eta bin"""
     hname = "eta_%g_%g/Histograms/ptDiff_ref_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
-    h_diff = get_from_file(res_file, hname)
+    h_diff = cu.get_from_file(res_file, hname)
     c = generate_canvas()
     h_diff.Draw()
     h_diff.SetMaximum(h_diff.GetMaximum() * 1.2)
@@ -197,7 +197,7 @@ def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"
 def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the L1 resolution for given L1 pT, eta bin"""
     hname = "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
-    h_res = get_from_file(res_file, hname)
+    h_res = cu.get_from_file(res_file, hname)
     c = generate_canvas()
     h_res.Draw()
     h_res.SetAxisRange(-2, 2, "X")
@@ -208,7 +208,7 @@ def plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="p
 def plot_ptDiff_Vs_pt(res_file, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot (ptL1 - pTRef) Vs pTL1 for given eta bin"""
     hname = "eta_%g_%g/Histograms/ptDiff_ref_2d" % (eta_min, eta_max)
-    h_2d = get_from_file(res_file, hname)
+    h_2d = cu.get_from_file(res_file, hname)
     c = generate_canvas()
     ROOT.gStyle.SetPalette(55)
     h_2d.RebinX(16)
@@ -230,7 +230,7 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     # binned by l1 pt
     # grname = "eta_%g_%g/resL1_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
 
-    # graphs = [get_from_file(f, grname) for f in res_files if f]
+    # graphs = [cu.get_from_file(f, grname) for f in res_files if f]
 
     c = generate_canvas()
 
@@ -261,7 +261,7 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     # binned by ref pt
     grname = "eta_%g_%g/resRefRef_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
 
-    graphs = [get_from_file(f, grname) for f in res_files if f]
+    graphs = [cu.get_from_file(f, grname) for f in res_files if f]
 
     leg = generate_legend()
     mg = ROOT.TMultiGraph()
@@ -299,7 +299,7 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
                      len(etaBins) - 1, array('d', etaBins))
     for eta_ind, (eta_min, eta_max) in enumerate(zip(etaBins[:-1], etaBins[1:]), 1):
         for pt_ind, (pt_min, pt_max) in enumerate(zip(ptBins[:-1], ptBins[1:]), 1):
-            h_rsp = get_from_file(calib_file, "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max))
+            h_rsp = cu.get_from_file(calib_file, "eta_%g_%g/Histograms/res_l1_%g_%g" % (eta_min, eta_max, pt_min, pt_max))
             if h_rsp.GetEntries() > 0:
                 # we actually use the fit to (L1-Gen)/L1, so we need to * -1 and invert
                 res = h_rsp.GetListOfFunctions().At(0).GetParameter(1)
@@ -323,7 +323,7 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
 def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin"""
     hname = "eta_%g_%g/Histograms/hrsp_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
-    h_rsp = get_from_file(calib_file, hname)
+    h_rsp = cu.get_from_file(calib_file, hname)
     func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
     h_rsp.SetTitle(os.path.basename(hname) + ';response (%s)' % rsp_str)
@@ -337,7 +337,7 @@ def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oD
     """Plot the response in one eta bin with a pt cut"""
     hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
     try:
-        h_rsp = get_from_file(calib_file, hname)
+        h_rsp = cu.get_from_file(calib_file, hname)
     except Exception:
         return
     func = h_rsp.GetListOfFunctions().At(0)
@@ -352,7 +352,7 @@ def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oD
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
     """Plot l1 pt against ref jet pt, for given L1 eta bin"""
     hname = "eta_%g_%g/Histograms/h2d_gen_l1" % (eta_min, eta_max)
-    h2d_gen_l1 = get_from_file(check_file, hname)
+    h2d_gen_l1 = cu.get_from_file(check_file, hname)
     c = generate_canvas()
     app = ""
     if logZ:
@@ -392,19 +392,22 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     """Plot response (l1/ref) Vs l1 pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_l1%s" % (eta_min, eta_max, app)
-    if exists_in_file(check_file, hname):
-        h2d_rsp_l1_orig = get_from_file(check_file, hname)
+    if cu.exists_in_file(check_file, hname):
+        h2d_rsp_l1_orig = cu.get_from_file(check_file, hname)
     else:
-        h2d_rsp_l1_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max))
-        if normX:
-            h2d_rsp_l1_orig = norm_vertical_bins(h2d_rsp_l1_orig)
+        h2d_rsp_l1_orig = cu.get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_l1" % (eta_min, eta_max))
+    if normX:
+        h2d_rsp_l1_orig = cu.norm_vertical_bins(h2d_rsp_l1_orig, rescale_peaks=True)
     h2d_rsp_l1 = h2d_rsp_l1_orig.Rebin2D(2, 1, "hnew")
     c = generate_canvas()
     if logZ:
         c.SetLogz()
         app += "_log"
     h2d_rsp_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_l1_str, rsp_str))
-    h2d_rsp_l1.Draw("COLZ")
+    if normX:
+        h2d_rsp_l1.Draw("COL")
+    else:
+        h2d_rsp_l1.Draw("COLZ")
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
@@ -416,19 +419,22 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     """Plot response (l1/ref) Vs ref pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_gen%s" % (eta_min, eta_max, app)
-    if exists_in_file(check_file, hname):
-        h2d_rsp_ref_orig = get_from_file(check_file, hname)
+    if cu.exists_in_file(check_file, hname):
+        h2d_rsp_ref_orig = cu.get_from_file(check_file, hname)
     else:
-        h2d_rsp_ref_orig = get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max))
-        if normX:
-            h2d_rsp_ref_orig = norm_vertical_bins(h2d_rsp_ref_orig)
+        h2d_rsp_ref_orig = cu.get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_gen" % (eta_min, eta_max))
+    if normX:
+        h2d_rsp_ref_orig = cu.norm_vertical_bins(h2d_rsp_ref_orig, rescale_peaks=True)
     h2d_rsp_ref = h2d_rsp_ref_orig.Rebin2D(2, 1, "hnew")
     c = generate_canvas()
     if logZ:
         c.SetLogz()
         app += "_log"
     h2d_rsp_ref.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
-    h2d_rsp_ref.Draw("COLZ")
+    if normX:
+        h2d_rsp_ref.Draw("COL")
+    else:
+        h2d_rsp_ref.Draw("COLZ")
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
@@ -445,7 +451,7 @@ def plot_rsp_eta_old(check_files, eta_min, eta_max, pt_var, oDir, oFormat="pdf")
     """
     grname = "eta_%g_%g/gr_rsp_%s_eta_%g_%g" % (eta_min, eta_max, pt_var, eta_min, eta_max)
 
-    graphs = [get_from_file(f, grname) for f in check_files if f]
+    graphs = [cu.get_from_file(f, grname) for f in check_files if f]
 
     c = generate_canvas(plot_title)
 
@@ -502,7 +508,7 @@ def plot_rsp_eta_new(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForma
     c = generate_canvas(plot_title)
     gr_name = "eta_%g_%g/gr_rsp_eta_%g_%g_{0}_{1}_{2}" % (eta_min, eta_max, eta_min, eta_max)
     for i, (pt_min, pt_max) in enumerate(pt_bins):
-        g = get_from_file(check_file, gr_name.format(pt_var, pt_min, pt_max))
+        g = cu.get_from_file(check_file, gr_name.format(pt_var, pt_min, pt_max))
         g.SetLineColor(binning.eta_bin_colors[i])
         g.SetMarkerColor(binning.eta_bin_colors[i])
         g.SetMarkerStyle(plot_markers[0])
@@ -548,7 +554,7 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
         pt_max = pt_bins[i + 1]
         hname = "%s/Histograms/rsp_%s_%g_%g" % (sub_dir, pt_var, pt_min, pt_max)
         try:
-            hist = get_from_file(check_file, hname)
+            hist = cu.get_from_file(check_file, hname)
             hist.SetTitle("%s;%s;N" % (plot_title, rsp_str))
             hist.Draw()
             filename = "%s/%s/rsp_%s_%g_%g.%s" % (oDir, sub_dir, pt_var, pt_min, pt_max, oFormat)
@@ -564,7 +570,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     grname = "eta_%g_%g/gr_rsp_pt_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
 
-    graphs = [get_from_file(f, grname) for f in check_files if f]
+    graphs = [cu.get_from_file(f, grname) for f in check_files if f]
 
     c = generate_canvas(plot_title)
 
@@ -611,7 +617,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     grname = "eta_%g_%g/gr_rsp_ptRef_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
 
-    graphs = [get_from_file(f, grname) for f in check_files if f]
+    graphs = [cu.get_from_file(f, grname) for f in check_files if f]
 
     c = generate_canvas(plot_title)
 
@@ -661,7 +667,7 @@ def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf'):
     c = generate_canvas(plot_title)
     gr_name = "eta_{0:g}_{1:g}/gr_rsp_%s_eta_{0:g}_{1:g}" % (pt_var)
     for i, (eta_min, eta_max) in enumerate(zip(eta_bins[:-1], eta_bins[1:])):
-        g = get_from_file(check_file, gr_name.format(eta_min, eta_max))
+        g = cu.get_from_file(check_file, gr_name.format(eta_min, eta_max))
         g.SetLineColor(binning.eta_bin_colors[i])
         g.SetMarkerColor(binning.eta_bin_colors[i])
         g.SetMarkerStyle(plot_markers[0])
@@ -702,7 +708,7 @@ def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf'):
 def plot_correction_graph(calib_file, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot the graph of correction value vs pT"""
     gname = generate_eta_graph_name(eta_min, eta_max)
-    gr = get_from_file(calib_file, gname)
+    gr = cu.get_from_file(calib_file, gname)
     c = generate_canvas()
     gr.Draw("ALP")
     c.SaveAs('%s/%s.%s' % (oDir, gname, oFormat))
@@ -716,7 +722,7 @@ def plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFor
     hname = "eta_%g_%g/Histograms/Rsp_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     # ignore histogram not found errors... naughty naughty
     try:
-        h_rsp = get_from_file(calib_file, hname)
+        h_rsp = cu.get_from_file(calib_file, hname)
         c = generate_canvas()
         h_rsp.Draw("HISTE")
         func = h_rsp.GetListOfFunctions().At(0)
@@ -738,7 +744,7 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
     hname = "eta_%g_%g/Histograms/L1_pt_genpt_%g_%g" % (eta_min, eta_max, pt_min, pt_max)
     # ignore histogram not found errors... naughty naughty
     try:
-        h_pt = get_from_file(calib_file, hname)
+        h_pt = cu.get_from_file(calib_file, hname)
         c = generate_canvas()
         h_pt.Draw("HISTE")
         filepath = "%s/%s/L1_pt_%g_%g_%g_%g.%s" % (oDir, sub_dir, eta_min, eta_max, pt_min, pt_max, oFormat)
@@ -817,7 +823,7 @@ def main(in_args=sys.argv[1:]):
     print "Output directory:", args.oDir
 
     # Check if directory exists. If not, create it.
-    check_dir_exists_create(args.oDir)
+    cu.check_dir_exists_create(args.oDir)
 
     # Choose eta
     ptBins = binning.pt_bins
@@ -831,8 +837,8 @@ def main(in_args=sys.argv[1:]):
     # Do plots with output from RunMatcher
     # ------------------------------------------------------------------------
     if args.pairs:
-        pairs_file = open_root_file(args.pairs)
-        pairs_tree = get_from_file(pairs_file, "valid")
+        pairs_file = cu.open_root_file(args.pairs)
+        pairs_tree = cu.get_from_file(pairs_file, "valid")
 
         # eta binned
         for emin, emax in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
@@ -854,7 +860,7 @@ def main(in_args=sys.argv[1:]):
     # Do plots with output from makeResolutionPlots.py
     # ------------------------------------------------------------------------
     if args.res:
-        res_file = open_root_file(args.res)
+        res_file = cu.open_root_file(args.res)
         if not args.res2:
             # if not doing comparison
             # pt_min = binning.pt_bins[10]
@@ -887,9 +893,9 @@ def main(in_args=sys.argv[1:]):
             # if doing comparison
             res_files = [res_file]
             if args.res2:
-                res_files.append(open_root_file(args.res2))
+                res_files.append(cu.open_root_file(args.res2))
             if args.res3:
-                res_files.append(open_root_file(args.res3))
+                res_files.append(cu.open_root_file(args.res3))
             # plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
             # for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
             #     plot_res_all_pt(res_files, emin, emax, args.oDir, args.format)
@@ -906,7 +912,7 @@ def main(in_args=sys.argv[1:]):
     if args.checkcal:
 
         etaBins = binning.eta_bins
-        check_file = open_root_file(args.checkcal)
+        check_file = cu.open_root_file(args.checkcal)
 
         # ptBinsWide = list(np.arange(10, 250, 8))
 
@@ -919,7 +925,7 @@ def main(in_args=sys.argv[1:]):
 
             if args.detail:
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
-                check_dir_exists_create(list_dir)
+                cu.check_dir_exists_create(list_dir)
 
                 # list of histograms (in the correct order) for converting to animated GIFs
                 # use imagemagick e.g.
@@ -942,7 +948,7 @@ def main(in_args=sys.argv[1:]):
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
         plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format)
 
-        check_files = [open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
+        check_files = [cu.open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
 
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
         # for (eta_min, eta_max) in product([0, 3], [3, 5]):
@@ -980,7 +986,7 @@ def main(in_args=sys.argv[1:]):
     # ------------------------------------------------------------------------
     if args.calib:
 
-        calib_file = open_root_file(args.calib)
+        calib_file = cu.open_root_file(args.calib)
 
         for eta_min, eta_max in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
 
@@ -995,7 +1001,7 @@ def main(in_args=sys.argv[1:]):
             if args.detail:
 
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
-                check_dir_exists_create(list_dir)
+                cu.check_dir_exists_create(list_dir)
 
                 # list of histograms (in the correct order) for converting to animated GIFs
                 # use imagemagick e.g.
