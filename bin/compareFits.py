@@ -58,14 +58,12 @@ def compare():
     f_PU15to25_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU15to25.root')
     f_allPU_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO.root')
 
-
     """
-    # Loop over eta bins
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins[:-1], binning.eta_bins[1:])):
-        # --------------------------------------------------------------------
-        # New Stage 2 curves
-        # Plot different PU scenarios for same eta bin
-        # --------------------------------------------------------------------
+    # --------------------------------------------------------------------
+    # New Stage 2 curves
+    # Plot different PU scenarios for given eta bin
+    # --------------------------------------------------------------------
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
         graphs = [
             Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
                          label="0PU", line_color=colors[0], marker_color=colors[0]),
@@ -94,7 +92,6 @@ def compare():
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), xlim=xlim, ylim=ylim)
         p.plot()
-        oDir = s2_new
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
@@ -103,7 +100,7 @@ def compare():
     # --------------------------------------------------------------------
     # New vs Old curves
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:])):
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
 
         new_graphs = [
             # Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
@@ -136,13 +133,12 @@ def compare():
                      title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
             p.plot()
             p.save(os.path.join(oDir, "compare_800pre5_760pre7_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
-
     """
     """
     # --------------------------------------------------------------------
     # Min PUS vs max PUS curves
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins[:-1], binning.eta_bins[1:])):
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
 
         new_graphs = [
             Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
@@ -172,7 +168,10 @@ def compare():
             p.plot()
             p.save(os.path.join(oDir, "compare_minPUS_maxPUS_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
 
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins[:-1], binning.eta_bins[1:])):
+    """
+    """
+
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
         # --------------------------------------------------------------------
         # Plot diff PU scenarios for given eta bin
         # --------------------------------------------------------------------
@@ -202,17 +201,16 @@ def compare():
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title="Spring15 MC, no JEC, Stage 2, max PUS, %g < |#eta| < %g" % (eta_min, eta_max), xlim=xlim, ylim=ylim)
         p.plot()
-        oDir = s2_maxPUS
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
     """
 
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins[:-1], binning.eta_bins[1:])):
-        # --------------------------------------------------------------------
-        # New Stage 2 curves for DATA
-        # Plot different PU scenarios for same eta bin
-        # --------------------------------------------------------------------
+    # --------------------------------------------------------------------
+    # New Stage 2 curves for DATA
+    # Plot different PU scenarios for given eta bin
+    # --------------------------------------------------------------------
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
         graphs = [
             Contribution(file_name=f_PU0to5_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
                          label="PU: 0 - 5", line_color=colors[1], marker_color=colors[1]),
@@ -227,7 +225,7 @@ def compare():
         ylim = None
         if eta_min > 2:
             ylim = [0, 3.5]
-        title="Run 260627, SingleMu, no JEC, TightLepVeto + elMult0 + muMult0 cuts, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
+        title = "Run 260627, SingleMu, no JEC, TightLepVeto + elMult0 + muMult0 cuts, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title=title, ylim=ylim)
         p.plot()
@@ -242,7 +240,6 @@ def compare():
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title=title, xlim=xlim, ylim=ylim)
         p.plot()
-        oDir = s2_data
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
@@ -250,11 +247,13 @@ def compare():
     # --------------------------------------------------------------------
     # DATA vs MC curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(zip(binning.eta_bins_central[:-1], binning.eta_bins_central[1:])):
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
 
         graphs = [
             Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
                          label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
+            Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="MC, 0PU", line_color=colors[0], marker_color=colors[0]),
             Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
                          label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
             Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
@@ -281,10 +280,10 @@ def compare():
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title=title, xlim=xlim, ylim=ylim)
         p.plot()
-        oDir = s2_data
         p.save(os.path.join(oDir, "compare_data_mcSpring15_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
+
 
 if __name__ == "__main__":
     compare()
