@@ -9,6 +9,7 @@ import os
 import binning
 import common_utils as cu
 from itertools import product
+import uuid  # for unique object names that we don't actually care about
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -16,16 +17,19 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
-ROOT.gStyle.SetPalette(55)
+ROOT.gStyle.SetPalette(ROOT.kViridis)
+# ROOT.gStyle.SetPalette(55)
+ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
 
 ODIR = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/httStudies'
+ODIR = '../httStudies'
 
 INPUT_FILES = [
-    '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/httStudies/pairs_all.root',
-    '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/httStudies/pairs_muMult0.root',
-    '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/httStudies/pairs_clean.root'
-]
+    '../httStudies/pairs_all.root',
+    '../httStudies/pairs_muMult0.root',
+    '../httStudies/pairs_clean.root'
+][:]
 
 
 # Some common strings
@@ -34,7 +38,30 @@ PT_REF_STR = 'p_{T}^{PF} [GeV]'
 RSP_STR = 'Response'
 HTT_L1_STR = 'HTT (L1) [GeV]'
 HTT_REF_STR = 'HTT (RECO) [GeV]'
+HTT_RATIO_STR = 'HTT (L1) / HTT (RECO)'
 DR_STR = '#DeltaR(L1, PF)'
+DETA_STR = '#Delta#eta(L1, PF)'
+DPHI_STR = '#Delta#phi(L1, PF)'
+NVTX_STR = "# vtx"
+NUM_L1_STR = "# L1 jets"
+NUM_REF_STR = "# PF jets"
+
+
+# TITLE FOR ALL PLOTS
+TITLE = 'Run260627 SingleMu with L1JEC'
+
+# AXIS LIMITS
+NB_HTT, HTT_MIN, HTT_MAX = 60, 0, 600
+
+NB_RSP, RSP_MIN, RSP_MAX = 50, 0.5, 2.5
+
+NB_DR, DR_MIN, DR_MAX = 40, 0, 0.4
+
+NB_PT, PT_MIN, PT_MAX = 40, 0, 400
+
+NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX = 50, 0, 5
+
+NB_NJET, NJET_MIN, NJET_MAX = 10, 0, 10
 
 
 def generate_canvas(w=700, h=600):
@@ -57,70 +84,120 @@ def generate_canvas(w=700, h=600):
     return c
 
 
+def generate_cut_strings(var, bin_edges, bottom_inclusive=True):
+    """Convert a series of bin edges into cut strings.
+
+    Parameters
+    ----------
+    var : str
+        Variable name
+    bin_edges : list[[float, float]]
+        List of pairs of bin edges.
+    bottom_inclusive : bool, optional
+        Make low bound inclusive
+    """
+    incl = '=' if bottom_inclusive else ''
+    return ['{var} >{incl} {low:g} && {var} < {high:g}'.format(var=var, low=bin_low,
+                                                               high=bin_high, incl=incl)
+            for (bin_low, bin_high) in bin_edges]
+
+
+def generate_cut_labels(var, bin_edges, bottom_inclusive=True):
+    """Convert a series fo bin edges into labels for legends, etc
+
+    Parameters
+    ----------
+    var : str
+        Description
+    bin_edges : list[[float, float]]
+        Description
+    bottom_inclusive : bool, optional
+        Make lower bound inclusive
+    """
+    incl = '=' if bottom_inclusive else ''
+    return ['{low:g} <{incl} {var} < {high:g}'.format(var=var, low=bin_low,
+                                                      high=bin_high, incl=incl)
+            for (bin_low, bin_high) in bin_edges]
+
+
 def make_2d_plot(tree,
                  xvar, xtitle, xbins, xmin, xmax,
                  yvar, ytitle, ybins, ymin, ymax,
-                 output_filename, cut='', title='', logz=False, normx=False,
+                 output_filename, cut='', title='',
+                 logz=False, normx=False, rescale_peak=True,
                  horizontal_line=False, diagonal_line=False):
     """Make a 2D heat map.
 
     Parameters
     ----------
     tree : ROOT.TTree
-        Description
+        TTree with branches to plots
     xvar : str
-        Description
+        Variable to plot on x axis
     xtitle : str
-        Description
+        Title of x axis
     xbins : int
-        Description
+        Number of bins on x axis
     xmin : int
-        Description
+        Minimum of x axis range
     xmax : int
-        Description
+        Maximum of x axis range
     yvar : str
-        Description
+        Varaible to plot on y axis
     ytitle : str
-        Description
+        Title of y axis
     ybins : int
-        Description
+        Number of bins on y axis
     ymin : int
-        Description
+        Minimum of y axis range
     ymax : int
-        Description
+        Maximum of y axis range
     output_filename : str
-        Description
+        Output filename for plot
     cut : str, optional
-        Description
+        Cut string to apply when doing Draw()
     title : str, optional
-        Description
+        Title of plot
     logz : bool, optional
-        Description
+        Make Z axis log
     normx : bool, optional
-        Description
+        Normalise each x axis bin s.t. integral over y bins = 1
+    rescale_peak : bool, optional
+        (Only applies if nromx=True). Rescale peak value in each x bin to be uniform
+        across all bins, i.e. sets peak color same in all x bins.
     horizontal_line : bool, optional
         Draw a horizontal line at y = 1
     diagonal_line : bool, optional
         Draw a diagonal line for y = x
+
+    Returns
+    -------
+    str
+        Filename of plot.
     """
     canv = generate_canvas()
     if logz:
         canv.SetLogz()
-    hname = 'h'
+    hname = str(uuid.uuid1())
+    if normx and not logz:
+        title += " (NormX)"
+    if normx and logz:
+        title += " (NormX, log Z scale)"
     h = ROOT.TH2D(hname, ';'.join([title, xtitle, ytitle]),
                   xbins, xmin, xmax, ybins, ymin, ymax)
     tree.Draw("%s:%s>>%s" % (yvar, xvar, hname), cut, 'COLZ')
     h.SetTitleOffset(1.15, 'X')
     h.SetTitleOffset(1.2, 'Y')
     if normx:
-        h = cu.norm_vertical_bins(h)
-        h.Draw("COLZ")
+        h = cu.norm_vertical_bins(h, rescale_peaks=True)
+        h.Draw("COL")
 
     line = None
     if horizontal_line:
         line = ROOT.TLine(xmin, 1, xmax, 1)
     if diagonal_line:
-        line = ROOT.TLine(xmin, ymin, xmax, ymax)
+        upper_lim = xmax if ymax > xmax else ymax
+        line = ROOT.TLine(xmin, ymin, upper_lim, upper_lim)
     if line:
         line.SetLineWidth(2)
         line.SetLineStyle(2)
@@ -133,7 +210,91 @@ def make_2d_plot(tree,
         app += '_log'
     if normx:
         app += "_normX"
-    canv.SaveAs(out_stem + app + ext)
+    final_filename = out_stem + app + ext
+    canv.SaveAs(final_filename)
+    return final_filename
+
+
+def make_slice_plots(tree, var, xtitle, xbins, xmin, xmax, cuts,
+                     output_filename, title='', labels=None, colors=None, styles=None,
+                     logy=False, normalise=False):
+    """Plot a variable in 'slices' of another, using a series of cuts.
+
+    Parameters
+    ----------
+    tree : ROOT.TTree
+        Description
+    var : str
+        Description
+    xtitle : str
+        Description
+    xbins : int
+        Description
+    xmin : float
+        Description
+    xmax : float
+        Description
+    cuts : list[str]
+        Description
+    output_filename : TYPE
+        Description
+    title : str, optional
+        Description
+    labels : list[str], optional
+        For each graph in legend
+    colors : list[int], optional
+        For each graph color
+    styles : list[int], optional
+        For each graph linestyle
+    logy : bool, optional
+        Description
+    normalise : bool, optional
+        Description
+
+    Returns
+    -------
+    str
+        Filename of plot
+    """
+    if labels and len(labels) != len(cuts):
+            raise RuntimeError('Incorrect number of labels specified')
+    if colors and len(colors) != len(cuts):
+            raise RuntimeError('Incorrect number of colors specified')
+    if styles and len(styles) != len(cuts):
+            raise RuntimeError('Incorrect number of styles specified')
+    canv = generate_canvas()
+    canv.SetGridx()
+    canv.SetGridy()
+    if logy:
+        canv.SetLogy()
+    hists = []
+    ytitle = 'p.d.f.' if normalise else 'N'
+    hstack = ROOT.THStack("hst", ';'.join([title, xtitle, ytitle]))
+    draw_opts = 'HISTE'
+    leg = ROOT.TLegend(0.5, 0.6, 0.88, 0.88)
+    for i, cut in enumerate(cuts):
+        hname = str(uuid.uuid1())
+        h = ROOT.TH1D(hname, ';'.join([title, xtitle, ytitle]), xbins, xmin, xmax)
+        tree.Draw("%s>>%s" % (var, hname), cut, draw_opts)
+        h.SetLineWidth(2)
+        if h.Integral() == 0:
+            continue
+        if normalise:
+            h.Scale(1. / h.Integral())
+        if colors:
+            h.SetLineColor(colors[i])
+        if styles:
+            h.SetLineStyle(styles[i])
+        hists.append(h)
+        hstack.Add(h)
+        label = labels[i] if labels else cut
+        leg.AddEntry(h, label, 'L')
+
+    hstack.Draw(draw_opts + ' NOSTACK')
+    hstack.GetYaxis().SetTitleOffset(1.3)
+    leg.Draw()
+    canv.SaveAs(output_filename)
+    return output_filename
 
 
 def make_htt_plots(input_filename, output_dir):
@@ -156,19 +317,40 @@ def make_htt_plots(input_filename, output_dir):
     tree = cu.get_from_file(f, "valid")
 
     cut = ''
-    # if 'clean' in in_stem.lower():
-    #     cut = 'httRef>0'
-    # elif 'mumult0' in in_stem.lower():
-    #     cut = 'httRef>0'
 
     for logz in [True, False]:
-        make_2d_plot(tree, 'httRef', HTT_REF_STR, 80, 0, 800, 'httL1', HTT_L1_STR, 80, 0, 800,
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, 60, 0, 600, 'httL1', HTT_L1_STR, 80, 0, 800,
                      os.path.join(output_dir, 'httRef_httL1.pdf'), logz=logz, normx=False,
-                     cut=cut, title='Run260627 SingleMu with L1JEC', diagonal_line=True)
+                     cut=cut, title=TITLE, diagonal_line=True)
+        for normx in [True, False]:
+            make_2d_plot(tree, 'httL1', HTT_L1_STR, 60, 0, 600, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                         os.path.join(output_dir, 'httRatio_httL1.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'httRef', HTT_REF_STR, 60, 0, 600, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                         os.path.join(output_dir, 'httRatio_httRef.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
 
+            make_2d_plot(tree, 'httL1', HTT_L1_STR, 60, 0, 600, 'httL1-httRef', 'HTT (L1) - HTT (RECO)', 50, -50, 250,
+                         os.path.join(output_dir, 'httDiff_httL1.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'httRef', HTT_REF_STR, 60, 0, 600, 'httL1-httRef', 'HTT (L1) - HTT (RECO)', 50, -50, 250,
+                         os.path.join(output_dir, 'httDiff_httRef.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                         'httL1-httRef', 'HTT (L1) - HTT (RECO)', 50, -50, 250,
+                         os.path.join(output_dir, 'httDiff_httRatio.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+
+    # Do plots where y axis is some variable of interest
     do_dr_plots(tree, output_dir, cut)
 
     do_rsp_plots(tree, output_dir, cut)
+
+    do_nvtx_plots(tree, output_dir, cut)
+
+    do_njets_plots(tree, output_dir, cut)
+
+    do_jet_pt_plots(tree, output_dir, cut)
 
     f.Close()
 
@@ -186,16 +368,33 @@ def do_dr_plots(tree, output_dir, cut=''):
         Cut to apply when filling plots
     """
     for logz, normx in product([True, False], [True, False]):
-        title = 'Run260627 SingleMu with L1JEC'
-        make_2d_plot(tree, 'rsp', RSP_STR, 50, 0.5, 2.5, 'dr', DR_STR, 40, 0, 0.4,
+        make_2d_plot(tree, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX, 'dr', DR_STR, NB_DR, DR_MIN, DR_MAX,
                      os.path.join(output_dir, 'dr_rsp.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
-        make_2d_plot(tree, 'httL1', HTT_L1_STR, 40, 0, 200, 'dr', DR_STR, 40, 0, 0.4,
+                     cut=cut, title=TITLE, horizontal_line=True)
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'dr', DR_STR, NB_DR, DR_MIN, DR_MAX,
                      os.path.join(output_dir, 'dr_httL1.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
-        make_2d_plot(tree, 'httRef', HTT_REF_STR, 40, 0, 200, 'dr', DR_STR, 40, 0, 0.4,
+                     cut=cut, title=TITLE, horizontal_line=True)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'dr', DR_STR, NB_DR, DR_MIN, DR_MAX,
                      os.path.join(output_dir, 'dr_httRef.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
+                     cut=cut, title=TITLE, horizontal_line=True)
+    for logz in [True, False]:
+        # dont want normx for this
+        make_2d_plot(tree, 'dphi', DPHI_STR, NB_DR, -1 * DR_MAX, DR_MAX, 'deta', DETA_STR, NB_DR, -1 * DR_MAX, DR_MAX,
+                     os.path.join(output_dir, 'deta_dphi.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE, horizontal_line=True)
+    # plot dr in bins of HTT(l1)
+    htt_bin_edges = [[30, 50], [50, 75], [75, 100], [100, 150], [150, 200], [200, 300], [300, 400]][:4]
+    htt_bins = generate_cut_strings('httL1', htt_bin_edges)
+    htt_labels = generate_cut_labels(HTT_L1_STR, htt_bin_edges)
+    make_slice_plots(tree, 'dr', DR_STR, NB_DR/2, DR_MIN, DR_MAX, htt_bins,
+                     os.path.join(output_dir, 'dr_httL1_slices.pdf'), title=TITLE,
+                     normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
+    # plot dr in bins of HTT(Ref)
+    htt_bins = generate_cut_strings('httRef', htt_bin_edges)
+    htt_labels = generate_cut_labels(HTT_REF_STR, htt_bin_edges)
+    make_slice_plots(tree, 'dr', DR_STR, NB_DR/2, DR_MIN, DR_MAX, htt_bins,
+                     os.path.join(output_dir, 'dr_httRef_slices.pdf'), title=TITLE,
+                     normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
 
 
 def do_rsp_plots(tree, output_dir, cut=''):
@@ -211,22 +410,130 @@ def do_rsp_plots(tree, output_dir, cut=''):
         Cut string to apply when filling plots
     """
     for logz, normx in product([True, False], [True, False]):
-        title = 'Run260627 SingleMu with L1JEC'
-        make_2d_plot(tree, 'pt', PT_L1_STR, 40, 0, 200, 'rsp', RSP_STR, 50, 0.5, 2.5,
+        make_2d_plot(tree, 'pt', PT_L1_STR, NB_PT, PT_MIN, PT_MAX, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX,
                      os.path.join(output_dir, 'rsp_pt.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
-        make_2d_plot(tree, 'ptRef', PT_REF_STR, 40, 0, 200, 'rsp', RSP_STR, 50, 0.5, 2.5,
+                     cut=cut, title=TITLE, horizontal_line=True)
+        make_2d_plot(tree, 'ptRef', PT_REF_STR, NB_PT, PT_MIN, PT_MAX, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX,
                      os.path.join(output_dir, 'rsp_ptRef.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
-        make_2d_plot(tree, 'httL1', HTT_L1_STR, 40, 0, 200, 'rsp', RSP_STR, 50, 0.5, 2.5,
+                     cut=cut, title=TITLE, horizontal_line=True)
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX,
                      os.path.join(output_dir, 'rsp_httL1.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
-        make_2d_plot(tree, 'httRef', HTT_REF_STR, 40, 0, 200, 'rsp', RSP_STR, 50, 0.5, 2.5,
+                     cut=cut, title=TITLE, horizontal_line=True)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX,
                      os.path.join(output_dir, 'rsp_httRef.pdf'), logz=logz, normx=normx,
-                     cut=cut, title=title, horizontal_line=True)
-        # plot rsp in bins of HTT(l1)
+                     cut=cut, title=TITLE, horizontal_line=True)
+        make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                     'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX,
+                     os.path.join(output_dir, 'rsp_httRatio.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE, horizontal_line=True)
 
+        # plot rsp in bins of HTT(l1)
+        htt_bin_edges = [[30, 50], [50, 75], [75, 100], [100, 150], [150, 200], [200, 300], [300, 400]][:4]
+        htt_bins = generate_cut_strings('httL1', htt_bin_edges)
+        htt_labels = generate_cut_labels(HTT_L1_STR, htt_bin_edges)
+        make_slice_plots(tree, 'rsp', RSP_STR, NB_RSP/2, RSP_MIN, RSP_MAX, htt_bins,
+                         os.path.join(output_dir, 'rsp_httL1_slices.pdf'), title=TITLE,
+                         normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
         # plot rsp in bins of HTT(Ref)
+        htt_bins = generate_cut_strings('httRef', htt_bin_edges)
+        htt_labels = generate_cut_labels(HTT_REF_STR, htt_bin_edges)
+        make_slice_plots(tree, 'rsp', RSP_STR, NB_RSP/2, RSP_MIN, RSP_MAX, htt_bins,
+                         os.path.join(output_dir, 'rsp_httRef_slices.pdf'), title=TITLE,
+                         normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
+
+
+def do_nvtx_plots(tree, output_dir, cut=''):
+    """Do nVtx plots
+
+    Parameters
+    ----------
+    tree : ROOT.TTree
+        Tree with variables
+    output_dir : str
+        Output directory for plots
+    cut : str, optional
+        Cut string to apply
+    """
+
+    for logz, normx in product([True, False], [True, False]):
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'numPUVertices', NVTX_STR, 20, 0, 20,
+                     os.path.join(output_dir, 'nvtx_httL1.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'numPUVertices', NVTX_STR, 20, 0, 20,
+                     os.path.join(output_dir, 'nvtx_httRef.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'rsp', RSP_STR, 50, RSP_MIN, RSP_MAX, 'numPUVertices', NVTX_STR, 20, 0, 20,
+                     os.path.join(output_dir, 'nvtx_rsp.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX, 'numPUVertices', NVTX_STR, 20, 0, 20,
+                     os.path.join(output_dir, 'nvtx_httRatio.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+
+
+def do_njets_plots(tree, output_dir, cut=''):
+    """Do nJets plots.
+
+    Parameters
+    ----------
+    tree : ROOT.TTree
+        Description
+    output_dir : str
+        Description
+    cut : str, optional
+        Description
+    """
+    for logz, normx in product([True, False], [True, False]):
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'nL1', NUM_L1_STR, 10, 0, 10,
+                     os.path.join(output_dir, 'nL1jets_httL1.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'nRef', NUM_REF_STR, 10, 0, 10,
+                     os.path.join(output_dir, 'nRefjets_httL1.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'nL1', NUM_L1_STR, 10, 0, 10,
+                     os.path.join(output_dir, 'nL1jets_httRef.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'nRef', NUM_REF_STR, 10, 0, 10,
+                     os.path.join(output_dir, 'nRefjets_httRef.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                     'nL1', NUM_L1_STR, 10, 0, 10,
+                     os.path.join(output_dir, 'nL1Jets_httRatio.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                     'nRef', NUM_REF_STR, 10, 0, 10,
+                     os.path.join(output_dir, 'nRefJets_httRatio.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+        make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+                     'nL1/nRef', '# L1 jets / # PF jets', 10, 0, 5,
+                     os.path.join(output_dir, 'nJetRatio_httRatio.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE)
+
+
+def do_jet_pt_plots(tree, output_dir, cut=''):
+    """Do jet pt plots
+
+    Parameters
+    ----------
+    tree : ROOT.TTree
+        Description
+    output_dir : str
+        Description
+    cut : str, optional
+        Description
+    """
+    for logz, normx in product([True, False], [True, False]):
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'pt', PT_L1_STR, NB_PT, PT_MIN, PT_MAX,
+                     os.path.join(output_dir, 'pt_httL1.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE, diagonal_line=True)
+        make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'ptRef', PT_REF_STR, NB_PT, PT_MIN, PT_MAX,
+                     os.path.join(output_dir, 'ptRef_httL1.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE, diagonal_line=True)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'pt', PT_L1_STR, NB_PT, PT_MIN, PT_MAX,
+                     os.path.join(output_dir, 'pt_httRef.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE, diagonal_line=True)
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'ptRef', PT_REF_STR, NB_PT, PT_MIN, PT_MAX,
+                     os.path.join(output_dir, 'ptRef_httRef.pdf'), logz=logz, normx=normx,
+                     cut=cut, title=TITLE, diagonal_line=True)
 
 
 if __name__ == "__main__":
