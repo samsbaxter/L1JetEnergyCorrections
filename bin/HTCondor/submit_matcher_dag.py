@@ -43,9 +43,12 @@ NTUPLE_DIRS = [
     '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/QCDFlatSpring15BX25PU10to30HCALFix'
 ]
 
+# Pick one
+SAMPLE = 'MC'
+SAMPLE = 'DATA'
+
 # Choose executable to run - must be located using `which <EXE>`
-EXE = 'RunMatcherStage2'  # For Stage 2 MC
-# EXE = 'RunMatcherData'  # For Stage 2 DATA
+EXE = 'RunMatcherData' if SAMPLE == 'DATA' else 'RunMatcherStage2'
 
 # DeltaR(L1, RefJet) for matching
 DELTA_R = 0.4
@@ -54,12 +57,11 @@ DELTA_R = 0.4
 PT_REF_MIN = 10
 
 # TDirectory name for the L1 jets
-# L1_DIR = 'l1UpgradeSimTreeMP'
 L1_DIR = 'l1UpgradeEmuTree'
 
 # TDirectory name for the reference jets
-REF_DIR = 'l1ExtraTreeGenAk4'
-# REF_DIR = 'l1JetRecoTree'
+REF_DIR = 'l1JetRecoTree' if SAMPLE == 'DATA' else 'l1ExtraTreeGenAk4'
+
 # Cleaning cut to apply to Ref Jets
 # If none desired, put '' or None
 CLEANING_CUT = None  # MC
