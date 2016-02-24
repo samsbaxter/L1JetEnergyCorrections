@@ -48,7 +48,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     # Pt cut string
     pt_cutStr = "pt < %g" % max_pt
     # PU cut string
-    pu_cutStr = "numPUVertices  < %f && numPUVertices > %f" % (pu_max, pu_min)
+    pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
     cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
@@ -131,7 +131,7 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, pt_min, pt_max, pt_var, pu_min
         # Cut strings
         eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f" % (absetamax, absetamin)
         pt_cutStr = "%s < %g && %s > %g" % (pt_var, pt_max, pt_var, pt_min)
-        pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
+        pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
         cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
         print cutStr
 
@@ -220,7 +220,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f" % (absetamax, absetamin)
     # keep the pt < pt_max to safeguard against staurated L1 jets
     pt_cutStr = "%s < %g && pt < %g" % (pt_var, pt_bins[-1], pt_max)
-    pu_cutStr = "numPUVertices < %f && numPUVertices > %f" % (pu_max, pu_min)
+    pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
     cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
 
     n_rsp_bins = 100

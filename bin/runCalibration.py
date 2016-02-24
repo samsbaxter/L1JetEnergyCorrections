@@ -116,7 +116,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
 
     # PU cut string
     if hasattr(tree_raw, "numPUVertices"):
-        pu_cut = ROOT.TCut("numPUVertices > %g && numPUVertices < %g" % (pu_min, pu_max))
+        pu_cut = ROOT.TCut("numPUVertices >= %g && numPUVertices <= %g" % (pu_min, pu_max))
     else:
         pu_cut = ROOT.TCut("")
 
