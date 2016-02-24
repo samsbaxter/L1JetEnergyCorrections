@@ -941,8 +941,8 @@ def main(in_args=sys.argv[1:]):
                     if ptRef_names:
                         ptRef_file.write('\n'.join(ptRef_names))
 
-                print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_pt.txt):"
-                print "convert -delay 50 -loop 0 @list_pt.txt rsp_pt.gif"
+                print "To make animated gif from PNGs using a plot list:"
+                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_file, eta_min, eta_max)
 
         # Graph of response vs pt, but in bins of eta
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
@@ -1020,8 +1020,8 @@ def main(in_args=sys.argv[1:]):
 
                 rsp_file.close()
                 pt_file.close()
-                print "To make animated gif from PNGs using histogram list (e.g. eta_0_0.348/list_rsp.txt):"
-                print "convert -delay 50 -loop 0 @list_rsp.txt rsp.gif"
+                print "To make animated gif from PNGs using a plot list:"
+                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s rsp_eta_%g_%g.gif" % (rsp_file, eta_min, eta_max)
 
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
