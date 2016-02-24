@@ -60,6 +60,10 @@ L1_DIR = 'l1UpgradeEmuTree'
 # TDirectory name for the reference jets
 REF_DIR = 'l1ExtraTreeGenAk4'
 # REF_DIR = 'l1JetRecoTree'
+# Cleaning cut to apply to Ref Jets
+# If none desired, put '' or None
+CLEANING_CUT = None  # MC
+# CLEANING_CUT = 'TIGHTLEPVETO'  # DATA
 
 # String to append to output ROOT filename
 # Note that the things in {} get formatted out later, see below
@@ -73,7 +77,7 @@ LOG_DIR = '/storage/%s/L1JEC/%s/L1JetEnergyCorrections/jobs/pairs/%s' % (os.envi
 
 
 def submit_all_matcher_dags(exe, ntuple_dirs, log_dir, append,
-                            l1_dir, ref_dir, deltaR, ref_min_pt,
+                            l1_dir, ref_dir, deltaR, ref_min_pt, cleaning_cut,
                             force_submit):
     """Create and submit DAG checkCalibration jobs for all pairs files.
 
@@ -103,6 +107,11 @@ def submit_all_matcher_dags(exe, ntuple_dirs, log_dir, append,
     ref_min_pt : float
         Minimum pT cut on reference jets to be considered for matching.
 
+    cleaning_cut : str
+        Cleaning cut to be applied. If '' or None, no cut applied.
+        Other options include "TIGHTLEPVETO", "TIGHT", and "LOOSE".
+        Also requires events to pass CSC filter & HBHE noise filters.
+
     force_submit : bool, optional
         If True, forces job submission even if proposed output files
         already exists.
@@ -122,10 +131,11 @@ def submit_all_matcher_dags(exe, ntuple_dirs, log_dir, append,
         submit_matcher_dag(exe=exe, ntuple_dir=ndir, log_dir=log_dir,
                            l1_dir=l1_dir, ref_dir=ref_dir,
                            deltaR=deltaR, ref_min_pt=ref_min_pt,
+                           cleaning_cut=cleaning_cut,
                            append=append, force_submit=force_submit)
 
 
-def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_min_pt,
+def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_min_pt, cleaning_cut,
                        append, force_submit):
     """Submit one matcher DAG for one directory of ntuples.
 
@@ -219,6 +229,8 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
         job_args = ['-I', ntuple_abspath, '-O', out_file,
                     '--refDir', ref_dir, '--l1Dir', l1_dir,
                     '--draw 0', '--deltaR', deltaR, '--refMinPt', ref_min_pt]
+        if cleaning_cut:
+            job_args.extend(['--cleanJets', cleaning_cut])
 
         input_files = common_input_files + [ntuple_abspath]
 
@@ -392,4 +404,5 @@ if __name__ == "__main__":
     sys.exit(submit_all_matcher_dags(exe=EXE, ntuple_dirs=NTUPLE_DIRS, log_dir=LOG_DIR,
                                      l1_dir=L1_DIR, ref_dir=REF_DIR,
                                      deltaR=DELTA_R, ref_min_pt=PT_REF_MIN,
+                                     cleaning_cut=CLEANING_CUT,
                                      append=APPEND, force_submit=args.force))
