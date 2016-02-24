@@ -2,7 +2,10 @@
 <use name="root"/>
 <use name="cppunit"/>
 <use name="L1Trigger/L1JetEnergyCorrections"/>
+<use name="L1Trigger/L1TCalorimeter"/>
+<use name="DataFormats/L1TCalorimeter"/>
 <include_path path="../interface"/>
-<bin name="DeltaR_Matcher_UnitTest" file="DeltaR_Matcher_UnitTest.cpp"/>
-<bin name="SortFilterEmulator_UnitTest" file="SortFilterEmulator_UnitTest.cpp"/>
+<!-- <bin name="DeltaR_Matcher_UnitTest" file="DeltaR_Matcher_UnitTest.cpp"/> -->
+<!-- <bin name="SortFilterEmulator_UnitTest" file="SortFilterEmulator_UnitTest.cpp"/> -->
+<bin name="JetFinder_UnitTest" file="JetFinder_UnitTest.cpp"/>
 <!-- <bin name="BasicTest" file="basicTest.cpp"/> -->
