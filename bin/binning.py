@@ -61,7 +61,8 @@ pt_bins_8_wide = list(np.concatenate((np.arange(14, 54, 8),
 pt_bins_8_wide.append(250)
 
 # pt bins for doing checks
-check_pt_bins = [[0, 20], [20, 40], [40, 60], [60, 80], [80, 120], [120, 200], [200, 300], [300, 500], [500, 1000]]
+# check_pt_bins = [[0, 20], [20, 40], [40, 60], [60, 80], [80, 120], [120, 200], [200, 300], [300, 500], [500, 1000]]
+check_pt_bins = [[0, 20], [20, 30], [30, 40], [40, 50], [50, 60], [60, 80], [80, 100], [100, 300], [300, 500], [500, 1000]]  # for HTT studies, focussing on low pt
 
 ############
 # ETA BINS
