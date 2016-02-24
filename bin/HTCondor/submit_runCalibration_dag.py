@@ -39,8 +39,9 @@ PAIRS_FILES = [
 ETA_BINS = eta_bins
 
 # Select PU bins to run over
-# PU_BINS = None  # None if you don't want to cut on PU
-PU_BINS = [[0, 10], [15, 25], [30, 40]]
+PU_BINS = None  # None if you don't want to cut on PU
+# PU_BINS = [[0, 10], [15, 25], [30, 40]]
+# PU_BINS = [[0, 5], [8, 12], [15, 25]] # run260627 lower PU overall
 
 # String to append to output ROOT filename, depending on PU
 # Note that the things in {} get formatted out later, see below
