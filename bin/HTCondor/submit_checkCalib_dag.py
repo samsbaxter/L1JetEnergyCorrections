@@ -250,8 +250,8 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
         # Add all jobs to DAG, with necessary dependencies
         # ---------------------------------------------------------------------
         stem = 'checkCalib_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
-        checker_dag = ht.DAGMan(filename='%s.dag' % stem,
-                                status_file='%s.status' % stem)
+        checker_dag = ht.DAGMan(filename=os.path.join(log_dir, '%s.dag' % stem),
+                                status_file=os.path.join(log_dir, '%s.status' % stem))
         for job in checkCalib_jobs:
             checker_dag.add_job(job)
 

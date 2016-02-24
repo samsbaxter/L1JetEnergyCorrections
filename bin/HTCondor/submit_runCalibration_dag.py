@@ -218,8 +218,8 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
         # Add all jobs to DAG, with necessary dependencies
         # ---------------------------------------------------------------------
         stem = 'runCalib_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
-        calib_dag = ht.DAGMan(filename='%s.dag' % stem,
-                              status_file='%s.status' % stem)
+        calib_dag = ht.DAGMan(filename=os.path.join(log_dir, '%s.dag' % stem),
+                              status_file=os.path.join(log_dir, '%s.status' % stem))
         for job in runCalib_jobs:
             calib_dag.add_job(job)
 
