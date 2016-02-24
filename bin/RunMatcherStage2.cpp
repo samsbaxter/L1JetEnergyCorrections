@@ -47,7 +47,7 @@ float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
 float iPhiToPhi(int iphi);
 std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
 bool passHTTCut(TLorentzVector jet);
-float scalaSumPt(std::vector<TLorentzVector> jets);
+float scalarSumPt(std::vector<TLorentzVector> jets);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
         std::vector<TLorentzVector> httL1Jets = getJetsForHTT(l1Jets);
         out_nL1JetsSum = httL1Jets.size();
         out_httL1 = l1Data->sumEt[2];
-        float httL1_check = scalaSumPt(httL1Jets);
+        float httL1_check = scalarSumPt(httL1Jets);
 
         if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
             cout << "HTT L1 not agreeing with calculation: " + lexical_cast<std::string>(out_httL1) + " vs " + lexical_cast<std::string>(httL1_check) << endl;
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
 
         std::vector<TLorentzVector> httRefJets = getJetsForHTT(refJets);
         out_nRefJetsSum = httRefJets.size();
-        out_httRef = scalaSumPt(httRefJets);
+        out_httRef = scalarSumPt(httRefJets);
         // Pass jets to matcher, do matching
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
@@ -435,7 +435,7 @@ bool passHTTCut(TLorentzVector jet) {
  * @param jets [description]
  * @return [description]
  */
-float scalaSumPt(std::vector<TLorentzVector> jets) {
+float scalarSumPt(std::vector<TLorentzVector> jets) {
     float sum = 0.;
     for (const auto& itr: jets) {
         sum += itr.Pt();
