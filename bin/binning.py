@@ -60,7 +60,7 @@ pt_bins_8_wide = list(np.concatenate((np.arange(14, 54, 8),
                                       np.arange(54, 242, 20))))
 pt_bins_8_wide.append(250)
 
-# pt bins for doing checks
+# pt bins for doing checkCalibration.py
 # check_pt_bins = [[0, 20], [20, 40], [40, 60], [60, 80], [80, 120], [120, 200], [200, 300], [300, 500], [500, 1000]]
 check_pt_bins = [[0, 20], [20, 30], [30, 40], [40, 50], [50, 60], [60, 80], [80, 100], [100, 300], [300, 500], [500, 1000]]  # for HTT studies, focussing on low pt
 
@@ -84,3 +84,9 @@ eta_bin_colors = [ROOT.kRed,
                   ROOT.kViolet + 1,
                   ROOT.kOrange,
                   ROOT.kTeal - 5]
+
+##########
+# PU BINS
+##########
+pu_bins = [[0, 10], [15, 25], [30, 40]]  # usual binning used for MC studies
+pu_bins_lower = [[0, 5], [8, 12], [15, 25]] # run260627 lower PU overall - mean 10

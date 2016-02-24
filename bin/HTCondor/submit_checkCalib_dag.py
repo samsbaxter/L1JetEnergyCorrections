@@ -17,7 +17,8 @@ import argparse
 import os
 import sys
 sys.path.append(os.path.dirname(os.getcwd()))  # to import binning.py
-from binning import pairwise, eta_bins_central, eta_bins
+import binning
+from binning import pairwise
 from time import strftime
 import htcondenser as ht
 import condorCommon as cc
@@ -41,12 +42,12 @@ PAIRS_FILES = [
 MAX_L1_PT = 1022
 
 # Select eta bins to run over
-ETA_BINS = eta_bins
+ETA_BINS = binning.eta_bins
 
 # Select PU bins to run over
 PU_BINS = None  # None if you don't want to cut on PU
-# PU_BINS = [[0, 10], [15, 25], [30, 40]]
-# PU_BINS = [[0, 5], [8, 12], [15, 25]] # run260627 lower PU overall
+# PU_BINS = binning.pu_bins
+# PU_BINS = binning.pu_bins_lower # run260627 lower PU overall
 
 # String to append to output ROOT filename, depending on PU
 # Note that the things in {} get formatted out later, see below
