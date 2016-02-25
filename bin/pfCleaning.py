@@ -130,6 +130,53 @@ def plot_energy_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
     c.SaveAs(os.path.join(oDir, output))
 
 
+def plot_mult_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
+                       logY=False, logZ=False, normX=False, cut=None, title=None,
+                       oDir=os.getcwd(), output='rsp_mult.pdf'):
+    """Plot multiplicities vs variable 2D hist, for each mulitplicity, on one big canvas.
+
+    var: string of varibale name in tree
+    var_min, var_max: cuts to put on response range
+    var_title: variable description for axis title
+    logZ: make Z axis logartithmic
+    normX: normalise each X bin such that integral of all y values = 1.
+    cut: cut to apply (no need to include var range)
+    title: title to put on each plot
+    oDir: output directory for plot
+    output: output filename
+    """
+    var_cut = '%s < %d && %s > %d' % (var, var_max, var, var_min)
+    cut = var_cut if not cut else '%s && %s' % (cut, var_cut)
+    var_title = var_title or ''
+    c = generate_canvas(width=1800, height=1200)
+    c.Divide(3,2)
+    hists = []
+    for i, mult in enumerate(multiplicities):
+        c.cd(i+1)
+        ROOT.gPad.SetTicks(1, 1)
+        if logY:
+            ROOT.gPad.SetLogy()
+        if logZ:
+            ROOT.gPad.SetLogz()
+        hname = 'h2d' + mult
+        # nbins_var = (var_max - var_min) / 0.05
+        nbins_var = 100
+        nbins_mult, mult_min, mult_max = 20, 0, 20
+        pairs_tree.Draw('%s:%s>>%s(%d, %f, %f, %d, %f, %f)' % (mult, var, hname,
+                                                               nbins_var, var_min, var_max,
+                                                               nbins_mult, mult_min, mult_max),
+                        cut, 'GOFF' if normX else 'COLZ')
+        h = ROOT.gROOT.FindObject(hname)
+        h.SetTitle('%s;%s;%s Multiplicity' % (title, var_title, sources[i]))
+        h.SetTitleOffset(1.2, 'XY')
+        if normX:
+            hnew = cu.norm_vertical_bins(h)
+            hnew.Draw('COLZ')
+            ROOT.SetOwnership(hnew, False)
+            # hists.append(hnew)
+    c.SaveAs(os.path.join(oDir, output))
+
+
 def plot_l1_pf(pairs_tree,
                logZ=True,
                cut=None,
