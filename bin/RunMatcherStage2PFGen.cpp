@@ -80,10 +80,10 @@ int main(int argc, char* argv[]) {
     L1AnalysisEventDataFormat * eventData = eventTree.getData();
 
     // hold reco vertex info
-    L1GenericTree<L1AnalysisRecoVertexDataFormat> vertexTree(opts.inputFilename(),
-                                                             "l1RecoTree/RecoTree",
-                                                             "Vertex");
-    L1AnalysisRecoVertexDataFormat * vertexData = vertexTree.getData();
+    L1GenericTree<L1AnalysisRecoVertexDataFormat> recoVtxTree(opts.inputFilename(),
+                                                              "l1RecoTree/RecoTree",
+                                                              "Vertex");
+    L1AnalysisRecoVertexDataFormat * recoVtxData = recoVtxTree.getData();
 
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (refJetTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1 ||
-            eventTree.getEntry(iEntry) < 1 || vertexTree.getEntry(iEntry) < 1)
+            eventTree.getEntry(iEntry) < 1 || recoVtxTree.getEntry(iEntry) < 1)
             break;
 
         ////////////////////////
@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
         puInfoTree.GetEntry(iEntry);
         out_trueNumInteractions = puInfoTree.trueNumInteractions();
         out_numPUVertices = puInfoTree.numPUVertices();
-        out_recoNVtx = vertexData->nVtx;
+        out_recoNVtx = recoVtxData->nVtx;
 
         /////////////////////////////////////////////
         // Make vectors of ref & L1 jets from trees //
