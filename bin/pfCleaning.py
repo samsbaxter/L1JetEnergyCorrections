@@ -375,100 +375,114 @@ if __name__ == "__main__":
     # Look at contributions to big responses
     plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=20,
                        var_title=rsp_title,
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='rsp_fractions_big_rsp.png')
 
     plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=20,
                        var_title=rsp_title,
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150 (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150 (Run 260627)',
                        oDir=plot_dir,
                        output='rsp_fractions_big_rsp_highPt.png')
 
     plot_energy_Vs_var(pairs_tree, var='ptDiff', var_min=100, var_max=260,
                        var_title="p_{T}^{L1} - p_{T}^{PF} [GeV]",
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 60, p_{T}^{L1} > 150 (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} < 60, p_{T}^{L1} > 150 (Run 260627)',
                        oDir=plot_dir,
                        output='ptDiff_fractions_big_rsp_highPt.png')
 
     plot_energy_Vs_var(pairs_tree, var='ptDiff', var_min=100, var_max=260,
                        var_title="p_{T}^{L1} - p_{T}^{PF} [GeV]",
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150 (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150 (Run 260627)',
                        oDir=plot_dir,
                        output='ptDiff_fractions_big_rsp_highPt_notNorm.png')
 
     # # Look at contributions to small responses
     plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=1,
                        var_title=rsp_title,
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='rsp_fractions_small_rsp.png')
     plot_energy_Vs_var(pairs_tree, var='rsp', var_min=0, var_max=1,
                        var_title=rsp_title,
-                       logAle='|#eta^{L1}| < 0.348, 30 < p_{T}^{PF} < 60 GeV (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, 30 < p_{T}^{PF} < 60 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='rsp_fractions_small_rsp_ptRef20to60.png')
 
     plot_energy_Vs_var(pairs_tree, var='eef', var_min=0, var_max=1.2,
                        var_title='Electron Energy Fraction',
-                       logAle='0 < #eta^{PF} < 0.348, 30 < p_{T}^{PF} < 60 GeV (Run 260627)',
+                       title='0 < #eta^{PF} < 0.348, 30 < p_{T}^{PF} < 60 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='eef_fractions_small_rsp_ptRef20to60.png')
     """
     """
     plot_energy_Vs_var(pairs_tree, var='ptRef', var_min=0, var_max=1000,
                        var_title='p_{T}^{PF} [GeV]',
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='ptRef_fractions.png')
 
     plot_energy_Vs_var(pairs_tree, var='etaRef', var_min=-3, var_max=3,
                        var_title='#eta^{PF}',
-                       logAle='p_{T}^{PF} > 10 GeV (Run 260627)',
+                       title='p_{T}^{PF} > 10 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='eta_fractions.png')
 
     plot_energy_Vs_var(pairs_tree, var='phiRef', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
                        var_title='#phi^{PF}',
-                       logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                       title='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
                        oDir=plot_dir,
                        output='phi_fractions_eta_0_0p348.png')
 
     plot_energy_Vs_var(pairs_tree, var='phiRef', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
                        var_title='#phi^{PF}',
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50 GeV, p_{T}^{L1} > 150 (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50 GeV, p_{T}^{L1} > 150 (Run 260627)',
                        oDir=plot_dir,
                        output='phiRef_fractions_eta_0_0p348_highRsp.png')
 
     plot_energy_Vs_var(pairs_tree, var='phi', var_min=-ROOT.TMath.Pi(), var_max=ROOT.TMath.Pi(),
                        var_title='#phi^{L1}',
-                       logAle='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50 GeV, p_{T}^{L1} > 150 (Run 260627)',
+                       title='|#eta^{L1}| < 0.348, p_{T}^{PF} < 50 GeV, p_{T}^{L1} > 150 (Run 260627)',
                        oDir=plot_dir,
                        output='phi_fractions_eta_0_0p348_highRsp.png')
 
     for ef, name in zip(fractions, sources):
         plot_energy_Vs_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
                            var_title=name + ' Energy Fraction',
-                           logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
+                           title='0 < #eta^{PF} < 0.348, p_{T}^{PF} > 10 GeV (Run 260627)',
                            oDir=plot_dir,
                            output=ef+'_fractions.png')
 
     for ef, name in zip(fractions, sources):
         plot_energy_Vs_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
                            var_title=name + ' Energy Fraction',
-                           logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150, PEF < 0.7, passCSC (Run 260627)',
+                           title='0 < #eta^{PF} < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150, PEF < 0.7, passCSC (Run 260627)',
                            oDir=plot_dir,
                            output=ef+'_fractions_ptGt150_ptRefLt50_passCSC_pefLt0p7_normX.png')
-    """
 
     for ef, name in zip(fractions, sources):
         plot_energy_Vs_var(pairs_tree, var=ef, var_min=0, var_max=1.2,
                            var_title=name + ' Energy Fraction',
-                           logAle='0 < #eta^{PF} < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150, PEF < 0.7, passCSC (Run 260627)',
+                           title='0 < #eta^{PF} < 0.348, p_{T}^{PF} < 50, p_{T}^{L1} > 150, PEF < 0.7, passCSC (Run 260627)',
                            oDir=plot_dir,
                            output=ef+'_fractions_ptGt150_ptRefLt50_passCSC_pefLt0p7.png')
+    """
 
+    plot_energy_Vs_var(pairs_tree, var='etaRef', var_min=-5, var_max=5,
+                       var_title='#eta^{PF}',
+                       title='p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       logZ=True, logY=True,
+                       cut="Entry$<10000000",
+                       output='eta_fractions.png')
 
+    plot_mult_Vs_var(pairs_tree, var='etaRef', var_min=-5, var_max=5,
+                       var_title='#eta^{PF}',
+                       title='p_{T}^{PF} > 10 GeV (Run 260627)',
+                       oDir=plot_dir,
+                       logZ=True, logY=False,
+                       cut="Entry$<10000000",
+                       output='eta_mult.png')
     """
 
     # Make before/after/diffs of individual cleaning cuts, and total combination
