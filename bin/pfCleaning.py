@@ -84,7 +84,7 @@ def plot_cumulative_energy(tree, cut=None, title='Cumulative Energy Fraction',
 
 
 def plot_energy_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
-                       logZ=False, normX=False, cut=None, title=None,
+                       logY=False, logZ=False, normX=False, cut=None, title=None,
                        oDir=os.getcwd(), output='rsp_energy.pdf'):
     """Plot energy fractions vs variable 2D hist, for each energy source, on one big canvas.
 
@@ -107,6 +107,8 @@ def plot_energy_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
     for i, fraction in enumerate(fractions):
         c.cd(i+1)
         ROOT.gPad.SetTicks(1, 1)
+        if logY:
+            ROOT.gPad.SetLogy()
         if logZ:
             ROOT.gPad.SetLogz()
         hname = 'h2d' + fraction
