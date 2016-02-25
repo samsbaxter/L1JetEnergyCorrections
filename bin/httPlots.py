@@ -32,12 +32,14 @@ TITLE = 'Spring15 MC, with L1JEC'
 
 """
 # Some common strings
+# For DATA
 PT_L1_STR = 'p_{T}^{L1} [GeV]'
 PT_REF_STR = 'p_{T}^{PF} [GeV]'
 RSP_STR = 'Response'
 HTT_L1_STR = 'HTT (L1) [GeV]'
 HTT_REF_STR = 'HTT (RECO) [GeV]'
 HTT_RATIO_STR = 'HTT (L1) / HTT (RECO)'
+HTT_DIFF_STR = 'HTT (L1) - HTT (RECO)'
 DR_STR = '#DeltaR(L1, PF)'
 DETA_STR = '#Delta#eta(L1, PF)'
 DPHI_STR = '#Delta#phi(L1, PF)'
@@ -45,9 +47,31 @@ NVTX_STR = "# vtx"
 NUM_L1_STR = "# L1 jets"
 NUM_REF_STR = "# PF jets"
 
-
 # TITLE FOR ALL PLOTS
 TITLE = 'Run260627 SingleMu with L1JEC'
+"""
+
+# Some common strings
+# For MC
+PT_L1_STR = 'p_{T}^{L1} [GeV]'
+PT_REF_STR = 'p_{T}^{GenJet} [GeV]'
+RSP_STR = 'Response'
+HTT_L1_STR = 'HTT (L1) [GeV]'
+HTT_REF_STR = 'HTT (GEN) [GeV]'
+HTT_RATIO_STR = 'HTT (L1) / HTT (GEN)'
+HTT_DIFF_STR = 'HTT (L1) - HTT (GEN)'
+DR_STR = '#DeltaR(L1, PF)'
+DETA_STR = '#Delta#eta(L1, GenGet)'
+DPHI_STR = '#Delta#phi(L1, GenJet)'
+NVTX_STR = "# vtx"
+NUM_L1_STR = "# L1 jets"
+NUM_REF_STR = "# GenJets"
+MHT_L1_STR = "MHT (L1) [GeV]"
+MHT_REF_STR = "MHT (GEN) [GeV]"
+MHT_PHI_L1_STR = "MHT #phi (L1)"
+MHT_PHI_REF_STR = "MHT #phi (GEN)"
+MHT_RATIO_STR = 'MHT (L1) / MHT (GEN)'
+
 
 # AXIS LIMITS
 NB_HTT, HTT_MIN, HTT_MAX = 60, 0, 600
