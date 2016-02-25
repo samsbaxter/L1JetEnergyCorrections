@@ -69,10 +69,10 @@ int main(int argc, char* argv[]) {
     ///////////////////////
 
     // get input TTrees
-    // Reference jets
+    // Reference jets - GenJets
     TString refJetDirectory = opts.refJetDirectory();
-    L1GenericTree<L1AnalysisL1ExtraDataFormat> refJetTree(opts.inputFilename(), 
-                                                          refJetDirectory+"/L1ExtraTree", 
+    L1GenericTree<L1AnalysisL1ExtraDataFormat> refJetTree(opts.inputFilename(),
+                                                          refJetDirectory+"/L1ExtraTree",
                                                           "L1Extra");
     L1AnalysisL1ExtraDataFormat * refData = refJetTree.getData();
 
@@ -220,16 +220,22 @@ int main(int argc, char* argv[]) {
             eventTree.getEntry(iEntry) < 1)
             break;
 
-        // event number
+        ////////////////////////
+        // Generic event info //
+        ////////////////////////
         out_event = eventData->event;
 
-        // get pileup quantities
+        /////////////////////////////
+        // Store pileup quantities //
+        /////////////////////////////
         // note these get stored once per pair of matched jets NOT once per event
         puInfoTree.GetEntry(iEntry);
         out_trueNumInteractions = puInfoTree.trueNumInteractions();
         out_numPUVertices = puInfoTree.numPUVertices();
 
-        // Get vectors of ref & L1 jets from trees
+        /////////////////////////////////////////////
+        // Make vectors of ref & L1 jets from trees //
+        /////////////////////////////////////////////
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
         std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
 
@@ -238,7 +244,10 @@ int main(int argc, char* argv[]) {
 
         if (out_nL1 == 0 || out_nRef == 0) continue;
 
-        // Store sums
+        ////////////////
+        // Store sums //
+        ////////////////
+        // L1 sums
         std::vector<TLorentzVector> httL1Jets = getJetsForHTT(l1Jets);
         out_nL1JetsSum = httL1Jets.size();
         out_httL1 = l1Data->sumEt[2];
@@ -253,6 +262,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // Ref jet sums
         std::vector<TLorentzVector> httRefJets = getJetsForHTT(refJets);
         out_nRefJetsSum = httRefJets.size();
         out_httRef = scalarSumPt(httRefJets);
@@ -260,12 +270,18 @@ int main(int argc, char* argv[]) {
         TLorentzVector mhtVecRef = vectorSum(httRefJets);
         out_mhtRef = mhtVecRef.Pt();
         out_mhtPhiRef = mhtVecRef.Phi();
+
+        ///////////////////////////////////////
+        // Pass jets to matcher, do matching //
+        ///////////////////////////////////////
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
         std::vector<MatchedPair> matchResults = matcher->getMatchingPairs();
         // matcher->printMatches(); // for debugging
 
-        // store L1 & ref jet variables in tree
+        //////////////////////////////////////////
+        // store L1 & ref jet variables in tree //
+        //////////////////////////////////////////
         out_nMatches = matchResults.size();
         for (const auto &it: matchResults) {
             // std::cout << it << std::endl;
@@ -274,7 +290,6 @@ int main(int argc, char* argv[]) {
             } else {
                 out_pt = it.l1Jet().Et();
             }
-            // cout << it.l1Jet().Et() << " -> " << out_pt << " eta: " << it.l1Jet().Eta() << " ieta: " << getAbsIEta(it.l1Jet().Eta()) << endl;
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();
             out_dr = it.refJet().DeltaR(it.l1Jet());
@@ -285,13 +300,14 @@ int main(int argc, char* argv[]) {
             out_phiRef = it.refJet().Phi();
             out_ptDiff = out_pt - out_ptRef;
             out_rsp = out_pt/out_ptRef;
-            out_rsp_inv =  1./out_rsp;
             out_resL1 = out_ptDiff/out_pt;
             out_resRef = out_ptDiff/out_ptRef;
             outTree.Fill();
         }
 
-        // debugging plot - plots eta vs phi of jets
+        ///////////////////////////////////////////////////
+        // debugging plot - plots eta vs phi map of jets //
+        ///////////////////////////////////////////////////
         if (drawCounter < opts.drawNumber()) {
             if (matchResults.size() > 0) {
                 TString label = TString::Format(
