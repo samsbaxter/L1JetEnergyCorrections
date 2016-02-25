@@ -355,43 +355,101 @@ def make_htt_plots(input_filename, output_dir):
     f = cu.open_root_file(input_filename)
     tree = cu.get_from_file(f, "valid")
 
-    cut = ''
+    common_cut = ''
+    norm_cut = '1./nMatches'  # normalisation, for event-level quantities, since we store it for each match in an event
+    if common_cut != '':
+        norm_cut += ' && %s' % common_cut
 
+    do_htt_plots(tree, output_dir, norm_cut)
+
+    do_mht_plots(tree, output_dir, norm_cut)
+
+    # Do plots where y axis is some variable of interest
+    do_dr_plots(tree, output_dir, common_cut)
+
+    do_rsp_plots(tree, output_dir, common_cut)
+
+    do_nvtx_plots(tree, output_dir, norm_cut)
+
+    do_njets_plots(tree, output_dir, norm_cut)
+
+    do_jet_pt_plots(tree, output_dir, common_cut)
+
+    f.Close()
+
+
+def do_htt_plots(tree, output_dir, cut=''):
+    """Do HTT plots (httRatio, HTT diff).
+
+    Parameters
+    ----------
+    tree : ROOT.TTree
+        Tree with variables
+    output_dir : str
+        Output directory for plots
+    cut : str, optional
+        Cut to apply when filling plots. MUST INCLUDE NORMALISATION CUT
+    """
     for logz in [True, False]:
-        make_2d_plot(tree, 'httRef', HTT_REF_STR, 60, 0, 600, 'httL1', HTT_L1_STR, 80, 0, 800,
+        make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX,
                      os.path.join(output_dir, 'httRef_httL1.pdf'), logz=logz, normx=False,
                      cut=cut, title=TITLE, diagonal_line=True)
         for normx in [True, False]:
-            make_2d_plot(tree, 'httL1', HTT_L1_STR, 60, 0, 600, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+            make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
                          os.path.join(output_dir, 'httRatio_httL1.pdf'), logz=logz, normx=normx,
                          cut=cut, title=TITLE, horizontal_line=True)
-            make_2d_plot(tree, 'httRef', HTT_REF_STR, 60, 0, 600, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
+            make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
                          os.path.join(output_dir, 'httRatio_httRef.pdf'), logz=logz, normx=normx,
                          cut=cut, title=TITLE, horizontal_line=True)
 
-            make_2d_plot(tree, 'httL1', HTT_L1_STR, 60, 0, 600, 'httL1-httRef', 'HTT (L1) - HTT (RECO)', 50, -50, 250,
+            make_2d_plot(tree, 'httL1', HTT_L1_STR, NB_HTT, HTT_MIN, HTT_MAX, 'httL1-httRef', HTT_DIFF_STR, NB_HTT_DIFF, HTT_DIFF_MIN, HTT_DIFF_MAX,
                          os.path.join(output_dir, 'httDiff_httL1.pdf'), logz=logz, normx=normx,
                          cut=cut, title=TITLE, horizontal_line=True)
-            make_2d_plot(tree, 'httRef', HTT_REF_STR, 60, 0, 600, 'httL1-httRef', 'HTT (L1) - HTT (RECO)', 50, -50, 250,
+            make_2d_plot(tree, 'httRef', HTT_REF_STR, NB_HTT, HTT_MIN, HTT_MAX, 'httL1-httRef', HTT_DIFF_STR, NB_HTT_DIFF, HTT_DIFF_MIN, HTT_DIFF_MAX,
                          os.path.join(output_dir, 'httDiff_httRef.pdf'), logz=logz, normx=normx,
                          cut=cut, title=TITLE, horizontal_line=True)
             make_2d_plot(tree, 'httL1/httRef', HTT_RATIO_STR, NB_HTT_RATIO, HTT_RATIO_MIN, HTT_RATIO_MAX,
-                         'httL1-httRef', 'HTT (L1) - HTT (RECO)', 50, -50, 250,
+                         'httL1-httRef', HTT_DIFF_STR, NB_HTT_DIFF, HTT_DIFF_MIN, HTT_DIFF_MAX,
                          os.path.join(output_dir, 'httDiff_httRatio.pdf'), logz=logz, normx=normx,
                          cut=cut, title=TITLE, horizontal_line=True)
 
-    # Do plots where y axis is some variable of interest
-    do_dr_plots(tree, output_dir, cut)
 
-    do_rsp_plots(tree, output_dir, cut)
+def do_mht_plots(tree, output_dir, cut=''):
+    """Do MHT plots
 
-    do_nvtx_plots(tree, output_dir, cut)
-
-    do_njets_plots(tree, output_dir, cut)
-
-    do_jet_pt_plots(tree, output_dir, cut)
-
-    f.Close()
+    Parameters
+    ----------
+    tree : ROOT.TTree
+        Tree with variables
+    output_dir : str
+        Output directory for plots
+    cut : str, optional
+        Cut to apply when filling plots. MUST INCLUDE NORMALISATION CUT
+    """
+    for logz in [True, False]:
+        make_2d_plot(tree, 'mhtRef', MHT_REF_STR, NB_MHT, MHT_MIN, MHT_MAX, 'mhtL1', MHT_L1_STR, NB_MHT, MHT_MIN, MHT_MAX,
+                     os.path.join(output_dir, 'mhtRef_mhtL1.pdf'), logz=logz, normx=False,
+                     cut=cut, title=TITLE, diagonal_line=True)
+        for normx in [True, False]:
+            make_2d_plot(tree, 'mhtL1', MHT_L1_STR, NB_MHT, MHT_MIN, MHT_MAX, 'mhtL1/mhtRef', MHT_RATIO_STR, NB_MHT_RATIO, MHT_RATIO_MIN, MHT_RATIO_MAX,
+                         os.path.join(output_dir, 'mhtRatio_mhtL1.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'mhtRef', MHT_REF_STR, NB_MHT, MHT_MIN, MHT_MAX, 'mhtL1/mhtRef', MHT_RATIO_STR, NB_MHT_RATIO, MHT_RATIO_MIN, MHT_RATIO_MAX,
+                         os.path.join(output_dir, 'mhtRatio_mhtRef.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'TVector2::Phi_mpi_pi(mhtPhiL1 - mhtPhiRef)', '#Delta#phi MHT', NB_MHT_PHI, MHT_PHI_MIN, MHT_PHI_MAX, 'mhtL1/mhtRef', MHT_RATIO_STR, NB_MHT_RATIO, MHT_RATIO_MIN, MHT_RATIO_MAX,
+                         os.path.join(output_dir, 'mhtRatio_mhtPhiDiff.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'mhtL1', MHT_L1_STR, NB_MHT, MHT_MIN, MHT_MAX, 'mhtL1-mhtRef', MHT_DIFF_STR, NB_MHT_DIFF, MHT_DIFF_MIN, MHT_DIFF_MAX,
+                         os.path.join(output_dir, 'mhtDiff_mhtL1.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'mhtRef', MHT_REF_STR, NB_MHT, MHT_MIN, MHT_MAX, 'mhtL1-mhtRef', MHT_DIFF_STR, NB_MHT_DIFF, MHT_DIFF_MIN, MHT_DIFF_MAX,
+                         os.path.join(output_dir, 'mhtDiff_mhtRef.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
+            make_2d_plot(tree, 'mhtL1/mhtRef', MHT_RATIO_STR, NB_MHT_RATIO, MHT_RATIO_MIN, MHT_RATIO_MAX,
+                         'mhtL1-mhtRef', MHT_DIFF_STR, NB_MHT_DIFF, MHT_DIFF_MIN, MHT_DIFF_MAX,
+                         os.path.join(output_dir, 'mhtDiff_httRatio.pdf'), logz=logz, normx=normx,
+                         cut=cut, title=TITLE, horizontal_line=True)
 
 
 def do_dr_plots(tree, output_dir, cut=''):
@@ -400,7 +458,7 @@ def do_dr_plots(tree, output_dir, cut=''):
     Parameters
     ----------
     tree : ROOT.TTree
-        Treee with variables
+        Tree with variables
     output_dir : str
         Output directory for plots
     cut : str, optional
