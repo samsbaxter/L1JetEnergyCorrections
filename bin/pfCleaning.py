@@ -18,7 +18,7 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
-ROOT.gStyle.SetPalette(55)
+ROOT.gStyle.SetPalette(ROOT.kViridis)
 ROOT.gStyle.SetNumberContours(100)
 ROOT.gErrorIgnoreLevel = 1 # turn off the printing output
 
