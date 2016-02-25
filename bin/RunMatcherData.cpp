@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
         if (doCleaningCuts) {
             refJets = makeRecoTLorentzVectorsCleaned(*refData, opts.cleanJets()); // with JetID filters
         } else {
-            refJets = makeTLorentzVectors(refData->et, refData->eta, refData->phi);
+            refJets = makeTLorentzVectors(refData->etCorr, refData->eta, refData->phi);
         }
         std::vector<TLorentzVector> l1Jets  = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi, l1Data->jetBx);
 
@@ -426,7 +426,7 @@ std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJ
         }
         // If got this far, then can add to list.
         TLorentzVector v;
-        v.SetPtEtaPhiM(jets.et[i], jets.eta[i], jets.phi[i], 0);
+        v.SetPtEtaPhiM(jets.etCorr[i], jets.eta[i], jets.phi[i], 0);
         vecs.push_back(v);
     }
 
@@ -481,7 +481,7 @@ template<typename T>
 int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jets) {
     for (unsigned i = 0; i < jets.nJets; ++i){
         // match two floating-point numbers: use range of acceptibility rather than ==
-        if (((jets.et[i] < (et + 0.01)) && (jets.et[i] > (et - 0.01)))
+        if (((jets.etCorr[i] < (et + 0.01)) && (jets.etCorr[i] > (et - 0.01)))
             && ((jets.eta[i] < (eta + 0.01)) && (jets.eta[i] > (eta - 0.01)))
             && ((jets.phi[i] < (phi + 0.01)) && (jets.phi[i] > (phi - 0.01))))
             return i;
