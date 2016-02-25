@@ -47,8 +47,6 @@ float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
 float iPhiToPhi(int iphi);
 std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
 bool passHTTCut(TLorentzVector jet);
-float scalarSumPt(std::vector<TLorentzVector> jets);
-TLorentzVector vectorSum(std::vector<TLorentzVector> jets);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -448,33 +446,4 @@ std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets) {
  */
 bool passHTTCut(TLorentzVector jet) {
     return (jet.Pt() > 30.01 && fabs(jet.Eta()) <= 3);
-}
-
-
-/**
- * @brief Scalar sum of TLorentzVector pTs
- *
- * @param jets [description]
- * @return [description]
- */
-float scalarSumPt(std::vector<TLorentzVector> jets) {
-    float sum = 0.;
-    for (const auto& itr: jets) {
-        sum += itr.Pt();
-    }
-    return sum;
-}
-
-/**
- * @brief Vector sum of TLorentzVector objects
- *
- * @param jets [description]
- * @return [description]
- */
-TLorentzVector vectorSum(std::vector<TLorentzVector> jets) {
-    TLorentzVector sum;
-    for (const auto& itr: jets) {
-        sum += itr;
-    }
-    return sum;
 }
