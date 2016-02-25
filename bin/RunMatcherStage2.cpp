@@ -224,12 +224,6 @@ int main(int argc, char* argv[]) {
 
         // Get vectors of ref & L1 jets from trees
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
-        // Temp hack to convert iPhi to physical phi
-        // std::vector<short> l1JetIPhi = l1Data->jetIPhi;
-        // std::vector<float> l1JetPhi;
-        // l1JetPhi.resize(l1JetIPhi.size());
-        // std::transform(l1JetIPhi.begin(), l1JetIPhi.end(), l1JetPhi.begin(), iPhiToPhi);
-        // std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1JetPhi);
         std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
 
         out_nL1 = l1Jets.size();
