@@ -140,4 +140,17 @@ bool tightLepVetoCleaning(float eta,
                           short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
 
 
+/**
+ * @brief Get index of jet in collection matching et/eta/phi
+ * @details If not found, returns -1
+ *
+ * @param et [description]
+ * @param eta [description]
+ * @param phi [description]
+ * @param jets [description]
+ * @return [description]
+ */
+template<typename T>
+int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jets);
+
 #endif
