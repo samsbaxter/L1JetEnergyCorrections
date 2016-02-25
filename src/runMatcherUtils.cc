@@ -271,3 +271,21 @@ bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & sel
     }
     return false;
 }
+
+
+float scalarSumPt(std::vector<TLorentzVector> jets) {
+    float sum = 0.;
+    for (const auto& itr: jets) {
+        sum += itr.Pt();
+    }
+    return sum;
+}
+
+
+TLorentzVector vectorSum(std::vector<TLorentzVector> jets) {
+    TLorentzVector sum;
+    for (const auto& itr: jets) {
+        sum += itr;
+    }
+    return sum;
+}

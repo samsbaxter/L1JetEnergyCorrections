@@ -166,4 +166,22 @@ int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jet
  */
 bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & selection);
 
+
+/**
+ * @brief Scalar sum of TLorentzVector pTs
+ *
+ * @param jets [description]
+ * @return [description]
+ */
+float scalarSumPt(std::vector<TLorentzVector> jets);
+
+
+/**
+ * @brief Vector sum of TLorentzVector objects
+ *
+ * @param jets [description]
+ * @return [description]
+ */
+TLorentzVector vectorSum(std::vector<TLorentzVector> jets);
+
 #endif
