@@ -48,6 +48,7 @@ float iPhiToPhi(int iphi);
 std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
 bool passHTTCut(TLorentzVector jet);
 float scalarSumPt(std::vector<TLorentzVector> jets);
+TLorentzVector vectorSum(std::vector<TLorentzVector> jets);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -155,14 +156,20 @@ int main(int argc, char* argv[]) {
     // L1 sums
     int out_nL1JetsSum(0);
     float out_httL1(0.);
+    float out_mhtL1(0.), out_mhtPhiL1(0.);
     outTree.Branch("nL1JetsSum", &out_nL1JetsSum);
     outTree.Branch("httL1", &out_httL1);
+    outTree.Branch("mhtL1", &out_mhtL1);
+    outTree.Branch("mhtPhiL1", &out_mhtPhiL1);
 
-    // GenJet Sums
+    // Reference jet Sums
     int out_nRefJetsSum(0);
     float out_httRef(0.);
+    float out_mhtRef(0.), out_mhtPhiRef(0.);
     outTree.Branch("nRefJetsSum", &out_nRefJetsSum);
     outTree.Branch("httRef", &out_httRef);
+    outTree.Branch("mhtRef", &out_mhtRef);
+    outTree.Branch("mhtPhiRef", &out_mhtPhiRef);
 
     // check # events in boths trees is same
     Long64_t nEntriesRef = refJetTree.getEntries();
@@ -235,6 +242,8 @@ int main(int argc, char* argv[]) {
         std::vector<TLorentzVector> httL1Jets = getJetsForHTT(l1Jets);
         out_nL1JetsSum = httL1Jets.size();
         out_httL1 = l1Data->sumEt[2];
+        out_mhtL1 = l1Data->sumEt[3];
+        out_mhtPhiL1 = l1Data->sumPhi[3];
         float httL1_check = scalarSumPt(httL1Jets);
 
         if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
@@ -248,6 +257,9 @@ int main(int argc, char* argv[]) {
         out_nRefJetsSum = httRefJets.size();
         out_httRef = scalarSumPt(httRefJets);
         // Pass jets to matcher, do matching
+        TLorentzVector mhtVecRef = vectorSum(httRefJets);
+        out_mhtRef = mhtVecRef.Pt();
+        out_mhtPhiRef = mhtVecRef.Phi();
         matcher->setRefJets(refJets);
         matcher->setL1Jets(l1Jets);
         std::vector<MatchedPair> matchResults = matcher->getMatchingPairs();
@@ -424,7 +436,7 @@ bool passHTTCut(TLorentzVector jet) {
 
 
 /**
- * @brief Scalar sum TLorentzVector pTs
+ * @brief Scalar sum of TLorentzVector pTs
  *
  * @param jets [description]
  * @return [description]
@@ -433,6 +445,20 @@ float scalarSumPt(std::vector<TLorentzVector> jets) {
     float sum = 0.;
     for (const auto& itr: jets) {
         sum += itr.Pt();
+    }
+    return sum;
+}
+
+/**
+ * @brief Vector sum of TLorentzVector objects
+ *
+ * @param jets [description]
+ * @return [description]
+ */
+TLorentzVector vectorSum(std::vector<TLorentzVector> jets) {
+    TLorentzVector sum;
+    for (const auto& itr: jets) {
+        sum += itr;
     }
     return sum;
 }
