@@ -23,9 +23,9 @@ ROOT.gStyle.SetNumberContours(100)
 ROOT.gErrorIgnoreLevel = 1 # turn off the printing output
 
 
-fractions = ['nhef', 'chef', 'pef', 'eef', 'mef']
-multiplicities = ['chMult', 'nhMult', 'phMult', 'elMult', 'muMult']
-sources = ['Neutral Hadron', 'Charged Hadron', 'Photon', 'Electron', 'Muon']
+fractions = ['nhef', 'chef', 'pef', 'eef', 'mef', 'hfhef', 'hfemef']
+multiplicities = ['chMult', 'nhMult', 'phMult', 'elMult', 'muMult', 'hfhMult', 'hfemMult']
+sources = ['Neutral Hadron', 'Charged Hadron', 'Photon', 'Electron', 'Muon', 'HF Hadron', 'HF EM']
 
 # TightLepVeto jetID cuts
 tight_lep_veto_cuts = ['nhef < 0.9', 'pef < 0.9', 'chMult+nhMult+phMult+elMult+muMult > 1', 'mef < 0.8', 'muMult==0', "elMult==0", "passCSC"]
@@ -101,8 +101,9 @@ def plot_energy_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
     var_cut = '%s < %d && %s > %d' % (var, var_max, var, var_min)
     cut = var_cut if not cut else '%s && %s' % (cut, var_cut)
     var_title = var_title or ''
-    c = generate_canvas(width=1800, height=1200)
-    c.Divide(3,2)
+    ncol, nrow = 4, 2
+    c = generate_canvas(width=600*ncol, height=600*nrow)
+    c.Divide(ncol, nrow)
     hists = []
     for i, fraction in enumerate(fractions):
         c.cd(i+1)
@@ -148,8 +149,9 @@ def plot_mult_Vs_var(pairs_tree, var, var_min=0, var_max=10, var_title=None,
     var_cut = '%s < %d && %s > %d' % (var, var_max, var, var_min)
     cut = var_cut if not cut else '%s && %s' % (cut, var_cut)
     var_title = var_title or ''
-    c = generate_canvas(width=1800, height=1200)
-    c.Divide(3,2)
+    ncol, nrow = 4, 2
+    c = generate_canvas(width=600*ncol, height=600*nrow)
+    c.Divide(ncol, nrow)
     hists = []
     for i, mult in enumerate(multiplicities):
         c.cd(i+1)
