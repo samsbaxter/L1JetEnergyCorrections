@@ -153,4 +153,17 @@ bool tightLepVetoCleaning(float eta,
 template<typename T>
 int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jets);
 
+
+/**
+ * @brief Check if a certain trigger was fired.
+ * @details Note, only checks to see if it was fired,
+ * not if it was the *only* trigger that was fired.
+ *
+ * @param hlt Input vector of TStrings of tirgger names fired
+ * @param selection Trigger name
+ *
+ * @return [description]
+ */
+bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & selection);
+
 #endif

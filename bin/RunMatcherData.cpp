@@ -40,11 +40,6 @@ using L1Analysis::L1AnalysisRecoVertexDataFormat;
 using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
-// forward declare fns, implementations after main()
-bool checkTriggerFired(const std::vector<TString> & hlt, const std::string& selection);
-void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets);
-
-
 /**
  * @brief
  * This version is for running on data, when you want to take L1 jets from the
@@ -341,23 +336,4 @@ int main(int argc, char* argv[]) {
     cout << matchedEvent << " events had 1+ matches, out of " << nEntries << endl;
     cout << cscFail << " events failed CSC check, out of " << nEntries << endl;
     return 0;
-}
-
-
-/**
- * @brief Check if a certain trigger was fired.
- * @details Note, only checks to see if it was fired,
- * not if it was the *only* trigger that was fired.
- *
- * @param hlt Input vector of TStrings of tirgger names fired
- * @param selection Trigger name
- *
- * @return [description]
- */
-bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & selection) {
-    for (const auto & hltItr: hlt) {
-        if (std::string(hltItr).find(selection) != std::string::npos)
-            return true;
-    }
-    return false;
 }

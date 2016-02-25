@@ -262,3 +262,12 @@ int findRecoJetIndex(T et, T eta, T phi, const L1AnalysisRecoJetDataFormat & jet
 }
 template int findRecoJetIndex(float et, float eta, float phi, const L1AnalysisRecoJetDataFormat & jets);
 template int findRecoJetIndex(double et, double eta, double phi, const L1AnalysisRecoJetDataFormat & jets);
+
+
+bool checkTriggerFired(const std::vector<TString> & hlt, const std::string & selection) {
+    for (const auto & hltItr: hlt) {
+        if (std::string(hltItr).find(selection) != std::string::npos)
+            return true;
+    }
+    return false;
+}
