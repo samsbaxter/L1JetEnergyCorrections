@@ -11,4 +11,5 @@
 <bin name="RunMatcher" file="RunMatcher.cpp"/>
 <bin name="RunMatcherStage2" file="RunMatcherStage2.cpp"/>
 <bin name="RunMatcherData" file="RunMatcherData.cpp"/>
+<bin name="RunMatcherStage2PFGen" file="RunMatcherStage2PFGen.cpp"/>
 <!-- <bin name="RunMatcherDataStage1GT" file="RunMatcherDataStage1GT.cpp"/> -->
