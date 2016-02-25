@@ -370,5 +370,5 @@ std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets) {
  * @return [description]
  */
 bool passHTTCut(TLorentzVector jet) {
-    return (jet.Pt() > 30.01 && fabs(jet.Eta()) <= 3);
+    return (jet.Pt() > 30.001 && fabs(jet.Eta()) <= 3);
 }
