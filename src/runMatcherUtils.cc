@@ -289,3 +289,18 @@ TLorentzVector vectorSum(std::vector<TLorentzVector> jets) {
     }
     return sum;
 }
+
+
+std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets) {
+    std::vector<TLorentzVector> outputJets;
+    for (const auto& itr: jets) {
+        if (passHTTCut(itr))
+            outputJets.push_back(itr);
+    }
+    return outputJets;
+}
+
+
+bool passHTTCut(TLorentzVector jet) {
+    return (jet.Pt() > 30.001 && fabs(jet.Eta()) <= 3);
+}

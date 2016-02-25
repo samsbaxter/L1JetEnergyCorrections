@@ -184,4 +184,24 @@ float scalarSumPt(std::vector<TLorentzVector> jets);
  */
 TLorentzVector vectorSum(std::vector<TLorentzVector> jets);
 
+
+/**
+ * @brief Create vector of objects that go into calcualting HTT
+ * @details [long description]
+ *
+ * @param jets [description]
+ * @return [description]
+ */
+std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
+
+
+/**
+ * @brief Cut for jets to go into HTT calculation
+ * @details [long description]
+ *
+ * @param jet [description]
+ * @return [description]
+ */
+bool passHTTCut(TLorentzVector jet);
+
 #endif
