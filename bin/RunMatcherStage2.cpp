@@ -19,6 +19,7 @@
 // Headers from L1TNtuples
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoJetDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 
 // Headers from this package
@@ -33,6 +34,7 @@
 using std::cout;
 using std::endl;
 using L1Analysis::L1AnalysisEventDataFormat;
+using L1Analysis::L1AnalysisRecoJetDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 using boost::lexical_cast;
@@ -75,6 +77,13 @@ int main(int argc, char* argv[]) {
                                                           refJetDirectory+"/L1ExtraTree",
                                                           "L1Extra");
     L1AnalysisL1ExtraDataFormat * refData = refJetTree.getData();
+
+    // Reference jets - PF jets
+    // TString refJetDirectory = opts.refJetDirectory();
+    // L1GenericTree<L1AnalysisRecoJetDataFormat> refJetTree(opts.inputFilename(),
+    //                                                       refJetDirectory+"/JetRecoTree",
+    //                                                       "Jet");
+    // L1AnalysisRecoJetDataFormat * refData = refJetTree.getData();
 
     // L1 jets
     TString l1JetDirectory = opts.l1JetDirectory();
