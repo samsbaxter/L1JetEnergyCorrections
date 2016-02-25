@@ -19,19 +19,18 @@ ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
 ROOT.gStyle.SetPalette(ROOT.kViridis)
 # ROOT.gStyle.SetPalette(55)
-ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
+# ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
+# INPUT = '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l130to5000_dr0p4_httL1Jets_allGenJets_MHT.root'
+# OUTPUT = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/httStudies'
+# TITLE = 'Spring15 MC, no L1JEC'
+# TITLE = 'Spring15 MC, no L1JEC'
 
-ODIR = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/httStudies'
-ODIR = '../httStudies'
+INPUT = '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_16Feb_80X_mcRun2_asymptotic_v1_2779cb0_JEC/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l130to5000_dr0p4_httL1Jets_allGenJets_MHT.root'
+OUTPUT = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_16Feb_80X_mcRun2_asymptotic_v1_2779cb0_JEC/httStudies'
+TITLE = 'Spring15 MC, with L1JEC'
 
-INPUT_FILES = [
-    '../httStudies/pairs_all.root',
-    '../httStudies/pairs_muMult0.root',
-    '../httStudies/pairs_clean.root'
-][:]
-
-
+"""
 # Some common strings
 PT_L1_STR = 'p_{T}^{L1} [GeV]'
 PT_REF_STR = 'p_{T}^{PF} [GeV]'
