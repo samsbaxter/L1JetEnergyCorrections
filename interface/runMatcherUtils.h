@@ -9,6 +9,11 @@
 #include "TF1.h"
 #include "TString.h"
 
+// L1T headers
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoJetDataFormat.h"
+
+using L1Analysis::L1AnalysisRecoJetDataFormat;
+
 
 /**
  * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
@@ -85,5 +90,54 @@ std::string getCurrentTime();
  * @return New TString with pattern removed from str
  */
 TString removePattern(const TString & str, const TString & pattern);
+
+
+/**
+ * @brief Rescale jet energy fractions to account for the fact that they are
+ * stored after JEC, but cuts apply *before* JEC.
+ * @details JEC only affects the total energy, so we can just rescale by the
+ * sum of energy fractions (which should = 1)
+ */
+void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets);
+
+
+/**
+ * @brief Make a std::vector of TLorentzVectors out of input vectors of et, eta, phi.
+ * Also applies JetID cuts.
+ *
+ * @param jets [description]
+ * @param quality Can be LOOSE, TIGHT or TIGHTLEPVETO
+ *
+ * @return [description]
+ */
+std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality);
+
+
+/**
+ * @brief Loose JetID
+ * @return bool If jet passed cuts or not
+ */
+bool looseCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
+
+
+/**
+ * @brief Tight JetID
+ * @return bool If jet passed cuts or not
+ */
+bool tightCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
+
+
+/**
+ * @brief TightLepVeto JetID + custom muon multiplicity cut
+ * @return bool If jet passed cuts or not
+ */
+bool tightLepVetoCleaning(float eta,
+                          float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                          short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult);
+
 
 #endif

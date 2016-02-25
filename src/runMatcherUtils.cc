@@ -161,3 +161,89 @@ TString removePattern(const TString & str, const TString & pattern) {
     if (suffix == "") suffix = str;
     return suffix;
 }
+
+
+void rescaleEnergyFractions(L1AnalysisRecoJetDataFormat * jets) {
+    for (unsigned i = 0; i < jets->nJets; ++i) {
+        float totalEf = jets->chef[i] + jets->nhef[i] + jets->pef[i] + jets->eef[i] + jets->mef[i] + jets->hfhef[i] + jets->hfemef[i];
+        jets->chef[i] /= totalEf;
+        jets->nhef[i] /= totalEf;
+        jets->pef[i] /= totalEf;
+        jets->eef[i] /= totalEf;
+        jets->mef[i] /= totalEf;
+        jets->hfhef[i] /= totalEf;
+        jets->hfemef[i] /= totalEf;
+    }
+}
+
+
+std::vector<TLorentzVector> makeRecoTLorentzVectorsCleaned(const L1AnalysisRecoJetDataFormat & jets, std::string quality) {
+
+    std::vector<TLorentzVector> vecs;
+
+    for (unsigned i = 0; i < jets.nJets; ++i) {
+        if (quality == "LOOSE") {
+            if (!looseCleaning(jets.eta[i],
+                               jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
+                               jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
+                continue;
+        } else if (quality == "TIGHT") {
+            if (!tightCleaning(jets.eta[i],
+                               jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
+                               jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
+                continue;
+        } else if (quality == "TIGHTLEPVETO") {
+            if (!tightLepVetoCleaning(jets.eta[i],
+                                      jets.chef[i], jets.nhef[i], jets.pef[i], jets.eef[i], jets.mef[i], jets.hfhef[i], jets.hfemef[i],
+                                      jets.chMult[i], jets.nhMult[i], jets.phMult[i], jets.elMult[i], jets.muMult[i], jets.hfhMult[i], jets.hfemMult[i]))
+                continue;
+        } else {
+            throw std::runtime_error("quality must be LOOSE/TIGHT/TIGHTLEPVETO");
+        }
+        // If got this far, then can add to list.
+        TLorentzVector v;
+        v.SetPtEtaPhiM(jets.etCorr[i], jets.eta[i], jets.phi[i], 0);
+        vecs.push_back(v);
+    }
+
+    return vecs;
+}
+
+
+bool looseCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
+    if (fabs(eta) <= 3) {
+        if ((fabs(eta) <= 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
+            return false;
+        return (nhef < 0.99) && (pef < 0.99) && ((chMult+nhMult+phMult+elMult+muMult) > 1);
+    } else {
+        return (pef < 0.9 && (nhMult + phMult) > 10);
+    }
+}
+
+
+bool tightCleaning(float eta,
+                   float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                   short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
+    if (fabs(eta) <= 3) {
+        if ((fabs(eta) <= 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.99)))
+            return false;
+        return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1);
+    } else {
+        return (pef < 0.9 && (nhMult + phMult) > 10);
+    }
+}
+
+
+bool tightLepVetoCleaning(float eta,
+                          float chef, float nhef, float pef, float eef, float mef, float hfhef, float hfemef,
+                          short chMult, short nhMult, short phMult, short elMult, short muMult, short hfhMult, short hfemMult) {
+    if (fabs(eta) <= 3) {
+        if ((fabs(eta) <= 2.4) && !((chef > 0) && ((chMult+elMult+muMult) > 0) && (eef < 0.9)))
+            return false;
+        return (nhef < 0.9) && (pef < 0.9) && ((chMult+nhMult+phMult+elMult+muMult) > 1) && (mef < 0.8) && (muMult == 0) && (elMult == 0);
+    } else {
+        return (pef < 0.9 && (nhMult + phMult) > 10);
+    }
+}
