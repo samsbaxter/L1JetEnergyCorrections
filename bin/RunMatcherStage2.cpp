@@ -45,8 +45,6 @@ int getAddress(int iet, int ieta);
 float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
                      float et, float eta);
 float iPhiToPhi(int iphi);
-std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
-bool passHTTCut(TLorentzVector jet);
 
 /**
  * @brief This program implements an instance of Matcher to produce a ROOT file
@@ -417,33 +415,4 @@ float iPhiToPhi(int iphi) {
     if (iphi > 36)
         eta -= 360.;
     return eta * TMath::Pi() / 180.;
-}
-
-
-/**
- * @brief Create vector of objects that go into calcualting HTT
- * @details [long description]
- *
- * @param jets [description]
- * @return [description]
- */
-std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets) {
-    std::vector<TLorentzVector> outputJets;
-    for (const auto& itr: jets) {
-        if (passHTTCut(itr))
-            outputJets.push_back(itr);
-    }
-    return outputJets;
-}
-
-
-/**
- * @brief Cut for jets to go into HTT calculation
- * @details [long description]
- *
- * @param jet [description]
- * @return [description]
- */
-bool passHTTCut(TLorentzVector jet) {
-    return (jet.Pt() > 30.001 && fabs(jet.Eta()) <= 3);
 }

@@ -43,9 +43,6 @@ using boost::lexical_cast;
 
 namespace fs = boost::filesystem;
 
-std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets);
-bool passHTTCut(TLorentzVector jet);
-
 
 int main(int argc, char* argv[]) {
 
@@ -342,33 +339,4 @@ int main(int argc, char* argv[]) {
     outTree.Write("", TObject::kOverwrite);
     outFile->Close();
     return 0;
-}
-
-
-/**
- * @brief Create vector of objects that go into calcualting HTT
- * @details [long description]
- *
- * @param jets [description]
- * @return [description]
- */
-std::vector<TLorentzVector> getJetsForHTT(std::vector<TLorentzVector> jets) {
-    std::vector<TLorentzVector> outputJets;
-    for (const auto& itr: jets) {
-        if (passHTTCut(itr))
-            outputJets.push_back(itr);
-    }
-    return outputJets;
-}
-
-
-/**
- * @brief Cut for jets to go into HTT calculation
- * @details [long description]
- *
- * @param jet [description]
- * @return [description]
- */
-bool passHTTCut(TLorentzVector jet) {
-    return (jet.Pt() > 30.001 && fabs(jet.Eta()) <= 3);
 }
