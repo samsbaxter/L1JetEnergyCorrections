@@ -576,5 +576,4 @@ def do_jet_pt_plots(tree, output_dir, cut=''):
 
 
 if __name__ == "__main__":
-    for ifile in INPUT_FILES:
-        make_htt_plots(ifile, ODIR)
+    make_htt_plots(INPUT, OUTPUT)
