@@ -58,6 +58,12 @@ def compare():
     f_PU15to25_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU15to25.root')
     f_allPU_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO.root')
 
+    s2_L1PF = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/output'
+    f_PU0to10_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU0to10.root')
+    f_PU15to25_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU15to25.root')
+    f_PU30to40_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU30to40.root')
+
+
     """
     # --------------------------------------------------------------------
     # New Stage 2 curves
@@ -205,7 +211,7 @@ def compare():
 
         xlim = None
     """
-
+    """
     # --------------------------------------------------------------------
     # New Stage 2 curves for DATA
     # Plot different PU scenarios for given eta bin
@@ -243,7 +249,8 @@ def compare():
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-
+    """
+    """
     # --------------------------------------------------------------------
     # DATA vs MC curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
@@ -283,6 +290,40 @@ def compare():
         p.save(os.path.join(oDir, "compare_data_mcSpring15_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
+    """
+
+    # --------------------------------------------------------------------
+    # L1-Gen vs L1-PF curves
+    # --------------------------------------------------------------------
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+
+        new_graphs = [
+            Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="PU: 0 - 10 (L1-Gen)", line_color=colors[1], marker_color=colors[1]),
+            Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="PU: 15 - 25 (L1-Gen)", line_color=colors[2], marker_color=colors[2]),
+            Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="PU: 30 - 40 (L1-Gen)", line_color=colors[3], marker_color=colors[3])
+        ]
+
+        L1PF_graphs = [
+            Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+            Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+            Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
+        ]
+        ylim = None
+        if eta_min > 2:
+            ylim = [0, 3.5]
+
+        oDir = s2_L1PF
+        for i, pu_label in enumerate(['PU0to10', 'PU15to25', 'PU30to40']):
+            p = Plot(contributions=[new_graphs[i], L1PF_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                     title="Spring15 MC, no JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
+            p.plot()
+            p.save(os.path.join(oDir, "compare_L1Gen_L1PF_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
 
 
 if __name__ == "__main__":
