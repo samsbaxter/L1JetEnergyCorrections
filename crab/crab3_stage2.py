@@ -24,7 +24,7 @@ jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
 print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage2_HF_QCDSpring15_26Feb_integration-v7_noL1JEC_jst%s" % str(jst).replace('.', 'p')
+job_append = "Stage2_HF_QCDSpring15_26Feb_integration-v7_layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
