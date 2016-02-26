@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Rescale jet energy fractions to take account of the fact that they are post-JEC
-        rescaleEnergyFractions(refData);
+        // rescaleEnergyFractions(refData);
 
         // Get vectors of ref & L1 jets from trees, only want BX = 0 (the collision)
         std::vector<TLorentzVector> refJets;
