@@ -15,13 +15,8 @@ import httplib
 job_append = "Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC"
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
-datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]
-
-# FIX THIS!!!!
-reco_datasets = [
-'/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RECO',
-'/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RECO'
-]
+# datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # RAW only
+datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # RAW + RECO (via useParent)
 
 if __name__ == "__main__":
 
@@ -38,25 +33,27 @@ if __name__ == "__main__":
         # if not samples.check_dataset_exists(samples.samples[dset].inputDataset):
         #     raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
 
-    for dset, reco_dset in zip(datasets, reco_datasets):
-        dset_opts = samples.samples[dset]
+    for dset in datasets:
         print dset
-        # requestName will be used for name of folder inside workArea,
-        # and the name of the jobs on monitoring page
-        print len(dset + "_" + job_append)
+
+        dset_opts = samples.samples[dset]
+
+        # requestName used for dir inside workArea & job name on monitoring page
         config.General.requestName = dset + "_" + job_append
-        config.Data.inputDataset = reco_dset
-        config.Data.secondaryInputDataset = dset_opts.inputDataset
+        config.Data.inputDataset = dset_opts.inputDataset
+        config.Data.useParent = dset_opts.useParent
         config.Data.unitsPerJob = dset_opts.unitsPerJob
 
         # to restrict total units run over
         # comment it out to run over all
         if dset_opts.totalUnits > 1:
             config.Data.totalUnits = dset_opts.totalUnits
-        elif 0 < dset_opts.totalUnits < 1:
-            config.Data.totalUnits = int(samples.get_number_files(dset_opts.inputDataset) * dset_opts.totalUnits)
         else:
-            config.Data.totalUnits = 10000000000  # make sure we reset
+            totalUnits = int(samples.get_number_files(dset_opts.inputDataset))
+            if 0 < dset_opts.totalUnits < 1:
+                config.Data.totalUnits = int(totalUnits * dset_opts.totalUnits)
+            else:
+                config.Data.totalUnits = totalUnits  # make sure we reset
 
         print config.Data.totalUnits, "total units"
 

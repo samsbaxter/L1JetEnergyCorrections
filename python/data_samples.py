@@ -42,16 +42,16 @@ def check_dataset_exists(dataset):
 
 
 # handy data structure to store some attributes for each dataset
-Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits")
+Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 
 # This dict holds ALL samples
 samples = {
 
     "Express_Run2015B_50ns": Dataset(inputDataset='/ExpressPhysics/Run2015B-Express-v1/FEVT',
-                                     unitsPerJob=15, totalUnits=-1),
+                                     useParent=False, unitsPerJob=15, totalUnits=-1),
 
     "Express_Run2015D_v4_25ns": Dataset(inputDataset='/ExpressPhysics/Run2015D-Express-v4/FEVT',
-                                        unitsPerJob=10, totalUnits=-1),
+                                        useParent=False, unitsPerJob=10, totalUnits=-1),
 
 
 }
