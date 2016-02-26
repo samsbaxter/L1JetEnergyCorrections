@@ -62,14 +62,14 @@ samples = {
 
     # RECO
     "QCDFlatSpring15BX25PU10to30HCALFixRECO": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RECO',
-                                                      useParent=True, unitsPerJob=10, totalUnits=-1),
+                                                      useParent=True, unitsPerJob=10, totalUnits=0.3),
 
     "QCDFlatSpring15BX25FlatNoPUHCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
                                                   useParent=False, unitsPerJob=10, totalUnits=-1),
 
     # RECO
     "QCDFlatSpring15BX25FlatNoPUHCALFixRECO": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleNoPUAsympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RECO',
-                                                      useParent=True, unitsPerJob=10, totalUnits=-1),
+                                                      useParent=True, unitsPerJob=10, totalUnits=0.3),
 
     "TTbarSpring15AVE30BX50": Dataset(inputDataset='/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                       useParent=False, unitsPerJob=25, totalUnits=-1),
