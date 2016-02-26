@@ -35,21 +35,24 @@ ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
 
 # Some common strings
-ref_str = "GenJet"
-# ref_str = "PFJet"
+l1_str = 'L1'
+# l1_str = 'PF'
 
-rsp_str = "E_{T}^{L1}/E_{T}^{%s}" % (ref_str)
+# ref_str = "GenJet"
+ref_str = "PFJet"
+
+rsp_str = "E_{T}^{%s}/E_{T}^{%s}" % (l1_str, ref_str)
 eta_str = "#eta"
 eta_ref_str = "|#eta^{%s}|" % (ref_str)
-eta_l1_str = "|#eta^{L1}|"
-dr_str = "#DeltaR(L1 jet, Ref jet)"
+eta_l1_str = "|#eta^{%s}|" % (l1_str)
+dr_str = "#DeltaR(%s jet, Ref jet)" % (l1_str)
 pt_str = "E_{T}[GeV]"
-pt_l1_str = "E_{T}^{L1} [GeV]"
+pt_l1_str = "E_{T}^{%s} [GeV]" % (l1_str)
 pt_ref_str = "E_{T}^{%s} [GeV]" % (ref_str)
-res_l1_str = "#sigma(E_{T}^{L1} - E_{T}^{%s})/<E_{T}^{L1}>" % (ref_str)
-res_ref_str = "#sigma(E_{T}^{L1} - E_{T}^{%s})/<E_{T}^{%s}>" % (ref_str, ref_str)
-alt_res_l1_str = "(E_{T}^{L1} - E_{T}^{%s})/E_{T}^{L1}" % (ref_str)
-pt_diff_str = "E_{T}^{L1} - E_{T}^{%s} [GeV]" % (ref_str)
+res_l1_str = "#sigma(E_{T}^{%s} - E_{T}^{%s})/<E_{T}^{%s}>" % (l1_str, ref_str, l1_str)
+res_ref_str = "#sigma(E_{T}^{%s} - E_{T}^{%s})/<E_{T}^{%s}>" % (l1_str, ref_str, ref_str)
+alt_res_l1_str = "(E_{T}^{%s} - E_{T}^{%s})/E_{T}^{%s}" % (l1_str, ref_str, l1_str)
+pt_diff_str = "E_{T}^{%s} - E_{T}^{%s} [GeV]" % (l1_str, ref_str)
 
 # min/max response for responve vs X graphs
 # rsp_min, rsp_max = 0.2, 1.5
@@ -60,12 +63,21 @@ rsp_min, rsp_max = 0, 2
 #############################################
 plot_labels = [
      # "Spring15 + HF fix (no JEC)"
-     "Without JEC"
+     # "Without L1JEC"
+     "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
+     # "With JEC"
      # "With JEC (LUT)"
+     # "With Summer15_25nsV6_MC PFJEC"
     ]
-plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
-plot_title = "Spring15 MC, Stage 2, no JEC"
+# plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
+# plot_title = "Run 260627 SingleMu, Stage 2, with L1JEC, with PF cleaning"
+# plot_title = "Spring15 MC, Stage 2, no JEC"
+# plot_title = "Spring15 MC, Stage 2, with L1JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
+# plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
+plot_title = "Spring15 MC, Stage2, L1 vs ak4PFCHS, no PF cleaning"
+
+
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
 
