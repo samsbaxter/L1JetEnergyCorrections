@@ -49,18 +49,24 @@ SAMPLE = 'DATA'
 
 # Choose executable to run - must be located using `which <EXE>`
 EXE = 'RunMatcherData' if SAMPLE == 'DATA' else 'RunMatcherStage2'
+# EXE = 'RunMatcherStage2PFGen'
+# EXE = 'RunMatcherStage2L1PF'
 
 # DeltaR(L1, RefJet) for matching
 DELTA_R = 0.4
 
 # Minimum pt cut on reference jets
 PT_REF_MIN = 10
+# PT_REF_MIN = 30.001
 
 # TDirectory name for the L1 jets
 L1_DIR = 'l1UpgradeEmuTree'
+# L1_DIR = 'l1JetRecoTree'  # for PFGen exe
 
 # TDirectory name for the reference jets
 REF_DIR = 'l1JetRecoTree' if SAMPLE == 'DATA' else 'l1ExtraTreeGenAk4'
+# REF_DIR = 'l1ExtraTreeGenAk4'  # for PFGen exe
+# REF_DIR = 'l1JetRecoTree'  # for L1PF exe
 
 # Cleaning cut to apply to Ref Jets
 # If none desired, put '' or None
@@ -70,7 +76,14 @@ CLEANING_CUT = None  # MC
 # String to append to output ROOT filename
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-APPEND = 'MP_ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))
+# APPEND = 'MP_ak4_ref%sto5000_l10to5000_dr%s' % (str(PT_REF_MIN).replace('.', 'p'), str(DELTA_R).replace('.', 'p'))  # MPjets - MC
+# APPEND = 'MP_ak4_ref10to5000_l130to5000_dr%s_httL1Jets_allGenJets_MHT' % (str(DELTA_R).replace('.', 'p'))  # MPjets - MC
+APPEND = 'ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # Demux jets - data
+# APPEND = 'ak4_Gen%dto5000_PF0to5000_dr%s_noCleaning' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # for PFGen exe
+# APPEND = 'MP_ak4_PF%dto5000_l10to5000_dr%s_noCleaning' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # for L1PF exe
+
+if CLEANING_CUT:
+    APPEND += '_clean%s' % CLEANING_CUT
 
 # Directory for logs (should be on /storage)
 # Will be created automatically by htcondenser
@@ -251,6 +264,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     final_dir = os.path.join(os.path.dirname(ntuple_dir.rstrip('/')), 'pairs')
     cc.check_create_dir(final_dir, info=True)
     final_file = os.path.join(final_dir, final_file)
+    log.info("Final file: %s", final_file)
 
     # Check if any of the output files already exists - maybe we mucked up?
     # ---------------------------------------------------------------------
