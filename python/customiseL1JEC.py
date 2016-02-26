@@ -92,6 +92,13 @@ def L1NtupleJEC(process):
             if not result:
                 raise RuntimeError('Could not remove %s' % mod.label())
 
+    # Turn off warnings from l1ExtraTreeGenAk4 and lack of muons
+    process.MessageLogger.cerr.FwkReport.reportEvery = 200
+    process.MessageLogger.suppressWarning = cms.untracked.vstring(
+        "l1UpgradeEmuTree",
+        'l1ExtraTreeGenAk4'
+    )
+
     return process
 
 
