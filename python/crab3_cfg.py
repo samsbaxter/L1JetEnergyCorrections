@@ -2,21 +2,16 @@
 CRAB3 template config for more specific configs (See crab dir)
 """
 
-from WMCore.Configuration import Configuration
+from CRABClient.UserUtilities import config
+config = config()
 
-config = Configuration()
-
-config.section_("General")
 config.General.transferLogs = True
 
-config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
 
-config.section_("Data")
 config.Data.splitting = 'FileBased'
 config.Data.publication = False
 
-config.section_("Site")
 # Where the output files will be transmitted to
 config.Site.storageSite = 'T2_UK_SGrid_Bristol'
 # config.Site.storageSite = 'T2_UK_SGrid_RALPP'
