@@ -20,6 +20,7 @@ import sys
 import numpy as np
 import argparse
 import binning
+from binning import pairwise
 import common_utils as cu
 
 
@@ -599,9 +600,7 @@ def main(in_args=sys.argv[1:]):
     previous_fit_params = []
 
     # Do plots & fitting to get calib consts
-    for i, eta_min in enumerate(etaBins[:-1]):
-        eta_max = etaBins[i + 1]
-
+    for i, (eta_min, eta_max) in enumerate(pairwise(etaBins)):
         print "Doing eta bin: %g - %g" % (eta_min, eta_max)
 
         # whether we're doing a central or forward bin (.01 is for rounding err)

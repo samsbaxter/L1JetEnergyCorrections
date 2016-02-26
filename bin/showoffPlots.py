@@ -17,6 +17,7 @@ Robin Aggleton
 import ROOT
 import sys
 import binning
+from binning import pairwise
 import argparse
 from itertools import izip, product
 import common_utils as cu
@@ -853,7 +854,7 @@ def main(in_args=sys.argv[1:]):
         pairs_tree = cu.get_from_file(pairs_file, "valid")
 
         # eta binned
-        for emin, emax in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+        for emin, emax in pairwise(binning.eta_bins):
             plot_dR(pairs_tree, eta_min=emin, eta_max=emax, cut="1", oDir=args.oDir)
             plot_pt_both(pairs_tree, eta_min=emin, eta_max=emax, cut="1", oDir=args.oDir)
 
@@ -929,7 +930,7 @@ def main(in_args=sys.argv[1:]):
         # ptBinsWide = list(np.arange(10, 250, 8))
 
         # indiviudal eta bins
-        for eta_min, eta_max in izip(etaBins[:-1], etaBins[1:]):
+        for eta_min, eta_max in pairwise(etaBins):
             for (normX, logZ) in product([True, False], [True, False]):
                 plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
                 plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
@@ -954,7 +955,7 @@ def main(in_args=sys.argv[1:]):
                         ptRef_file.write('\n'.join(ptRef_names))
 
                 print "To make animated gif from PNGs using a plot list:"
-                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_file, eta_min, eta_max)
+                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_file.name, eta_min, eta_max)
 
         # Graph of response vs pt, but in bins of eta
         plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
@@ -1000,7 +1001,7 @@ def main(in_args=sys.argv[1:]):
 
         calib_file = cu.open_root_file(args.calib)
 
-        for eta_min, eta_max in zip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+        for eta_min, eta_max in pairwise(binning.eta_bins):
 
             print eta_min, eta_max
 
@@ -1024,7 +1025,7 @@ def main(in_args=sys.argv[1:]):
                 if eta_min > 2.9:
                     ptBins = binning.pt_bins_stage2_hf
 
-                for pt_min, pt_max in zip(ptBins[:-1], ptBins[1:]):
+                for pt_min, pt_max in pairwise(ptBins):
                     rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
                     pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
                     if rsp_name: rsp_file.write(os.path.basename(rsp_name) + '\n')
@@ -1033,7 +1034,7 @@ def main(in_args=sys.argv[1:]):
                 rsp_file.close()
                 pt_file.close()
                 print "To make animated gif from PNGs using a plot list:"
-                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s rsp_eta_%g_%g.gif" % (rsp_file, eta_min, eta_max)
+                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s rsp_eta_%g_%g.gif" % (rsp_file.name, eta_min, eta_max)
 
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)

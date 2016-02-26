@@ -36,6 +36,7 @@ from itertools import izip
 import os
 import argparse
 import binning
+from binning import pairwise
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -339,18 +340,16 @@ def main(in_args=sys.argv[1:]):
     # Do plots for individual eta bins
     if args.excl:
         print "Doing individual eta bins"
-        for i,eta in enumerate(etaBins[0:-1]):
-            emin = eta
-            emax = etaBins[i+1]
+        for i, (eta_min, eta_max) in enumerate(pairwise(etaBins)):
 
             # whether we're doing a central or forward bin (.1 is for rounding err)
-            forward_bin = emax > 3.1
+            forward_bin = eta_max > 3.1
 
             # setup pt bins, wider ones for forward region
             # ptBins = binning.pt_bins_8 if not forward_bin else binning.pt_bins_8_wide
             ptBins = binning.pt_bins if not forward_bin else binning.pt_bins_wide
 
-            plot_resolution(inputf, outputf, ptBins[4:], emin, emax)
+            plot_resolution(inputf, outputf, ptBins[4:], eta_min, eta_max)
 
     # Do plots for inclusive eta
     # Skip if doing exlcusive and only 2 bins, or if only 1 bin

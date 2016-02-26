@@ -16,6 +16,7 @@ from array import array
 import numpy as np
 import argparse
 import binning
+from binning import pairwise
 import common_utils as cu
 
 
@@ -240,7 +241,7 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
 
     # Now for each pt bin, do a projection on 1D hist of response and fit a Gaussian
     print pt_bins
-    for i, (pt_min, pt_max) in enumerate(zip(pt_bins[:-1], pt_bins[1:])):
+    for i, (pt_min, pt_max) in enumerate(pairwise(pt_bins)):
         h_rsp = h2d_rsp_pt.ProjectionY("rsp_%s_%g_%g" % (pt_var, pt_min, pt_max), i + 1, i + 1)
         print i, pt_min, pt_max
 
