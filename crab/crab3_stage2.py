@@ -9,22 +9,35 @@ from L1Trigger.L1JetEnergyCorrections.crab3_cfg import config
 import L1Trigger.L1JetEnergyCorrections.mc_samples as samples
 from CRABAPI.RawCommand import crabCommand
 import httplib
+import importlib
+import os
+import sys
 
+
+# CMSSW CONFIG TO RUN
+PY_CONFIG = '../python/SimL1Emulator_Stage2_HF_MC.py'
+
+# Auto-retrieve jet seed threshold in config
+sys.path.append(os.path.dirname(os.path.abspath(PY_CONFIG)))  # nasty hack cos python packaging stoopid
+cmssw_config = importlib.import_module(os.path.splitext(os.path.basename(PY_CONFIG))[0],)
+jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
+print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC"
+job_append = "Stage2_HF_QCDSpring15_26Feb_integration-v7_noL1JEC_jst%s" % str(jst).replace('.', 'p')
+
 
 # CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # RAW only
 datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # RAW + RECO (via useParent)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # We want to put all the CRAB project directories from the tasks we submit
     # here into one common directory. That's why we need to set this parameter.
     config.General.workArea = 'l1ntuple_' + job_append
 
-    config.JobType.psetName = '../python/SimL1Emulator_Stage2_HF_MC.py'
+    config.JobType.psetName = PY_CONFIG
 
     # Run through datasets once to check all fine
     for dset in datasets:
