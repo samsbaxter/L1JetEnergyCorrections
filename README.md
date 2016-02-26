@@ -42,13 +42,11 @@ doxygen Doxyfile # html documentation in html/index.html
 # cd latex; make
 ```
 
-- **WARNING:** in CMSSW_7_4_5 and later, `L1RCTProducer` uses the new AMC13 FED IDs for HF. So if you run over Spring15 MC or earlier, you'll need to change the FEDs back, or end up with nothing in the HF: https://github.com/cms-sw/cmssw/commit/8b127a6660bdb557ccc2241db022687d3c2936d0
-
-
 ## Installation (Stage 2)
 
-See the L1T TWiki page for recommended release and branch to get the L1TCalorimeter package: [SWGuideL1TOfflineDev](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideL1TOfflineDev)
-Note that we now use the L1Ntuples included in the package, so no need to get the L1DPG NTuple package.
+See the L1T TWiki page for recommended release and branch to get the L1TCalorimeter package: [SWGuideL1TOfflineDev](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideL1TOfflineDev) and the L1CaloUpgradeOfflineAnalysis Twiki page: [L1CaloUpgradeOfflineAnalysis](https://twiki.cern.ch/twiki/bin/view/CMS/L1CaloUpgradeOfflineAnalysis), and this GitHub issue: [issue164](https://github.com/cms-l1t-offline/cmssw/issues/164)
+
+Note that we now use the L1Ntuples included in the package, so no need to get the L1DPG NTuple package (which is now deprecated).
 
 ```shell
 # follow instructions for CMSSW, etc
@@ -56,6 +54,8 @@ Note that we now use the L1Ntuples included in the package, so no need to get th
 #  Get this package
 git clone git@github.com:raggleton/L1JetEnergyCorrections.git L1Trigger/L1JetEnergyCorrections
 scram b -j9
+# to run unit tests
+scram b runtests
 ```
 
 For instructions about **deriving** new calibrations, see [derivation.md](derivation.md).
@@ -67,11 +67,11 @@ For instructions about **testing** the calibration & performance, see [performan
 
 ### Random notes:
 
-- For all CMSSW releases up to and including 7_4_X, there is a bug in the standard Stage 1 emulator sequence that auto loads the old RCT LUTs: https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_2/L1Trigger/L1TCalorimeter/python/L1TCaloStage1_PPFromRaw_cff.py#L9 To get around this, basically copy and paste that file's contents without that line...sigh. Should be fixed in 7_5_X though.
+- **[GCT/Stage1]** For all CMSSW releases up to and including 7_4_X, there is a bug in the standard Stage 1 emulator sequence that auto loads the old RCT LUTs: https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_2/L1Trigger/L1TCalorimeter/python/L1TCaloStage1_PPFromRaw_cff.py#L9 To get around this, basically copy and paste that file's contents without that line...sigh. Should be fixed in 7_5_X though.
 
-- For new RCT calibs, use 7_4_2 or better - check with https://twiki.cern.ch/twiki/bin/viewauth/CMS/RCTCalibrationTP
+- **[GCT/Stage1]** For new RCT calibs, use 7_4_2 or better - check with https://twiki.cern.ch/twiki/bin/viewauth/CMS/RCTCalibrationTP
 
-- **WARNING:** in CMSSW_7_4_5 and later, the L1RCTProducer uses the new AMC13 FED IDs for HF. So if you run over Spring15 MC or ealrier, you'll need to change the FEDs back, or end up with nothing in the HF: https://github.com/cms-sw/cmssw/commit/8b127a6660bdb557ccc2241db022687d3c2936d0
+- **[GCT/Stage1]** **WARNING:** in CMSSW_7_4_5 and later, the L1RCTProducer uses the new AMC13 FED IDs for HF. So if you run over Spring15 MC or earlier, you'll need to change the FEDs back, or end up with nothing in the HF: https://github.com/cms-sw/cmssw/commit/8b127a6660bdb557ccc2241db022687d3c2936d0
 
-- **Always** double check with the `l1RCTParametersTest` module that you are running the correct RCT calibs - if in doubt, check with Laura/Maria/Aaron
+- **[GCT/Stage1]** **Always** double check with the `l1RCTParametersTest` module that you are running the correct RCT calibs - if in doubt, check with Laura/Maria/Aaron
 
