@@ -162,6 +162,7 @@ def submit_checkCalib_dag(pairs_file, max_l1_pt, log_dir, append,
     pu_bins = pu_bins or [[-99, 999]]  # set ridiculous limits if no cut on PU
     status_files = []
     for (pu_min, pu_max) in pu_bins:
+        log.info('**** Doing PU bin %g - %g', pu_min, pu_max)
 
         log_stem = 'checkCalib.$(cluster).$(process)'
         checkCalib_jobs = ht.JobSet(exe='python',
