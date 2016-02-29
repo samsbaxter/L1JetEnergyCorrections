@@ -9,7 +9,7 @@ Stores L1 jets, as well as ak4 GenJets
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: l1Ntuple -s RAW2DIGI --era=Run2_2016 --conditions=auto:run2_mc -n 100 --mc --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODEMU --customise=L1Trigger/L1JetEnergyCorrections/customiseL1JEC.L1NtupleJEC_OFF --no_output --python_filename=SimL1Emulator_Stage2_HF_Layer1_MC_test.py --no_exec --customise=L1Trigger/Configuration/customiseUtils.L1TTurnOffGtAndGmtEmulation --customise_commands=process.l1CaloTowerEmuTree.ecalToken = cms.untracked.InputTag('ecalDigis', 'EcalTriggerPrimitives')\nprocess.l1CustomReco.replace(process.ak4PFCHSL1FastL2L3ResidualCorrectorChain, process.ak4PFCHSL1FastL2L3CorrectorChain)\nprocess.l1JetRecoTree.jecToken = 'ak4PFCHSL1FastL2L3Corrector' --filein=/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/929E688D-E94E-E511-8AD2-0026189438EA.root,/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/C04FFC53-F14E-E511-91BA-002590593876.root,/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/EAB9AC8A-E94E-E511-8B45-002618943935.root --secondfilein=/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/003BEF9B-C24E-E511-B4B7-0025905A609E.root
+# with command line options: l1Ntuple -s RAW2DIGI --era=Run2_2016 --conditions=auto:run2_mc -n 100 --mc --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODEMU --customise=L1Trigger/L1JetEnergyCorrections/customiseL1JEC.L1NtupleJEC_OFF --no_output --python_filename=SimL1Emulator_Stage2_HF_Layer1_MC_test.py --no_exec --customise=L1Trigger/Configuration/customiseUtils.L1TTurnOffUnpackStage2GtGmtAndCalo --customise_commands=process.l1CaloTowerEmuTree.ecalToken = cms.untracked.InputTag('ecalDigis', 'EcalTriggerPrimitives')\nprocess.l1CustomReco.replace(process.ak4PFCHSL1FastL2L3ResidualCorrectorChain, process.ak4PFCHSL1FastL2L3CorrectorChain)\nprocess.l1JetRecoTree.jecToken = 'ak4PFCHSL1FastL2L3Corrector' --filein=/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/929E688D-E94E-E511-8AD2-0026189438EA.root,/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/C04FFC53-F14E-E511-91BA-002590593876.root,/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/EAB9AC8A-E94E-E511-8B45-002618943935.root --secondfilein=/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/003BEF9B-C24E-E511-B4B7-0025905A609E.root
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -96,10 +96,10 @@ from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1NtupleJEC_OFF
 process = L1NtupleJEC_OFF(process)
 
 # Automatic addition of the customisation function from L1Trigger.Configuration.customiseUtils
-from L1Trigger.Configuration.customiseUtils import L1TTurnOffGtAndGmtEmulation 
+from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAndCalo
 
-#call to customisation function L1TTurnOffGtAndGmtEmulation imported from L1Trigger.Configuration.customiseUtils
-process = L1TTurnOffGtAndGmtEmulation(process)
+#call to customisation function L1TTurnOffUnpackStage2GtGmtAndCalo imported from L1Trigger.Configuration.customiseUtils
+process = L1TTurnOffUnpackStage2GtGmtAndCalo(process)
 
 # End of customisation functions
 
@@ -109,7 +109,7 @@ process.l1CustomReco.replace(process.ak4PFCHSL1FastL2L3ResidualCorrectorChain, p
 process.l1JetRecoTree.jecToken = 'ak4PFCHSL1FastL2L3Corrector'
 
 # Modify the jet seed threshold, default was 1.5
-jet_seed_threshold = 3
+jet_seed_threshold = 1.5
 process.caloStage2Params.jetSeedThreshold = cms.double(jet_seed_threshold)
 # Set the NTuple filename
 process.TFileService.fileName = cms.string("L1Ntuple_Stage2_Spring15MC_HF_26Feb_layer1_noL1Jec_%s_jst%s.root" % (process.GlobalTag.globaltag.value(), str(jet_seed_threshold).replace('.', 'p')))
