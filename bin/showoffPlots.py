@@ -37,10 +37,10 @@ ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
 # Some common strings
 l1_str = 'L1'
-# l1_str = 'PF'
+l1_str = 'PF'
 
-# ref_str = "GenJet"
-ref_str = "PFJet"
+ref_str = "GenJet"
+# ref_str = "PFJet"
 
 rsp_str = "E_{T}^{%s}/E_{T}^{%s}" % (l1_str, ref_str)
 eta_str = "#eta"
@@ -58,6 +58,7 @@ pt_diff_str = "E_{T}^{%s} - E_{T}^{%s} [GeV]" % (l1_str, ref_str)
 # min/max response for responve vs X graphs
 # rsp_min, rsp_max = 0.2, 1.5
 rsp_min, rsp_max = 0, 2
+# rsp_min, rsp_max = 0.75, 1.25
 
 #############################################
 # LABELS, COLOURS, AND TITLE ON PLOTS
@@ -75,8 +76,8 @@ plot_labels = [
 # plot_title = "Spring15 MC, Stage 2, no JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
-# plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
-plot_title = "Spring15 MC, Stage2, L1 vs ak4PFCHS, no PF cleaning"
+plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
+# plot_title = "Spring15 MC, Stage2, L1 vs ak4PFCHS, no PF cleaning"
 
 
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
@@ -769,7 +770,7 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
 
 def main(in_args=sys.argv[1:]):
     print in_args
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--pairs",
                         help="input ROOT file with matched pairs from RunMatcher")
 
