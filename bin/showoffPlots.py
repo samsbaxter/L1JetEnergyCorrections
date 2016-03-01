@@ -455,7 +455,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     c.SaveAs("%s/h2d_rsp_ref_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
-def plot_rsp_eta_old(check_files, eta_min, eta_max, pt_var, oDir, oFormat="pdf"):
+def plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, pt_var, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta.
 
     Can optionally do comparison against another file,
@@ -506,7 +506,7 @@ def plot_rsp_eta_old(check_files, eta_min, eta_max, pt_var, oDir, oFormat="pdf")
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
-def plot_rsp_eta_new(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oFormat="pdf"):
+def plot_rsp_eta_exclusive_graph(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta.
 
     Can optionally do comparison against another file,
@@ -578,7 +578,7 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
     return filenames
 
 
-def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
+def plot_rsp_pt_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot a graph of response vs pt (L1) for a given eta bin"""
 
     grname = "eta_%g_%g/gr_rsp_pt_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
@@ -625,7 +625,7 @@ def plot_rsp_pt(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
-def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
+def plot_rsp_ptRef_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot a graph of response vs pt (L1) for a given eta bin"""
 
     grname = "eta_%g_%g/gr_rsp_ptRef_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
@@ -672,7 +672,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
-def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf', x_range=None):
+def plot_rsp_pt_binned_graph(check_file, eta_bins, pt_var, oDir, oFormat='pdf', x_range=None):
     """Plot a graph of response vs pt_var, in bins of eta"""
 
     mg = ROOT.TMultiGraph()
@@ -960,8 +960,8 @@ def main(in_args=sys.argv[1:]):
         # Graph of response vs pt, but in bins of eta
         x_range = [0, 150]
         x_range = None
-        plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
-        plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
+        plot_rsp_pt_binned_graph(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
+        plot_rsp_pt_binned_graph(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
 
         check_files = [cu.open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
 
@@ -981,13 +981,13 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
 
             # graphs
-            plot_rsp_eta_old(check_files, eta_min, eta_max, 'pt', args.oDir, args.format)
-            plot_rsp_eta_old(check_files, eta_min, eta_max, 'ptRef', args.oDir, args.format)
-            plot_rsp_eta_new(check_file, eta_min, eta_max, binning.check_pt_bins, 'pt', args.oDir, args.format)
-            plot_rsp_eta_new(check_file, eta_min, eta_max, binning.check_pt_bins, 'ptRef', args.oDir, args.format)
+            plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, 'pt', args.oDir, args.format)
+            plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, 'ptRef', args.oDir, args.format)
+            plot_rsp_eta_exclusive_graph(check_file, eta_min, eta_max, binning.check_pt_bins, 'pt', args.oDir, args.format)
+            plot_rsp_eta_exclusive_graph(check_file, eta_min, eta_max, binning.check_pt_bins, 'ptRef', args.oDir, args.format)
 
-            plot_rsp_pt(check_files, eta_min, eta_max, args.oDir, args.format)
-            plot_rsp_ptRef(check_files, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_pt_graph(check_files, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_ptRef_graph(check_files, eta_min, eta_max, args.oDir, args.format)
 
             for etamin, etamax in izip(etaBins[:-1], etaBins[1:]):
                 # component plots for the eta graphs, binned by pt
