@@ -672,7 +672,7 @@ def plot_rsp_ptRef(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
     c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
-def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf'):
+def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf', x_range=None):
     """Plot a graph of response vs pt_var, in bins of eta"""
 
     mg = ROOT.TMultiGraph()
@@ -688,7 +688,7 @@ def plot_rsp_pt_binned(check_file, eta_bins, pt_var, oDir, oFormat='pdf'):
         # leg.AddEntry(g, plot_labels[0] + " %g < |#eta^{L1}| < %g" % (eta_min, eta_var), "LP")
         leg.AddEntry(g, " %g < |#eta^{L1}| < %g" % (eta_min, eta_max), "LP")
 
-    pt_min, pt_max = 0, 1022
+    pt_min, pt_max = (0, 1022) if not x_range else (x_range[0], x_range[1])
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(pt_min, 1, pt_max, 1)
     line_plus = ROOT.TLine(pt_min, 1.1, pt_max, 1.1)
@@ -958,8 +958,10 @@ def main(in_args=sys.argv[1:]):
                 print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_file.name, eta_min, eta_max)
 
         # Graph of response vs pt, but in bins of eta
-        plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format)
-        plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format)
+        x_range = [0, 150]
+        x_range = None
+        plot_rsp_pt_binned(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
+        plot_rsp_pt_binned(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
 
         check_files = [cu.open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
 
