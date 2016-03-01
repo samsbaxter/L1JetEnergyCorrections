@@ -71,6 +71,7 @@ plot_labels = [
      # "With JEC (LUT)"
      # "With Summer15_25nsV6_MC PFJEC"
     ]
+
 # plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
 # plot_title = "Run 260627 SingleMu, Stage 2, with L1JEC, with PF cleaning"
 # plot_title = "Spring15 MC, Stage 2, no JEC"
@@ -234,57 +235,23 @@ def plot_ptDiff_Vs_pt(res_file, eta_min, eta_max, oDir, oFormat='pdf'):
     c.SaveAs("%s/h2d_ptDiff_ptRef_eta_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
 
 
-def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
-    """Plot a graph of resolution as a function of L1 eta.
-
-    Can optionally do comparison against another file,
-    in which case res_file1 is treated as before calibration,
-    whilst res_file2 is treated as after calibration.
-    """
-    # binned by l1 pt
-    # grname = "eta_%g_%g/resL1_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
-
-    # graphs = [cu.get_from_file(f, grname) for f in res_files if f]
+def plot_res_all_pt(res_file, eta_min, eta_max, oDir, oFormat="pdf"):
+    """Plot a graph of resolution as a function of L1 eta."""
 
     c = generate_canvas()
-
-    # # leg = generate_legend() #(0.34, 0.56, 0.87, 0.87)
-    # leg = generate_legend() #(0.6, 0.7, 0.87, 0.87)
-
-    # mg = ROOT.TMultiGraph()
-    # for i, g in enumerate(graphs):
-    #     g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-    #     g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-    #     g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else ROOT.kBlack)
-    #     mg.Add(g)
-    #     leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
-    #     # leg.AddEntry(g, "|#eta|: %g - %g" % (eta_min, eta_max), "LP")
-
-    # mg.Draw("ALP")
-    # mg.GetXaxis().SetTitleSize(0.04)
-    # mg.GetXaxis().SetTitleOffset(0.9)
-    # mg.GetYaxis().SetTitle(res_l1_str)
-    # mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax() * 1.5)
-    # mg.GetYaxis().SetRangeUser(0, 0.5)
-    # mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title+', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_l1_str, res_l1_str))
-    # mg.Draw("ALP")
-    # leg.Draw()
-    # append = "_compare" if len(res_files) > 1 else ""
-    # c.SaveAs("%s/res_l1_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
     # binned by ref pt
     grname = "eta_%g_%g/resRefRef_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
 
-    graphs = [cu.get_from_file(f, grname) for f in res_files if f]
-
+    graph = cu.get_from_file(res_file, grname)
     leg = generate_legend()
     mg = ROOT.TMultiGraph()
-    for i, g in enumerate(graphs):
-        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else ROOT.kBlack)
-        mg.Add(g)
-        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+    i = 0
+    graph.SetLineColor(plot_colors[i])
+    graph.SetMarkerColor(plot_colors[i])
+    graph.SetMarkerStyle(plot_markers[i])
+    mg.Add(graph)
+    leg.AddEntry(graph, plot_labels[i], "LP")
 
     mg.Draw("ALP")
     mg.GetXaxis().SetTitleSize(0.04)
@@ -295,7 +262,7 @@ def plot_res_all_pt(res_files, eta_min, eta_max, oDir, oFormat="pdf"):
     mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
     mg.Draw("ALP")
     leg.Draw()
-    append = "_compare" if len(res_files) > 1 else ""
+    append = ""
     c.SaveAs("%s/res_ref_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
@@ -456,16 +423,11 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     c.SaveAs("%s/h2d_rsp_ref_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
-def plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, pt_var, oDir, oFormat="pdf"):
-    """Plot a graph of response vs L1 eta.
-
-    Can optionally do comparison against another file,
-    in which case check_file1 is treated as before calibration,
-    whilst check_file2 is treated as after calibration.
-    """
+def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFormat="pdf"):
+    """Plot a graph of response vs L1 eta."""
     grname = "eta_%g_%g/gr_rsp_%s_eta_%g_%g" % (eta_min, eta_max, pt_var, eta_min, eta_max)
 
-    graphs = [cu.get_from_file(f, grname) for f in check_files if f]
+    graph = cu.get_from_file(check_file, grname)
 
     c = generate_canvas(plot_title)
 
@@ -474,12 +436,12 @@ def plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, pt_var, oDir, oF
 
     mg = ROOT.TMultiGraph()
 
-    for i, g in enumerate(graphs):
-        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
-        mg.Add(g)
-        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+    i = 0
+    graph.SetLineColor(plot_colors[i])
+    graph.SetMarkerColor(plot_colors[i])
+    graph.SetMarkerStyle(plot_markers[i])
+    mg.Add(graph)
+    leg.AddEntry(graph, plot_labels[i], "LP")
 
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
@@ -503,16 +465,12 @@ def plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, pt_var, oDir, oF
 
     leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
-    append = "_compare" if len(graphs) > 1 else ""
+    append = ""
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
 def plot_rsp_eta_exclusive_graph(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta.
-
-    Can optionally do comparison against another file,
-    in which case check_file1 is treated as before calibration,
-    whilst check_file2 is treated as after calibration.
 
     pt_bins is a list of pt bin edges to plot on the same graph
     pt_var is the varaible (pt or ptRef)
@@ -579,12 +537,12 @@ def plot_rsp_pt_hists(check_file, eta_min, eta_max, pt_bins, pt_var, oDir, oForm
     return filenames
 
 
-def plot_rsp_pt_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
+def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot a graph of response vs pt (L1) for a given eta bin"""
 
     grname = "eta_%g_%g/gr_rsp_pt_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
 
-    graphs = [cu.get_from_file(f, grname) for f in check_files if f]
+    graph = cu.get_from_file(check_file, grname)
 
     c = generate_canvas(plot_title)
 
@@ -592,12 +550,12 @@ def plot_rsp_pt_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     mg = ROOT.TMultiGraph()
 
-    for i, g in enumerate(graphs):
-        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
-        mg.Add(g)
-        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+    i = 0
+    graph.SetLineColor(plot_colors[i])
+    graph.SetMarkerColor(plot_colors[i])
+    graph.SetMarkerStyle(plot_markers[i])
+    mg.Add(graph)
+    leg.AddEntry(graph, plot_labels[i], "LP")
 
     pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
@@ -622,16 +580,14 @@ def plot_rsp_pt_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
-    append = "_compare" if len(graphs) > 1 else ""
+    append = ""
     c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
-def plot_rsp_ptRef_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
+def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     """Plot a graph of response vs pt (L1) for a given eta bin"""
 
     grname = "eta_%g_%g/gr_rsp_ptRef_eta_%g_%g" % (eta_min, eta_max, eta_min, eta_max)
-
-    graphs = [cu.get_from_file(f, grname) for f in check_files if f]
 
     c = generate_canvas(plot_title)
 
@@ -639,12 +595,13 @@ def plot_rsp_ptRef_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     mg = ROOT.TMultiGraph()
 
-    for i, g in enumerate(graphs):
-        g.SetLineColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerColor(plot_colors[i] if i < len(plot_colors) else ROOT.kBlack)
-        g.SetMarkerStyle(plot_markers[i] if i < len(plot_markers) else 20)
-        mg.Add(g)
-        leg.AddEntry(g, plot_labels[i] if i < len(plot_labels) else "", "LP")
+    i = 0
+    graph = cu.get_from_file(check_file, grname)
+    graph.SetLineColor(plot_colors[i])
+    graph.SetMarkerColor(plot_colors[i])
+    graph.SetMarkerStyle(plot_markers[i])
+    mg.Add(graph)
+    leg.AddEntry(graph, plot_labels[i], "LP")
 
     pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
@@ -669,7 +626,7 @@ def plot_rsp_ptRef_graph(check_files, eta_min, eta_max, oDir, oFormat='pdf'):
 
     leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
-    append = "_compare" if len(graphs) > 1 else ""
+    append = ""
     c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
 
@@ -776,21 +733,9 @@ def main(in_args=sys.argv[1:]):
 
     parser.add_argument("--res",
                         help="input ROOT file with resolution plots from makeResolutionPlots.py")
-    parser.add_argument("--res2",
-                        help="optional: 2nd input ROOT file with resolution plots from makeResolutionPlots.py. "
-                        "If you specify this one, then the file specified by --res will be treated as pre-calibration, "
-                        "whilst this one will be treated as post-calibration")
-    parser.add_argument("--res3",
-                        help="optional: 3rd input file for resolution plots")
 
     parser.add_argument("--checkcal",
                         help="input ROOT file with calibration check plots from checkCalibration.py")
-    parser.add_argument("--checkcal2",
-                        help="optional: 2nd input ROOT file with resolution plots from checkCalibration.py. "
-                        "If you specify this one, then the file specified by --checkcal will be treated as pre-calibration, "
-                        "whilst this one will be treated as post-calibration")
-    parser.add_argument("--checkcal3",
-                        help="yet another calibration check file")
 
     parser.add_argument("--calib",
                         help="input ROOT file from output of runCalibration.py")
@@ -801,7 +746,8 @@ def main(in_args=sys.argv[1:]):
                         help="Plot all the individual component hists for each eta bin. There are a lot!",
                         action='store_true')
     parser.add_argument("--format",
-                        help="Format for plots (PDF, png, etc)",
+                        help="Format for plots (PDF, png, etc). Note that 2D correlation plots will "
+                             "always be PNGs to avoid large files.",
                         default="pdf")
     parser.add_argument("--etaInd",
                         help="list of eta bin index to run over")
@@ -840,7 +786,7 @@ def main(in_args=sys.argv[1:]):
     cu.check_dir_exists_create(args.oDir)
 
     # Choose eta
-    ptBins = binning.pt_bins
+    # ptBins = binning.pt_bins
     # ptBins = binning.pt_bins_stage2_old
     ptBins = binning.pt_bins_stage2
 
@@ -875,49 +821,29 @@ def main(in_args=sys.argv[1:]):
     # ------------------------------------------------------------------------
     if args.res:
         res_file = cu.open_root_file(args.res)
-        if not args.res2:
-            # if not doing comparison
-            # pt_min = binning.pt_bins[10]
-            # pt_max = binning.pt_bins[11]
-            # for the first 4 bins - troublesome
+        # pt_min = binning.pt_bins[10]
+        # pt_max = binning.pt_bins[11]
+        # for the first 4 bins - troublesome
 
-            # exclusive eta graphs
-            # for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
-                # plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
-                # for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
-                #     plot_pt_diff(res_file, emin, emax, pt_min, pt_max, args.oDir, args.format)
-                # plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
+        # exclusive eta graphs
+        # for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
+            # plot_res_all_pt([res_file], emin, emax, args.oDir, args.format)
+            # for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
+            #     plot_pt_diff(res_file, emin, emax, pt_min, pt_max, args.oDir, args.format)
+            # plot_res_pt_bin(res_file, eta_min, eta_max, pt_min, pt_max, args.oDir, args.format)
 
-            # inclusive eta graph
-            plot_res_all_pt([res_file], 0, 3, args.oDir, args.format)
-            # plot_res_all_pt([res_file], 0, 5, args.oDir, args.format)
-            # plot_res_all_pt([res_file], 3, 5, args.oDir, args.format)
-            plot_ptDiff_Vs_pt(res_file, 0, 3, args.oDir, args.format)
-            # plot_ptDiff_Vs_pt(res_file, 0, 5, args.oDir, args.format)
-            # plot_ptDiff_Vs_pt(res_file, 3, 5, args.oDir, args.format)
-            # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
+        # inclusive eta graphs
+        for (eta_min, eta_max) in [[0, 3], [3, 5]]:
+            plot_res_all_pt(res_file, eta_min, eta_max, args.oDir, args.format)
+            plot_ptDiff_Vs_pt(res_file, eta_min, eta_max, args.oDir, args.format)
 
-            # components of these:
-            for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
-                plot_pt_diff(res_file, 0, 3, pt_min, pt_max, args.oDir, args.format)
-                # plot_pt_diff(res_file, 0, 5, pt_min, pt_max, args.oDir, args.format)
-                # plot_pt_diff(res_file, 3, 5, pt_min, pt_max, args.oDir, args.format)
+        # plot_eta_pt_rsp_2d(res_file, binning.eta_bins, binning.pt_bins[4:], args.oDir, args.format)
 
-        else:
-            # if doing comparison
-            res_files = [res_file]
-            if args.res2:
-                res_files.append(cu.open_root_file(args.res2))
-            if args.res3:
-                res_files.append(cu.open_root_file(args.res3))
-            # plot_res_all_pt(res_file, res_file2, eta_min, eta_max, args.oDir, args.format)
-            # for emin, emax in izip(binning.eta_bins[:-1], binning.eta_bins[1:]):
-            #     plot_res_all_pt(res_files, emin, emax, args.oDir, args.format)
-
-            plot_res_all_pt(res_files, 0, 3, args.oDir, args.format)
-            # plot_res_all_pt(res_files, 0, 5, args.oDir, args.format)
-            # plot_res_all_pt(res_files, 3, 5, args.oDir, args.format)
-            # plot_res_eta(res_files, binning.eta_bins, args.oDir, args.format)
+        # components of these:
+        for pt_min, pt_max in izip(binning.pt_bins[4:-1], binning.pt_bins[5:]):
+            plot_pt_diff(res_file, 0, 3, pt_min, pt_max, args.oDir, args.format)
+            # plot_pt_diff(res_file, 0, 5, pt_min, pt_max, args.oDir, args.format)
+            # plot_pt_diff(res_file, 3, 5, pt_min, pt_max, args.oDir, args.format)
 
         res_file.Close()
 
@@ -964,8 +890,6 @@ def main(in_args=sys.argv[1:]):
         plot_rsp_pt_binned_graph(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
         plot_rsp_pt_binned_graph(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
 
-        check_files = [cu.open_root_file(f) for f in [args.checkcal, args.checkcal2, args.checkcal3] if f]
-
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
         # for (eta_min, eta_max) in product([0, 3], [3, 5]):
         for (eta_min, eta_max) in [[0, 3], [3, 5]]:
@@ -982,13 +906,13 @@ def main(in_args=sys.argv[1:]):
                 plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
 
             # graphs
-            plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, 'pt', args.oDir, args.format)
-            plot_rsp_eta_inclusive_graph(check_files, eta_min, eta_max, 'ptRef', args.oDir, args.format)
+            plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, 'pt', args.oDir, args.format)
+            plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, 'ptRef', args.oDir, args.format)
             plot_rsp_eta_exclusive_graph(check_file, eta_min, eta_max, binning.check_pt_bins, 'pt', args.oDir, args.format)
             plot_rsp_eta_exclusive_graph(check_file, eta_min, eta_max, binning.check_pt_bins, 'ptRef', args.oDir, args.format)
 
-            plot_rsp_pt_graph(check_files, eta_min, eta_max, args.oDir, args.format)
-            plot_rsp_ptRef_graph(check_files, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_pt_graph(check_file, eta_min, eta_max, args.oDir, args.format)
+            plot_rsp_ptRef_graph(check_file, eta_min, eta_max, args.oDir, args.format)
 
             for etamin, etamax in izip(etaBins[:-1], etaBins[1:]):
                 # component plots for the eta graphs, binned by pt
