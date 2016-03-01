@@ -423,6 +423,43 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     c.SaveAs("%s/h2d_rsp_ref_%g_%g%s.%s" % (oDir, eta_min, eta_max, app, oFormat))
 
 
+def plot_rsp_Vs_pt_candle_violin(check_file, eta_min, eta_max, ptVar, oDir, oFormat):
+    """Plot response vs pt as a candle plot and violin plot.
+    Also puts fitted peak graph on there as well for comparison."""
+
+    hname = "eta_%g_%g/Histograms/h2d_rsp_%s" % (eta_min, eta_max, ptVar)
+    if cu.exists_in_file(check_file, hname):
+        h2d_rsp_pt_orig = cu.get_from_file(check_file, hname)
+    else:
+        h2d_rsp_pt_orig = cu.get_from_file(check_file, "eta_%g_%g/Histograms/h2d_rsp_%s" % (eta_min, eta_max, ptVar))
+    h2d_rsp_pt = h2d_rsp_pt_orig.Rebin2D(1, 1, "hnew")
+
+    c = generate_canvas()
+    h2d_rsp_pt.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
+    h2d_rsp_pt.Draw("CANDLE")
+    # Draw fitted peaks as well
+    gr_name = "eta_{0:g}_{1:g}/gr_rsp_{2}_eta_{0:g}_{1:g}".format(eta_min, eta_max, 'pt' if ptVar == 'l1' else 'ptRef')
+    gr = cu.get_from_file(check_file, gr_name)
+    gr.SetLineColor(ROOT.kRed)
+    gr.SetMarkerColor(ROOT.kRed)
+    gr.SetMarkerStyle(21)
+    gr.Draw("LP")
+
+    max_pt = 100
+    gr.GetXaxis().SetLimits(0, max_pt)
+    h2d_rsp_pt.SetAxisRange(0, max_pt, 'X')
+    h2d_rsp_pt.SetAxisRange(rsp_min, rsp_max, 'Y')
+
+    line = ROOT.TLine(0, 1, max_pt, 1)
+    line.SetLineStyle(2)
+    line.SetLineWidth(2)
+    line.Draw()
+    c.SaveAs("%s/h2d_rsp_%s_%g_%g_box.%s" % (oDir, 'l1' if ptVar == 'l1' else 'ref', eta_min, eta_max, oFormat))
+
+    h2d_rsp_pt.Draw("VIOLIN")
+    gr.Draw("LP")
+    c.SaveAs("%s/h2d_rsp_%s_%g_%g_violin.%s" % (oDir, 'l1' if ptVar == 'l1' else 'ref', eta_min, eta_max, oFormat))
+
 def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFormat="pdf"):
     """Plot a graph of response vs L1 eta."""
     grname = "eta_%g_%g/gr_rsp_%s_eta_%g_%g" % (eta_min, eta_max, pt_var, eta_min, eta_max)
@@ -862,6 +899,8 @@ def main(in_args=sys.argv[1:]):
                 plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
                 plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
                 plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
+                plot_rsp_Vs_pt_candle_violin(check_file, eta_min, eta_max, "l1", args.oDir, 'png')
+                plot_rsp_Vs_pt_candle_violin(check_file, eta_min, eta_max, "gen", args.oDir, 'png')
 
             if args.detail:
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
