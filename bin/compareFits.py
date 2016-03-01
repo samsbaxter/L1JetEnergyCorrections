@@ -63,8 +63,8 @@ def compare():
     f_PU15to25_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU15to25.root')
     f_PU30to40_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU30to40.root')
 
+    zoom_pt = [0, 150]
 
-    """
     # --------------------------------------------------------------------
     # New Stage 2 curves
     # Plot different PU scenarios for given eta bin
@@ -91,17 +91,16 @@ def compare():
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # zoom in on low pT
-        xlim = [0, 250]
         ylim = None
         if eta_min > 2:
             ylim = [0, 3.5]
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), xlim=xlim, ylim=ylim)
+                 title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
         p.plot()
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-    """
+
     """
     # --------------------------------------------------------------------
     # New vs Old curves
@@ -179,7 +178,7 @@ def compare():
 
     for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
         # --------------------------------------------------------------------
-        # Plot diff PU scenarios for given eta bin
+        # Plot diff PU scenarios for given eta bin, for max PUS ntuples
         # --------------------------------------------------------------------
         graphs = [
             Contribution(file_name=f_PU0to10_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
@@ -200,18 +199,17 @@ def compare():
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # zoom in on low pT
-        xlim = [0, 250]
         ylim = None
         if eta_min > 2.9:
             ylim = [0, 3.5]
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title="Spring15 MC, no JEC, Stage 2, max PUS, %g < |#eta| < %g" % (eta_min, eta_max), xlim=xlim, ylim=ylim)
+                 title="Spring15 MC, no JEC, Stage 2, max PUS, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
         p.plot()
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
     """
-    """
+
     # --------------------------------------------------------------------
     # New Stage 2 curves for DATA
     # Plot different PU scenarios for given eta bin
@@ -239,18 +237,17 @@ def compare():
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # zoom in on low pT
-        xlim = [0, 250]
         ylim = None
         if eta_min > 2:
             ylim = [0, 3.5]
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, xlim=xlim, ylim=ylim)
+                 title=title, xlim=zoom_pt, ylim=ylim)
         p.plot()
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-    """
-    """
+
+
     # --------------------------------------------------------------------
     # DATA vs MC curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
@@ -280,17 +277,16 @@ def compare():
         p.save(os.path.join(oDir, "compare_data_mcSpring15_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # zoom in on low pT
-        xlim = [0, 250]
         ylim = None
         if eta_min > 2:
             ylim = [0, 3.5]
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, xlim=xlim, ylim=ylim)
+                 title=title, xlim=zoom_pt, ylim=ylim)
         p.plot()
         p.save(os.path.join(oDir, "compare_data_mcSpring15_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-    """
+
 
     # --------------------------------------------------------------------
     # L1-Gen vs L1-PF curves
@@ -321,10 +317,14 @@ def compare():
         oDir = s2_L1PF
         for i, pu_label in enumerate(['PU0to10', 'PU15to25', 'PU30to40']):
             p = Plot(contributions=[new_graphs[i], L1PF_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 MC, no JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
+                     title="Spring15 MC, no L1JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
             p.plot()
             p.save(os.path.join(oDir, "compare_L1Gen_L1PF_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
 
+            p = Plot(contributions=[new_graphs[i], L1PF_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                     title="Spring15 MC, no L1JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
+            p.plot()
+            p.save(os.path.join(oDir, "compare_L1Gen_L1PF_eta_%g_%g_%s_pTzoomed.pdf" % (eta_min, eta_max, pu_label)))
 
 if __name__ == "__main__":
     compare()
