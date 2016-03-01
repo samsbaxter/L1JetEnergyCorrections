@@ -389,6 +389,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
         h2d_rsp_l1.Draw("COL")
     else:
         h2d_rsp_l1.Draw("COLZ")
+    h2d_rsp_l1.SetAxisRange(rsp_min, rsp_max, 'Y')
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
@@ -416,6 +417,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
         h2d_rsp_ref.Draw("COL")
     else:
         h2d_rsp_ref.Draw("COLZ")
+    h2d_rsp_ref.SetAxisRange(rsp_min, rsp_max, 'Y')
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
