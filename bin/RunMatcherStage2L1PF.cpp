@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
                                                        "Event");
     L1AnalysisEventDataFormat * eventData = eventTree.getData();
 
-    // hold nVtx info
+    // hold reco vertex info
     L1GenericTree<L1AnalysisRecoVertexDataFormat> recoVtxTree(opts.inputFilename(),
                                                               "l1RecoTree/RecoTree",
                                                                "Vertex");

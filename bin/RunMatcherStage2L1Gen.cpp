@@ -20,6 +20,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisEventDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoVertexDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
@@ -35,6 +36,7 @@ using std::endl;
 using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
+using L1Analysis::L1AnalysisRecoVertexDataFormat;
 using boost::lexical_cast;
 
 namespace fs = boost::filesystem;
@@ -85,6 +87,12 @@ int main(int argc, char* argv[]) {
                                                          "l1EventTree/L1EventTree",
                                                          "Event");
     L1AnalysisEventDataFormat * eventData = eventTree.getData();
+
+    // hold reco vertex info
+    L1GenericTree<L1AnalysisRecoVertexDataFormat> recoVtxTree(opts.inputFilename(),
+                                                              "l1RecoTree/RecoTree",
+                                                               "Vertex");
+    L1AnalysisRecoVertexDataFormat * recoVtxData = recoVtxTree.getData();
 
     // input filename stem (no .root)
     fs::path inPath(opts.inputFilename());
@@ -141,8 +149,11 @@ int main(int argc, char* argv[]) {
     outTree.Branch("nMatches", &out_nMatches, "nMatches/Int_t");
     // PU quantities
     float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
+    int out_recoNVtx(0);
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
     outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+    outTree.Branch("recoNVtx", &out_recoNVtx, "recoNVtx/Int_t");
+
     // Event number
     ULong64_t out_event(0);
     outTree.Branch("event", &out_event, "event/Int_t");
@@ -209,9 +220,8 @@ int main(int argc, char* argv[]) {
             cout << "Entry: " << iEntry << " at " << getCurrentTime() << endl;
         }
 
-        if (refJetTree.getEntry(iEntry) < 1 ||
-            l1JetTree.getEntry(iEntry) < 1 ||
-            eventTree.getEntry(iEntry) < 1)
+        if (refJetTree.getEntry(iEntry) < 1 || l1JetTree.getEntry(iEntry) < 1 ||
+            eventTree.getEntry(iEntry) < 1 || recoVtxTree.getEntry(iEntry) < 1)
             break;
 
         ////////////////////////
@@ -226,6 +236,7 @@ int main(int argc, char* argv[]) {
         puInfoTree.GetEntry(iEntry);
         out_trueNumInteractions = puInfoTree.trueNumInteractions();
         out_numPUVertices = puInfoTree.numPUVertices();
+        out_recoNVtx = recoVtxData->nVtx;
 
         /////////////////////////////////////////////
         // Make vectors of ref & L1 jets from trees //
