@@ -9,7 +9,7 @@
 <include_path path="../interface"/>
 <!-- <include_path path="../../L1TNtuples/interface"/> -->
 <bin name="RunMatcher" file="RunMatcher.cpp"/>
-<bin name="RunMatcherStage2" file="RunMatcherStage2.cpp"/>
+<bin name="RunMatcherStage2L1Gen" file="RunMatcherStage2L1Gen.cpp"/>
 <bin name="RunMatcherData" file="RunMatcherData.cpp"/>
 <bin name="RunMatcherStage2PFGen" file="RunMatcherStage2PFGen.cpp"/>
 <bin name="RunMatcherStage2L1PF" file="RunMatcherStage2L1PF.cpp"/>
