@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
     outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
     // Event number
-    int out_event(0);
+    ULong64_t out_event(0);
     outTree.Branch("event", &out_event, "event/Int_t");
 
     // L1 sums
