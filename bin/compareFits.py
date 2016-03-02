@@ -229,7 +229,7 @@ def compare():
         ylim = None
         if eta_min > 2:
             ylim = [0, 3.5]
-        title = "Run 260627, SingleMu, no JEC, TightLepVeto + elMult0 + muMult0 cuts, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
+        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0), Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title=title, ylim=ylim)
         p.plot()
@@ -249,7 +249,7 @@ def compare():
 
 
     # --------------------------------------------------------------------
-    # DATA vs MC curves (all PU for data, PU binned for MC)
+    # DATA vs MC (L1-Gen) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
     for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
 
@@ -269,12 +269,12 @@ def compare():
         ylim = None
         if eta_min > 2:
             ylim = [0, 3.5]
-        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0 cuts) VS Spring 15 QCD MC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
+        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs GenJet, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title=title, ylim=ylim)
         p.plot()
         oDir = s2_data
-        p.save(os.path.join(oDir, "compare_data_mcSpring15_eta_%g_%g.pdf" % (eta_min, eta_max)))
+        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1gen_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
         # zoom in on low pT
         ylim = None
@@ -283,10 +283,46 @@ def compare():
         p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                  title=title, xlim=zoom_pt, ylim=ylim)
         p.plot()
-        p.save(os.path.join(oDir, "compare_data_mcSpring15_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
+        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1gen_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
 
+    # --------------------------------------------------------------------
+    # DATA vs MC (L1-PF) curves (all PU for data, PU binned for MC)
+    # --------------------------------------------------------------------
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
+
+        graphs = [
+            Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
+            Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+            Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+            Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+        ]
+
+        ylim = None
+        if eta_min > 2:
+            ylim = [0, 3.5]
+        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs PF, Stage 2, L1 vs PF, %g < |#eta| < %g" % (eta_min, eta_max)
+        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                 title=title, ylim=ylim)
+        p.plot()
+        oDir = s2_data
+        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1pf_eta_%g_%g.pdf" % (eta_min, eta_max)))
+
+        # zoom in on low pT
+        ylim = None
+        if eta_min > 2:
+            ylim = [0, 3.5]
+        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                 title=title, xlim=zoom_pt, ylim=ylim)
+        p.plot()
+        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1pf_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
+
+        xlim = None
 
     # --------------------------------------------------------------------
     # L1-Gen vs L1-PF curves
