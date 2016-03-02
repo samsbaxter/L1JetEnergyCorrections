@@ -43,7 +43,11 @@ using boost::lexical_cast;
 
 namespace fs = boost::filesystem;
 
-
+/**
+ * @brief Matching PF jets from JetRecoTree, to reference GenJets from the L1ExtraTree.
+ *
+ * @author Robin Aggleton, March 2016
+ */
 int main(int argc, char* argv[]) {
 
     cout << "Running Matcher, PF jets to GenJets" << std::endl;

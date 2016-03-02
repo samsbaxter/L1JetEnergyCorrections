@@ -40,15 +40,13 @@ using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
 /**
- * @brief
- * This version is for running on Stage2, when you want to take L1 jets from the
- * L1Upgrade collection, and reference jets from the RecoTree.
+ * @brief Matching L1 jets from L1UpgradeTree, to reference PF jets from JetRecoTree.
  *
- * @author Robin Aggleton, Nov 2015
+ * @author Robin Aggleton, March 2016
  */
 int main(int argc, char* argv[]) {
 
-    cout << "Running Matcher for data" << std::endl;
+    cout << "Running Matcher, L1 Jets to PF Jets" << std::endl;
 
     // deal with user args
     RunMatcherOpts opts(argc, argv);
@@ -57,7 +55,7 @@ int main(int argc, char* argv[]) {
     // SETUP INPUT FILES //
     ///////////////////////
     // get input TTrees
-    // Reco jets
+      // Reference jets - PF jets
     TString refJetDirectory = opts.refJetDirectory();
     L1GenericTree<L1AnalysisRecoJetDataFormat> refJetTree(opts.inputFilename(),
                                                           refJetDirectory+"/JetRecoTree",

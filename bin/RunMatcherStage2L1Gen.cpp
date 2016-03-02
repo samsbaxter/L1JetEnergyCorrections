@@ -47,15 +47,13 @@ float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
 float iPhiToPhi(int iphi);
 
 /**
- * @brief This program implements an instance of Matcher to produce a ROOT file
- * with matching jet pairs from a L1NTuple file produced by
- * python/SimL1Emulator_Stage2.py.
+ * @brief Matching L1 jets from L1UpgradeTree, to reference GenJets from L1ExtraTree.
  *
- * @author Robin Aggleton, Nov 2014
+ * @author Robin Aggleton, March 2016
  */
 int main(int argc, char* argv[]) {
 
-    cout << "Running Matcher" << std::endl;
+    cout << "Running Matcher, L1 Jets to GenJets" << std::endl;
 
     // deal with user args
     RunMatcherOpts opts(argc, argv);
