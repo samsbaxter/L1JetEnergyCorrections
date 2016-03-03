@@ -112,4 +112,4 @@ process.l1JetRecoTree.jecToken = 'ak4PFCHSL1FastL2L3Corrector'
 jet_seed_threshold = 1.5
 process.caloStage2Params.jetSeedThreshold = cms.double(jet_seed_threshold)
 # Set the NTuple filename
-process.TFileService.fileName = cms.string("L1Ntuple_Stage2_Spring15MC_HF_26Feb_layer1_noL1Jec_%s_jst%s.root" % (process.GlobalTag.globaltag.value(), str(jet_seed_threshold).replace('.', 'p')))
+process.TFileService.fileName = cms.string("L1Ntuple_Stage2_Fall15MC_HF_layer1_noL1Jec_%s_jst%s.root" % (process.GlobalTag.globaltag.value(), str(jet_seed_threshold).replace('.', 'p')))
