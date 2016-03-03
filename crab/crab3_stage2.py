@@ -23,13 +23,14 @@ cmssw_config = importlib.import_module(os.path.splitext(os.path.basename(PY_CONF
 jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
 print 'Running with JetSeedThreshold', jst
 
-# CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stage2_HF_QCDSpring15_26Feb_integration-v7_layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
+# CHANGE ME - to make a unique indentifier for each set of jobs
+job_append = "Stage2_HF_QCDFall15_4Mar_integration-v7_layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 
-# CHANGE ME - select dataset(s) keys to run over - see mc_samples.py
-# datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # RAW only
-datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # RAW + RECO (via useParent)
+# CHANGE ME - select dataset(s) keys to run over - see python/mc_samples.py
+# datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # Fall15, RAW only
+# datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # Spring15, RAW + RECO (via useParent)
+datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
 
 
 if __name__ == "__main__":
