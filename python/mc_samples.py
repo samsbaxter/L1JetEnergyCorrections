@@ -13,12 +13,14 @@ dataset = "TTbarFall13PU20bx25"
 config.General.requestName = dataset
 config.Data.inputDataset = samples[dataset].inputDataset
 config.Data.unitsPerJob = samples[dataset].unitsPerJob
+config.Data.useParent = samples[dataset].useParent
 
 totalUnits can take the values:
 -1: run over all files in the dataset
 0 - 1: run over this fraction of the dataset
 >1: run over this many files
 
+You can use get_number_files() to ask DAS how many files there are in a dataset.
 """
 
 from collections import namedtuple
@@ -47,16 +49,23 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 
 # This dict holds ALL samples
 samples = {
+    # FALL 15/76X
+    # -----------
+    "ttHTobbFall15PU30RECO": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
+                                     useParent=True, unitsPerJob=10, totalUnits=-1),
 
-    "QCDFlatFall15PU10to25": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat10to25TSG_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                     useParent=False, unitsPerJob=10, totalUnits=-1),
+    # Only has 1M events... not sure exactly what this is for
+    # "QCDFlatFall15PU10to25TSGRECO": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat10to25TSG_76X_mcRun2_asymptotic_v12-v1/AODSIM",
+    #                                         useParent=True, unitsPerJob=10, totalUnits=-1),
 
-    "QCDFlatFall15PU0to50NzshcalRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                              useParent=False, unitsPerJob=10, totalUnits=-1),
+    "QCDFlatFall15PU0to50NzshcalRawRECO": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
+                                                  useParent=True, unitsPerJob=10, totalUnits=-1),  # has about 9M events
 
-    "QCDFlatFall15NoPU": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                 useParent=False, unitsPerJob=10, totalUnits=-1),
+    "QCDFlatFall15NoPURECO": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/AODSIM",
+                                     useParent=True, unitsPerJob=10, totalUnits=-1),  # has about 9M events
 
+    # SPRING 15/74X
+    # -------------
     "QCDFlatSpring15BX25PU10to30HCALFix": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15DR74-NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/GEN-SIM-RAW',
                                                   useParent=False, unitsPerJob=10, totalUnits=-1),
 
@@ -74,23 +83,11 @@ samples = {
     "TTbarSpring15AVE30BX50": Dataset(inputDataset='/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                       useParent=False, unitsPerJob=25, totalUnits=-1),
 
-    "TTbarPhys14AVE30BX50": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Phys14DR-AVE30BX50_tsg_PHYS14_ST_V1-v1/GEN-SIM-RAW',
-                                    useParent=False, unitsPerJob=25, totalUnits=600),
-
-    "TTbarFall13PU20bx25": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Fall13dr-tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW',
-                                   useParent=False, unitsPerJob=100, totalUnits=-1),
-
     "QCDFlatSpring15BX50": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15Digi74-Flat_10_50_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                    useParent=False, unitsPerJob=50, totalUnits=-1),
 
     "QCDFlatSpring15BX25": Dataset(inputDataset='/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring15Digi74-Flat_10_50_25ns_tsg_MCRUN2_74_V7-v1/GEN-SIM-RAW',
                                    useParent=False, unitsPerJob=10, totalUnits=-1),
-
-    "QCDFlatSpring14": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Spring14dr-Flat20to50_POSTLS170_V5-v1/GEN-SIM-RAW',
-                               useParent=False, unitsPerJob=50, totalUnits=-1),
-
-    "QCDFlatPhys14BX50": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Phys14DR-Flat20to50BX50_tsg_PHYS14_ST_V1-v2/GEN-SIM-RAW',
-                                 useParent=False, unitsPerJob=50, totalUnits=-1),
 
     "SingleNeutrinoSpring15AVE30BX50": Dataset(inputDataset='/SingleNeutrino/RunIISpring15Digi74-AVE_30_BX_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                                useParent=False, unitsPerJob=50, totalUnits=600),
@@ -98,8 +95,23 @@ samples = {
     "SingleNeutrinoSpring15Flat10to50BX50": Dataset(inputDataset='/SingleNeutrino/RunIISpring15Digi74-Flat_10_50_50ns_tsg_MCRUN2_74_V6-v1/GEN-SIM-RAW',
                                                     useParent=False, unitsPerJob=50, totalUnits=600),
 
+    # PHYS 14
+    # -------
+    "TTbarPhys14AVE30BX50": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Phys14DR-AVE30BX50_tsg_PHYS14_ST_V1-v1/GEN-SIM-RAW',
+                                    useParent=False, unitsPerJob=25, totalUnits=600),
+
+    "QCDFlatPhys14BX50": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Phys14DR-Flat20to50BX50_tsg_PHYS14_ST_V1-v2/GEN-SIM-RAW',
+                                 useParent=False, unitsPerJob=50, totalUnits=-1),
+
     "NeutrinoGunPhys14BX50": Dataset(inputDataset='/Neutrino_Pt-2to20_gun/Phys14DR-AVE30BX50_tsg_PHYS14_ST_V1-v1/GEN-SIM-RAW',
-                                     useParent=False, unitsPerJob=35, totalUnits=560)
+                                     useParent=False, unitsPerJob=35, totalUnits=560),
+
+    "QCDFlatSpring14": Dataset(inputDataset='/QCD_Pt-15to3000_Tune4C_Flat_13TeV_pythia8/Spring14dr-Flat20to50_POSTLS170_V5-v1/GEN-SIM-RAW',
+                               useParent=False, unitsPerJob=50, totalUnits=-1),
+
+    "TTbarFall13PU20bx25": Dataset(inputDataset='/TT_Tune4C_13TeV-pythia8-tauola/Fall13dr-tsg_PU20bx25_POSTLS162_V2-v1/GEN-SIM-RAW',
+                                   useParent=False, unitsPerJob=100, totalUnits=-1),
+
 }
 
 # Add in QCD pt binned samples here easily
