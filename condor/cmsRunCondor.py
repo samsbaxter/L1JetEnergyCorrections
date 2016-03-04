@@ -120,6 +120,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
         raise RuntimeError('You must specify a dataset')
 
     # TODO: use das_client API
+    log.info("Querying DAS for dataset info, please be patient...")
     cmds = ['das_client.py',
             '--query',
             'summary dataset=%s' % args.dataset,
@@ -154,6 +155,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     ###########################################################################
     # Make a list of input files for each job to avoid doing it on worker node
     ###########################################################################
+    log.info("Querying DAS for filenames, please be patient...")
     cmds = ['das_client.py',
             '--query',
             'file dataset=%s' % args.dataset,
@@ -218,6 +220,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     # copy to /hdfs or /storage to avoid transfer/copying issues
     sandbox_location = os.path.join(args.outputDir, sandbox_file)
     if args.outputDir.startswith('/hdfs'):
+        log.info("Copying %s to %s", sandbox_file, args.outputDir)
         subprocess.call(['hadoop', 'fs', '-copyFromLocal', '-f',
                          sandbox_file, args.outputDir.replace("/hdfs", "")])
     else:
