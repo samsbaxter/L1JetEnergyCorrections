@@ -31,7 +31,7 @@ job_append = "Stage2_HF_QCDFall15_4Mar_integration-v7_layer1_noL1JEC_jst%s" % st
 outputDir = "/hdfs/L1JEC/CMSSW_8_0_0_pre6/L1JetEnergyCorrections/%s" % job_append
 
 datestamp = strftime("%d_%b_%y")
-logDir = "/storage/%s/L1JEC/%s/L1JetEnergyCorrections/%s" % (os.environ['LOGNAME'], os.environ['CMSSW_VERSION'], datestamp)
+logDir = "/storage/%s/L1JEC/%s/L1JetEnergyCorrections/%s/%s" % (os.environ['LOGNAME'], os.environ['CMSSW_VERSION'], datestamp, job_append)
 
 datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]
 
@@ -66,5 +66,6 @@ if __name__ == "__main__":
                                  '--filesPerJob', str(dset_opts.unitsPerJob),
                                  '--totalFiles', str(dset_opts.totalUnits),
                                  '--outputScript', scriptName,
-                                 '--dag', os.path.join(logDir, 'cmsRunCondorDAG_%s.dag' % timestamp)
+                                 '--dag', os.path.join(logDir, 'cmsRunCondorDAG_%s.dag' % timestamp),
+                                 '--log', os.path.join(logDir, dset)
                                  ])
