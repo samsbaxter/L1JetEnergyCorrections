@@ -245,12 +245,13 @@ def cmsRunCondor(in_args=sys.argv[1:]):
                                               time)
 
     job = job_template.replace("SEDINITIAL", "")  # don't use initialdir for now
-    log_dir = "%s/%s/%s" % (args.log, date, dset_uscore)
-    log_str = "%s/%s" % (log_dir, args.outputScript.replace(".condor", ""))
+    # log_dir = "%s/%s/%s" % (args.log, date, dset_uscore)
+    log_dir = os.path.realpath(args.log)
+    log_filename = os.path.join(log_dir, os.path.basename(args.outputScript).replace(".condor", ""))
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
     log.info('Logs for each job will be written to %s', log_dir)
-    job = job.replace("SEDLOG", log_str)
+    job = job.replace("SEDLOG", log_filename)
 
     # Construct args to pass to cmsRun_worker.sh on the worker node
     args_dict = dict(output=args.outputDir,
