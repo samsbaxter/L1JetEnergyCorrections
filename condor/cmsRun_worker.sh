@@ -112,8 +112,9 @@ fi
 echo "process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))" >> $wrapper
 echo "if hasattr(process, 'TFileService'): process.TFileService.fileName = "\
 "cms.string(process.TFileService.fileName.value().replace('.root', '_${ind}.root'))" >> $wrapper
-echo "process.output.fileName = cms.untracked.string("\
-"process.output.fileName.value().replace('.root', '_${ind}.root'))" >> $wrapper
+echo "for omod in process.outputModules.itervalues():" >> $wrapper
+echo "    omod.fileName = cms.untracked.string(process.output.fileName.value().replace('.root', '_${ind}.root'))" >> $wrapper
+echo ""
 
 echo "==== Wrapper script ====="
 echo ""
