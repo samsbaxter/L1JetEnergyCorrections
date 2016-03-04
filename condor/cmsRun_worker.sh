@@ -133,7 +133,7 @@ echo ""
 echo "========================="
 
 # Get offline JEC SQL database
-hadoop fs -copyToLocal /user/ra12451/L1JEC/Summer15_25nsV6_DATA.db Summer15_25nsV6_DATA.db
+# hadoop fs -copyToLocal /user/ra12451/L1JEC/Summer15_25nsV6_DATA.db Summer15_25nsV6_DATA.db
 
 ###############################################################################
 # Now finally run script!
