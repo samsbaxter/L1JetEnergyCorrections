@@ -41,7 +41,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.options = cms.untracked.PSet(
-
+    wantSummary = cms.untracked.bool(True)
 )
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
@@ -96,10 +96,12 @@ from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1NtupleJEC_OFF
 process = L1NtupleJEC_OFF(process)
 
 # Automatic addition of the customisation function from L1Trigger.Configuration.customiseUtils
-from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAndCalo
+from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAndCalo, L1TTurnOffGtAndGmtEmulation
 
 #call to customisation function L1TTurnOffUnpackStage2GtGmtAndCalo imported from L1Trigger.Configuration.customiseUtils
 process = L1TTurnOffUnpackStage2GtGmtAndCalo(process)
+
+process = L1TTurnOffGtAndGmtEmulation(process)
 
 # End of customisation functions
 
