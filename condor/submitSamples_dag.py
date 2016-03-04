@@ -11,38 +11,54 @@ The results of each dataset in the datasets list will be stored in: <outputDir>/
 
 outputDir should be on /hdfs !
 """
-
 import sys
+import importlib
 import os
 from cmsRunCondor import cmsRunCondor
 import L1Trigger.L1JetEnergyCorrections.mc_samples as samples
-from time import strftime, sleep
-from subprocess import call
+from time import strftime
 
 
-config = "../python/SimL1Emulator_Stage2.py"
-outputDir = "/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_22Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_test"
+config = "../python/SimL1Emulator_Stage2_HF_MC.py"
 
-datasets = ['QCDFlatSpring15BX25PU10to30HCALFix', 'QCDFlatSpring15BX25FlatNoPUHCALFix']
+sys.path.append(os.path.dirname(os.path.abspath(config)))  # nasty hack cos python packaging stoopid
+cmssw_config = importlib.import_module(os.path.splitext(os.path.basename(config))[0],)
+jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
+print 'Running with JetSeedThreshold', jst
+
+# CHANGE ME - to make a unique indentifier for each set of jobs
+job_append = "Stage2_HF_QCDFall15_4Mar_integration-v7_layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
+outputDir = "/hdfs/L1JEC/CMSSW_8_0_0_pre6/L1JetEnergyCorrections/%s" % job_append
+
+datestamp = strftime("%d_%b_%y")
+logDir = "/storage/%s/L1JEC/%s/L1JetEnergyCorrections/%s" % (os.environ['LOGNAME'], os.environ['CMSSW_VERSION'], datestamp)
+
+datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]
+
 
 if __name__ == "__main__":
+    if not os.path.isdir(logDir):
+        os.makedirs(logDir)
+
     # Run through datasets once to check all fine
     for dset in datasets:
-        if not dset in samples.samples.keys():
+        if dset not in samples.samples.keys():
             raise KeyError("Wrong dataset key name:", dset)
-        if not samples.check_dataset_exists(samples.samples[dset].inputDataset):
-            raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
+        # if not samples.check_dataset_exists(samples.samples[dset].inputDataset):
+            # raise RuntimeError("Dataset cannot be found in DAS: %s" % samples.samples[dset].inputDataset)
 
     status_names = []
 
     for dset in datasets:
 
         dset_opts = samples.samples[dset]
-        print "*"*80
+        print "*" * 80
         print "Dataset key:", dset
 
         # Make the condor submit script for this dataset
-        scriptName = '%s_%s_%s.condor' % (os.path.basename(config).replace(".py", ""), dset, strftime("%H%M%S"))
+        timestamp = strftime("%H%M%s")
+        scriptName = '%s_%s_%s.condor' % (os.path.basename(config).replace(".py", ""), dset, timestamp)
+        scriptName = os.path.join(logDir, scriptName)
         print "Script Name:", scriptName
         job_dict = cmsRunCondor(['--config', config,
                                  '--outputDir', os.path.join(outputDir, dset),
@@ -50,5 +66,5 @@ if __name__ == "__main__":
                                  '--filesPerJob', str(dset_opts.unitsPerJob),
                                  '--totalFiles', str(dset_opts.totalUnits),
                                  '--outputScript', scriptName,
-                                 '--dag'
+                                 '--dag', os.path.join(logDir, 'cmsRunCondorDAG_%s.dag' % timestamp)
                                  ])
