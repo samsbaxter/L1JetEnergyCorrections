@@ -64,11 +64,12 @@ def cmsRunCondor(in_args=sys.argv[1:]):
                         "don't submit to queue.",
                         action='store_true')
     parser.add_argument("--dag",
-                        help="If you want to run as a condor DAG. ",
-                        action='store_true')
+                        type=str,
+                        help="Specify DAG filename if you want to run as a condor DAG."
+                        "**Strongly recommended** to put it on /storage")
     parser.add_argument('--log',
                         help="Location to store job stdout/err/log files. "
-                        "Default is $PWD/logs.",
+                        "Default is $PWD/logs, but would recommend to put it on /storage",
                         default='logs')
     args = parser.parse_args(args=in_args)
 
@@ -243,7 +244,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     job = job_template.replace("SEDINITIAL", "")  # don't use initialdir for now
     log_dir = "%s/%s/%s" % (args.log, date, dset_uscore)
     log_str = "%s/%s" % (log_dir, args.outputScript.replace(".condor", ""))
-    if not os.path.exists(log_dir):
+    if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
     log.info('Logs for each job will be written to %s', log_dir)
     job = job.replace("SEDLOG", log_str)
@@ -269,7 +270,11 @@ def cmsRunCondor(in_args=sys.argv[1:]):
     # Setup DAG file if needed
     ###########################################################################
     if args.dag:
-        dag_name = "jobs_%s_%s_%s.dag" % (dset_uscore, date, time)
+        # dag_name = "jobs_%s_%s_%s.dag" % (dset_uscore, date, time)
+        args.dag = os.path.realpath(args.dag)
+        dag_name = args.dag
+        if not os.path.isdir(os.path.dirname(dag_name)):
+            os.makedirs(os.path.dirname(dag_name))
         status_file = dag_name.replace(".dag", ".status")
         print "DAG Name:", dag_name
         with open(dag_name, "w") as dag_file:
