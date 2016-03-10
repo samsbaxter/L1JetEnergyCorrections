@@ -52,7 +52,7 @@ samples = {
     # FALL 15/76X
     # -----------
     "ttHTobbFall15PU30": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                 useParent=False, unitsPerJob=10, totalUnits=0.5),
+                                 useParent=False, unitsPerJob=10, totalUnits=-1),
 
     "ttHTobbFall15PU30RECO": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
                                      useParent=True, unitsPerJob=1, totalUnits=1),
@@ -65,13 +65,13 @@ samples = {
                                               useParent=False, unitsPerJob=10, totalUnits=-1),  # has about 9M events, 2K evt/file
 
     "QCDFlatFall15PU0to50NzshcalRawRECO": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
-                                                  useParent=True, unitsPerJob=1, totalUnits=1),  # has about 9M events, 9k evt/file
+                                                  useParent=True, unitsPerJob=1, totalUnits=-1),  # has about 9M events, 9k evt/file
 
     "QCDFlatFall15NoPU": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
                                  useParent=False, unitsPerJob=10, totalUnits=-1),  # has about 9M events, 2K evt/file
 
     "QCDFlatFall15NoPURECO": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/AODSIM",
-                                     useParent=True, unitsPerJob=1, totalUnits=1),  # has about 9M events, 9K evt/file
+                                     useParent=True, unitsPerJob=1, totalUnits=-1),  # has about 9M events, 9K evt/file
 
     # SPRING 15/74X
     # -------------
