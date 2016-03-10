@@ -14,6 +14,7 @@ config.General.requestName = ""  # put some descriptive name for the set of jobs
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = ""  # the cmssw config file path
+config.JobType.inputFiles = ['Fall15_25nsV2_MC.db']
 
 config.Data.splitting = 'FileBased'
 # config.Data.splitting = 'LumiBased'  # use this for data
