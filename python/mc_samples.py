@@ -27,12 +27,15 @@ from collections import namedtuple
 import re
 import subprocess
 import json
+import os
 
 
 # some helper functions
 def get_number_files(dataset):
     """Get total number of files in dataset"""
-    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json']
+    HOME = os.environ['HOME']
+    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json',
+            '--key=%s/.globus/userkey.pem' % HOME, '--cert=%s/.globus/usercert.pem' % HOME]
     output = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
     summary_dict = json.loads(output)
     return int(summary_dict['data'][0]['summary'][0]['nfiles'])
