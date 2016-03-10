@@ -47,6 +47,9 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 # This dict holds ALL samples
 samples = {
 
+    "SingleMuReReco_Run2015D": Dataset(inputDataset='/SingleMuon/Run2015D-16Dec2015-v1/AOD',
+                                       useParent=True, unitsPerJob=4, totalUnits=-1),
+
     "Express_Run2015B_50ns": Dataset(inputDataset='/ExpressPhysics/Run2015B-Express-v1/FEVT',
                                      useParent=False, unitsPerJob=15, totalUnits=-1),
 
