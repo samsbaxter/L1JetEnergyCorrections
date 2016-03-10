@@ -1,33 +1,13 @@
-"""
-Config file to run the Stage 2 emulator to make Ntuples.
-
-Now comes with HF!
-
-Stores L1 jets, as well as ak4 PFjets (with calibrations)
-"""
-
 # Auto generated configuration file
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: l1Ntuple -s RAW2DIGI,L1Reco --era=Run2_2016 --customise=L1Trigger/Configuration/customise_Stage2Calo.Stage2CaloFromRaw --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODRAWEMU --conditions=auto:run2_data -n 10 --data --filein=/store/data/Run2015D/SingleMuon/RAW-RECO/MuTau-PromptReco-v4/000/260/627/00000/00C3E929-6D84-E511-AFDF-02163E0146A5.root --geometry=Extended2016,Extended2016Reco
+# with command line options: l1NtupleRECO -s RAW2DIGI --era=Run2_2016 --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODEMU --customise=L1Trigger/Configuration/customiseUtils.L1TTurnOffUnpackStage2GtGmtAndCalo --customise=L1Trigger/Configuration/customiseUtils.L1TTurnOffGtAndGmtEmulation --conditions=auto:run2_data -n 200 --data --no_exec --no_output --filein=/store/data/Run2015D/DoubleEG/RAW-RECO/ZElectron-PromptReco-v4/000/260/627/00000/12455212-1E85-E511-8913-02163E014472.root --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1JetEnergyCorrections/customiseL1JEC.L1JEC_off
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 
-#############################################################################
-# COMMON FLAGS:
-#
-# To save the EDM content as well:
-# (WARNING: DON'T do this for big production - will be HUGE)
-save_EDM = False
-
-# Things to append to L1Ntuple/EDM filename (globalTag added later)
-file_append = "_Stage2_Data_HF_8Feb_test500fixed"
-
-#############################################################################
-
-process = cms.Process('L1Reco',eras.Run2_2016)
+process = cms.Process('RAW2DIGI',eras.Run2_2016)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -37,101 +17,82 @@ process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.Geometry.GeometryExtended2016Reco_cff')
 process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
 process.load('Configuration.StandardSequences.RawToDigi_Data_cff')
-process.load('Configuration.StandardSequences.L1Reco_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-process.MessageLogger.suppressWarning = cms.untracked.vstring(
-    "l1UpgradeTree",
-    "l1CaloTowerTree",
-    "gtStage2Digis",
-    "gmtStage2Digis"
-)
-
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(200)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
-    # fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleMuon/RAW-RECO/MuTau-PromptReco-v4/000/260/627/00000/00C3E929-6D84-E511-AFDF-02163E0146A5.root'),
-    fileNames = cms.untracked.vstring('/store/data/Run2015D/SingleMuon/RAW-RECO/MuTau-PromptReco-v4/000/260/627/00000/CAB1ED60-6A84-E511-8D5A-02163E014366.root'),
+    fileNames = cms.untracked.vstring('/store/data/Run2015D/DoubleEG/RAW-RECO/ZElectron-PromptReco-v4/000/260/627/00000/12455212-1E85-E511-8913-02163E014472.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool(True)
+
 )
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('l1Ntuple nevts:10'),
+    annotation = cms.untracked.string('l1NtupleRECO nevts:200'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
 
 # Output definition
 
-process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
-    dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string(''),
-        filterName = cms.untracked.string('')
-    ),
-    eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
-    fileName = cms.untracked.string('l1Ntuple_RAW2DIGI_L1Reco%s.root' % file_append),
-    outputCommands = process.RECOSIMEventContent.outputCommands,
-    # outputCommands = cms.untracked.vstring('keep *'),
-    # outputCommands = cms.untracked.vstring('drop *'),
-    splitLevel = cms.untracked.int32(0),
-)
-
 # Additional output definition
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
-file_append += '_' + process.GlobalTag.globaltag.value()
 
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)
-process.L1Reco_step = cms.Path(process.L1Reco)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.endjob_step)
-if save_EDM:
-    process.schedule.append(process.RECOSIMoutput_step)
+process.schedule = cms.Schedule(process.raw2digi_step,process.endjob_step)
 
 # customisation of the process.
 
-# Automatic addition of the customisation function from L1Trigger.Configuration.customise_Stage2Calo
-from L1Trigger.Configuration.customise_Stage2Calo import Stage2CaloFromRaw 
+# Automatic addition of the customisation function from L1Trigger.Configuration.customiseReEmul
+from L1Trigger.Configuration.customiseReEmul import L1TReEmulFromRAW,L1TEventSetupForHF1x1TPs 
 
-#call to customisation function Stage2CaloFromRaw imported from L1Trigger.Configuration.customise_Stage2Calo
-process = Stage2CaloFromRaw(process)
+#call to customisation function L1TReEmulFromRAW imported from L1Trigger.Configuration.customiseReEmul
+process = L1TReEmulFromRAW(process)
+
+#call to customisation function L1TEventSetupForHF1x1TPs imported from L1Trigger.Configuration.customiseReEmul
+process = L1TEventSetupForHF1x1TPs(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1TNtuples.customiseL1Ntuple
-from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleAODRAWEMU 
+from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleAODEMU 
 
-#call to customisation function L1NtupleAODRAWEMU imported from L1Trigger.L1TNtuples.customiseL1Ntuple
-process = L1NtupleAODRAWEMU(process)
+#call to customisation function L1NtupleAODEMU imported from L1Trigger.L1TNtuples.customiseL1Ntuple
+process = L1NtupleAODEMU(process)
+
+# Automatic addition of the customisation function from L1Trigger.Configuration.customiseUtils
+from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAndCalo,L1TTurnOffGtAndGmtEmulation 
+
+#call to customisation function L1TTurnOffUnpackStage2GtGmtAndCalo imported from L1Trigger.Configuration.customiseUtils
+process = L1TTurnOffUnpackStage2GtGmtAndCalo(process)
+
+#call to customisation function L1TTurnOffGtAndGmtEmulation imported from L1Trigger.Configuration.customiseUtils
+process = L1TTurnOffGtAndGmtEmulation(process)
+
+# Automatic addition of the customisation function from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
+# from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1JEC_off
+
+#call to customisation function L1JEC_off imported from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
+# process = L1JEC_off(process)
 
 # End of customisation functions
+process.TFileService.fileName = cms.string("L1Ntuple_Stage2_ReReco_HF_integration-v9_dummyLayer1_L1Jec_Fall15V2.root")
 
-# Set the right ECAL input for TPs
-process.l1CaloTowerEmuTree.ecalToken = cms.untracked.InputTag("ecalDigis", "EcalTriggerPrimitives")
-
-# Use MP jets
-process.l1UpgradeEmuTree.jetToken = cms.untracked.InputTag("simCaloStage2Digis", "MP")
-file_append += "_MPjets"
-
-# Turn off L1JEC
-process.caloStage2Params.jetCalibrationType = cms.string("None")
-file_append += "_noJec"
-
-# Set the NTuple filename
-process.TFileService.fileName = cms.string("L1Ntuple%s.root" % file_append)
-
-process.l1CustomReco.remove(process.egmGsfElectronIDs)
-process.l1ntupleaod.remove(process.l1MuonRecoTree)
+process.MessageLogger.cerr.FwkReport.reportEvery = 200
+process.MessageLogger.suppressWarning = cms.untracked.vstring(
+       "l1UpgradeEmuTree",
+       "l1CaloTowerEmuTree"
+       )
