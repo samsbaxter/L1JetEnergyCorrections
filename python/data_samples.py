@@ -24,12 +24,14 @@ totalUnits can take the values:
 from collections import namedtuple
 import subprocess
 import json
-
+import os
 
 # some helper functions
 def get_number_files(dataset):
     """Get total number of files in dataset"""
-    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json']
+    HOME = os.environ['HOME']
+    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json',
+            '--key=%s/.globus/userkey.pem' % HOME, '--cert=%s/.globus/usercert.pem' % HOME]
     output = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
     summary_dict = json.loads(output)
     return int(summary_dict['data'][0]['summary'][0]['nfiles'])
@@ -48,7 +50,7 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 samples = {
 
     "SingleMuReReco_Run2015D": Dataset(inputDataset='/SingleMuon/Run2015D-16Dec2015-v1/AOD',
-                                       useParent=True, unitsPerJob=4, totalUnits=-1),
+                                       useParent=True, unitsPerJob=2, totalUnits=-1),
 
     "Express_Run2015B_50ns": Dataset(inputDataset='/ExpressPhysics/Run2015B-Express-v1/FEVT',
                                      useParent=False, unitsPerJob=15, totalUnits=-1),
