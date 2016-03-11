@@ -37,7 +37,7 @@ ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
 # Some common strings
 l1_str = 'L1'
-l1_str = 'PF'
+# l1_str = 'PF'
 
 ref_str = "GenJet"
 # ref_str = "PFJet"
@@ -65,10 +65,10 @@ rsp_min, rsp_max = 0, 2
 #############################################
 plot_labels = [
      # "Spring15 + HF fix (no JEC)"
-     # "Without L1JEC"
-     "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
-     # "With JEC"
-     # "With JEC (LUT)"
+     "Without L1JEC"
+     # "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
+     # "With L1JEC (derived from Spring15)"
+     # "With L1JEC (LUT)"
      # "With Summer15_25nsV6_MC PFJEC"
     ]
 
@@ -77,9 +77,14 @@ plot_labels = [
 # plot_title = "Spring15 MC, Stage 2, no JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
-plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
+# plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
 # plot_title = "Spring15 MC, Stage2, L1 vs ak4PFCHS, no PF cleaning"
 
+plot_title = "Fall15 MC, 0PU, Stage 2, no L1JEC"
+# plot_title = "Fall15 MC, 0PU, Stage 2, with L1JEC (derived from Spring15)"
+
+# plot_title = "ttH, H #to bb MC, 30PU, Stage 2, no L1JEC (derived from Spring15)"
+# plot_title = "ttH, H #to bb MC, 30PU, Stage 2, with L1JEC (derived from Spring15)"
 
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
