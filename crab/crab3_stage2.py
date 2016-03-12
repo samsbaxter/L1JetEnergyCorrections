@@ -24,14 +24,14 @@ jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
 print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "Stage2_HF_QCDFall15_4Mar_integration-v7_layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
+job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 
 # CHANGE ME - select dataset(s) keys to run over - see python/mc_samples.py
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # Fall15, RAW only
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # Spring15, RAW + RECO (via useParent)
-datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
-
+#datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
+datasets = ["QCDFlatFall15PU0to50NzshcalRaw", "QCDFlatFall15NoPU"]  # Fall15, RAW (via useParent)
 
 if __name__ == "__main__":
     # We want to put all the CRAB project directories from the tasks we submit
@@ -57,6 +57,7 @@ if __name__ == "__main__":
         config.Data.inputDataset = dset_opts.inputDataset
         config.Data.useParent = dset_opts.useParent
         config.Data.unitsPerJob = dset_opts.unitsPerJob
+        config.JobType.inputFiles = ['Fall15_25nsV2_MC.db']
 
         # to restrict total units run over
         # comment it out to run over all
