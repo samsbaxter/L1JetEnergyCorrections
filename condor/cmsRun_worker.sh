@@ -25,7 +25,7 @@ ind="" # ind is the job number
 arch="" # architecture
 cmssw_version="" # cmssw version
 sandbox="" # sandbox location
-doProfile=0
+doProfile=0  # do profiling - runs with callgrind
 while getopts ":s:f:o:i:a:c:S:p" opt; do
     case $opt in
         \?)
@@ -106,7 +106,8 @@ echo "import FWCore.ParameterSet.Config as cms" >> $wrapper
 echo "import "${script%.py}" as myscript" >> $wrapper
 echo "import ${filelist%.py} as filelist" >> $wrapper
 echo "process = myscript.process" >> $wrapper
-if [ $doProfile != 1 ]; then
+if [ $doProfile == 0 ]; then
+    # if we're profling then don't override the input files
     echo "process.source.fileNames = cms.untracked.vstring(filelist.fileNames[$ind])" >> $wrapper
 fi
 echo "process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))" >> $wrapper
@@ -140,9 +141,10 @@ echo "========================="
 # TODO: some automated retry system
 ###############################################################################
 if [ $doProfile == 1 ]; then
-    /usr/bin/time -v cmsRun $wrapper
+    echo "Running with callgrind"
+    valgrind --tool=callgrind cmsRun $wrapper
 else
-    cmsRun $wrapper
+    /usr/bin/time -v cmsRun $wrapper
 fi
 cmsResult=$?
 echo "CMS JOB OUTPUT" $cmsResult
@@ -167,4 +169,16 @@ do
     fi
 done
 
-exit $cmsResult
+# Copy callgrind output
+for f in $(find . -name "callgrind.out.*")
+do
+    output=$(basename f)
+    echo "Copying $output to $outputDir"
+    if [[ "$outputDir" == /hdfs/* ]]; then
+        hadoop fs -copyFromLocal -f $output ${outputDir///hdfs}/$output
+    elif [[ "$outputDir" == /storage* ]]; then
+        cp $output $outputDir
+    fi
+done
+
+exit $?
