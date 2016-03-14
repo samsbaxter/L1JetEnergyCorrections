@@ -95,6 +95,13 @@ cd ..
 cp $sandbox sandbox.tgz
 tar xvzf sandbox.tgz
 
+# Setup new libs to point to local ones
+export LD_LIBRARY_PATH=${worker}/${cmssw_version}/biglib/${SCRAM_ARCH}:${worker}/${cmssw_version}/lib/${SCRAM_ARCH}:${worker}/${cmssw_version}/external/${SCRAM_ARCH}/lib:$LD_LIBRARY_PATH
+echo "========================="
+echo "New LD_LIBRARY_PATH:"
+echo $LD_LIBRARY_PATH
+echo "========================="
+
 ###############################################################################
 # Make a wrapper config
 # This will setup the input files, output file, and number of events
