@@ -54,15 +54,18 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 samples = {
     # FALL 15/76X
     # -----------
+    # note there are also individual PU bins at PU = [10, 20, 30, 40, 50]
+    "SingleNeutrinoFall15PU0to50NzshcalRaw": Dataset(inputDataset='/SingleNeutrino/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW',
+                                                     useParent=False, unitsPerJob=3, totalUnits=-1),  # 20M events, 5.6K evt/file
+
+    "SingleNeutrinoFall15PU0to50NzshcalRawRECO": Dataset(inputDataset='/SingleNeutrino/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW',
+                                                         useParent=True, unitsPerJob=1, totalUnits=-1),  # 20M events, 11.2K evt/file
+
     "ttHTobbFall15PU30": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                 useParent=False, unitsPerJob=10, totalUnits=-1),
+                                 useParent=False, unitsPerJob=10, totalUnits=-1),  # 120K evt, 2K evt/file
 
     "ttHTobbFall15PU30RECO": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
-                                     useParent=True, unitsPerJob=1, totalUnits=-1),
-
-    # Only has 1M events... not sure exactly what this is for
-    # "QCDFlatFall15PU10to25TSGRECO": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat10to25TSG_76X_mcRun2_asymptotic_v12-v1/AODSIM",
-    #                                         useParent=True, unitsPerJob=10, totalUnits=-1),
+                                     useParent=True, unitsPerJob=1, totalUnits=-1),  # 120K evt, 7k evt/file
 
     "QCDFlatFall15PU0to50NzshcalRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
                                               useParent=False, unitsPerJob=10, totalUnits=-1),  # has about 9M events, 2K evt/file
