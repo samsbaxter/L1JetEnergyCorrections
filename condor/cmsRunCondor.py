@@ -72,7 +72,10 @@ def cmsRunCondor(in_args=sys.argv[1:]):
                         "Default is $PWD/logs, but would recommend to put it on /storage",
                         default='logs')
     parser.add_argument('--profile',
-                        help='Run callgrind',
+                        help='Run callgrind. Note that in this mode, '
+                        'it will use the files and # evts in the config. '
+                        'You do not need to specify --filesPerJob, --totalFiles, or --dataset. '
+                        'You should recompile with `scram b clean; scram b USER_CXXFLAGS="-g"`',
                         action='store_true')
     args = parser.parse_args(args=in_args)
 
@@ -118,76 +121,85 @@ def cmsRunCondor(in_args=sys.argv[1:]):
 
     ###########################################################################
     # Lookup dataset with das_client to determine number of files/jobs
+    # but only if we're not profiling
     ###########################################################################
-    if not args.dataset:
-        raise RuntimeError('You must specify a dataset')
+    if args.profile:
+        # placehold vars
+        total_num_jobs = 1
+        dset_uscore = 'profiling'
+        input_file_list = None
 
-    # TODO: use das_client API
-    log.info("Querying DAS for dataset info, please be patient...")
-    cmds = ['das_client.py',
-            '--query',
-            'summary dataset=%s' % args.dataset,
-            '--format=json']
-    output_summary = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
-    log.debug(output_summary)
-    summary = json.loads(output_summary)
+    else:
+        if not args.dataset:
+            raise RuntimeError('You must specify a dataset')
 
-    # check to make sure dataset is valid
-    if summary['status'] == 'fail':
-        log.error('Error querying dataset with das_client:')
-        log.error(summary['reason'])
-        raise RuntimeError('Error querying dataset with das_client')
+        # TODO: use das_client API
+        log.info("Querying DAS for dataset info, please be patient...")
+        cmds = ['das_client.py',
+                '--query',
+                'summary dataset=%s' % args.dataset,
+                '--format=json']
+        output_summary = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
+        log.debug(output_summary)
+        summary = json.loads(output_summary)
 
-    # get required number of files
-    # can either have:
-    # < 0 : all files
-    # 0 - 1 : use that fraction of the dataset
-    # >= 1 : use that number of files
-    num_dataset_files = int(summary['data'][0]['summary'][0]['nfiles'])
-    if args.totalFiles < 0:
-        args.totalFiles = num_dataset_files
-    elif args.totalFiles < 1:
-        args.totalFiles = math.ceil(args.totalFiles * num_dataset_files)
-    elif args.totalFiles > num_dataset_files:
-        log.warning("You specified more files than exist. Using all %d files.",
-                    num_dataset_files)
+        # check to make sure dataset is valid
+        if summary['status'] == 'fail':
+            log.error('Error querying dataset with das_client:')
+            log.error(summary['reason'])
+            raise RuntimeError('Error querying dataset with das_client')
+        # If profiling, use whatver files defined in the config script
 
-    # Figure out correct number of jobs
-    total_num_jobs = int(math.ceil(args.totalFiles / float(args.filesPerJob)))
+        # get required number of files
+        # can either have:
+        # < 0 : all files
+        # 0 - 1 : use that fraction of the dataset
+        # >= 1 : use that number of files
+        num_dataset_files = int(summary['data'][0]['summary'][0]['nfiles'])
+        if args.totalFiles < 0:
+            args.totalFiles = num_dataset_files
+        elif args.totalFiles < 1:
+            args.totalFiles = math.ceil(args.totalFiles * num_dataset_files)
+        elif args.totalFiles > num_dataset_files:
+            log.warning("You specified more files than exist. Using all %d files.",
+                        num_dataset_files)
 
-    ###########################################################################
-    # Make a list of input files for each job to avoid doing it on worker node
-    ###########################################################################
-    log.info("Querying DAS for filenames, please be patient...")
-    cmds = ['das_client.py',
-            '--query',
-            'file dataset=%s' % args.dataset,
-            '--limit=%d' % args.totalFiles]
-    output_files = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
+        # Figure out correct number of jobs
+        total_num_jobs = int(math.ceil(args.totalFiles / float(args.filesPerJob)))
 
-    list_of_files = ['"{0}"'.format(line) for line in output_files.splitlines()
-                     if line.lower().startswith("/store")]
+        ###########################################################################
+        # Make a list of input files for each job to avoid doing it on worker node
+        ###########################################################################
+        log.info("Querying DAS for filenames, please be patient...")
+        cmds = ['das_client.py',
+                '--query',
+                'file dataset=%s' % args.dataset,
+                '--limit=%d' % args.totalFiles]
+        output_files = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
 
-    def grouper(iterable, n, fillvalue=None):
-        """
-        Iterate through iterable in groups of size n.
-        If < n values available, pad with fillvalue.
+        list_of_files = ['"{0}"'.format(line) for line in output_files.splitlines()
+                         if line.lower().startswith("/store")]
 
-        Taken from the itertools cookbook.
-        """
-        args = [iter(iterable)] * n
-        return izip_longest(fillvalue=fillvalue, *args)
+        def grouper(iterable, n, fillvalue=None):
+            """
+            Iterate through iterable in groups of size n.
+            If < n values available, pad with fillvalue.
 
-    dset_uscore = args.dataset[1:]
-    dset_uscore = dset_uscore.replace("/", "_").replace("-", "_")
-    input_file_list = "fileList_%s.py" % dset_uscore
-    with open(input_file_list, "w") as file_list:
-        file_list.write("fileNames = {")
-        for n, chunk in enumerate(grouper(list_of_files, args.filesPerJob)):
-            file_list.write("%d: [%s],\n" % (n, ', '.join(filter(None, chunk))))
-        file_list.write("}")
+            Taken from the itertools cookbook.
+            """
+            args = [iter(iterable)] * n
+            return izip_longest(fillvalue=fillvalue, *args)
 
-    log.info("List of files for each jobs written to %s", input_file_list)
+        dset_uscore = args.dataset[1:]
+        dset_uscore = dset_uscore.replace("/", "_").replace("-", "_")
+        input_file_list = "fileList_%s.py" % dset_uscore
+        with open(input_file_list, "w") as file_list:
+            file_list.write("fileNames = {")
+            for n, chunk in enumerate(grouper(list_of_files, args.filesPerJob)):
+                file_list.write("%d: [%s],\n" % (n, ', '.join(filter(None, chunk))))
+            file_list.write("}")
+
+        log.info("List of files for each jobs written to %s", input_file_list)
 
     ###########################################################################
     # Make sandbox of user's libs/c++/py files
@@ -214,7 +226,8 @@ def cmsRunCondor(in_args=sys.argv[1:]):
 
     # add in the config file and input filelist
     tar.add(args.config, arcname="config.py")
-    tar.add(input_file_list, arcname="filelist.py")
+    if input_file_list:
+        tar.add(input_file_list, arcname="filelist.py")
 
     # TODO: add in any other files the user wants
 
