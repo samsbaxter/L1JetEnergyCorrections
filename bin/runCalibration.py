@@ -243,6 +243,8 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), \
               "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
 
+        err = err / (mean**2)
+
         # add point to response graph vs pt
         # store if new max/min, but only max if pt > pt of previous point
         # max_pt = max(hpt.GetMean(), max_pt) if grc > 0 and hpt.GetMean() > gr.GetX()[grc-1] else max_pt
