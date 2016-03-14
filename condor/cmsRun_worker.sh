@@ -179,7 +179,7 @@ done
 # Copy callgrind output
 for f in $(find . -name "callgrind.out.*")
 do
-    output=$(basename f)
+    output=$(basename $f)
     echo "Copying $output to $outputDir"
     if [[ "$outputDir" == /hdfs/* ]]; then
         hadoop fs -copyFromLocal -f $output ${outputDir///hdfs}/$output
