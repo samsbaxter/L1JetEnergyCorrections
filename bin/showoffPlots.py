@@ -732,6 +732,11 @@ def plot_correction_graph(calib_file, eta_min, eta_max, oDir, oFormat='pdf'):
     gr = cu.get_from_file(calib_file, gname)
     c = generate_canvas()
     gr.Draw("ALP")
+    y_min = ROOT.TMath.MinElement(gr.GetN(), gr.GetY())
+    y_max = ROOT.TMath.MaxElement(gr.GetN(), gr.GetY())
+    if y_max > 5:
+        y_max = 5
+    gr.GetYaxis().SetRangeUser(y_min * 0.7, y_max * 1.1)
     c.SaveAs('%s/%s.%s' % (oDir, gname, oFormat))
 
 
