@@ -210,8 +210,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     # DAG for jobs
     stem = 'matcher_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
     matcher_dag = ht.DAGMan(filename=os.path.join(log_dir, '%s.dag' % stem),
-                            status_file=os.path.join(log_dir, '%s.status' % stem),
-                            dot='matcher.dot')
+                            status_file=os.path.join(log_dir, '%s.status' % stem))
 
     # JobSet for each matching job
     log_stem = 'matcher.$(cluster).$(process)'
