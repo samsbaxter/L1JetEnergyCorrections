@@ -36,6 +36,18 @@ ROOT.TH1.SetDefaultSumw2(True)
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
+# [0] is c
+# [1] is d (scipy) or k (wiki)
+# [2] is a normalisation factor
+# [3] is a location factor
+# [4] is a scale factor
+burr_fit = ROOT.TF1("burr", "[2]*[0]*[1]*pow((x-[3])/[4], -1.*(1+[0])) / pow(1+pow((x-[3])/[4], -1*[0]), 1+[1] )", 0, 2)
+burr_fit.SetParameter(0, 3.64850e+00)
+burr_fit.SetParameter(1, 7.06077e-01)
+burr_fit.SetParameter(2, 1.28317e+04)
+burr_fit.SetParameter(3, -1.50503e-02)
+burr_fit.SetParameter(4, 4.87032e-01)
+
 # Fit defaults
 GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
@@ -222,17 +234,24 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         mean = -999
         err = -999
         if hrsp.GetEntries() >= 3:
-            fitStatus = int(hrsp.Fit("gaus", "QER", "",
-                                     hrsp.GetMean() - 1. * hrsp.GetRMS(),
-                                     hrsp.GetMean() + 1. * hrsp.GetRMS()))
-            if fitStatus == 0:
-                mean = hrsp.GetFunction("gaus").GetParameter(1)
-                err = hrsp.GetFunction("gaus").GetParError(1)
+            fit_counter = 3
+            while fitStatus != 0 and fit_counter > 0:
+                fitStatus = int(hrsp.Fit("gaus", "QER", "",
+                                         hrsp.GetMean() - 1. * hrsp.GetRMS(),
+                                         hrsp.GetMean() + 1. * hrsp.GetRMS()))
+                # fitStatus = int(hrsp.Fit("burr", "QER", "", 0, 2))
+                fit_counter -= 1
+                if fitStatus == 0:
+                    mean = hrsp.GetFunction("gaus").GetParameter(1)
+                    err = hrsp.GetFunction("gaus").GetParError(1)
+                    # mean = hrsp.GetFunction("burr").GetMaximumX()
+                    # err = hrsp.GetMeanError()
+                    break
         output_f_hists.WriteTObject(hrsp)
 
         # check if we have a bad fit - either fit status != 0, or
         # fit mean is not close to raw mean. in either case use raw mean
-        if fitStatus != 0 or (xlow > 50 and abs((mean / hrsp.GetMean()) - 1) > 0.2):
+        if fitStatus != 0:  # or (xlow > 50 and abs((mean / hrsp.GetMean()) - 1) > 0.2):
 
             print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
                 "fit status:", fitStatus, \
