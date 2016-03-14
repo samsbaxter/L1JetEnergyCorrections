@@ -104,9 +104,9 @@ wrapper="wrapper.py"
 
 echo "import FWCore.ParameterSet.Config as cms" >> $wrapper
 echo "import "${script%.py}" as myscript" >> $wrapper
-echo "import ${filelist%.py} as filelist" >> $wrapper
 echo "process = myscript.process" >> $wrapper
 if [ $doProfile == 0 ]; then
+    echo "import ${filelist%.py} as filelist" >> $wrapper
     # if we're profling then don't override the input files
     echo "process.source.fileNames = cms.untracked.vstring(filelist.fileNames[$ind])" >> $wrapper
 fi

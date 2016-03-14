@@ -71,6 +71,9 @@ def cmsRunCondor(in_args=sys.argv[1:]):
                         help="Location to store job stdout/err/log files. "
                         "Default is $PWD/logs, but would recommend to put it on /storage",
                         default='logs')
+    parser.add_argument('--profile',
+                        help='Run callgrind',
+                        action='store_true')
     args = parser.parse_args(args=in_args)
 
     if args.verbose:
@@ -259,6 +262,8 @@ def cmsRunCondor(in_args=sys.argv[1:]):
                      sandbox=sandbox_location)
     args_str = "-o {output} -i $({ind}) -a $ENV(SCRAM_ARCH) " \
                "-c $ENV(CMSSW_VERSION) -S {sandbox}".format(**args_dict)
+    if args.profile:
+        args_str += ' -p'
     job = job.replace("SEDARGS", args_str)
     job = job.replace("SEDEXE", os.path.join(script_dir, 'cmsRun_worker.sh'))
     job = job.replace("SEDNJOBS", str(1) if args.dag else str(total_num_jobs))
