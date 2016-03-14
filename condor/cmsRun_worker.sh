@@ -113,11 +113,11 @@ echo "import FWCore.ParameterSet.Config as cms" >> $wrapper
 echo "import "${script%.py}" as myscript" >> $wrapper
 echo "process = myscript.process" >> $wrapper
 if [ $doProfile == 0 ]; then
-    echo "import ${filelist%.py} as filelist" >> $wrapper
     # if we're profling then don't override the input files
+    echo "import ${filelist%.py} as filelist" >> $wrapper
     echo "process.source.fileNames = cms.untracked.vstring(filelist.fileNames[$ind])" >> $wrapper
+    echo "process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))" >> $wrapper
 fi
-echo "process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))" >> $wrapper
 echo "if hasattr(process, 'TFileService'): process.TFileService.fileName = "\
 "cms.string(process.TFileService.fileName.value().replace('.root', '_${ind}.root'))" >> $wrapper
 echo "for omod in process.outputModules.itervalues():" >> $wrapper
