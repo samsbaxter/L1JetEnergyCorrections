@@ -53,13 +53,18 @@ NTUPLE_DIRS = [
 ]
 
 # Pick one
-SAMPLE = 'MC'
-SAMPLE = 'DATA'
+SAMPLE = 'MC_L1_Gen'
+# SAMPLE = 'MC_L1_PF'
+# SAMPLE = 'MC_PF_Gen'
+# SAMPLE = 'DATA'
 
 # Choose executable to run - must be located using `which <EXE>`
-EXE = 'RunMatcherData' if SAMPLE == 'DATA' else 'RunMatcherStage2'
-# EXE = 'RunMatcherStage2PFGen'
-# EXE = 'RunMatcherStage2L1PF'
+EXE = 'RunMatcherData'
+if SAMPLE.startswith("MC"):
+    parts = SAMPLE.split('_')
+    if len(parts) != 3:
+        raise RuntimeError('SAMPLE set incorrectly')
+    EXE = 'RunMatcherStage2%s%s' % (parts[1], parts[2])
 
 # DeltaR(L1, RefJet) for matching
 DELTA_R = 0.4
@@ -70,12 +75,18 @@ PT_REF_MIN = 10
 
 # TDirectory name for the L1 jets
 L1_DIR = 'l1UpgradeEmuTree'
-# L1_DIR = 'l1JetRecoTree'  # for PFGen exe
+if SAMPLE.startswith('MC') and '_PF_' in SAMPLE:
+        L1_DIR = 'l1JetRecoTree'  # for PF vs Gen
 
 # TDirectory name for the reference jets
-REF_DIR = 'l1JetRecoTree' if SAMPLE == 'DATA' else 'l1ExtraTreeGenAk4'
-# REF_DIR = 'l1ExtraTreeGenAk4'  # for PFGen exe
-# REF_DIR = 'l1JetRecoTree'  # for L1PF exe
+REF_DIR = 'l1JetRecoTree'
+if SAMPLE.startswith('MC'):
+    if SAMPLE.endswith('Gen'):
+        REF_DIR = 'l1ExtraTreeGenAk4'
+    elif SAMPLE.endswith('PF'):
+        REF_DIR = 'l1JetRecoTree'
+    else:
+        raise RuntimeError('Cannot get ref jet dir')
 
 # Cleaning cut to apply to Ref Jets
 # If none desired, put '' or None
@@ -85,9 +96,9 @@ CLEANING_CUT = None  # MC
 # String to append to output ROOT filename
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-# APPEND = 'MP_ak4_ref%sto5000_l10to5000_dr%s' % (str(PT_REF_MIN).replace('.', 'p'), str(DELTA_R).replace('.', 'p'))  # MPjets - MC
+APPEND = 'MP_ak4_ref%sto5000_l10to5000_dr%s' % (str(PT_REF_MIN).replace('.', 'p'), str(DELTA_R).replace('.', 'p'))  # MPjets - MC
 # APPEND = 'MP_ak4_ref10to5000_l130to5000_dr%s_httL1Jets_allGenJets_MHT' % (str(DELTA_R).replace('.', 'p'))  # MPjets - MC
-APPEND = 'ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # Demux jets - data
+# APPEND = 'ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # Demux jets - data
 # APPEND = 'ak4_Gen%dto5000_PF0to5000_dr%s_noCleaning' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # for PFGen exe
 # APPEND = 'MP_ak4_PF%dto5000_l10to5000_dr%s_noCleaning' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # for L1PF exe
 
