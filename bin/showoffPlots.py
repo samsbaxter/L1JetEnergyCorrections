@@ -378,6 +378,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     """Plot response (l1/ref) Vs l1 pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_l1%s" % (eta_min, eta_max, app)
+    fwd_bin = abs(eta_min)>2.9
     if cu.exists_in_file(check_file, hname):
         h2d_rsp_l1_orig = cu.get_from_file(check_file, hname)
     else:
@@ -395,6 +396,8 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     else:
         h2d_rsp_l1.Draw("COLZ")
     h2d_rsp_l1.SetAxisRange(rsp_min, rsp_max, 'Y')
+    if fwd_bin:
+        h2d_rsp_l1.SetAxisRange(0, 254, 'X')
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
@@ -406,6 +409,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     """Plot response (l1/ref) Vs ref pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_gen%s" % (eta_min, eta_max, app)
+    fwd_bin = abs(eta_min)>2.9
     if cu.exists_in_file(check_file, hname):
         h2d_rsp_ref_orig = cu.get_from_file(check_file, hname)
     else:
@@ -423,6 +427,8 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     else:
         h2d_rsp_ref.Draw("COLZ")
     h2d_rsp_ref.SetAxisRange(rsp_min, rsp_max, 'Y')
+    if fwd_bin:
+        h2d_rsp_ref.SetAxisRange(0, 254, 'X')
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
