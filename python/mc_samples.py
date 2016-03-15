@@ -8,7 +8,6 @@ We then store all samples in a dict.
 Usage:
 
 from mc_samples import samples
-
 dataset = "TTbarFall13PU20bx25"
 config.General.requestName = dataset
 config.Data.inputDataset = samples[dataset].inputDataset
@@ -22,6 +21,7 @@ totalUnits can take the values:
 
 You can use get_number_files() to ask DAS how many files there are in a dataset.
 """
+
 
 from collections import namedtuple
 import re
@@ -54,13 +54,6 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 samples = {
     # FALL 15/76X
     # -----------
-<<<<<<< HEAD
-    "ttHTobbFall15PU30": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                 useParent=False, unitsPerJob=10, totalUnits=-1),
-
-    "ttHTobbFall15PU30RECO": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
-                                     useParent=True, unitsPerJob=1, totalUnits=1),
-=======
     # note there are also individual PU bins at PU = [10, 20, 30, 40, 50]
     "SingleNeutrinoFall15PU0to50NzshcalRaw": Dataset(inputDataset='/SingleNeutrino/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW',
                                                      useParent=False, unitsPerJob=3, totalUnits=-1),  # 20M events, 5.6K evt/file
@@ -73,23 +66,15 @@ samples = {
 
     "ttHTobbFall15PU30RECO": Dataset(inputDataset="/ttHTobb_M125_13TeV_powheg_pythia8/RunIIFall15DR76-25nsPUfixed30NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
                                      useParent=True, unitsPerJob=1, totalUnits=-1),  # 120K evt, 7k evt/file
->>>>>>> 7506bf56199f9aaed3978ebebf9b053ae85296ce
 
     "QCDFlatFall15PU0to50NzshcalRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
                                               useParent=False, unitsPerJob=10, totalUnits=-1),  # has about 9M events, 2K evt/file
-
-    "QCDFlatFall15PU0to50NzshcalRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-                                              useParent=False, unitsPerJob=10, totalUnits=1000000),  # has about 9M events, 2K evt/file
 
     "QCDFlatFall15PU0to50NzshcalRawRECO": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/AODSIM",
                                                   useParent=True, unitsPerJob=1, totalUnits=-1),  # has about 9M events, 9k evt/file
 
     "QCDFlatFall15NoPU": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/GEN-SIM-RAW",
-<<<<<<< HEAD
-                                 useParent=False, unitsPerJob=10, totalUnits=1000000),  # has about 9M events, 2K evt/file
-=======
                                  useParent=False, unitsPerJob=10, totalUnits=-1),  # has about 9M events, 2K evt/file
->>>>>>> 7506bf56199f9aaed3978ebebf9b053ae85296ce
 
     "QCDFlatFall15NoPURECO": Dataset(inputDataset="/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIIFall15DR76-25nsNoPURaw_magnetOn_76X_mcRun2_asymptotic_v12-v1/AODSIM",
                                      useParent=True, unitsPerJob=1, totalUnits=-1),  # has about 9M events, 9K evt/file

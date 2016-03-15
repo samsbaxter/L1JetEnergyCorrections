@@ -34,12 +34,6 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-<<<<<<< HEAD
-    fileNames = cms.untracked.vstring('/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/929E688D-E94E-E511-8AD2-0026189438EA.root'),
-        # '/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/C04FFC53-F14E-E511-91BA-002590593876.root',
-        # '/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RECO/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/EAB9AC8A-E94E-E511-8B45-002618943935.root'),
-    #secondaryFileNames = cms.untracked.vstring('/store/mc/RunIISpring15DR74/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/NhcalZSHFscaleFlat10to30Asympt25ns_MCRUN2_74_V9-v1/00000/003BEF9B-C24E-E511-B4B7-0025905A609E.root')
-=======
     fileNames = cms.untracked.vstring('/store/mc/RunIIFall15DR76/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/AODSIM/25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/20000/4E1D11E4-1DA9-E511-AED1-001E67397EDB.root'),
     # fileNames = cms.untracked.vstring('/store/mc/RunIIFall15DR76/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/20000/8A409B34-02A9-E511-ABBE-002590A8882C.root')
     secondaryFileNames = cms.untracked.vstring(
@@ -54,7 +48,6 @@ process.source = cms.Source("PoolSource",
         '/store/mc/RunIIFall15DR76/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/20000/8A409B34-02A9-E511-ABBE-002590A8882C.root',
         '/store/mc/RunIIFall15DR76/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/25nsFlat0to50NzshcalRaw_76X_mcRun2_asymptotic_v12-v1/20000/B2C35BD7-F3A8-E511-BAD2-001E67E6F616.root',
         )
->>>>>>> 7506bf56199f9aaed3978ebebf9b053ae85296ce
 )
 
 process.options = cms.untracked.PSet(
@@ -98,14 +91,10 @@ from L1Trigger.Configuration.customiseReEmul import L1TReEmulFromRAW
 process = L1TReEmulFromRAW(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1TNtuples.customiseL1Ntuple
-<<<<<<< HEAD
-from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleEMU 
-=======
 from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleAODEMU
->>>>>>> 7506bf56199f9aaed3978ebebf9b053ae85296ce
 
 #call to customisation function L1NtupleAODEMU imported from L1Trigger.L1TNtuples.customiseL1Ntuple
-process = L1NtupleEMU(process)
+process = L1NtupleAODEMU(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
 from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1NtupleJEC_OFF 
@@ -125,11 +114,11 @@ process = L1TTurnOffGtAndGmtEmulation(process)
 
 # Customisation from command line
 process.l1CaloTowerEmuTree.ecalToken = cms.untracked.InputTag('ecalDigis', 'EcalTriggerPrimitives')
-#process.l1CustomReco.replace(process.ak4PFCHSL1FastL2L3ResidualCorrectorChain, process.ak4PFCHSL1FastL2L3CorrectorChain)
-#process.l1JetRecoTree.jecToken = 'ak4PFCHSL1FastL2L3Corrector'
+process.l1CustomReco.replace(process.ak4PFCHSL1FastL2L3ResidualCorrectorChain, process.ak4PFCHSL1FastL2L3CorrectorChain)
+process.l1JetRecoTree.jecToken = 'ak4PFCHSL1FastL2L3Corrector'
 
 # Modify the jet seed threshold, default was 1.5
-jet_seed_threshold = 6
+jet_seed_threshold = 1.5
 process.caloStage2Params.jetSeedThreshold = cms.double(jet_seed_threshold)
 # Set the NTuple filename
-process.TFileService.fileName = cms.string("L1Ntuple_Stage2_Fall15MC_HF_layer1_noL1Jec_%s_jst%s.root" % (process.GlobalTag.globaltag.value(), str(jet_seed_threshold).replace('.', 'p')))
+process.TFileService.fileName = cms.string("L1Ntuple_Stage2_Fall15MC_HF_layer1_noL1Jec_%s_jst%s.root" % (process.GlobalTag.globaltag.value(), str(jet_seed_threshold).replace('.', 'p')))   
