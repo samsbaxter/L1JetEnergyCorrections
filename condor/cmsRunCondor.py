@@ -104,7 +104,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
         raise RuntimeError('Output directory not on /hdfs')
 
     if not os.path.exists(args.outputDir):
-        print "Output directory doesn't exists, making it:", args.outputDir
+        log.info("Output directory doesn't exists, making it: %s", args.outputDir)
         try:
             os.makedirs(args.outputDir)
         except OSError as e:
@@ -298,7 +298,7 @@ def cmsRunCondor(in_args=sys.argv[1:]):
         if not os.path.isdir(os.path.dirname(dag_name)):
             os.makedirs(os.path.dirname(dag_name))
         status_file = dag_name.replace(".dag", ".status")
-        print "DAG Name:", dag_name
+        log.info("DAG Filename: %s", dag_name)
         with open(dag_name, "w") as dag_file:
             dag_file.write("# DAG for dataset %s\n" % args.dataset)
             dag_file.write("# Using config file %s\n" % args.config)
