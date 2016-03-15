@@ -37,7 +37,7 @@ ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
 # Some common strings
 l1_str = 'L1'
-l1_str = 'PF'
+# l1_str = 'PF'
 
 ref_str = "GenJet"
 # ref_str = "PFJet"
@@ -65,10 +65,10 @@ rsp_min, rsp_max = 0, 2
 #############################################
 plot_labels = [
      # "Spring15 + HF fix (no JEC)"
-     # "Without L1JEC"
-     "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
-     # "With JEC"
-     # "With JEC (LUT)"
+     "Without L1JEC"
+     # "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
+     # "With L1JEC (derived from Spring15)"
+     # "With L1JEC (LUT)"
      # "With Summer15_25nsV6_MC PFJEC"
     ]
 
@@ -77,9 +77,14 @@ plot_labels = [
 # plot_title = "Spring15 MC, Stage 2, no JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
-plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
+# plot_title = "Spring15 MC, ak4PFCHS vs ak4GenJets, no PF cleaning"
 # plot_title = "Spring15 MC, Stage2, L1 vs ak4PFCHS, no PF cleaning"
 
+plot_title = "Fall15 MC, 0PU, Stage 2, no L1JEC"
+# plot_title = "Fall15 MC, 0PU, Stage 2, with L1JEC (derived from Spring15)"
+
+# plot_title = "ttH, H #to bb MC, 30PU, Stage 2, no L1JEC (derived from Spring15)"
+# plot_title = "ttH, H #to bb MC, 30PU, Stage 2, with L1JEC (derived from Spring15)"
 
 plot_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, 8]
 plot_markers = [20, 21, 22, 23]
@@ -373,6 +378,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     """Plot response (l1/ref) Vs l1 pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_l1%s" % (eta_min, eta_max, app)
+    fwd_bin = abs(eta_min)>2.9
     if cu.exists_in_file(check_file, hname):
         h2d_rsp_l1_orig = cu.get_from_file(check_file, hname)
     else:
@@ -390,6 +396,8 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     else:
         h2d_rsp_l1.Draw("COLZ")
     h2d_rsp_l1.SetAxisRange(rsp_min, rsp_max, 'Y')
+    if fwd_bin:
+        h2d_rsp_l1.SetAxisRange(0, 254, 'X')
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
@@ -401,6 +409,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     """Plot response (l1/ref) Vs ref pt"""
     app = "_normX" if normX else ""
     hname = "eta_%g_%g/Histograms/h2d_rsp_gen%s" % (eta_min, eta_max, app)
+    fwd_bin = abs(eta_min)>2.9
     if cu.exists_in_file(check_file, hname):
         h2d_rsp_ref_orig = cu.get_from_file(check_file, hname)
     else:
@@ -418,6 +427,8 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     else:
         h2d_rsp_ref.Draw("COLZ")
     h2d_rsp_ref.SetAxisRange(rsp_min, rsp_max, 'Y')
+    if fwd_bin:
+        h2d_rsp_ref.SetAxisRange(0, 254, 'X')
     line = ROOT.TLine(0, 1, 1022, 1)
     line.SetLineStyle(2)
     line.SetLineWidth(2)
@@ -721,6 +732,11 @@ def plot_correction_graph(calib_file, eta_min, eta_max, oDir, oFormat='pdf'):
     gr = cu.get_from_file(calib_file, gname)
     c = generate_canvas()
     gr.Draw("ALP")
+    y_min = ROOT.TMath.MinElement(gr.GetN(), gr.GetY())
+    y_max = ROOT.TMath.MaxElement(gr.GetN(), gr.GetY())
+    if y_max > 5:
+        y_max = 5
+    gr.GetYaxis().SetRangeUser(y_min * 0.7, y_max * 1.1)
     c.SaveAs('%s/%s.%s' % (oDir, gname, oFormat))
 
 

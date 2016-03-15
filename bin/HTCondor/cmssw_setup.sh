@@ -1,7 +1,7 @@
 #!/bin/bash -e
 #
 # Setup CMSSW
-VER=CMSSW_7_6_0_pre7
+VER=CMSSW_8_0_0_pre6
 echo "Setting up ${VER} ..."
 echo "... sourcing CMS default environment from CVMFS"
 source /cvmfs/cms.cern.ch/cmsset_default.sh

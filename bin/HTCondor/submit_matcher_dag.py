@@ -40,17 +40,31 @@ NTUPLE_DIRS = [
     # '/hdfs/user/ra12451/L1JEC/CMSSW_7_6_0_pre7/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
     # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/QCDFlatSpring15BX25PU10to30HCALFix',
     # '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/QCDFlatSpring15BX25FlatNoPUHCALFix'
-    '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/QCDFlatSpring15BX25PU10to30HCALFix'
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/QCDFlatSpring15BX25PU10to30HCALFix'
+    # '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_16Feb_80X_mcRun2_asymptotic_v1_2779cb0_JEC/QCDFlatSpring15BX25PU10to30HCALFix/',
+    # '/hdfs/L1JEC/run260627_SingleMuReReco_HF_L1JEC_2779cb0/SingleMuReReco/'
+    # '/hdfs/L1JEC/run260627_SingleMuReReco_HF_noL1JEC_3bf1b93_20Feb_Bristol_v3/SingleMuReReco',
+    # '/hdfs/L1JEC/run260627_SingleMuReReco_HF_L1JEC_3bf1b93_20Feb_Bristol_v3/SingleMuReReco',
+    # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/QCDFlatSpring15BX25PU10to30HCALFix/'
+    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/QCDFlatFall15NoPU',
+    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/ttHTobbFall15PU30',
+    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_L1JEC_jst1p5_v2/QCDFlatFall15NoPU',
+    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_L1JEC_jst1p5_v2/ttHTobbFall15PU30',
 ]
 
 # Pick one
-SAMPLE = 'MC'
-SAMPLE = 'DATA'
+SAMPLE = 'MC_L1_Gen'
+# SAMPLE = 'MC_L1_PF'
+# SAMPLE = 'MC_PF_Gen'
+# SAMPLE = 'DATA'
 
 # Choose executable to run - must be located using `which <EXE>`
-EXE = 'RunMatcherData' if SAMPLE == 'DATA' else 'RunMatcherStage2'
-# EXE = 'RunMatcherStage2PFGen'
-# EXE = 'RunMatcherStage2L1PF'
+EXE = 'RunMatcherData'
+if SAMPLE.startswith("MC"):
+    parts = SAMPLE.split('_')
+    if len(parts) != 3:
+        raise RuntimeError('SAMPLE set incorrectly')
+    EXE = 'RunMatcherStage2%s%s' % (parts[1], parts[2])
 
 # DeltaR(L1, RefJet) for matching
 DELTA_R = 0.4
@@ -61,12 +75,18 @@ PT_REF_MIN = 10
 
 # TDirectory name for the L1 jets
 L1_DIR = 'l1UpgradeEmuTree'
-# L1_DIR = 'l1JetRecoTree'  # for PFGen exe
+if SAMPLE.startswith('MC') and '_PF_' in SAMPLE:
+        L1_DIR = 'l1JetRecoTree'  # for PF vs Gen
 
 # TDirectory name for the reference jets
-REF_DIR = 'l1JetRecoTree' if SAMPLE == 'DATA' else 'l1ExtraTreeGenAk4'
-# REF_DIR = 'l1ExtraTreeGenAk4'  # for PFGen exe
-# REF_DIR = 'l1JetRecoTree'  # for L1PF exe
+REF_DIR = 'l1JetRecoTree'
+if SAMPLE.startswith('MC'):
+    if SAMPLE.endswith('Gen'):
+        REF_DIR = 'l1ExtraTreeGenAk4'
+    elif SAMPLE.endswith('PF'):
+        REF_DIR = 'l1JetRecoTree'
+    else:
+        raise RuntimeError('Cannot get ref jet dir')
 
 # Cleaning cut to apply to Ref Jets
 # If none desired, put '' or None
@@ -76,9 +96,9 @@ CLEANING_CUT = None  # MC
 # String to append to output ROOT filename
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-# APPEND = 'MP_ak4_ref%sto5000_l10to5000_dr%s' % (str(PT_REF_MIN).replace('.', 'p'), str(DELTA_R).replace('.', 'p'))  # MPjets - MC
+APPEND = 'MP_ak4_ref%sto5000_l10to5000_dr%s' % (str(PT_REF_MIN).replace('.', 'p'), str(DELTA_R).replace('.', 'p'))  # MPjets - MC
 # APPEND = 'MP_ak4_ref10to5000_l130to5000_dr%s_httL1Jets_allGenJets_MHT' % (str(DELTA_R).replace('.', 'p'))  # MPjets - MC
-APPEND = 'ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # Demux jets - data
+# APPEND = 'ak4_ref%dto5000_l10to5000_dr%s' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # Demux jets - data
 # APPEND = 'ak4_Gen%dto5000_PF0to5000_dr%s_noCleaning' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # for PFGen exe
 # APPEND = 'MP_ak4_PF%dto5000_l10to5000_dr%s_noCleaning' % (PT_REF_MIN, str(DELTA_R).replace('.', 'p'))  # for L1PF exe
 
@@ -190,8 +210,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     # DAG for jobs
     stem = 'matcher_%s_%s' % (strftime("%H%M%S"), cc.rand_str(3))
     matcher_dag = ht.DAGMan(filename=os.path.join(log_dir, '%s.dag' % stem),
-                            status_file=os.path.join(log_dir, '%s.status' % stem),
-                            dot='matcher.dot')
+                            status_file=os.path.join(log_dir, '%s.status' % stem))
 
     # JobSet for each matching job
     log_stem = 'matcher.$(cluster).$(process)'

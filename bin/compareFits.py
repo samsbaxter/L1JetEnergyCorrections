@@ -63,8 +63,11 @@ def compare():
     f_PU15to25_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU15to25.root')
     f_PU30to40_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU30to40.root')
 
-    zoom_pt = [0, 150]
+    s2_fall15_dummyLayer1 = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/output'
+    f_PU0_fall15_dummyLayer1 = os.path.join(s2_fall15_dummyLayer1, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
 
+    zoom_pt = [0, 150]
+    """
     # --------------------------------------------------------------------
     # New Stage 2 curves
     # Plot different PU scenarios for given eta bin
@@ -100,7 +103,7 @@ def compare():
         p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-
+    """
     """
     # --------------------------------------------------------------------
     # New vs Old curves
@@ -209,7 +212,7 @@ def compare():
 
         xlim = None
     """
-
+    """
     # --------------------------------------------------------------------
     # New Stage 2 curves for DATA
     # Plot different PU scenarios for given eta bin
@@ -247,7 +250,8 @@ def compare():
 
         xlim = None
 
-
+    """
+    """
     # --------------------------------------------------------------------
     # DATA vs MC (L1-Gen) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
@@ -286,7 +290,8 @@ def compare():
         p.save(os.path.join(oDir, "compare_data_mcSpring15_l1gen_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-
+    """
+    """
     # --------------------------------------------------------------------
     # DATA vs MC (L1-PF) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
@@ -323,7 +328,8 @@ def compare():
         p.save(os.path.join(oDir, "compare_data_mcSpring15_l1pf_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
         xlim = None
-
+    """
+    """
     # --------------------------------------------------------------------
     # L1-Gen vs L1-PF curves
     # --------------------------------------------------------------------
@@ -361,6 +367,51 @@ def compare():
                      title="Spring15 MC, no L1JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
             p.plot()
             p.save(os.path.join(oDir, "compare_L1Gen_L1PF_eta_%g_%g_%s_pTzoomed.pdf" % (eta_min, eta_max, pu_label)))
+
+    """
+
+    # --------------------------------------------------------------------
+    # Spring15 vs Fall15, dummy Layer 1
+    # --------------------------------------------------------------------
+    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+
+        spring15_graphs = [
+            Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="Spring15 (0PU)", line_color=colors[0], marker_color=colors[0]),
+            # Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #              label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+            # Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #              label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+            # Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #              label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+        ]
+
+        fall15_graphs = [
+            Contribution(file_name=f_PU0_fall15_dummyLayer1, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+                         label="Fall15 (0PU)", line_style=2, line_color=colors[0], marker_color=colors[0]),
+            # Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #              label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+            # Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #              label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+            # Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
+            #              label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
+        ]
+        ylim = None
+        if eta_min > 2:
+            ylim = [0, 3.5]
+
+        oDir = s2_fall15_dummyLayer1
+        for i, pu_label in enumerate(['0PU', 'PU0to10', 'PU15to25', 'PU30to40'][0:1]):
+            p = Plot(contributions=[spring15_graphs[i], fall15_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                     title="Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
+            p.plot()
+            p.save(os.path.join(oDir, "compare_spring15_fall15_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
+
+            p = Plot(contributions=[spring15_graphs[i], fall15_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                     title="Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
+            p.plot()
+            p.save(os.path.join(oDir, "compare_spring15_fall15_eta_%g_%g_%s_pTzoomed.pdf" % (eta_min, eta_max, pu_label)))
+
 
 if __name__ == "__main__":
     compare()
