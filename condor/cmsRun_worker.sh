@@ -92,14 +92,18 @@ echo "${cmssw_version} has been set up"
 # Extract sandbox of user's libs, headers, and python files
 ###############################################################################
 cd ..
-cp $sandbox sandbox.tgz
+hadoop fs -copyToLocal ${sandbox#/hdfs} sandbox.tgz  # assumes this is on HDFS!
 tar xvzf sandbox.tgz
+
+cp "$script" src/
+cp "$filelist" src/
+cd src # run everything inside CMSSW_BASE/src
 
 # Setup new libs to point to local ones
 export LD_LIBRARY_PATH=${worker}/${cmssw_version}/biglib/${SCRAM_ARCH}:${worker}/${cmssw_version}/lib/${SCRAM_ARCH}:${worker}/${cmssw_version}/external/${SCRAM_ARCH}/lib:$LD_LIBRARY_PATH
 echo "========================="
-echo "New LD_LIBRARY_PATH:"
-echo $LD_LIBRARY_PATH
+echo "New env vars"
+printenv
 echo "========================="
 
 ###############################################################################
