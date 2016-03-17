@@ -95,8 +95,13 @@ cd ..
 hadoop fs -copyToLocal ${sandbox#/hdfs} sandbox.tgz  # assumes this is on HDFS!
 tar xvzf sandbox.tgz
 
-cp "$script" src/
-cp "$filelist" src/
+cp $script src/
+
+if [ $doProfile == 0 ]; then
+    # only need filelist if not profiling - in profile mode use file in config
+    cp $filelist src/
+fi
+
 cd src # run everything inside CMSSW_BASE/src
 
 # Setup new libs to point to local ones
