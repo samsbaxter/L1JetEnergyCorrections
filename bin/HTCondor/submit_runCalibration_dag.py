@@ -23,6 +23,7 @@ from time import strftime
 import htcondenser as ht
 import condorCommon as cc
 import logging
+from itertools import chain
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -97,13 +98,19 @@ def submit_all_runCalib_dags(pairs_files, log_dir, append, pu_bins, eta_bins, fo
     common_input_files = ['runCalibration.py', 'binning.py', 'common_utils.py']
     common_input_files = [os.path.join(os.path.dirname(os.getcwd()), f) for f in common_input_files]
 
+    status_files = []
+
     # Submit a DAG for each pairs file
     for pfile in pairs_files:
         print 'Processing', pfile
-        submit_runCalib_dag(pairs_file=pfile, log_dir=log_dir, append=append,
-                            pu_bins=pu_bins, eta_bins=eta_bins,
-                            common_input_files=common_input_files,
-                            force_submit=force_submit)
+        sfile = submit_runCalib_dag(pairs_file=pfile, log_dir=log_dir, append=append,
+                                    pu_bins=pu_bins, eta_bins=eta_bins,
+                                    common_input_files=common_input_files,
+                                    force_submit=force_submit)
+        status_files.append(sfile)
+    status_files = list(chain.from_iterable(status_files))  # flatten the list
+    print 'All statuses:'
+    print 'DAGstatus.py ', ' '.join(status_files)
 
 
 def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_input_files,
@@ -248,6 +255,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
 
     print 'For all statuses:'
     print 'DAGstatus.py', ' '.join(status_files)
+    return status_files
 
 
 if __name__ == "__main__":

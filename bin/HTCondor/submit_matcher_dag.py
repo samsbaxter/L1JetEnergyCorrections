@@ -29,6 +29,7 @@ import re
 import htcondenser as ht
 import condorCommon as cc
 import logging
+from itertools import chain
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -160,14 +161,20 @@ def submit_all_matcher_dags(exe, ntuple_dirs, log_dir, append,
     hadd_setup_script = 'cmssw_setup.sh'
     cc.update_hadd_setup_script(hadd_setup_script, os.environ['CMSSW_VERSION'])
 
+    status_files = []
+
     # Submit a DAG for each pairs file
     for ndir in ntuple_dirs:
         print '>>> Processing', ndir
-        submit_matcher_dag(exe=exe, ntuple_dir=ndir, log_dir=log_dir,
-                           l1_dir=l1_dir, ref_dir=ref_dir,
-                           deltaR=deltaR, ref_min_pt=ref_min_pt,
-                           cleaning_cut=cleaning_cut,
-                           append=append, force_submit=force_submit)
+        sfile = submit_matcher_dag(exe=exe, ntuple_dir=ndir, log_dir=log_dir,
+                                   l1_dir=l1_dir, ref_dir=ref_dir,
+                                   deltaR=deltaR, ref_min_pt=ref_min_pt,
+                                   cleaning_cut=cleaning_cut,
+                                   append=append, force_submit=force_submit)
+        status_files.append(sfile)
+    status_files = list(chain.from_iterable(status_files))  # flatten the list
+    print 'All statuses:'
+    print 'DAGstatus.py ', ' '.join(status_files)
 
 
 def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_min_pt, cleaning_cut,
