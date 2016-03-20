@@ -24,6 +24,7 @@ import common_utils as cu
 from array import array
 import os
 from runCalibration import generate_eta_graph_name
+from subprocess import check_call
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -332,7 +333,9 @@ def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oD
     h_rsp.Draw("HISTE")
     if func:
         func.Draw("SAME")
-    c.SaveAs("%s/h_rsp_%g_%g_%s_%g_%g.%s" % (oDir, eta_min, eta_max, pt_var, pt_min, pt_max, oFormat))
+    output_filename = "%s/h_rsp_%g_%g_%s_%g_%g.%s" % (oDir, eta_min, eta_max, pt_var, pt_min, pt_max, oFormat)
+    c.SaveAs(output_filename)
+    return output_filename
 
 
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
@@ -780,6 +783,44 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
         print "! No histogram %s exists" % hname
 
 
+##################
+# Helper functions
+##################
+def write_filelist(plot_filenames, list_file):
+    """Write a list of plto filenames to a text file."""
+    if plot_filenames:
+        with open(list_file, 'w') as f:
+            f.write('\n'.join(map(lambda x: os.path.basename(x), filter(None, plot_filenames))))
+    else:
+        print 'Warning: nothing to write to txt file'
+
+
+def make_gif(input_file_list, output_gif_filename):
+    """Make an animated GIF from a list of images.
+    Requires Imagemagick to be installed.
+
+    Note that we cd to the directory with the input file list, as all image
+    files are assumed to be relative to its location.
+
+    Parameters
+    ----------
+    input_file_list : str
+        Filepath of txt file with locations of images to be made into GIF
+    output_gif_filename : str
+        Filepath of GIF
+    """
+    print 'Making GIF', output_gif_filename
+    input_file_list = os.path.abspath(input_file_list)
+    output_gif_filename = os.path.abspath(output_gif_filename)
+    cwd = os.getcwd()
+    # we have to chdir since list file only has bare filenames
+    os.chdir(os.path.dirname(input_file_list))
+    cmd = "convert -dispose Background -delay 50 -loop 0 @%s %s" % (os.path.relpath(input_file_list), os.path.relpath(output_gif_filename))
+    print cmd
+    check_call(cmd.split())
+    os.chdir(cwd)
+
+
 def main(in_args=sys.argv[1:]):
     print in_args
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -808,11 +849,22 @@ def main(in_args=sys.argv[1:]):
     # parser.add_argument("--etaInd",
                         # help="list of eta bin index/indices to run over")
     parser.add_argument("--gifs",
+                        help="Make GIFs (only applicable if --detail is also used)",
+                        action='store_true')
     args = parser.parse_args(args=in_args)
 
     print args
 
-    if args.oDir == ".":
+    if args.detail:
+        print "Warning: producing all component hists. This could take a while..."
+
+    if args.gifs:
+        if args.detail:
+            print "Making animated graphs from fit plots."
+        else:
+            print "To use the --gifs flag, you also need --detail"
+
+    if args.oDir == os.getcwd():
         print "Warning: I'm going to make these plots here!"
 
     # auto determine output directory
@@ -915,6 +967,7 @@ def main(in_args=sys.argv[1:]):
 
         # indiviudal eta bins
         for eta_min, eta_max in pairwise(etaBins):
+            print eta_min, eta_max
             for (normX, logZ) in product([True, False], [True, False]):
                 plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
                 plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
@@ -926,25 +979,29 @@ def main(in_args=sys.argv[1:]):
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
                 cu.check_dir_exists_create(list_dir)
 
-                # list of histograms (in the correct order) for converting to animated GIFs
-                # use imagemagick e.g.
-                # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
-                pt_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
-                ptRef_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                pt_plot_filenames = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
+                pt_plot_filenames_file = os.path.join(list_dir, 'list_pt.txt')
+                write_filelist(pt_plot_filenames, pt_plot_filenames_file)
 
-                with open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_file, \
-                     open(os.path.join(list_dir, 'list_ptRef.txt'), 'w') as ptRef_file:
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                ptRef_plot_filenames = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
+                ptRef_plot_filenames_file = os.path.join(list_dir, 'list_ptRef.txt')
+                write_filelist(ptRef_plot_filenames, ptRef_plot_filenames_file)
 
-                    if pt_names:
-                        pt_file.write('\n'.join(pt_names))
-                    if ptRef_names:
-                        ptRef_file.write('\n'.join(ptRef_names))
+                # make dem GIFs
+                if args.gifs:
+                    for inf in [pt_plot_filenames_file, ptRef_plot_filenames_file]:
+                        make_gif(inf, inf.replace('.txt', '.gif'))
+                else:
+                    print "To make animated gif from PNGs using a plot list:"
+                    print "convert -dispose Background -layers OptimizeTransparency " \
+                          "-delay 50 -loop 0 @%s %s" % (pt_plot_filenames_file,
+                                os.path.basename(pt_plot_filenames_file).replace(".txt", ".gif"))
 
-                print "To make animated gif from PNGs using a plot list:"
-                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_file.name, eta_min, eta_max)
 
         # Graph of response vs pt, but in bins of eta
-        x_range = [0, 150]
+        x_range = [0, 150]  # for zoomed-in low pt
         x_range = None
         plot_rsp_pt_binned_graph(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
         plot_rsp_pt_binned_graph(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
@@ -952,6 +1009,7 @@ def main(in_args=sys.argv[1:]):
         # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
         # for (eta_min, eta_max) in product([0, 3], [3, 5]):
         for (eta_min, eta_max) in [[0, 3], [3, 5]]:
+            print eta_min, eta_max
             if eta_min == eta_max:
                 continue
 
@@ -1002,25 +1060,34 @@ def main(in_args=sys.argv[1:]):
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
                 cu.check_dir_exists_create(list_dir)
 
-                # list of histograms (in the correct order) for converting to animated GIFs
-                # use imagemagick e.g.
-                # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
-                rsp_file = open(os.path.join(list_dir, 'list_rsp.txt'), 'w')
-                pt_file = open(os.path.join(list_dir, 'list_pt.txt'), 'w')
-
                 if eta_min > 2.9:
                     ptBins = binning.pt_bins_stage2_hf
 
+                rsp_plot_filenames = []
+                pt_plot_filenames = []
+
                 for pt_min, pt_max in pairwise(ptBins):
                     rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                    rsp_plot_filenames.append(rsp_name)
                     pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                    if rsp_name: rsp_file.write(os.path.basename(rsp_name) + '\n')
-                    if pt_name: pt_file.write(os.path.basename(pt_name) + '\n')
+                    pt_plot_filenames.append(pt_name)
 
-                rsp_file.close()
-                pt_file.close()
-                print "To make animated gif from PNGs using a plot list:"
-                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s rsp_eta_%g_%g.gif" % (rsp_file.name, eta_min, eta_max)
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                rsp_plot_filenames_file = os.path.join(list_dir, 'list_rsp.txt')
+                write_filelist(rsp_plot_filenames, rsp_plot_filenames_file)
+
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                pt_plot_filenames_file = os.path.join(list_dir, 'list_pt.txt')
+                write_filelist(pt_plot_filenames, pt_plot_filenames_file)
+
+                # make dem gifs
+                if args.gifs:
+                    for inf in [pt_plot_filenames_file, rsp_plot_filenames_file]:
+                        make_gif(inf, inf.replace('.txt', '.gif'))
+                else:
+                    print "To make animated gif from PNGs using a plot list:"
+                    print "convert -dispose Background -layers OptimizeTransparency " \
+                          "-delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_plot_filenames_file, eta_min, eta_max)
 
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
