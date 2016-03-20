@@ -64,14 +64,14 @@ rsp_min, rsp_max = 0, 2
 #############################################
 # LABELS, COLOURS, AND TITLE ON PLOTS
 #############################################
-plot_labels = [
+# plot_labels = [
      # "Spring15 + HF fix (no JEC)"
-     "Without L1JEC"
+     # "Without L1JEC"
      # "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
      # "With L1JEC (derived from Spring15)"
      # "With L1JEC (LUT)"
      # "With Summer15_25nsV6_MC PFJEC"
-    ]
+    # ]
 
 # plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
 # plot_title = "Run 260627 SingleMu, Stage 2, with L1JEC, with PF cleaning"
@@ -250,14 +250,14 @@ def plot_res_all_pt(res_file, eta_min, eta_max, oDir, oFormat="pdf"):
     grname = "eta_%g_%g/resRefRef_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
 
     graph = cu.get_from_file(res_file, grname)
-    leg = generate_legend()
+    # leg = generate_legend()
     mg = ROOT.TMultiGraph()
     i = 0
     graph.SetLineColor(plot_colors[i])
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     mg.Draw("ALP")
     mg.GetXaxis().SetTitleSize(0.04)
@@ -267,7 +267,7 @@ def plot_res_all_pt(res_file, eta_min, eta_max, oDir, oFormat="pdf"):
     mg.GetYaxis().SetRangeUser(0, 0.6)
     mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
     mg.Draw("ALP")
-    leg.Draw()
+    # leg.Draw()
     append = ""
     c.SaveAs("%s/res_ref_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
@@ -485,7 +485,7 @@ def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFo
     c = generate_canvas(plot_title)
 
     # leg = generate_legend() #(0.4, 0.7, 0.87, 0.87) # top right
-    leg = generate_legend()
+    # leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -494,7 +494,7 @@ def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFo
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
@@ -516,7 +516,7 @@ def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFo
     mg.Draw("ALP")
     mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title, eta_l1_str, rsp_str))
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = ""
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
@@ -599,7 +599,7 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = generate_legend()
+    # leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -608,7 +608,7 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
@@ -631,7 +631,7 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     mg.Draw("ALP")
     mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_l1_str, rsp_str))
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = ""
     c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
@@ -644,7 +644,7 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = generate_legend()
+    # leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -654,7 +654,7 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
@@ -677,7 +677,7 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     mg.Draw("ALP")
     mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_ref_str, rsp_str))
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = ""
     c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
