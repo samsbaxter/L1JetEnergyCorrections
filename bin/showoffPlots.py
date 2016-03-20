@@ -804,8 +804,10 @@ def main(in_args=sys.argv[1:]):
                         help="Format for plots (PDF, png, etc). Note that 2D correlation plots will "
                              "always be PNGs to avoid large files.",
                         default="pdf")
-    parser.add_argument("--etaInd",
-                        help="list of eta bin index to run over")
+    # FIXME
+    # parser.add_argument("--etaInd",
+                        # help="list of eta bin index/indices to run over")
+    parser.add_argument("--gifs",
     args = parser.parse_args(args=in_args)
 
     print args
@@ -845,9 +847,9 @@ def main(in_args=sys.argv[1:]):
     # ptBins = binning.pt_bins_stage2_old
     ptBins = binning.pt_bins_stage2
 
-    if args.etaInd:
-        eta_min = binning.eta_bins[int(args.etaInd)]
-        eta_max = binning.eta_bins[int(args.etaInd) + 1]
+    # if args.etaInd:
+    #     eta_min = binning.eta_bins[int(args.etaInd)]
+    #     eta_max = binning.eta_bins[int(args.etaInd) + 1]
 
     # Do plots with output from RunMatcher
     # ------------------------------------------------------------------------
