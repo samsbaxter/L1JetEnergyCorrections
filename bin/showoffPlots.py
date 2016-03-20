@@ -35,14 +35,18 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(55)
 ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
-
+#################################################
 # Some common strings
+# Note that l1_str and ref_str can be overridden
+# using the --l1str and --refstr args
+#################################################
 l1_str = 'L1'
 # l1_str = 'PF'
 
 ref_str = "GenJet"
 # ref_str = "PFJet"
 
+# Some common axis labels
 rsp_str = "E_{T}^{%s}/E_{T}^{%s}" % (l1_str, ref_str)
 eta_str = "#eta"
 eta_ref_str = "|#eta^{%s}|" % (ref_str)
@@ -63,18 +67,11 @@ rsp_min, rsp_max = 0, 2
 
 #############################################
 # LABELS, COLOURS, AND TITLE ON PLOTS
+# NB title can be overridden using --title <str>
 #############################################
-# plot_labels = [
-     # "Spring15 + HF fix (no JEC)"
-     # "Without L1JEC"
-     # "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
-     # "With L1JEC (derived from Spring15)"
-     # "With L1JEC (LUT)"
-     # "With Summer15_25nsV6_MC PFJEC"
-    # ]
-
 # plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
 # plot_title = "Run 260627 SingleMu, Stage 2, with L1JEC, with PF cleaning"
+
 # plot_title = "Spring15 MC, Stage 2, no JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
@@ -845,6 +842,9 @@ def main(in_args=sys.argv[1:]):
                         help="Format for plots (PDF, png, etc). Note that 2D correlation plots will "
                              "always be PNGs to avoid large files.",
                         default="pdf")
+    parser.add_argument("--title",
+                        help="Title for plots.")
+
     # FIXME
     # parser.add_argument("--etaInd",
                         # help="list of eta bin index/indices to run over")
@@ -863,6 +863,12 @@ def main(in_args=sys.argv[1:]):
             print "Making animated graphs from fit plots."
         else:
             print "To use the --gifs flag, you also need --detail"
+
+    # customise titles
+    # note the use of global keyword
+    if args.title:
+        global plot_title
+        plot_title = args.title
 
     if args.oDir == os.getcwd():
         print "Warning: plots will be made in $PWD!"
