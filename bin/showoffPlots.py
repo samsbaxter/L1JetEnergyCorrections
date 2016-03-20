@@ -169,7 +169,7 @@ def plot_pt_both(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     stack.GetHistogram().SetTitle("%s;%s;N" % (total_cut, pt_str))
     c.SetTitle(total_cut)
     leg = generate_legend()
-    leg.AddEntry(0, "|#eta|: %g - %g" % (eta_min, eta_max), "")
+    leg.AddEntry(0, "%s: %g - %g" % (eta_l1_str, eta_min, eta_max), "")
     leg.AddEntry(h_pt_l1, "L1", "L")
     leg.AddEntry(h_pt_ref, "Ref", "L")
     leg.Draw()
@@ -209,7 +209,7 @@ def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"
     # h_diff.SetLineWidth(2)
     func = h_diff.GetListOfFunctions().At(0)
     func.SetLineWidth(1)
-    h_diff.SetTitle("%g < |#eta^{L1}| < %g, %g < p_{T}^{%s} < %g;%s;N" % (eta_min, eta_max, pt_min, ref_str, pt_max, pt_diff_str))
+    h_diff.SetTitle("%g < %s < %g, %g < p_{T}^{%s} < %g;%s;N" % (eta_min, eta_l1_str, eta_max, pt_min, ref_str, pt_max, pt_diff_str))
     if not os.path.exists("%s/eta_%g_%g" % (oDir, eta_min, eta_max)):
         os.makedirs("%s/eta_%g_%g" % (oDir, eta_min, eta_max))
     c.SaveAs("%s/eta_%g_%g/pt_diff_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, eta_min, eta_max, pt_min, pt_max, oFormat))
@@ -265,7 +265,7 @@ def plot_res_all_pt(res_file, eta_min, eta_max, oDir, oFormat="pdf"):
     # mg.GetYaxis().SetTitle(res_l1_str)
     mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax() * 1.5)
     mg.GetYaxis().SetRangeUser(0, 0.6)
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < %s < %g' % (eta_min, eta_l1_str, eta_max), pt_ref_str, res_ref_str))
     mg.Draw("ALP")
     # leg.Draw()
     append = ""
@@ -281,7 +281,7 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
     and will be done for pre and post calib, whereas output from runCalibration
     will generally only be pre calib, and is binned by ref Jet pt
     """
-    h_2d = ROOT.TH2D("h2d_eta_pt_rsp", ";p_{T}^{L1} [GeV];|#eta^{L1}|",
+    h_2d = ROOT.TH2D("h2d_eta_pt_rsp", ";%s;%s" % (pt_l1_str, eta_l1_str) ,
                      len(ptBins) - 1, array('d', ptBins),
                      len(etaBins) - 1, array('d', etaBins))
     for eta_ind, (eta_min, eta_max) in enumerate(zip(etaBins[:-1], etaBins[1:]), 1):
@@ -347,7 +347,7 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
     if logZ:
         c.SetLogz()
         app = "_log"
-    h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
+    h2d_gen_l1.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
     max_pt = 512
     h2d_gen_l1.SetAxisRange(0, max_pt, 'X')
@@ -393,7 +393,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     if logZ:
         c.SetLogz()
         app += "_log"
-    h2d_rsp_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_l1_str, rsp_str))
+    h2d_rsp_l1.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_l1_str, rsp_str))
     if normX:
         h2d_rsp_l1.Draw("COL")
     else:
@@ -424,7 +424,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     if logZ:
         c.SetLogz()
         app += "_log"
-    h2d_rsp_ref.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
+    h2d_rsp_ref.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_ref_str, rsp_str))
     if normX:
         h2d_rsp_ref.Draw("COL")
     else:
@@ -451,7 +451,7 @@ def plot_rsp_Vs_pt_candle_violin(check_file, eta_min, eta_max, ptVar, oDir, oFor
     h2d_rsp_pt = h2d_rsp_pt_orig.Rebin2D(1, 1, "hnew")
 
     c = generate_canvas()
-    h2d_rsp_pt.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
+    h2d_rsp_pt.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_ref_str, rsp_str))
     h2d_rsp_pt.Draw("CANDLE")
     # Draw fitted peaks as well
     gr_name = "eta_{0:g}_{1:g}/gr_rsp_{2}_eta_{0:g}_{1:g}".format(eta_min, eta_max, 'pt' if ptVar == 'l1' else 'ptRef')
@@ -629,7 +629,7 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
     mg.Draw("ALP")
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_l1_str, rsp_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < %s < %g" % (eta_min, eta_l1_str, eta_max), pt_l1_str, rsp_str))
 
     # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
@@ -675,7 +675,7 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
     mg.Draw("ALP")
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_ref_str, rsp_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < %s < %g" % (eta_min, eta_l1_str, eta_max), pt_ref_str, rsp_str))
 
     # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
@@ -697,7 +697,7 @@ def plot_rsp_pt_binned_graph(check_file, eta_bins, pt_var, oDir, oFormat='pdf', 
         g.SetMarkerStyle(plot_markers[0])
         mg.Add(g)
         # leg.AddEntry(g, plot_labels[0] + " %g < |#eta^{L1}| < %g" % (eta_min, eta_var), "LP")
-        leg.AddEntry(g, " %g < |#eta^{L1}| < %g" % (eta_min, eta_max), "LP")
+        leg.AddEntry(g, " %g < %s < %g" % (eta_min, eta_l1_str, eta_max), "LP")
 
     pt_min, pt_max = (0, 1022) if not x_range else (x_range[0], x_range[1])
     # lines at 1, and +/- 0.1
@@ -998,7 +998,6 @@ def main(in_args=sys.argv[1:]):
                     print "convert -dispose Background -layers OptimizeTransparency " \
                           "-delay 50 -loop 0 @%s %s" % (pt_plot_filenames_file,
                                 os.path.basename(pt_plot_filenames_file).replace(".txt", ".gif"))
-
 
         # Graph of response vs pt, but in bins of eta
         x_range = [0, 150]  # for zoomed-in low pt
