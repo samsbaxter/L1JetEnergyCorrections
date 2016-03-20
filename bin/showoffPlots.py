@@ -865,7 +865,7 @@ def main(in_args=sys.argv[1:]):
             print "To use the --gifs flag, you also need --detail"
 
     if args.oDir == os.getcwd():
-        print "Warning: I'm going to make these plots here!"
+        print "Warning: plots will be made in $PWD!"
 
     # auto determine output directory
     if not args.oDir:
