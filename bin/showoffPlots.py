@@ -837,7 +837,7 @@ def main(in_args=sys.argv[1:]):
                         help="input ROOT file from output of runCalibration.py")
 
     parser.add_argument("--oDir",
-                        help="Directory to save plots. Default is $PWD.")
+                        help="Directory to save plots. Default is in same location as ROOT file.")
     parser.add_argument("--detail",
                         help="Plot all the individual component hists for each eta bin. There are a lot!",
                         action='store_true')
