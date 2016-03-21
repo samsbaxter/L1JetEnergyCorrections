@@ -1004,8 +1004,8 @@ def main(in_args=sys.argv[1:]):
                         make_gif(inf, inf.replace('.txt', '.gif'))
                 else:
                     print "To make animated gif from PNGs using a plot list:"
-                    print "convert -dispose Background -layers OptimizeTransparency " \
-                          "-delay 50 -loop 0 @%s %s" % (pt_plot_filenames_file,
+                    print "convert -dispose Background -delay 50 -loop 0 @%s " \
+                        "%s" % (pt_plot_filenames_file,
                                 os.path.basename(pt_plot_filenames_file).replace(".txt", ".gif"))
 
         # Graph of response vs pt, but in bins of eta
@@ -1094,8 +1094,8 @@ def main(in_args=sys.argv[1:]):
                         make_gif(inf, inf.replace('.txt', '.gif'))
                 else:
                     print "To make animated gif from PNGs using a plot list:"
-                    print "convert -dispose Background -layers OptimizeTransparency " \
-                          "-delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_plot_filenames_file, eta_min, eta_max)
+                    print "convert -dispose Background -delay 50 -loop 0 @%s "\
+                        "pt_eta_%g_%g.gif" % (pt_plot_filenames_file, eta_min, eta_max)
 
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
