@@ -284,7 +284,7 @@ def compare():
                      label="PU: 30 - 40 (760pre7)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([new_graphs, old_graphs], ['800pre5', '760pre7'], title, s2_new)
+    compare_by_eta_pu_bins([new_graphs, old_graphs], ['800pre5', '760pre7'], pu_labels, title, s2_new)
     """
 
     """
@@ -407,7 +407,7 @@ def compare():
                      label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no L1JEC, Stage 2, no PF JetID, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([L1Gen_graphs, L1PF_graphs], ['L1Gen', 'L1PF'], title, s2_L1PF)
+    compare_by_eta_pu_bins([L1Gen_graphs, L1PF_graphs], ['L1Gen', 'L1PF'], pu_labels, title, s2_L1PF)
     """
 
     """
@@ -436,7 +436,7 @@ def compare():
         #              label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([spring15_graphs, fall15_graphs], ['spring15', 'fall15'], title, s2_fall15_dummyLayer1)
+    compare_by_eta_pu_bins([spring15_graphs, fall15_graphs], ['spring15', 'fall15'], pu_labels, title, s2_fall15_dummyLayer1)
     """
 
     # -------------------------------------------------------------------
