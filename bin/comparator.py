@@ -155,6 +155,8 @@ class Plot(object):
             Extend functions to cover the whole x axis range.
         """
         self.contributions = contributions if contributions else []
+        if what not in ['graph', 'function', 'both']:
+            raise RuntimeError("`what` argument must be one of 'graph' 'function' 'both'")
         self.plot_what = what
         self.title = title
         self.xtitle = xtitle
