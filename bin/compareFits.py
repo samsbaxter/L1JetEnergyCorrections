@@ -67,350 +67,278 @@ def compare():
     f_PU0_fall15_dummyLayer1 = os.path.join(s2_fall15_dummyLayer1, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
 
     zoom_pt = [0, 150]
+
+    def compare_PU_by_eta_bins(graphs, title, oDir, lowpt_zoom=True):
+        """Plot graph contributions, with a different plot for each eta bin.
+
+        Parameters
+        ----------
+        graphs : list[Contribution]
+            Description
+        title : str
+            Description
+        oDir : str
+            Description
+        lowpt_zoom : bool, optional
+            Description
+
+        """
+        for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+            # Set graph names for this eta bin
+            for g in graphs:
+                g.obj_name = g.obj_name.format(eta_min=eta_min, eta_max=eta_max)
+            ylim = [0, 3.5] if eta_min > 2 else None
+            p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>",
+                     ytitle="Correction value (= 1/response)",
+                     title=title.format(eta_min=eta_min, eta_max=eta_max), ylim=ylim)
+            p.plot()
+            p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
+
+            if lowpt_zoom:
+                # zoom in on low pT
+                p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>",
+                         ytitle="Correction value (= 1/response)",
+                         title=title.format(eta_min=eta_min, eta_max=eta_max), xlim=zoom_pt, ylim=ylim)
+                p.plot()
+                p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
+
+
+    def compare_by_eta_pu_bins(graphs1, graphs2, name1, name2, title, oDir, lowpt_zoom=True):
+        """Compare graphs for each eta bin, and for each PU bin.
+
+        Parameters
+        ----------
+        graphs1 : list[Contribution]
+            Description
+        graphs2 : list[Contribution]
+            Description
+        name1 : str
+            Description
+        name2 : str
+            Description
+        title : str
+            Description
+        oDir : str
+            Description
+        lowpt_zoom : bool, optional
+            Description
+        """
+        for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+            ylim = [0, 3.5] if eta_min > 2 else None
+            for i, pu_label in enumerate(['0PU', 'PU0to10', 'PU15to25', 'PU30to40']):
+                p = Plot(contributions=[graphs1[i], graphs2[i]], what="graph",
+                         xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                         title=title.format(eta_min=eta_min, eta_max=eta_max), ylim=ylim)
+                p.plot()
+                p.save(os.path.join(oDir, "compare_%s_%s_eta_%g_%g_%s.pdf" % (name1, name2, eta_min, eta_max, pu_label)))
+                if lowpt_zoom:
+                    # zoom in on low pT
+                    p = Plot(contributions=[graphs1[i], graphs2[i]], what="graph",
+                             xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                             title=title.format(eta_min=eta_min, eta_max=eta_max), xlim=zoom_pt, ylim=ylim)
+                    p.plot()
+                    p.save(os.path.join(oDir, "compare_%s_%s_eta_%g_%g_%s_pTzoomed.pdf" % (name1, name2, eta_min, eta_max, pu_label)))
+
     """
     # --------------------------------------------------------------------
     # New Stage 2 curves
     # Plot different PU scenarios for given eta bin
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
-        graphs = [
-            Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="0PU", line_color=colors[0], marker_color=colors[0]),
-            Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
-        p.plot()
-        oDir = s2_new
-        p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
-
-        # zoom in on low pT
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
-        p.plot()
-        p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
-
-        xlim = None
+    graphs = [
+        Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+    title="Spring15 MC, no JEC, Stage 2, {eta_max:g} < |#eta| < {eta_max:g}"
+    compare_PU_by_eta_bins(graphs, title, s2_new, lowpt_zoom=True)
     """
+
+
     """
     # --------------------------------------------------------------------
     # New vs Old curves
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
+    new_graphs = [
+        # Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="0PU (800pre5)", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10 (800pre5)", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25 (800pre5)", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40 (800pre5)", line_color=colors[3], marker_color=colors[3])
+    ]
 
-        new_graphs = [
-            # Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="0PU (800pre5)", line_color=colors[0], marker_color=colors[0]),
-            Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10 (800pre5)", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25 (800pre5)", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40 (800pre5)", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        old_graphs = [
-            # Contribution(file_name=f_0PU_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="0PU (760pre7)", line_style=2, line_color=colors[0], marker_color=colors[0]),
-            Contribution(file_name=f_PU0to10_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10 (760pre7)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25 (760pre7)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_old, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40 (760pre7)", line_style=2, line_color=colors[3], marker_color=colors[3])
-        ]
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-
-        oDir = s2_new
-        for i, pu_label in enumerate(['PU0to10', 'PU15to25', 'PU30to40']):
-            p = Plot(contributions=[new_graphs[i], old_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
-            p.plot()
-            p.save(os.path.join(oDir, "compare_800pre5_760pre7_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
+    old_graphs = [
+        # Contribution(file_name=f_0PU_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="0PU (760pre7)", line_style=2, line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10 (760pre7)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25 (760pre7)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40 (760pre7)", line_style=2, line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_by_eta_pu_bins(new_graphs, old_graphs, '800pre5', '760pre7', title, s2_new)
     """
+
     """
     # --------------------------------------------------------------------
     # Min PUS vs max PUS curves
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+    minPUS_graphs = [
+        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_ming:g}_{eta_max:g}",
+                     label="PU: 0 - 10 (min PUS)", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_ming:g}_{eta_max:g}",
+                     label="PU: 15 - 25 (min PUS)", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_ming:g}_{eta_max:g}",
+                     label="PU: 30 - 40 (min PUS)", line_color=colors[3], marker_color=colors[3])
+    ]
 
-        new_graphs = [
-            Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10 (min PUS)", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25 (min PUS)", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40 (min PUS)", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        buggy_graphs = [
-            Contribution(file_name=f_PU0to10_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10 (max PUS)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25 (max PUS)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40 (max PUS)", line_style=2, line_color=colors[3], marker_color=colors[3])
-        ]
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-
-        oDir = s2_maxPUS
-        for i, pu_label in enumerate(['PU0to10', 'PU15to25', 'PU30to40']):
-            p = Plot(contributions=[new_graphs[i], buggy_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 MC, no JEC, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
-            p.plot()
-            p.save(os.path.join(oDir, "compare_minPUS_maxPUS_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
-
-    """
+    maxPUS_graphs = [
+        Contribution(file_name=f_PU0to10_maxPUS, obj_name="l1corr_eta_{eta_ming:g}_{eta_max:g}",
+                     label="PU: 0 - 10 (max PUS)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_maxPUS, obj_name="l1corr_eta_{eta_ming:g}_{eta_max:g}",
+                     label="PU: 15 - 25 (max PUS)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_maxPUS, obj_name="l1corr_eta_{eta_ming:g}_{eta_max:g}",
+                     label="PU: 30 - 40 (max PUS)", line_style=2, line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_by_eta_pu_bins(minPUS_graphs, maxPUS_graphs, 'minPUS', 'maxPUS', title, s2_maxPUS)
     """
 
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
-        # --------------------------------------------------------------------
-        # Plot diff PU scenarios for given eta bin, for max PUS ntuples
-        # --------------------------------------------------------------------
-        graphs = [
-            Contribution(file_name=f_PU0to10_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_maxPUS, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        ylim = None
-        if eta_min > 2.9:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title="Spring15 MC, no JEC, Stage 2, max PUS, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
-        p.plot()
-        oDir = s2_maxPUS
-        p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
-
-        # zoom in on low pT
-        ylim = None
-        if eta_min > 2.9:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title="Spring15 MC, no JEC, Stage 2, max PUS, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
-        p.plot()
-        p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
-
-        xlim = None
     """
+    # --------------------------------------------------------------------
+    # Plot diff PU scenarios for given eta bin, for max PUS ntuples
+    # --------------------------------------------------------------------
+    graphs = [
+        Contribution(file_name=f_PU0to10_maxPUS, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_maxPUS, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_maxPUS, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Spring15 MC, no JEC, Stage 2, max PUS, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_PU_by_eta_bins(graphs, title, s2_maxPUS, lowpt_zoom=True)
+    """
+
     """
     # --------------------------------------------------------------------
     # New Stage 2 curves for DATA
     # Plot different PU scenarios for given eta bin
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
-        graphs = [
-            Contribution(file_name=f_PU0to5_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 5", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU8to12_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 8 - 12", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU15to25_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25", line_color=colors[3], marker_color=colors[3]),
-            Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="All PU", line_color=colors[4], marker_color=colors[4])
-        ]
-
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0), Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, ylim=ylim)
-        p.plot()
-        oDir = s2_data
-        p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
-
-        # zoom in on low pT
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, xlim=zoom_pt, ylim=ylim)
-        p.plot()
-        p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
-
-        xlim = None
-
+    graphs = [
+        Contribution(file_name=f_PU0to5_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 5", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU8to12_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 8 - 12", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU15to25_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[3], marker_color=colors[3]),
+        Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="All PU", line_color=colors[4], marker_color=colors[4])
+    ]
+    title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0), Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_PU_by_eta_bins(graphs, title, s2_data, lowpt_zoom=True)
     """
+
     """
     # --------------------------------------------------------------------
     # DATA vs MC (L1-Gen) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
-
-        graphs = [
-            Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
-            Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, 0PU", line_color=colors[0], marker_color=colors[0]),
-            Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs GenJet, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max)
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, ylim=ylim)
-        p.plot()
-        oDir = s2_data
-        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1gen_eta_%g_%g.pdf" % (eta_min, eta_max)))
-
-        # zoom in on low pT
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, xlim=zoom_pt, ylim=ylim)
-        p.plot()
-        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1gen_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
-
-        xlim = None
+    graphs = [
+        Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
+        Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, 0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs GenJet, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_PU_by_eta_bins(graphs, title, s2_data, lowpt_zoom=True)
     """
+
     """
     # --------------------------------------------------------------------
     # DATA vs MC (L1-PF) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins_central)):
-
-        graphs = [
-            Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
-            Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs PF, Stage 2, L1 vs PF, %g < |#eta| < %g" % (eta_min, eta_max)
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, ylim=ylim)
-        p.plot()
-        oDir = s2_data
-        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1pf_eta_%g_%g.pdf" % (eta_min, eta_max)))
-
-        # zoom in on low pT
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-        p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                 title=title, xlim=zoom_pt, ylim=ylim)
-        p.plot()
-        p.save(os.path.join(oDir, "compare_data_mcSpring15_l1pf_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
-
-        xlim = None
+    graphs = [
+        Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
+        Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs PF, Stage 2, L1 vs PF, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_PU_by_eta_bins(graphs, title, s2_data, lowpt_zoom=True)
     """
+
     """
     # --------------------------------------------------------------------
     # L1-Gen vs L1-PF curves
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+    L1Gen_graphs = [
+        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10 (L1-Gen)", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25 (L1-Gen)", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40 (L1-Gen)", line_color=colors[3], marker_color=colors[3])
+    ]
 
-        new_graphs = [
-            Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10 (L1-Gen)", line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25 (L1-Gen)", line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40 (L1-Gen)", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        L1PF_graphs = [
-            Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-            Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-            Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
-        ]
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-
-        oDir = s2_L1PF
-        for i, pu_label in enumerate(['PU0to10', 'PU15to25', 'PU30to40']):
-            p = Plot(contributions=[new_graphs[i], L1PF_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 MC, no L1JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
-            p.plot()
-            p.save(os.path.join(oDir, "compare_L1Gen_L1PF_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
-
-            p = Plot(contributions=[new_graphs[i], L1PF_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 MC, no L1JEC, Stage 2, no PF JetID, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
-            p.plot()
-            p.save(os.path.join(oDir, "compare_L1Gen_L1PF_eta_%g_%g_%s_pTzoomed.pdf" % (eta_min, eta_max, pu_label)))
-
+    L1PF_graphs = [
+        Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Spring15 MC, no L1JEC, Stage 2, no PF JetID, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_by_eta_pu_bins(L1Gen_graphs, L1PF_graphs, 'L1Gen', 'L1PF', title, s2_L1PF)
     """
 
+    """
     # --------------------------------------------------------------------
     # Spring15 vs Fall15, dummy Layer 1
     # --------------------------------------------------------------------
-    for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+    spring15_graphs = [
+        Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="Spring15 (0PU)", line_color=colors[0], marker_color=colors[0]),
+        # Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        # Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        # Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
 
-        spring15_graphs = [
-            Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="Spring15 (0PU)", line_color=colors[0], marker_color=colors[0]),
-            # Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-            # Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-            # Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
-        ]
-
-        fall15_graphs = [
-            Contribution(file_name=f_PU0_fall15_dummyLayer1, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-                         label="Fall15 (0PU)", line_style=2, line_color=colors[0], marker_color=colors[0]),
-            # Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-            # Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-            # Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_%g_%g" % (eta_min, eta_max),
-            #              label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
-        ]
-        ylim = None
-        if eta_min > 2:
-            ylim = [0, 3.5]
-
-        oDir = s2_fall15_dummyLayer1
-        for i, pu_label in enumerate(['0PU', 'PU0to10', 'PU15to25', 'PU30to40'][0:1]):
-            p = Plot(contributions=[spring15_graphs[i], fall15_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), ylim=ylim)
-            p.plot()
-            p.save(os.path.join(oDir, "compare_spring15_fall15_eta_%g_%g_%s.pdf" % (eta_min, eta_max, pu_label)))
-
-            p = Plot(contributions=[spring15_graphs[i], fall15_graphs[i]], what="graph", xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
-                     title="Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, %g < |#eta| < %g" % (eta_min, eta_max), xlim=zoom_pt, ylim=ylim)
-            p.plot()
-            p.save(os.path.join(oDir, "compare_spring15_fall15_eta_%g_%g_%s_pTzoomed.pdf" % (eta_min, eta_max, pu_label)))
+    fall15_graphs = [
+        Contribution(file_name=f_PU0_fall15_dummyLayer1, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="Fall15 (0PU)", line_style=2, line_color=colors[0], marker_color=colors[0]),
+        # Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+        # Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+        # Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        #              label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
+    ]
+    title = "Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_by_eta_pu_bins(spring15_graphs, fall15_graphs, 'spring15', 'fall15', title, s2_fall15_dummyLayer1)
+    """
 
 
 if __name__ == "__main__":
