@@ -192,7 +192,11 @@ class Plot(object):
             raise UnboundLocalError("contributions list is empty")
 
         for c in self.contributions:
-            obj = c.get_obj().Clone()
+            try:
+                obj = c.get_obj().Clone()
+            except IOError:
+                print "Couldn't get", c.obj_name
+                continue
 
             if self.plot_what == "graph":
                 # if drawing only graph, we need to remove the fit if there is one
