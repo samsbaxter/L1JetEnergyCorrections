@@ -509,7 +509,7 @@ def compare():
         title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {eta_min:g} < |#eta| < {eta_max:g}" % (jst_dict['jst'])
         compare_PU_by_eta_bins(jst_dict['graphs'], title, jst_dict['oDir'], lowpt_zoom=True)
         # Compare all eta for a given JST, PU bin
-        title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {pu_label}" % (2)
+        title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {pu_label}" % (jst_dict['jst'])
         compare_eta_by_pu_bins(fall15_jst2_graphs, pu_labels, title, jst_dict['oDir'], lowpt_zoom=True)
 
     # Relabel contributions, change up colours
