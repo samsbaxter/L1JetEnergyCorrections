@@ -27,13 +27,13 @@ jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
 print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "Stage2_HF_QCDFall15_4Mar_integration-v7_layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
-outputDir = "/hdfs/L1JEC/CMSSW_8_0_0_pre6/L1JetEnergyCorrections/%s" % job_append
+job_append = "Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%s_RAWONLY_v2" % str(jst).replace('.', 'p')
+outputDir = "/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/%s" % job_append
 
 datestamp = strftime("%d_%b_%y")
 logDir = "/storage/%s/L1JEC/%s/L1JetEnergyCorrections/%s/%s" % (os.environ['LOGNAME'], os.environ['CMSSW_VERSION'], datestamp, job_append)
 
-datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]
+datasets = ["QCDFlatFall15PU0to50NzshcalRaw", "QCDFlatFall15NoPU"]
 
 
 if __name__ == "__main__":
