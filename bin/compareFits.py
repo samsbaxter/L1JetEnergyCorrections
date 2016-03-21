@@ -190,15 +190,53 @@ def compare():
                     p.plot()
                     p.save(os.path.join(oDir, "compare_%s_eta_%g_%g_%s_pTzoomed.pdf" % (compare_name, eta_min, eta_max, pu_label)))
 
+    def compare_eta_by_pu_bins(graphs, pu_labels, title, oDir, ylim=None, lowpt_zoom=True):
+        """Compare eta bins for graphs for a given PU bin. Does central, fowrad, and central+forward.
 
-    # def compare_eta_by_pu_bins(graphs, title, oDir, ylim=None, lowpt_zoom=True):
-    #     """"""
-    #     for i, pu_label in enumerate(['0PU', 'PU0to10', 'PU15to25', 'PU30to40']):
-    #         new_graphs = []
-    #         for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+        Parameters
+        ----------
+        graphs : list[Contribution]
+            Contributions corresponding to eta bins (0PU, PU0to10, 15to25, 30to40)
+        title : str
+            Title to put on plots
+        oDir : str
+            Output directory for plots
+        ylim : list, optional
+            Set y axis range
+        lowpt_zoom : bool, optional
+            Zoom in on low pt range
+        """
+        eta_scenarios = [binning.eta_bins_central, binning.eta_bins_forward, binning.eta_bins]
+        eta_scenario_labels = ['central', 'forward', 'all']
+        for eta_bins, eta_label in izip(eta_scenarios, eta_scenario_labels):
+            for pu_ind, pu_label in enumerate(pu_labels):
+                new_graphs = []
+                rename_dict = dict(pu_label=pu_label)
+                for eta_ind, (eta_min, eta_max) in enumerate(pairwise(eta_bins)):
+                    rename_dict['eta_min'] = eta_min
+                    rename_dict['eta_max'] = eta_max
+                    contr = deepcopy(graphs[pu_ind])
+                    contr.obj_name = graphs[pu_ind].obj_name.format(**rename_dict)
+                    contr.line_color = colors[eta_ind]
+                    contr.marker_color = colors[eta_ind]
+                    contr.label = "%g < |#eta^{L1}| < %g" % (eta_min, eta_max)
+                    new_graphs.append(contr)
+                if not ylim:
+                    ylim = [0.5, 4]
+                p = Plot(contributions=new_graphs, what='graph',
+                         xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                         title=title.format(**rename_dict), ylim=ylim)
+                p.plot()
+                p.save(os.path.join(oDir, 'compare_%sEta_%s.pdf' % (eta_label, pu_label)))
 
+                if lowpt_zoom:
+                    p = Plot(contributions=new_graphs, what='graph',
+                             xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
+                             title=title.format(**rename_dict), xlim=zoom_pt, ylim=ylim)
+                    p.plot()
+                    p.save(os.path.join(oDir, 'compare_%sEta_%s_pTzoomed.pdf' % (eta_label, pu_label)))
 
-
+    # common object name
     corr_eta_graph_name = "l1corr_eta_{eta_min:g}_{eta_max:g}"
 
     """
@@ -216,7 +254,8 @@ def compare():
         Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
-    title="Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    title = "Spring15 MC, no JEC, Stage 2, {pu_label}"
+    compare_eta_by_pu_bins(graphs, pu_labels, title, s2_new, lowpt_zoom=True)
     compare_PU_by_eta_bins(graphs, title, s2_new, lowpt_zoom=True)
     """
 
@@ -470,6 +509,9 @@ def compare():
         # Compare all PU for a given eta, JST bin
         title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {eta_min:g} < |#eta| < {eta_max:g}" % (jst_dict['jst'])
         compare_PU_by_eta_bins(jst_dict['graphs'], title, jst_dict['oDir'], lowpt_zoom=True)
+        # Compare all eta for a given JST, PU bin
+        title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {pu_label}" % (2)
+        compare_eta_by_pu_bins(fall15_jst2_graphs, pu_labels, title, jst_dict['oDir'], lowpt_zoom=True)
 
     # Relabel contributions, change up colours
     for i, jst_dict in enumerate(fall15_layer1_jst_graphs, 1):
@@ -478,8 +520,13 @@ def compare():
             contribution.line_color = colors[-i]
             contribution.marker_color = colors[-i]
 
+    # Compare all JST for a given eta, PU bin
     title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([fall15_jst2_graphs, fall15_jst3_graphs, fall15_jst4_graphs, fall15_jst5_graphs, fall15_jst6_graphs], ['jst2to6'], title, '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
+    all_jst_graphs = [fall15_jst2_graphs, fall15_jst3_graphs, fall15_jst4_graphs, fall15_jst5_graphs, fall15_jst6_graphs]
+    compare_by_eta_pu_bins(all_jst_graphs, ['jst2to6'], pu_labels, title,
+        '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
+
+
 
 if __name__ == "__main__":
     compare()
