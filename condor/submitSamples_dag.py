@@ -56,7 +56,7 @@ if __name__ == "__main__":
         print "Dataset key:", dset
 
         # Make the condor submit script for this dataset
-        timestamp = strftime("%H%M%s")
+        timestamp = strftime("%H%M%S")
         scriptName = '%s_%s_%s.condor' % (os.path.basename(config).replace(".py", ""), dset, timestamp)
         scriptName = os.path.join(logDir, scriptName)
         print "Script Name:", scriptName
@@ -66,6 +66,6 @@ if __name__ == "__main__":
                                  '--filesPerJob', str(dset_opts.unitsPerJob),
                                  '--totalFiles', str(dset_opts.totalUnits),
                                  '--outputScript', scriptName,
-                                 '--dag', os.path.join(logDir, 'cmsRunCondorDAG_%s.dag' % timestamp),
-                                 '--log', os.path.join(logDir, dset)
+                                 '--dag', os.path.splitext(scriptName)[0] + '.dag',
+                                 '--log', os.path.join(logDir, dset),
                                  ])
