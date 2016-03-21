@@ -167,7 +167,7 @@ def compare():
         lowpt_zoom : bool, optional
             Description
         """
-        for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+        for (eta_min, eta_max) in pairwise(binning.eta_bins):
             rename_dict = dict(eta_min=eta_min, eta_max=eta_max)
             new_graphs_list = [setup_new_graphs(g, rename_dict) for g in graphs_list]
 
