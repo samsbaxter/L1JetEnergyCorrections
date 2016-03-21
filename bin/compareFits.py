@@ -99,6 +99,7 @@ def compare():
     f_PU30to40_fall15_newLayer1_jst6 = os.path.join(s2_fall15_newLayer1_jst6, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
 
     zoom_pt = [0, 150]
+    pu_labels = ['0PU', 'PU0to10', 'PU15to25', 'PU30to40']
 
 
     def setup_new_graphs(old_graphs, name_dict):
@@ -147,8 +148,8 @@ def compare():
                 p.plot()
                 p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
-    def compare_by_eta_pu_bins(graphs_list, name_list, title, oDir, ylim=None, lowpt_zoom=True):
-        """Compare graphs for each eta bin, and for each PU bin.
+    def compare_by_eta_pu_bins(graphs_list, name_list, pu_labels, title, oDir, ylim=None, lowpt_zoom=True):
+        """Compare graphs for each (eta, PU) bin.
 
         Parameters
         ----------
@@ -173,7 +174,7 @@ def compare():
 
             if not ylim:
                 ylim = [0, 3.5] if eta_min > 2 else [0, 4]
-            for i, pu_label in enumerate(['0PU', 'PU0to10', 'PU15to25', 'PU30to40']):
+            for i, pu_label in enumerate(pu_labels):
                 rename_dict['pu_label'] = pu_label
                 p = Plot(contributions=[ng[i] for ng in new_graphs_list], what="graph",
                          xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
@@ -466,6 +467,7 @@ def compare():
     fall15_layer1_jst_graphs = [fall15_layer1_jst2_dict, fall15_layer1_jst3_dict, fall15_layer1_jst4_dict, fall15_layer1_jst5_dict, fall15_layer1_jst6_dict]
 
     for jst_dict in fall15_layer1_jst_graphs:
+        # Compare all PU for a given eta, JST bin
         title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {eta_min:g} < |#eta| < {eta_max:g}" % (jst_dict['jst'])
         compare_PU_by_eta_bins(jst_dict['graphs'], title, jst_dict['oDir'], lowpt_zoom=True)
 
