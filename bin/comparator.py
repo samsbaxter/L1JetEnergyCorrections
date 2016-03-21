@@ -162,7 +162,7 @@ class Plot(object):
         self.xlim = xlim
         self.ylim = ylim
         self.do_legend = legend
-        self.legend = ROOT.TLegend(0.65, 0.55, 0.87, 0.87) if legend else None
+        self.legend = ROOT.TLegend(0.65, 0.6, 0.87, 0.87) if legend else None
         self.do_extend = extend
         self.container = None
         self.canvas = None
