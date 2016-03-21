@@ -528,9 +528,9 @@ def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
     # Setup fitting (calculate sensible range, make sub-graph), then do fit!
     sub_graph, this_fit = setup_fit(gr, fitfcn, absetamin, absetamax, outputfile)
     fit_graph, fit_params = fit_correction(sub_graph, this_fit)
-    outputfile.WriteTObject(this_fit, this_fit.GetName(), 'overwrite')  # function by itself
-    outputfile.WriteTObject(fit_graph, fit_graph.GetName(), 'overwrite')  # has the function stored in it as well
-    outputfile.WriteTObject(gr, gr.GetName(), 'overwrite')  # the original graph
+    outputfile.WriteTObject(this_fit, this_fit.GetName(), 'Overwrite')  # function by itself
+    outputfile.WriteTObject(fit_graph, fit_graph.GetName(), 'Overwrite')  # has the function stored in it as well
+    outputfile.WriteTObject(gr, gr.GetName(), 'Overwrite')  # the original graph
     return fit_params
 
 
