@@ -189,19 +189,30 @@ def compare():
                     p.plot()
                     p.save(os.path.join(oDir, "compare_%s_eta_%g_%g_%s_pTzoomed.pdf" % (compare_name, eta_min, eta_max, pu_label)))
 
+
+    # def compare_eta_by_pu_bins(graphs, title, oDir, ylim=None, lowpt_zoom=True):
+    #     """"""
+    #     for i, pu_label in enumerate(['0PU', 'PU0to10', 'PU15to25', 'PU30to40']):
+    #         new_graphs = []
+    #         for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
+
+
+
+    corr_eta_graph_name = "l1corr_eta_{eta_min:g}_{eta_max:g}"
+
     """
     # --------------------------------------------------------------------
     # New Stage 2 curves
     # Plot different PU scenarios for given eta bin
     # --------------------------------------------------------------------
     graphs = [
-        Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
                      label="0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
     title="Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -213,24 +224,24 @@ def compare():
     # New vs Old curves
     # --------------------------------------------------------------------
     new_graphs = [
-        # Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
         #              label="0PU (800pre5)", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10 (800pre5)", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25 (800pre5)", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40 (800pre5)", line_color=colors[3], marker_color=colors[3])
     ]
 
     old_graphs = [
-        # Contribution(file_name=f_0PU_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_0PU_old, obj_name=corr_eta_graph_name,
         #              label="0PU (760pre7)", line_style=2, line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_old, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10 (760pre7)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_old, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25 (760pre7)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_old, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_old, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40 (760pre7)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -267,11 +278,11 @@ def compare():
     # Plot diff PU scenarios for given eta bin, for max PUS ntuples
     # --------------------------------------------------------------------
     graphs = [
-        Contribution(file_name=f_PU0to10_maxPUS, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_maxPUS, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_maxPUS, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_maxPUS, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_maxPUS, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_maxPUS, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no JEC, Stage 2, max PUS, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -284,13 +295,13 @@ def compare():
     # Plot different PU scenarios for given eta bin
     # --------------------------------------------------------------------
     graphs = [
-        Contribution(file_name=f_PU0to5_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to5_data, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 5", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU8to12_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU8to12_data, obj_name=corr_eta_graph_name,
                      label="PU: 8 - 12", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU15to25_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_data, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[3], marker_color=colors[3]),
-        Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_allPU_data, obj_name=corr_eta_graph_name,
                      label="All PU", line_color=colors[4], marker_color=colors[4])
     ]
     title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0), Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -302,15 +313,15 @@ def compare():
     # DATA vs MC (L1-Gen) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
     graphs = [
-        Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_allPU_data, obj_name=corr_eta_graph_name,
                      label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
-        Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
                      label="MC, 0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
                      label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
                      label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
     title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs GenJet, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -322,13 +333,13 @@ def compare():
     # DATA vs MC (L1-PF) curves (all PU for data, PU binned for MC)
     # --------------------------------------------------------------------
     graphs = [
-        Contribution(file_name=f_allPU_data, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_allPU_data, obj_name=corr_eta_graph_name,
                      label="DATA: All PU (<nVtx> ~ 10)", line_color=colors[4], marker_color=colors[4]),
-        Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_L1PF, obj_name=corr_eta_graph_name,
                      label="MC, PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_L1PF, obj_name=corr_eta_graph_name,
                      label="MC, PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_L1PF, obj_name=corr_eta_graph_name,
                      label="MC, PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
     title = "Run 260627 (SingleMu, no JEC, TightLepVeto + elMult0 + muMult0) VS Spring 15 QCD MC L1 vs PF, Stage 2, L1 vs PF, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -340,20 +351,20 @@ def compare():
     # L1-Gen vs L1-PF curves
     # --------------------------------------------------------------------
     L1Gen_graphs = [
-        Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10 (L1-Gen)", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25 (L1-Gen)", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40 (L1-Gen)", line_color=colors[3], marker_color=colors[3])
     ]
 
     L1PF_graphs = [
-        Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_L1PF, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_L1PF, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_L1PF, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no L1JEC, Stage 2, no PF JetID, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -365,24 +376,24 @@ def compare():
     # Spring15 vs Fall15, dummy Layer 1
     # --------------------------------------------------------------------
     spring15_graphs = [
-        Contribution(file_name=f_0PU_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
                      label="Spring15 (0PU)", line_color=colors[0], marker_color=colors[0]),
-        # Contribution(file_name=f_PU0to10_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
         #              label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        # Contribution(file_name=f_PU15to25_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
         #              label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        # Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
         #              label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
 
     fall15_graphs = [
-        Contribution(file_name=f_PU0_fall15_dummyLayer1, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0_fall15_dummyLayer1, obj_name=corr_eta_graph_name,
                      label="Fall15 (0PU)", line_style=2, line_color=colors[0], marker_color=colors[0]),
-        # Contribution(file_name=f_PU0to10_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_PU0to10_L1PF, obj_name=corr_eta_graph_name,
         #              label="PU: 0 - 10 (L1-PF)", line_style=2, line_color=colors[1], marker_color=colors[1]),
-        # Contribution(file_name=f_PU15to25_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_PU15to25_L1PF, obj_name=corr_eta_graph_name,
         #              label="PU: 15 - 25 (L1-PF)", line_style=2, line_color=colors[2], marker_color=colors[2]),
-        # Contribution(file_name=f_PU30to40_L1PF, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        # Contribution(file_name=f_PU30to40_L1PF, obj_name=corr_eta_graph_name,
         #              label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
@@ -393,57 +404,57 @@ def compare():
     # Compare PU bins for diff Jet Seed Thresholds
     # -------------------------------------------------------------------
     fall15_jst2_graphs = [
-        Contribution(file_name=f_0PU_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst2, obj_name=corr_eta_graph_name,
                      label="0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst2, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst2, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst2, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
 
     fall15_jst3_graphs = [
-        Contribution(file_name=f_0PU_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst3, obj_name=corr_eta_graph_name,
                      label="0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst3, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst3, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst3, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
 
     fall15_jst4_graphs = [
-        Contribution(file_name=f_0PU_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst4, obj_name=corr_eta_graph_name,
                      label="0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst4, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst4, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst4, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
 
     fall15_jst5_graphs = [
-        Contribution(file_name=f_0PU_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst5, obj_name=corr_eta_graph_name,
                      label="0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst5, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst5, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst5, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
 
     fall15_jst6_graphs = [
-        Contribution(file_name=f_0PU_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst6, obj_name=corr_eta_graph_name,
                      label="0PU", line_color=colors[0], marker_color=colors[0]),
-        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst6, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
-        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst6, obj_name=corr_eta_graph_name,
                      label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
-        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst6, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
 
