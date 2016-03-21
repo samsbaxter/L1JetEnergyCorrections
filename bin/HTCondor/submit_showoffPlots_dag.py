@@ -27,14 +27,53 @@ log = logging.getLogger(__name__)
 
 
 # Add files + options here
-CONFIGS = [
-    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY_v2/output/output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+CONFIGS = []
+
+for jst in range(2, 7):
+    # runcalib plots
+    CONFIGS.extend([
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/output/output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root' % jst,
      'type': '--calib',
      'args': '--detail',
-     'title': 'Fall15 MC, 0PU, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC',
-     'dest': None}
-]
-
+     'title': 'Fall15 MC, 0PU, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None},
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/output/output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root' % jst,
+     'type': '--calib',
+     'args': '--detail',
+     'title': 'Fall15 MC, PU0-10, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None},
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/output/output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root' % jst,
+     'type': '--calib',
+     'args': '--detail',
+     'title': 'Fall15 MC, PU15-25, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None},
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/output/output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root' % jst,
+     'type': '--calib',
+     'args': '--detail',
+     'title': 'Fall15 MC, PU30-40, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None}])
+    # checkcal plots
+    CONFIGS.extend([
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/check/check_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root' % jst,
+     'type': '--checkcal',
+     'args': '--detail',
+     'title': 'Fall15 MC, 0PU, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None},
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/check/check_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root' % jst,
+     'type': '--checkcal',
+     'args': '--detail',
+     'title': 'Fall15 MC, PU0-10, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None},
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/check/check_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root' % jst,
+     'type': '--checkcal',
+     'args': '--detail',
+     'title': 'Fall15 MC, PU15-25, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None},
+    {'input': '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst%d_RAWONLY_v2/check/check_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root' % jst,
+     'type': '--checkcal',
+     'args': '--detail',
+     'title': 'Fall15 MC, PU30-40, Stage 2 + bitwise Layer 1 + Layer 1 calibs, no L1JEC, Jet Seed Threshold %d GeV' % jst,
+     'dest': None}])
 
 # Directory for logs (should be on /storage)
 # Will be created automatically by htcondenser
