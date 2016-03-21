@@ -25,6 +25,7 @@ from array import array
 import os
 from runCalibration import generate_eta_graph_name
 from subprocess import check_call
+from shutil import make_archive
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -844,6 +845,8 @@ def main(in_args=sys.argv[1:]):
                         default="pdf")
     parser.add_argument("--title",
                         help="Title for plots.")
+    parser.add_argument('--zip',
+                        help="Zip filename for zipping up all plots. Don't include extension")
 
     # FIXME
     # parser.add_argument("--etaInd",
@@ -1098,6 +1101,12 @@ def main(in_args=sys.argv[1:]):
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
 
         calib_file.Close()
+
+    if args.zip:
+        print 'Zipping up files'
+        zip_filename = os.path.splitext(args.zip)[0]
+        make_archive(zip_filename, 'gztar', args.oDir)
+
 
 if __name__ == "__main__":
     main()
