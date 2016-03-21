@@ -133,7 +133,7 @@ def compare():
             new_graphs = setup_new_graphs(graphs, rename_dict)
 
             if not ylim:
-                ylim = [0, 3.5] if eta_min > 2 else [0, 4]
+                ylim = [0.5, 3.5] if eta_min > 2 else [0.5, 4]
             p = Plot(contributions=new_graphs, what="graph", xtitle="<p_{T}^{L1}>",
                      ytitle="Correction value (= 1/response)",
                      title=title.format(**rename_dict), ylim=ylim)
@@ -173,7 +173,7 @@ def compare():
             new_graphs_list = [setup_new_graphs(g, rename_dict) for g in graphs_list]
 
             if not ylim:
-                ylim = [0, 3.5] if eta_min > 2 else [0, 4]
+                ylim = [0.5, 3.5] if eta_min > 2 else [0.5, 4]
             for i, pu_label in enumerate(pu_labels):
                 rename_dict['pu_label'] = pu_label
                 p = Plot(contributions=[ng[i] for ng in new_graphs_list], what="graph",
