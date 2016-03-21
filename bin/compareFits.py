@@ -116,16 +116,15 @@ def compare():
         Parameters
         ----------
         graphs : list[Contribution]
-            Description
+            List of Contribution objects to be included on any one plot.
         title : str
-            Description
+            Title to put on plots
         oDir : str
-            Description
+            Output directory for plots
         ylim : list, optional
-            Description
+            Set y axis range
         lowpt_zoom : bool, optional
-            Description
-
+            Zoom in on low pt range
         """
         for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
             rename_dict = dict(eta_min=eta_min, eta_max=eta_max)
@@ -160,13 +159,13 @@ def compare():
             List of names for each entry in graphs_list,
             to be used when making filename
         title : str
-            Description
+            Title to put on plots
         oDir : str
-            Description
+            Output directory for plots
         ylim : list, optional
-
+            Set y axis range
         lowpt_zoom : bool, optional
-            Description
+            Zoom in on low pt range
         """
         for (eta_min, eta_max) in pairwise(binning.eta_bins):
             rename_dict = dict(eta_min=eta_min, eta_max=eta_max)
