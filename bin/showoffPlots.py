@@ -24,8 +24,9 @@ import common_utils as cu
 from array import array
 import os
 from runCalibration import generate_eta_graph_name
-from subprocess import check_call
+from subprocess import check_output
 from shutil import make_archive
+from distutils.spawn import find_executable
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -793,7 +794,7 @@ def write_filelist(plot_filenames, list_file):
         print 'Warning: nothing to write to txt file'
 
 
-def make_gif(input_file_list, output_gif_filename):
+def make_gif(input_file_list, output_gif_filename, convert_exe):
     """Make an animated GIF from a list of images.
     Requires Imagemagick to be installed.
 
@@ -807,15 +808,17 @@ def make_gif(input_file_list, output_gif_filename):
     output_gif_filename : str
         Filepath of GIF
     """
-    print 'Making GIF', output_gif_filename
+    print 'Making GIF', output_gif_filename, 'from', input_file_list
     input_file_list = os.path.abspath(input_file_list)
     output_gif_filename = os.path.abspath(output_gif_filename)
     cwd = os.getcwd()
     # we have to chdir since list file only has bare filenames
     os.chdir(os.path.dirname(input_file_list))
-    cmd = "convert -dispose Background -delay 50 -loop 0 @%s %s" % (os.path.relpath(input_file_list), os.path.relpath(output_gif_filename))
+    print os.getcwd()
+    print os.listdir()
+    cmd = "%s -dispose Background -delay 50 -loop 0 @%s %s" % (convert_exe, os.path.relpath(input_file_list), os.path.relpath(output_gif_filename))
     print cmd
-    check_call(cmd.split())
+    check_output(cmd.split())
     os.chdir(cwd)
 
 
@@ -854,6 +857,8 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--gifs",
                         help="Make GIFs (only applicable if --detail is also used)",
                         action='store_true')
+    parser.add_argument("--gifexe",
+                        help='Convert executable to use. Default is result of `which convert`')
     args = parser.parse_args(args=in_args)
 
     print args
@@ -866,6 +871,13 @@ def main(in_args=sys.argv[1:]):
             print "Making animated graphs from fit plots."
         else:
             print "To use the --gifs flag, you also need --detail"
+    if not args.gifexe:
+        args.gifexe = find_executable('convert')
+        if not args.gifexe:
+            print 'Cannot find convert exe, not making gifs'
+            args.gif = False
+        else:
+            print 'Using %s to make GIFs' % args.gifexe
 
     # customise titles
     # note the use of global keyword
@@ -1001,7 +1013,7 @@ def main(in_args=sys.argv[1:]):
                 # make dem GIFs
                 if args.gifs:
                     for inf in [pt_plot_filenames_file, ptRef_plot_filenames_file]:
-                        make_gif(inf, inf.replace('.txt', '.gif'))
+                        make_gif(inf, inf.replace('.txt', '.gif'), args.gifexe)
                 else:
                     print "To make animated gif from PNGs using a plot list:"
                     print "convert -dispose Background -delay 50 -loop 0 @%s " \
@@ -1091,7 +1103,7 @@ def main(in_args=sys.argv[1:]):
                 # make dem gifs
                 if args.gifs:
                     for inf in [pt_plot_filenames_file, rsp_plot_filenames_file]:
-                        make_gif(inf, inf.replace('.txt', '.gif'))
+                        make_gif(inf, inf.replace('.txt', '.gif'), args.gifexe)
                 else:
                     print "To make animated gif from PNGs using a plot list:"
                     print "convert -dispose Background -delay 50 -loop 0 @%s "\
@@ -1104,7 +1116,7 @@ def main(in_args=sys.argv[1:]):
 
     if args.zip:
         print 'Zipping up files'
-        zip_filename = os.path.splitext(args.zip)[0]
+        zip_filename = os.path.basename(args.zip.split('.')[0])
         make_archive(zip_filename, 'gztar', args.oDir)
 
 
