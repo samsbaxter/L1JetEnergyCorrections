@@ -54,19 +54,52 @@ def compare():
     # f_PU15to25_maxPUS = os.path.join(s2_maxPUS, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
     # f_PU30to40_maxPUS = os.path.join(s2_maxPUS, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
 
-    s2_data = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/run260627_SingleMuReReco_HF_noL1JEC_3bf1b93_20Feb_Bristol_v3/output'
-    f_PU0to5_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU0to5.root')
-    f_PU8to12_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU8to12.root')
-    f_PU15to25_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU15to25.root')
-    f_allPU_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO.root')
+    # s2_data = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/run260627_SingleMuReReco_HF_noL1JEC_3bf1b93_20Feb_Bristol_v3/output'
+    # f_PU0to5_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU0to5.root')
+    # f_PU8to12_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU8to12.root')
+    # f_PU15to25_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO_PU15to25.root')
+    # f_allPU_data = os.path.join(s2_data, 'output_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO.root')
 
-    s2_L1PF = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/output'
-    f_PU0to10_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU0to10.root')
-    f_PU15to25_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU15to25.root')
-    f_PU30to40_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU30to40.root')
+    # s2_L1PF = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/output'
+    # f_PU0to10_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU0to10.root')
+    # f_PU15to25_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU15to25.root')
+    # f_PU30to40_L1PF = os.path.join(s2_L1PF, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning_PU30to40.root')
 
-    s2_fall15_dummyLayer1 = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/output'
-    f_PU0_fall15_dummyLayer1 = os.path.join(s2_fall15_dummyLayer1, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    # s2_fall15_dummyLayer1 = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/output'
+    # f_PU0_fall15_dummyLayer1 = os.path.join(s2_fall15_dummyLayer1, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+
+    s2_fall15_newLayer1_jst2 = '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst2_RAWONLY/output'
+    f_0PU_fall15_newLayer1_jst2 = os.path.join(s2_fall15_newLayer1_jst2, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    f_PU0to10_fall15_newLayer1_jst2 = os.path.join(s2_fall15_newLayer1_jst2, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_fall15_newLayer1_jst2 = os.path.join(s2_fall15_newLayer1_jst2, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_fall15_newLayer1_jst2 = os.path.join(s2_fall15_newLayer1_jst2, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
+
+    s2_fall15_newLayer1_jst3 = '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst3_RAWONLY/output'
+    f_0PU_fall15_newLayer1_jst3 = os.path.join(s2_fall15_newLayer1_jst3, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    f_PU0to10_fall15_newLayer1_jst3 = os.path.join(s2_fall15_newLayer1_jst3, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_fall15_newLayer1_jst3 = os.path.join(s2_fall15_newLayer1_jst3, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_fall15_newLayer1_jst3 = os.path.join(s2_fall15_newLayer1_jst3, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
+
+    s2_fall15_newLayer1_jst4 = '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/output'
+    f_0PU_fall15_newLayer1_jst4 = os.path.join(s2_fall15_newLayer1_jst4, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    f_PU0to10_fall15_newLayer1_jst4 = os.path.join(s2_fall15_newLayer1_jst4, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_fall15_newLayer1_jst4 = os.path.join(s2_fall15_newLayer1_jst4, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_fall15_newLayer1_jst4 = os.path.join(s2_fall15_newLayer1_jst4, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
+
+    s2_fall15_newLayer1_jst5 = '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY/output'
+    f_0PU_fall15_newLayer1_jst5 = os.path.join(s2_fall15_newLayer1_jst5, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    f_PU0to10_fall15_newLayer1_jst5 = os.path.join(s2_fall15_newLayer1_jst5, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_fall15_newLayer1_jst5 = os.path.join(s2_fall15_newLayer1_jst5, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_fall15_newLayer1_jst5 = os.path.join(s2_fall15_newLayer1_jst5, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
+
+    s2_fall15_newLayer1_jst6 = '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst6_RAWONLY/output'
+    f_0PU_fall15_newLayer1_jst6 = os.path.join(s2_fall15_newLayer1_jst6, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    f_PU0to10_fall15_newLayer1_jst6 = os.path.join(s2_fall15_newLayer1_jst6, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_fall15_newLayer1_jst6 = os.path.join(s2_fall15_newLayer1_jst6, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_fall15_newLayer1_jst6 = os.path.join(s2_fall15_newLayer1_jst6, 'output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
+
+    zoom_pt = [0, 150]
+
 
     def setup_new_graphs(old_graphs, name_dict):
         """Rename"""
@@ -75,7 +108,6 @@ def compare():
             ng.obj_name = og.obj_name.format(**name_dict)
         return new_graphs
 
-    zoom_pt = [0, 150]
 
     def compare_PU_by_eta_bins(graphs, title, oDir, lowpt_zoom=True):
         """Plot graph contributions, with a different plot for each eta bin.
@@ -351,6 +383,76 @@ def compare():
     compare_by_eta_pu_bins(spring15_graphs, fall15_graphs, 'spring15', 'fall15', title, s2_fall15_dummyLayer1)
     """
 
+    # -------------------------------------------------------------------
+    # Compare PU bins for diff Jet Seed Thresholds
+    # -------------------------------------------------------------------
+    fall15_jst2_graphs = [
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst2, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+
+    fall15_jst3_graphs = [
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst3, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+
+    fall15_jst4_graphs = [
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst4, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+
+    fall15_jst5_graphs = [
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst5, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+
+    fall15_jst6_graphs = [
+        Contribution(file_name=f_0PU_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        Contribution(file_name=f_PU0to10_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
+        Contribution(file_name=f_PU15to25_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 15 - 25", line_color=colors[2], marker_color=colors[2]),
+        Contribution(file_name=f_PU30to40_fall15_newLayer1_jst6, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
+                     label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
+    ]
+
+    fall15_layer1_jst2_dict = {'graphs': fall15_jst2_graphs, 'jst': 2, 'oDir': s2_fall15_newLayer1_jst2}
+    fall15_layer1_jst3_dict = {'graphs': fall15_jst3_graphs, 'jst': 3, 'oDir': s2_fall15_newLayer1_jst3}
+    fall15_layer1_jst4_dict = {'graphs': fall15_jst4_graphs, 'jst': 4, 'oDir': s2_fall15_newLayer1_jst4}
+    fall15_layer1_jst5_dict = {'graphs': fall15_jst5_graphs, 'jst': 5, 'oDir': s2_fall15_newLayer1_jst5}
+    fall15_layer1_jst6_dict = {'graphs': fall15_jst6_graphs, 'jst': 6, 'oDir': s2_fall15_newLayer1_jst6}
+    fall15_layer1_jst_graphs = [fall15_layer1_jst2_dict, fall15_layer1_jst3_dict, fall15_layer1_jst4_dict, fall15_layer1_jst5_dict, fall15_layer1_jst6_dict]
+
+    for jst_dict in fall15_layer1_jst_graphs[0:1]:
+        title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {eta_min:g} < |#eta| < {eta_max:g}" % (jst_dict['jst'])
+        compare_PU_by_eta_bins(jst_dict['graphs'], title, jst_dict['oDir'], lowpt_zoom=True)
+
+    # compare_by_eta_pu_bins(graphs1, graphs2, name1, name2, title, oDir)
 
 if __name__ == "__main__":
     compare()
