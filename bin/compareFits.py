@@ -454,11 +454,19 @@ def compare():
     fall15_layer1_jst6_dict = {'graphs': fall15_jst6_graphs, 'jst': 6, 'oDir': s2_fall15_newLayer1_jst6}
     fall15_layer1_jst_graphs = [fall15_layer1_jst2_dict, fall15_layer1_jst3_dict, fall15_layer1_jst4_dict, fall15_layer1_jst5_dict, fall15_layer1_jst6_dict]
 
-    for jst_dict in fall15_layer1_jst_graphs[0:1]:
+    for jst_dict in fall15_layer1_jst_graphs:
         title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, jet seed threshold %d GeV, {eta_min:g} < |#eta| < {eta_max:g}" % (jst_dict['jst'])
         compare_PU_by_eta_bins(jst_dict['graphs'], title, jst_dict['oDir'], lowpt_zoom=True)
 
-    # compare_by_eta_pu_bins(graphs1, graphs2, name1, name2, title, oDir)
+    # Relabel contributions, change up colours
+    for i, jst_dict in enumerate(fall15_layer1_jst_graphs, 1):
+        for contribution in jst_dict['graphs']:
+            contribution.label += ' (JST %d GeV)' % jst_dict['jst']
+            contribution.line_color = colors[-i]
+            contribution.marker_color = colors[-i]
+
+    title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_by_eta_pu_bins([fall15_jst2_graphs, fall15_jst3_graphs, fall15_jst4_graphs, fall15_jst5_graphs, fall15_jst6_graphs], ['jst2to6'], title, '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
 
 if __name__ == "__main__":
     compare()
