@@ -109,7 +109,7 @@ def compare():
         return new_graphs
 
 
-    def compare_PU_by_eta_bins(graphs, title, oDir, lowpt_zoom=True):
+    def compare_PU_by_eta_bins(graphs, title, oDir, ylim=None, lowpt_zoom=True):
         """Plot graph contributions, with a different plot for each eta bin.
 
         Parameters
@@ -119,6 +119,8 @@ def compare():
         title : str
             Description
         oDir : str
+            Description
+        ylim : list, optional
             Description
         lowpt_zoom : bool, optional
             Description
