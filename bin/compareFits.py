@@ -12,6 +12,8 @@ import ROOT
 import binning
 from binning import pairwise
 from comparator import Contribution, Plot
+from copy import deepcopy
+from itertools import izip
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -66,6 +68,13 @@ def compare():
     s2_fall15_dummyLayer1 = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre6/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/output'
     f_PU0_fall15_dummyLayer1 = os.path.join(s2_fall15_dummyLayer1, 'output_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
 
+    def setup_new_graphs(old_graphs, name_dict):
+        """Rename"""
+        new_graphs = deepcopy(old_graphs)
+        for ng, og in izip(new_graphs, old_graphs):
+            ng.obj_name = og.obj_name.format(**name_dict)
+        return new_graphs
+
     zoom_pt = [0, 150]
 
     def compare_PU_by_eta_bins(graphs, title, oDir, lowpt_zoom=True):
@@ -84,21 +93,23 @@ def compare():
 
         """
         for i, (eta_min, eta_max) in enumerate(pairwise(binning.eta_bins)):
-            # Set graph names for this eta bin
-            for g in graphs:
-                g.obj_name = g.obj_name.format(eta_min=eta_min, eta_max=eta_max)
-            ylim = [0, 3.5] if eta_min > 2 else None
-            p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>",
+            rename_dict = dict(eta_min=eta_min, eta_max=eta_max)
+            # make a copy as we have to change the graph names
+            new_graphs = setup_new_graphs(graphs, rename_dict)
+
+            if not ylim:
+                ylim = [0, 3.5] if eta_min > 2 else [0, 4]
+            p = Plot(contributions=new_graphs, what="graph", xtitle="<p_{T}^{L1}>",
                      ytitle="Correction value (= 1/response)",
-                     title=title.format(eta_min=eta_min, eta_max=eta_max), ylim=ylim)
+                     title=title.format(**rename_dict), ylim=ylim)
             p.plot()
             p.save(os.path.join(oDir, "compare_PU_eta_%g_%g.pdf" % (eta_min, eta_max)))
 
             if lowpt_zoom:
                 # zoom in on low pT
-                p = Plot(contributions=graphs, what="graph", xtitle="<p_{T}^{L1}>",
+                p = Plot(contributions=new_graphs, what="graph", xtitle="<p_{T}^{L1}>",
                          ytitle="Correction value (= 1/response)",
-                         title=title.format(eta_min=eta_min, eta_max=eta_max), xlim=zoom_pt, ylim=ylim)
+                         title=title.format(**rename_dict), xlim=zoom_pt, ylim=ylim)
                 p.plot()
                 p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
