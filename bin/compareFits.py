@@ -154,7 +154,7 @@ def compare():
         Contribution(file_name=f_PU30to40_new, obj_name="l1corr_eta_{eta_min:g}_{eta_max:g}",
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
-    title="Spring15 MC, no JEC, Stage 2, {eta_max:g} < |#eta| < {eta_max:g}"
+    title="Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
     compare_PU_by_eta_bins(graphs, title, s2_new, lowpt_zoom=True)
     """
 
