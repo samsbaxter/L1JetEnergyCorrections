@@ -47,10 +47,18 @@ NTUPLE_DIRS = [
     # '/hdfs/L1JEC/run260627_SingleMuReReco_HF_noL1JEC_3bf1b93_20Feb_Bristol_v3/SingleMuReReco',
     # '/hdfs/L1JEC/run260627_SingleMuReReco_HF_L1JEC_3bf1b93_20Feb_Bristol_v3/SingleMuReReco',
     # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/QCDFlatSpring15BX25PU10to30HCALFix/'
-    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/QCDFlatFall15NoPU',
-    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/ttHTobbFall15PU30',
-    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_L1JEC_jst1p5_v2/QCDFlatFall15NoPU',
-    '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_L1JEC_jst1p5_v2/ttHTobbFall15PU30',
+    # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_L1JEC_jst1p5_v2/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst2_RAWONLY/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst3_RAWONLY/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/QCDFlatFall15NoPU',
+    '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY_v2/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst6_RAWONLY_v2/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst2_RAWONLY/QCDFlatFall15PU0to50NzshcalRaw',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst3_RAWONLY/QCDFlatFall15PU0to50NzshcalRaw',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/QCDFlatFall15PU0to50NzshcalRaw',
+    '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY_v2/QCDFlatFall15PU0to50NzshcalRaw',
+    # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst6_RAWONLY_v2/QCDFlatFall15PU0to50NzshcalRaw',
 ]
 
 # Pick one
