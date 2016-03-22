@@ -7,6 +7,8 @@ import os
 import common_utils as cu
 import numpy as np
 from collections import OrderedDict
+from correction_LUT_stage2 import do_constant_fit
+import binning
 
 
 class MultiFunc(object):
@@ -194,7 +196,23 @@ def print_Stage1_lut_file(fit_functions, filename, plot=True):
         c.SaveAs(os.path.splitext(filename)[0] + ".pdf")
 
 
-def make_fancy_fits(fits, graphs, condition=0.1, look_ahead=4):
+def do_fancy_fits(fits, graphs, const_hf, condition=0.1, look_ahead=4, plot_dir=None):
+    """Do"""
+    new_functions = []
+    for i, (fit, gr) in enumerate(zip(fits, graphs)):
+        print "Eta bin", str(i)
+        if (i >= len(binning.eta_bins_central) - 1) and const_hf:
+            print 'doing constant fit'
+            new_fn = do_constant_fit(gr, binning.eta_bins[i], binning.eta_bins[i+1], plot_dir)
+            new_functions.append(new_fn)
+        else:
+            new_fn = do_fancy_fit(fit, gr, condition, look_ahead)
+            new_functions.append(new_fn)
+    print new_functions
+    return new_functions
+
+
+def do_fancy_fit(fit, graph, condition=0.1, look_ahead=4):
     """
     Make fancy fit, by checking for deviations between graph and fit at low pT.
     Then below the pT where they differ, just use the last good correction
@@ -219,65 +237,54 @@ def make_fancy_fits(fits, graphs, condition=0.1, look_ahead=4):
         where plateau should occur
 
     """
-    print "Making fancy fits, using condition %f with look-ahead %d" % (condition, look_ahead)
+    print "Making fancy fit, using condition %f with look-ahead %d" % (condition, look_ahead)
 
-    new_functions = []
+    x_arr, y_arr = cu.get_xy(graph)
 
-    for i, (fit, gr) in enumerate(zip(fits, graphs)):
-        x_arr, y_arr = cu.get_xy(gr)
-        # ex_arr, ey_arr = cu.get_exey(gr)
+    pt_merge, corr_merge = 0, 0
 
-        pt_merge = 0
-        corr_merge = 0
+    for j, (pt, corr) in enumerate(izip(x_arr[::-1], y_arr[::-1])):
+        # Loop through each point of the graph in reverse,
+        # only considering points with pt < 40.
+        # Determine where the function and graph separate by
+        # looking at the difference.
+        if pt > 40:
+            continue
 
-        print "Eta bin", str(i)
-        # print "pt, correction acc. to graph, correcction acc. to fit, diff"
+        def get_nth_lower_point(n):
+            """Return the nth lower point (x, y).
+            eg n=1 returns the next lowest graph x,y"""
+            return x_arr[len(x_arr) - 1 - j - n], y_arr[len(y_arr) - 1 - j - n]
 
-        for j, (pt, corr) in enumerate(izip(x_arr[::-1], y_arr[::-1])):
-            # Loop through each point of the graph in reverse,
-            # only considering points with pt < 40.
-            # Determine where the function and graph separate by
-            # looking at the difference.
-            if pt > 40:
-                continue
+        # Test the next N lowest point(s) to see if they also fulfills condition.
+        # This stops a random fluctation from making the plateau too low
+        # We require that all the Nth lower points also fail the condition.
+        lower_points = [get_nth_lower_point(x) for x in range(1, 1 + look_ahead)]
+        lower_fit_vals = [fit.Eval(x[0]) for x in lower_points]
+        lower_conditions = [abs(x[1] - y) > condition for x, y in zip(lower_points, lower_fit_vals)]
+        if all(lower_conditions):
+            break
+        else:
+            pt_merge = pt
+            corr_merge = fit.Eval(pt)
 
-            def get_nth_lower_point(n):
-                """Return the nth lower point (x, y).
-                eg n=1 returns the next lowest graph x,y"""
-                return x_arr[len(x_arr) - 1 - j - n], y_arr[len(y_arr) - 1 - j - n]
+    print "pt_merge:", pt_merge, "corr fn value:", fit.Eval(pt_merge)
 
-            # Test the next N lowest point(s) to see if they also fulfills condition.
-            # This stops a random fluctation from making the plateau too low
-            # We require that all the Nth lower points also fail the condition.
-            lower_points = [get_nth_lower_point(x) for x in range(1, 1 + look_ahead)]
-            lower_fit_vals = [fit.Eval(x[0]) for x in lower_points]
-            lower_conditions = [abs(x[1] - y) > condition for x, y in zip(lower_points, lower_fit_vals)]
-            if all(lower_conditions):
-                break
-            else:
-                pt_merge = pt
-                corr_merge = fit.Eval(pt)
+    # Make our new 'frankenstein' function: constant for pt < pt_merge,
+    # then the original function for pt > pt_merge
+    constant = ROOT.TF1("constant", "[0]", 0, pt_merge)
+    constant.SetParameter(0, corr_merge)
 
-        print "pt_merge:", pt_merge, "corr fn value:", fit.Eval(pt_merge)
+    function_str = "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))"
+    fit_new = ROOT.TF1("fitfcn", function_str, pt_merge * 0.75, 1024)
+    for p in xrange(fit.GetNumberFreeParameters()):
+        fit_new.SetParameter(p, fit.GetParameter(p))
+    # set lower range below pt_merge just for drawing purposes - MultiFunc ignores it
 
-        # Make our new 'frankenstein' function: constant for pt < pt_merge,
-        # then the original function for pt > pt_merge
-        constant = ROOT.TF1("constant%d" % i, "[0]", 0, pt_merge)
-        constant.SetParameter(0, corr_merge)
-
-        function_str = "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))"
-        fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge * 0.75, 1024)
-        for p in xrange(fit.GetNumberFreeParameters()):
-            fit_new.SetParameter(p, fit.GetParameter(p))
-            # function_str = function_str.replace("[%d]" % p, "%.8f" % fit.GetParameter(p))
-        # set lower range below pt_merge just for drawing purposes
-
-        # Make a MultiFunc object to handle the different functions operating
-        # over different ranges since TF1 can't do this.
-        # Maybe ROOFIT can?
-        functions_dict = {(0, pt_merge): constant,
-                          (pt_merge, 512): fit_new}
-        total_fit = MultiFunc(functions_dict)
-        new_functions.append(total_fit)
-
-    return new_functions
+    # Make a MultiFunc object to handle the different functions operating
+    # over different ranges since TF1 can't do this.
+    # Maybe ROOFIT can?
+    functions_dict = {(0, pt_merge): constant,
+                      (pt_merge, 512): fit_new}
+    total_fit = MultiFunc(functions_dict)
+    return total_fit

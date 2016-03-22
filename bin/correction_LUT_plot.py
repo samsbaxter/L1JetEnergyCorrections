@@ -22,7 +22,7 @@ import binning
 import common_utils as cu
 from runCalibration import generate_eta_graph_name
 from correction_LUT_GCT import print_GCT_lut_file
-from correction_LUT_stage1 import print_Stage1_lut_file, make_fancy_fits
+from correction_LUT_stage1 import print_Stage1_lut_file, do_fancy_fits
 from correction_LUT_stage2 import print_Stage2_lut_files, print_Stage2_func_file
 
 
@@ -234,6 +234,7 @@ def main(in_args=sys.argv[1:]):
 
     # Get all the fit functions from file and their corresponding graphs
     etaBins = binning.eta_bins_central
+    etaBins = binning.eta_bins
     for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
         print "Eta bin:", eta_min, "-", eta_max
 
@@ -279,13 +280,14 @@ def main(in_args=sys.argv[1:]):
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
 
     elif args.stage1:
-        fits = make_fancy_fits(all_fits, all_graphs, condition=0.05, look_ahead=0) if args.fancy else all_fits
+        fits = do_fancy_fits(all_fits, all_graphs, const_hf=False, condition=0.05, look_ahead=0) if args.fancy else all_fits
 
         if args.plots:
             # plot the fancy fits
             for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
                 plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
                 plot_graph_function(i, gr, total_fit, plot_file)
+        print_Stage1_lut_file(fits, args.lut, args.plots)
 
     elif args.stage2:
         lut_base, ext = os.path.splitext(args.lut)
@@ -300,7 +302,7 @@ def main(in_args=sys.argv[1:]):
                                merge_criterion=1.01)
     elif args.stage2Func:
         # do fancy fits
-        fits = make_fancy_fits(all_fits, all_graphs, condition=0.075, look_ahead=5) if args.fancy else all_fits
+        fits = do_fancy_fits(all_fits, all_graphs, const_hf=True, condition=0.075, look_ahead=5, plot_dir=out_dir) if args.fancy else all_fits
 
         if args.plots:
             # plot the fancy fits
