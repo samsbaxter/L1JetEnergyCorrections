@@ -415,15 +415,40 @@ def print_Stage2_func_file(fits, output_filename):
     Each line corresponds to an abs(eta) bin.
     """
     with open(output_filename, 'w') as f:
-        f.write('# linear constant,linear/curve boundary,curve params')
+        f.write('# linear constant,linear/curve physical pt boundary,curve params\n')
+        num_cols = 1 + 1 + 6  # as a safeguard
         for fit in fits:
-            linear_limit = fit.functions_dict.keys()[0][1]
-            linear_const = fit.functions_dict.values()[0].GetParameter(0)
-            curve_fn = fit.functions_dict.values()[1]
-            curve_params = [curve_fn.GetParameter(i) for i in range(curve_fn.GetNpar())]
-            line = [linear_const, linear_limit] + curve_params
-            line = [str(x) for x in line]
-            f.write(','.join(line) + '\n')
+            if not fit:
+                f.write('\n')
+                continue
+            line_cols = []
+            if isinstance(fit, correction_LUT_stage1.MultiFunc):
+                linear_limit = fit.functions_dict.keys()[0][1]
+                linear_const = fit.functions_dict.values()[0].GetParameter(0)
+                if len(fit.functions_dict.keys()) > 1:
+                    curve_fn = fit.functions_dict.values()[1]
+                    curve_params = [curve_fn.GetParameter(i) for i in range(curve_fn.GetNpar())]
+                else:
+                    curve_params = [1, 0, 1, 0, 1, 1]  # no correction
+                line_cols = [linear_const, linear_limit] + curve_params
+            else:
+                if "constant" in fit.GetName():
+                    line_cols = [fit.GetParameter(i) for i in range(fit.GetNpar())]
+                    # pad the rest with 0s (i.e. the curve part)
+                    if len(line_cols) != num_cols:
+                        line_cols.extend([0 for _ in range(num_cols - len(line_cols))])
+                else:
+                    line_cols = [fit.GetParameter(i) for i in range(fit.GetNpar())]
+                    # pad the front with 0s (i.e the constant part)
+                    if len(line_cols) != num_cols:
+                        padding = [0 for _ in range(num_cols - len(line_cols))]
+                        line_cols = padding + line_cols
+
+            line_cols = [str(x) for x in line_cols]
+            if len(line_cols) != num_cols:
+                raise RuntimeError("Incorrect number of columns to write to file")
+            f.write(','.join(line_cols) + '\n')
+
 
 def do_constant_fit(graph, eta_min, eta_max, output_dir):
     """Do constant-value fit to graph and plot the jackknife procedure.
