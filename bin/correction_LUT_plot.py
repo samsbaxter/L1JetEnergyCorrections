@@ -155,8 +155,9 @@ def plot_graph_function(eta_index, graph, function, filename):
     text.Draw()
     function.Draw("SAME")
     graph.GetXaxis().SetLimits(0, 250)
-    if eta_index == 10:
-        y_ax.SetRangeUser(1.2, 2.4)
+
+    # y_ax.SetRangeUser(0.5, ROOT.TMath.MaxElement(graph.GetN(), graph.GetY()) * 1.2)
+    y_ax.SetRangeUser(0.5, 3)
     c.SaveAs(filename)
 
 
