@@ -257,9 +257,11 @@ def main(in_args=sys.argv[1:]):
         raise Exception("Incorrect number of fit functions/sets of parameters "
                         "for corresponding number of eta bins")
 
-    # Plot all functions on one canvas
-    plot_file = os.path.join(out_dir, "all_raw_fits.pdf")
+    # Plot all functions on one canvas, zomme din on low pt & whole pt range
+    plot_file = os.path.join(out_dir, "all_raw_fits_ptZoomed.pdf")
     plot_all_functions(all_fits, plot_file, etaBins, et_min=0, et_max=30)
+    plot_file = os.path.join(out_dir, "all_raw_fits.pdf")
+    plot_all_functions(all_fits, plot_file, etaBins, et_min=0, et_max=1024)
     fits = all_fits
 
     # Make LUTs
