@@ -5,6 +5,7 @@ import ROOT
 from itertools import izip
 import os
 import common_utils as cu
+import numpy as np
 
 
 class MultiFunc(object):
