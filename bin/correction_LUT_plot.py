@@ -153,7 +153,8 @@ def plot_graph_function(eta_index, graph, function, filename):
     text.SetFillStyle(0)
     text.SetLineStyle(0)
     text.Draw()
-    function.Draw("SAME")
+    if function:
+        function.Draw("SAME")
     graph.GetXaxis().SetLimits(0, 250)
 
     # y_ax.SetRangeUser(0.5, ROOT.TMath.MaxElement(graph.GetN(), graph.GetY()) * 1.2)
@@ -179,6 +180,8 @@ def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
 
     for i, fit_func in enumerate(functions):
         canv.cd(i + 1)
+        if not fit_func:
+            continue
         fit_func.SetRange(et_min, et_max)
         fit_func.SetLineWidth(1)
         fit_func.SetTitle("%g - %g" % (eta_bins[i], eta_bins[i + 1]))
@@ -235,17 +238,21 @@ def main(in_args=sys.argv[1:]):
         print "Eta bin:", eta_min, "-", eta_max
 
         # get the fitted TF1
-        fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (eta_min, eta_max))
+        try:
+            fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (eta_min, eta_max))
+            fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
+            print "Fit fn evaluated at 5 GeV:", fit_func.Eval(5)
+        except IOError:
+            print "No fit func"
+            fit_func = None
+            fit_params = []
         all_fits.append(fit_func)
-        fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
         all_fit_params.append(fit_params)
         # print "Fit parameters:", fit_params
 
         # get the corresponding fit graph
         fit_graph = cu.get_from_file(in_file, generate_eta_graph_name(eta_min, eta_max))
         all_graphs.append(fit_graph)
-
-        print "Fit fn evaluated at 5 GeV:", fit_func.Eval(5)
 
         # Print function to screen
         if args.cpp:
@@ -306,8 +313,9 @@ def main(in_args=sys.argv[1:]):
     if args.plots:
         # Plot function mapping
         for i, (eta_min, eta_max, fit_func) in enumerate(izip(etaBins[:-1], etaBins[1:], fits)):
-            plot_file = os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max))
-            plot_correction_map(fit_func, plot_file)
+            if fit_func:
+                plot_file = os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max))
+                plot_correction_map(fit_func, plot_file)
 
 
 if __name__ == "__main__":
