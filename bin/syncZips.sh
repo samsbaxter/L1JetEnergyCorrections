@@ -3,6 +3,7 @@
 # Sync showoffPlot ZIPs, and untar them
 #
 
+
 unzip() {
     # $1 is tar file
     # $2 is dest dir
@@ -11,8 +12,25 @@ unzip() {
     tar xzf "$1" -C "$2"
 }
 
+
+copy_hdfs_unzip() {
+    sourcefile=$1  # source file
+    tardest=$2   # destination file
+    untardir=$3  # unzip destination dir
+    # need to rm as hadoop can't overwrite with copyToLocal
+    if [ -e "$tardest" ]; then
+        rm "$tardest"
+    fi
+    hadoop fs -copyToLocal ${sourcefile#/hdfs} $tardest
+    unzip $tardest $untardir
+}
+
+
+# User should set startdir and dest
 startdir="/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections"
 dest=".."
+
+
 for f in $startdir/*; do
     echo "Looking in $f"
     basedir=$(basename $f)
@@ -31,22 +49,14 @@ for f in $startdir/*; do
             # Need to update local copy
             if [[ $compare != 0 ]]; then
                 echo "REPLACE"
-                # need to rm as hadoop can't overwrite with copyToLocal
-                if [ -e "$tardest" ]; then
-                    rm "$tardest"
-                fi
-                hadoop fs -copyToLocal ${tf#/hdfs} $tardir
-                # Do unzipping
                 showoffdir="$tardir/${tarfile%%.*}"
-                unzip $tardest $showoffdir
+                copy_hdfs_unzip $tf $tardest $showoffdir
             else
                 echo "$tardest is up to date, skipping"
             fi
         else
-            hadoop fs -copyToLocal ${tf#/hdfs} $tardir
-            # Do unzipping
             showoffdir="$tardir/${tarfile%%.*}"
-            unzip $tardest $showoffdir
+            copy_hdfs_unzip $tf $tardest $showoffdir
         fi
     done
 done
