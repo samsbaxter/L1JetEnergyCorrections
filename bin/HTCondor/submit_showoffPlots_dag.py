@@ -7,18 +7,16 @@ Requires the htcondenser package: https://github.com/raggleton/htcondenser
 """
 
 
-import argparse
 import os
+from time import strftime
+import logging
+from random import randint
 import sys
 sys.path.append(os.path.dirname(os.getcwd()))  # to import binning.py
 import binning
 from binning import pairwise
-from time import strftime
 import htcondenser as ht
 import condorCommon as cc
-import logging
-from itertools import chain
-from collections import OrderedDict
 # from distutils.spawn import find_executable
 
 
@@ -122,17 +120,17 @@ def submit_showoff_job(arg_str, out_dir, log_dir, common_input_files, output_fil
 
     # We don't want to stream-write plots to HDFS - easier to make them all on
     # the worker node, zip it up, then transfer to HDFS
-    tmp_oDir = 'showoff_%s' % timestamp
+    rand_int = randint(0, 1000)
+    tmp_oDir = 'showoff_%s_%d' % (timestamp, rand_int)
     if '--oDir' not in arg_str:
         arg_str += ' --oDir %s' % tmp_oDir
     else:
         arg_str = arg_str.replace('--oDir %s' % out_dir, '--oDir %s' % tmp_oDir)
 
-    sj = ht.Job(name='showoff', args=arg_str.split(),
+    sj = ht.Job(name=tmp_oDir, args=arg_str.split(),
                 input_files=None, output_files=output_files,
                 hdfs_mirror_dir=out_dir)
     showoff_jobs.add_job(sj)
-    # showoff_jobs.write(False)  # For dry-run
     showoff_jobs.submit()
 
 
