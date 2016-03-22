@@ -79,8 +79,9 @@ datestamp = strftime("%d_%b_%y")
 LOG_DIR = '/storage/%s/L1JEC/%s/L1JetEnergyCorrections/jobs/showoff/%s' % (os.environ['LOGNAME'], os.environ['CMSSW_VERSION'], datestamp)
 
 
-def submit_all_showoff_dags(configs, log_dir):
+def submit_all_showoff_jobs(configs, log_dir):
     common_input_files = ['../showoffPlots.py', '../binning.py', '../common_utils.py', '../runCalibration.py']
+
     for config in configs:
         # auto-generate output dir
         if not config['dest']:
@@ -136,4 +137,4 @@ def submit_showoff_job(arg_str, out_dir, log_dir, common_input_files, output_fil
 
 
 if __name__ == "__main__":
-    submit_all_showoff_dags(configs=CONFIGS, log_dir=LOG_DIR)
+    submit_all_showoff_jobs(configs=CONFIGS, log_dir=LOG_DIR)
