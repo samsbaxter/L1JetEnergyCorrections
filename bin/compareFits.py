@@ -238,7 +238,6 @@ def compare():
     # common object name
     corr_eta_graph_name = "l1corr_eta_{eta_min:g}_{eta_max:g}"
 
-    """
     # --------------------------------------------------------------------
     # New Stage 2 curves
     # Plot different PU scenarios for given eta bin
@@ -253,6 +252,7 @@ def compare():
         Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
+    """
     title = "Spring15 MC, no JEC, Stage 2, {pu_label}"
     compare_eta_by_pu_bins(graphs, pu_labels, title, s2_new, lowpt_zoom=True)
     compare_PU_by_eta_bins(graphs, title, s2_new, lowpt_zoom=True)
@@ -515,7 +515,7 @@ def compare():
     # Relabel contributions, change up colours
     for i, jst_dict in enumerate(fall15_layer1_jst_graphs, 1):
         for contribution in jst_dict['graphs']:
-            contribution.label += ' (JST %d GeV)' % jst_dict['jst']
+            contribution.label = '(JST %d GeV)' % jst_dict['jst']
             contribution.line_color = colors[-i]
             contribution.marker_color = colors[-i]
 
@@ -525,7 +525,17 @@ def compare():
     compare_by_eta_pu_bins(all_jst_graphs, ['jst2to6'], pu_labels, title,
         '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
 
-
+    # -------------------------------------------------------------------
+    # Compare Spring15 with Fall15+layer1 calibs
+    # -------------------------------------------------------------------
+    title = "Spring15 MC vs Fall 15 MC with Layer 1 calibs"
+    # change up the labels to avoid repetition of PU label
+    for pu_ind, pu in enumerate(pu_labels):
+        graphs[pu_ind].label += ' (Spring 15)'
+        for glist in all_jst_graphs:
+            glist[pu_ind].label += ' (Fall 15)'
+    compare_by_eta_pu_bins([graphs] + all_jst_graphs, ['spring15_fall15'], pu_labels, title,
+        '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
 
 if __name__ == "__main__":
     compare()
