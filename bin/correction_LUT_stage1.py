@@ -194,13 +194,16 @@ def print_Stage1_lut_file(fit_functions, filename, plot=True):
         c.SaveAs(os.path.splitext(filename)[0] + ".pdf")
 
 
-def make_fancy_fits(fits, graphs, condition=0.1):
+def make_fancy_fits(fits, graphs, condition=0.1, look_ahead=4):
     """
     Make fancy fit, by checking for deviations between graph and fit at low pT.
-    Then below the pT where they differ, just use the last good correction factor.
+    Then below the pT where they differ, just use the last good correction
+    factor as a constant correction factor.
+
+    This decision can also take lower pT point into account to avoid breaking
+    early due to fluctuations (see `look_ahead` arg)
 
     This generates a new set of correction functions, represented by MultiFunc objects.
-
 
     Parameters
     ----------
@@ -209,10 +212,14 @@ def make_fancy_fits(fits, graphs, condition=0.1):
     graphs : list[TGraph]
         List of graphs, one per eta bin.
     condition : float
-        Fractional difference between graph & curve to determine where curve
+        Absolute difference between graph & curve to determine where curve
         becomes a constant value.
+    look_ahead : int, optional
+        Number of lower points to also consider when calculating
+        where plateau should occur
+
     """
-    print "Making fancy fits..."
+    print "Making fancy fits, using condition %f with look-ahead %d" % (condition, look_ahead)
 
     new_functions = []
 
@@ -233,9 +240,19 @@ def make_fancy_fits(fits, graphs, condition=0.1):
             # looking at the difference.
             if pt > 40:
                 continue
-            # print pt, corr, fit.Eval(pt), abs(fit.Eval(pt) - corr)
-            # Determine where to start plateau:
-            if abs(fit.Eval(pt) - corr) > condition:
+
+            def get_nth_lower_point(n):
+                """Return the nth lower point (x, y).
+                eg n=1 returns the next lowest graph x,y"""
+                return x_arr[len(x_arr) - 1 - j - n], y_arr[len(y_arr) - 1 - j - n]
+
+            # Test the next N lowest point(s) to see if they also fulfills condition.
+            # This stops a random fluctation from making the plateau too low
+            # We require that all the Nth lower points also fail the condition.
+            lower_points = [get_nth_lower_point(x) for x in range(1, 1 + look_ahead)]
+            lower_fit_vals = [fit.Eval(x[0]) for x in lower_points]
+            lower_conditions = [abs(x[1] - y) > condition for x, y in zip(lower_points, lower_fit_vals)]
+            if all(lower_conditions):
                 break
             else:
                 pt_merge = pt

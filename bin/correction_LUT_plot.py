@@ -271,7 +271,7 @@ def main(in_args=sys.argv[1:]):
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
 
     elif args.stage1:
-        fits = make_fancy_fits(all_fits, all_graphs, condition=0.05) if args.fancy else all_fits
+        fits = make_fancy_fits(all_fits, all_graphs, condition=0.05, look_ahead=0) if args.fancy else all_fits
 
         if args.plots:
             # plot the fancy fits
@@ -292,7 +292,7 @@ def main(in_args=sys.argv[1:]):
                                merge_criterion=1.01)
     elif args.stage2Func:
         # do fancy fits
-        fits = make_fancy_fits(all_fits, all_graphs, condition=0.1) if args.fancy else all_fits
+        fits = make_fancy_fits(all_fits, all_graphs, condition=0.075, look_ahead=5) if args.fancy else all_fits
 
         if args.plots:
             # plot the fancy fits
