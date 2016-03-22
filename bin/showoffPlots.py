@@ -815,7 +815,6 @@ def make_gif(input_file_list, output_gif_filename, convert_exe):
     # we have to chdir since list file only has bare filenames
     os.chdir(os.path.dirname(input_file_list))
     print os.getcwd()
-    print os.listdir()
     cmd = "%s -dispose Background -delay 50 -loop 0 @%s %s" % (convert_exe, os.path.relpath(input_file_list), os.path.relpath(output_gif_filename))
     print cmd
     check_output(cmd.split())
