@@ -147,7 +147,7 @@ def compare():
                 p.plot()
                 p.save(os.path.join(oDir, "compare_PU_eta_%g_%g_pTzoomed.pdf" % (eta_min, eta_max)))
 
-    def compare_by_eta_pu_bins(graphs_list, name_list, pu_labels, title, oDir, ylim=None, lowpt_zoom=True):
+    def compare_by_eta_pu_bins(graphs_list, file_identifier, pu_labels, title, oDir, ylim=None, lowpt_zoom=True):
         """Compare graphs for each (eta, PU) bin.
 
         Parameters
@@ -155,9 +155,8 @@ def compare():
         graphs_list : list[list[Contribution]]
             List of list of contributions, so you can any
             number of sets of contributions on a graph.
-        name_list : str
-            List of names for each entry in graphs_list,
-            to be used when making filename
+        file_identifier : str
+            String to be inserted into resultant plot filename.
         title : str
             Title to put on plots
         oDir : str
@@ -179,15 +178,14 @@ def compare():
                          xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                          title=title.format(**rename_dict), ylim=ylim)
                 p.plot()
-                compare_name = '_'.join(name_list)
-                p.save(os.path.join(oDir, "compare_%s_eta_%g_%g_%s.pdf" % (compare_name, eta_min, eta_max, pu_label)))
+                p.save(os.path.join(oDir, "compare_%s_eta_%g_%g_%s.pdf" % (file_identifier, eta_min, eta_max, pu_label)))
                 if lowpt_zoom:
                     # zoom in on low pT
                     p = Plot(contributions=[ng[i] for ng in new_graphs_list], what="graph",
                              xtitle="<p_{T}^{L1}>", ytitle="Correction value (= 1/response)",
                              title=title.format(**rename_dict), xlim=zoom_pt, ylim=ylim)
                     p.plot()
-                    p.save(os.path.join(oDir, "compare_%s_eta_%g_%g_%s_pTzoomed.pdf" % (compare_name, eta_min, eta_max, pu_label)))
+                    p.save(os.path.join(oDir, "compare_%s_eta_%g_%g_%s_pTzoomed.pdf" % (file_identifier, eta_min, eta_max, pu_label)))
 
     def compare_eta_by_pu_bins(graphs, pu_labels, title, oDir, ylim=None, lowpt_zoom=True):
         """Compare eta bins for graphs for a given PU bin. Does central, fowrad, and central+forward.
@@ -284,7 +282,7 @@ def compare():
                      label="PU: 30 - 40 (760pre7)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([new_graphs, old_graphs], ['800pre5', '760pre7'], pu_labels, title, s2_new)
+    compare_by_eta_pu_bins([new_graphs, old_graphs], '800pre5_760pre7', pu_labels, title, s2_new)
     """
 
     """
@@ -309,7 +307,7 @@ def compare():
                      label="PU: 30 - 40 (max PUS)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([minPUS_graphs, maxPUS_graphs], ['minPUS', 'maxPUS'], title, s2_maxPUS)
+    compare_by_eta_pu_bins([minPUS_graphs, maxPUS_graphs], 'minPUS_maxPUS', title, s2_maxPUS)
     """
 
     """
@@ -407,7 +405,7 @@ def compare():
                      label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 MC, no L1JEC, Stage 2, no PF JetID, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([L1Gen_graphs, L1PF_graphs], ['L1Gen', 'L1PF'], pu_labels, title, s2_L1PF)
+    compare_by_eta_pu_bins([L1Gen_graphs, L1PF_graphs], 'L1Gen_L1PF', pu_labels, title, s2_L1PF)
     """
 
     """
@@ -436,7 +434,7 @@ def compare():
         #              label="PU: 30 - 40 (L1-PF)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
     title = "Spring15 vs Fall15 MC, no L1JEC, dummy Layer1, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([spring15_graphs, fall15_graphs], ['spring15', 'fall15'], pu_labels, title, s2_fall15_dummyLayer1)
+    compare_by_eta_pu_bins([spring15_graphs, fall15_graphs], 'spring15_fall15', pu_labels, title, s2_fall15_dummyLayer1)
     """
 
     # -------------------------------------------------------------------
@@ -522,7 +520,7 @@ def compare():
     # Compare all JST for a given eta, PU bin
     title = "Fall15 MC, no L1JEC, bitwise Layer 1 + tower calibs, {eta_min:g} < |#eta| < {eta_max:g}"
     all_jst_graphs = [fall15_jst2_graphs, fall15_jst3_graphs, fall15_jst4_graphs, fall15_jst5_graphs, fall15_jst6_graphs]
-    compare_by_eta_pu_bins(all_jst_graphs, ['jst2to6'], pu_labels, title,
+    compare_by_eta_pu_bins(all_jst_graphs, 'jst2to6', pu_labels, title,
         '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
 
     # -------------------------------------------------------------------
@@ -534,7 +532,7 @@ def compare():
         graphs[pu_ind].label += ' (Spring 15)'
         for glist in all_jst_graphs:
             glist[pu_ind].label += ' (Fall 15)'
-    compare_by_eta_pu_bins([graphs] + all_jst_graphs, ['spring15_fall15'], pu_labels, title,
+    compare_by_eta_pu_bins([graphs] + all_jst_graphs, 'spring15_fall15', pu_labels, title,
         '/users/ra12451/L1JEC/CMSSW_8_0_2/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jstCompare_RAWONLY')
 
 if __name__ == "__main__":
