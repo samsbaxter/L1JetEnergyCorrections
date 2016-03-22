@@ -21,7 +21,7 @@ import common_utils as cu
 from runCalibration import generate_eta_graph_name
 from collections import OrderedDict
 from bisect import bisect_left
-import correction_LUT_stage1
+from multifunc import MultiFunc
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -422,7 +422,7 @@ def print_Stage2_func_file(fits, output_filename):
                 f.write('\n')
                 continue
             line_cols = []
-            if isinstance(fit, correction_LUT_stage1.MultiFunc):
+            if isinstance(fit, MultiFunc):
                 linear_limit = fit.functions_dict.keys()[0][1]
                 linear_const = fit.functions_dict.values()[0].GetParameter(0)
                 if len(fit.functions_dict.keys()) > 1:
@@ -509,7 +509,7 @@ def do_constant_fit(graph, eta_min, eta_max, output_dir):
     print 'jackknfe mean:', jackmean
     const_fn = ROOT.TF1("constant", '[0]', 0, 1024)
     const_fn.SetParameter(0, peak)
-    const_multifn = correction_LUT_stage1.MultiFunc({(0, 1024): const_fn})
+    const_multifn = MultiFunc({(0, 1024): const_fn})
     return const_multifn
 
 
