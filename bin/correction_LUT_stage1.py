@@ -6,6 +6,7 @@ from itertools import izip
 import os
 import common_utils as cu
 import numpy as np
+from collections import OrderedDict
 
 
 class MultiFunc(object):
@@ -36,7 +37,8 @@ class MultiFunc(object):
         f.Eval(0.5) # 0.5
         f.Eval(3) # 9
         """
-        self.functions_dict = functions_dict
+        # Need a OrderedDict to keep ordered by application range
+        self.functions_dict = OrderedDict(sorted(functions_dict.items(), key=lambda x: x[0][0]))
 
     def Eval(self, x):
         """Emulate TF1.Eval() but will call the correct function,
