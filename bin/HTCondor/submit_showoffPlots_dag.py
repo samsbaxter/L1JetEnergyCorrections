@@ -95,7 +95,8 @@ def submit_all_showoff_dags(configs, log_dir):
 
         arg_str = ' '.join(['showoffPlots.py', config['type'], config['input'],
                             config['args'], '--oDir', config['dest'],
-                            '--title="%s"' % config['title'], '--zip', zip_filename])
+                            '--title="%s"' % config['title'], '--zip', zip_filename,
+                            '--gifs', '--gifexe', '/software/ra12451/ImageMagick-install/bin/convert'])
         log.debug(arg_str)
         submit_showoff_job(arg_str=arg_str, out_dir=config['dest'],
                            log_dir=log_dir, common_input_files=common_input_files,
