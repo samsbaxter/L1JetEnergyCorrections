@@ -32,7 +32,7 @@ ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 
 
-def print_function(function, lang="cpp"):
+def print_function_code(function, lang="cpp"):
     """Print TF1 to screen so can replicate in ROOT or numpy
 
     Can choose language (py, cpp, numpy)
@@ -246,11 +246,11 @@ def main(in_args=sys.argv[1:]):
 
         # Print function to screen
         if args.cpp:
-            print_function(fit_func, "cpp")
+            print_function_code(fit_func, "cpp")
         if args.python:
-            print_function(fit_func, "py")
+            print_function_code(fit_func, "py")
         if args.numpy:
-            print_function(fit_func, "numpy")
+            print_function_code(fit_func, "numpy")
 
     # Check we have the correct number
     if len(all_fits) + 1 != len(etaBins) or len(all_fit_params) + 1 != len(etaBins):
