@@ -245,13 +245,14 @@ def make_fancy_fits(fits, graphs, condition=0.1):
 
         # Make our new 'frankenstein' function: constant for pt < pt_merge,
         # then the original function for pt > pt_merge
-        constant = ROOT.TF1("constant%d" % i, "%.8f" % corr_merge, 0, pt_merge)
+        constant = ROOT.TF1("constant%d" % i, "[0]", 0, pt_merge)
         constant.SetParameter(0, corr_merge)
 
         function_str = "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))"
+        fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge * 0.75, 1024)
         for p in xrange(fit.GetNumberFreeParameters()):
-            function_str = function_str.replace("[%d]" % p, "%.8f" % fit.GetParameter(p))
-        fit_new = ROOT.TF1("fitfcn%d" % i, function_str, pt_merge * 0.8, 512)
+            fit_new.SetParameter(p, fit.GetParameter(p))
+            # function_str = function_str.replace("[%d]" % p, "%.8f" % fit.GetParameter(p))
         # set lower range below pt_merge just for drawing purposes
 
         # Make a MultiFunc object to handle the different functions operating

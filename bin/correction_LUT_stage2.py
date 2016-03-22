@@ -21,6 +21,7 @@ import common_utils as cu
 from runCalibration import generate_eta_graph_name
 from collections import OrderedDict
 from bisect import bisect_left
+# from correction_LUT_stage1 import MultiFunc
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -407,3 +408,19 @@ def print_Stage2_lut_files(fit_functions,
 
     # put them into a LUT
     write_stage2_correction_lut(corr_lut_filename, mapping_info, address_index_map)
+
+
+def print_Stage2_func_file(fits, output_filename):
+    """Print function info to file.
+    Each line corresponds to an abs(eta) bin.
+    """
+    with open(output_filename, 'w') as f:
+        f.write('# linear constant,linear/curve boundary,curve params')
+        for fit in fits:
+            linear_limit = fit.functions_dict.keys()[0][1]
+            linear_const = fit.functions_dict.values()[0].GetParameter(0)
+            curve_fn = fit.functions_dict.values()[1]
+            curve_params = [curve_fn.GetParameter(i) for i in range(curve_fn.GetNpar())]
+            line = [linear_const, linear_limit] + curve_params
+            line = [str(x) for x in line]
+            f.write(','.join(line) + '\n')

@@ -23,7 +23,7 @@ import common_utils as cu
 from runCalibration import generate_eta_graph_name
 from correction_LUT_GCT import print_GCT_lut_file
 from correction_LUT_stage1 import print_Stage1_lut_file, make_fancy_fits
-from correction_LUT_stage2 import print_Stage2_lut_files
+from correction_LUT_stage2 import print_Stage2_lut_files, print_Stage2_func_file
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -203,6 +203,7 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--gct", help="Make LUT for GCT", action='store_true')
     parser.add_argument("--stage1", help="Make LUT for Stage 1", action='store_true')
     parser.add_argument("--stage2", help="Make LUT for Stage 2", action='store_true')
+    parser.add_argument("--stage2Func", help="Make function params file for Stage 2", action='store_true')
     parser.add_argument("--fancy", help="Make fancy LUT. "
                         "This checks for low pT deviations and caps the correction value",
                         action='store_true')
@@ -213,8 +214,9 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--numpy", help="print numpy code to screen", action='store_true')
     args = parser.parse_args(args=in_args)
 
-    if not args.gct and not args.stage1 and not args.stage2:
-        print "You didn't pick which format for the LUT - not making a LUT unless you choose!"
+    if not any([args.gct, args.stage1, args.stage2, args.stage2Func]):
+        print "You didn't pick which format for the corrections - not making a corrections file unless you choose!"
+        exit()
 
     in_file = cu.open_root_file(args.input)
     out_dir = os.path.join(os.path.dirname(args.input),
@@ -288,6 +290,17 @@ def main(in_args=sys.argv[1:]):
                                num_corr_bits=9,
                                target_num_pt_bins=256,
                                merge_criterion=1.01)
+    elif args.stage2Func:
+        # do fancy fits
+        fits = make_fancy_fits(all_fits, all_graphs, condition=0.1) if args.fancy else all_fits
+
+        if args.plots:
+            # plot the fancy fits
+            for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
+                plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
+                plot_graph_function(i, gr, total_fit, plot_file)
+
+        print_Stage2_func_file(fits, args.lut)
 
     if args.plots:
         # Plot function mapping
