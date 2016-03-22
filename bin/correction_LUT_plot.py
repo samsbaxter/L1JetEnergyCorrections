@@ -267,8 +267,7 @@ def main(in_args=sys.argv[1:]):
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
 
     elif args.stage1:
-        fits = make_fancy_fits(all_fits, all_graphs) if args.fancy else all_fits
-        print_Stage1_lut_file(fits, args.lut, args.plots)
+        fits = make_fancy_fits(all_fits, all_graphs, condition=0.05) if args.fancy else all_fits
 
         if args.plots:
             # plot the fancy fits

@@ -194,12 +194,23 @@ def print_Stage1_lut_file(fit_functions, filename, plot=True):
         c.SaveAs(os.path.splitext(filename)[0] + ".pdf")
 
 
-def make_fancy_fits(fits, graphs):
+def make_fancy_fits(fits, graphs, condition=0.1):
     """
     Make fancy fit, by checking for deviations between graph and fit at low pT.
     Then below the pT where they differ, just use the last good correction factor.
 
     This generates a new set of correction functions, represented by MultiFunc objects.
+
+
+    Parameters
+    ----------
+    fits : list[TF1]
+        List of fit functions, one per eta bin.
+    graphs : list[TGraph]
+        List of graphs, one per eta bin.
+    condition : float
+        Fractional difference between graph & curve to determine where curve
+        becomes a constant value.
     """
     print "Making fancy fits..."
 
@@ -223,7 +234,8 @@ def make_fancy_fits(fits, graphs):
             if pt > 40:
                 continue
             # print pt, corr, fit.Eval(pt), abs(fit.Eval(pt) - corr)
-            if abs(fit.Eval(pt) - corr) > 0.05:
+            # Determine where to start plateau:
+            if abs(fit.Eval(pt) - corr) > condition:
                 break
             else:
                 pt_merge = pt
