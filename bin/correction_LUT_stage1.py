@@ -78,7 +78,7 @@ class MultiFunc(object):
         """str representation. Prints each fns name and range of validity,
         ordered by ascending range
         """
-        parts = ["%s: %.2f - %.2f\n%s" % (f.GetName(), r[0], r[1], f.GetExpFormula())
+        parts = ["%s: %.2f - %.2f\n%s" % (f.GetName(), r[0], r[1], f.GetExpFormula("P"))
                  for r, f in self.functions_dict.iteritems()]
         return "\n".join(sorted(parts))
 
