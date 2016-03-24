@@ -207,10 +207,15 @@ def do_fancy_fit(fit, graph, condition=0.1, look_ahead=4):
         fit_new.SetParameter(p, fit.GetParameter(p))
     # set lower range below pt_merge just for drawing purposes - MultiFunc ignores it
 
+    # add a constant above 1023.5 as truncated there
+    constant_highpT = ROOT.TF1("constant_highpT", "[0]", 1023.5, ((2**16) - 1) * 0.5)
+    constant_highpT.SetParameter(0, fit_new.Eval(1023.5))
+
     # Make a MultiFunc object to handle the different functions operating
     # over different ranges since TF1 can't do this.
     # Maybe ROOFIT can?
     functions_dict = {(0, pt_merge): constant,
-                      (pt_merge, 512): fit_new}
+                      (pt_merge, 1023.5): fit_new,
+                      (1023.4, np.inf): constant_highpT}
     total_fit = MultiFunc(functions_dict)
     return total_fit
