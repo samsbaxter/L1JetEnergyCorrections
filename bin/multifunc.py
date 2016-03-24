@@ -44,13 +44,13 @@ class MultiFunc(object):
     def Draw(self, args=None):
         """Draw the various functions"""
 
-        if "SAME" not in args:
+        if not args or "SAME" not in args:
             # make a 'blank' function to occupy the complete range of x values:
             lower_lim = min([lim[0] for lim in self.functions_dict.keys()])
             if np.isneginf(lower_lim):
                 lower_lim = -999
             upper_lim = max([lim[1] for lim in self.functions_dict.keys()])
-            if np.isposinf(lower_lim):
+            if np.isposinf(upper_lim):
                 upper_lim = 999
             blank = ROOT.TF1("blank" + str(np.random.randint(0, 10000)), "1.5", lower_lim, upper_lim)
             blank.Draw()
@@ -67,6 +67,14 @@ class MultiFunc(object):
         args = "" if not args else args
         for func in self.functions_dict.values():
             func.Draw("SAME" + args)
+
+    def SetLineColor(self, color):
+        for func in self.functions_dict.values():
+            func.SetLineColor(color)
+
+    def SetLineWidth(self, width):
+        for func in self.functions_dict.values():
+            func.SetLineWidth(width)
 
     def __str__(self):
         """str representation. Prints each fns name and range of validity,
