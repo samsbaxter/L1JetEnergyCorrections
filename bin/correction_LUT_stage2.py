@@ -26,7 +26,7 @@ ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
 
 
-def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbose=False):
+def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, merge_above, verbose=False):
     """Calculate new pt/correction mappings. Returns 2 dicts,
     one for original:quantised pt mapping, and one for pt:corr mapping.
 
@@ -43,6 +43,9 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbo
 
     merge_criterion: float
         Bins will be merged if min(bins) * merge_crit > max(bins)
+
+    merge_above: float
+        Bins above this value will be merged, ignoring merge_criterion
 
     Returns
     -------
@@ -265,7 +268,7 @@ def assign_hw_correction_factors(mapping_info, max_iet, cap_correction, max_hw_c
     right_shift : int
         Description
     """
-
+    print 'Assigning HW correction factors'
     # create a correction matrix
     corr_matrix = generate_corr_matrix(max_iet, max_hw_correction, right_shift)
 
@@ -336,7 +339,7 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
 def print_Stage2_lut_files(fit_functions,
                            pt_lut_filename, corr_lut_filename,
                            corr_max, num_corr_bits,
-                           target_num_pt_bins, merge_criterion):
+                           target_num_pt_bins, merge_criterion, merge_above):
     """Make LUTs for Stage 2.
 
     This creates 2 LUT files:
@@ -370,6 +373,11 @@ def print_Stage2_lut_files(fit_functions,
         Criterion factor for compressing multiple pt bins into one bin. Bins will
         be combined if the maximum correction factor = merge_criterion * minimum
         correction factor for those pt bins.
+
+    merge_above: float
+        Above this physical pT value, merge all pt bins together, ignoring
+        merge_criterion. This may also include pt bins below merge_above,
+        depending on merge_criterion.
 
     Raises
     ------
@@ -406,7 +414,8 @@ def print_Stage2_lut_files(fit_functions,
         new_pt_mapping, new_corr_mapping = calc_new_mapping(pt_orig,
                                                             corr_orig,
                                                             target_num_pt_bins,
-                                                            merge_criterion)
+                                                            merge_criterion,
+                                                            merge_above)
         title = 'Target # bins %d, merge_criterion %.3f' % (target_num_pt_bins, merge_criterion)
         plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title)
 
@@ -574,6 +583,7 @@ def find_peak_and_average_plot(values, eta_min, eta_max, plot_filename, title='J
         Output filepath for plot.
     title : str
         Title for plot
+
     Returns
     -------
     float, float

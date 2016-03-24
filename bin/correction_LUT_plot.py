@@ -290,28 +290,29 @@ def main(in_args=sys.argv[1:]):
                 plot_graph_function(i, gr, total_fit, plot_file)
         print_Stage1_lut_file(fits, args.lut, args.plots)
 
-    elif args.stage2:
-        lut_base, ext = os.path.splitext(args.lut)
-        pt_lut_filename = lut_base + '_pt' + ext
-        corr_lut_filename = lut_base + "_corr" + ext
-        print_Stage2_lut_files(fit_functions=all_fits,
-                               pt_lut_filename=pt_lut_filename,
-                               corr_lut_filename=corr_lut_filename,
-                               corr_max=6,
-                               num_corr_bits=9,
-                               target_num_pt_bins=256,
-                               merge_criterion=1.01)
-    elif args.stage2Func:
-        # do fancy fits
+    elif args.stage2 or args.stage2Func:
+        # do fancy fits, can do constant values only for HF
         fits = do_fancy_fits(all_fits, all_graphs, const_hf=True, condition=0.075, look_ahead=5, plot_dir=out_dir) if args.fancy else all_fits
-
         if args.plots:
             # plot the fancy fits
             for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
                 plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
                 plot_graph_function(i, gr, total_fit, plot_file)
 
-        print_Stage2_func_file(fits, args.lut)
+        if args.stage2:
+            lut_base, ext = os.path.splitext(args.lut)
+            pt_lut_filename = lut_base + '_pt' + ext
+            corr_lut_filename = lut_base + "_corr" + ext
+            print_Stage2_lut_files(fit_functions=fits,
+                                   pt_lut_filename=pt_lut_filename,
+                                   corr_lut_filename=corr_lut_filename,
+                                   corr_max=3,
+                                   num_corr_bits=10,
+                                   target_num_pt_bins=2**4,
+                                   merge_criterion=1.05,
+                                   merge_above=1024)
+        else:
+            print_Stage2_func_file(fits, args.lut)
 
     if args.plots:
         # Plot function mapping
