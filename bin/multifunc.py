@@ -37,6 +37,8 @@ class MultiFunc(object):
     def Eval(self, x):
         """Emulate TF1.Eval() but will call the correct function,
         depending on which function is applicable for the value of x."""
+        if x >= self.functions_dict.keys()[-1][1]:
+            raise RuntimeError('x is beyond the limit of your MultiFunc range')
         return [func for lim, func in self.functions_dict.iteritems() if lim[0] <= x < lim[1]][0].Eval(x)
 
     def Draw(self, args=None):
