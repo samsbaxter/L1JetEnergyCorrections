@@ -17,6 +17,7 @@ from collections import OrderedDict
 from bisect import bisect_left
 from multifunc import MultiFunc
 import matplotlib.pyplot as plt
+from binning import pairwise
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -26,9 +27,12 @@ ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
 
 
-def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, merge_above, verbose=False):
-    """Calculate new pt/correction mappings. Returns 2 dicts,
-    one for original:quantised pt mapping, and one for pt:corr mapping.
+def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
+                               merge_criterion, merge_above=None, merge_below=None,
+                               verbose=False):
+    """Calculate new compressed pt mapping. Uses corrections
+    to decide how to merge bins.
+    Returns a dicts for original:quantised pt mapping.
 
     Parameters
     ----------
@@ -47,14 +51,13 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, merge
     merge_above: float
         Bins above this value will be merged, ignoring merge_criterion
 
+    merge_below: float
+        Bins below this value will be merged, ignoring merge_criterion
+
     Returns
     -------
     new_pt_mapping: OrderedDict
         Dict of {original pt: compressed pt}, both physical pT.
-
-    new_corr_mapping: OrderedDict
-        Dict of {original pt: correction}, where the correction value is the
-        mean of the compressed bin.
     """
     print 'Calculating new mapping for compressed ET'
 
@@ -63,22 +66,39 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, merge
     new_pt_mapping[0] = 0.
     new_pt_mapping = OrderedDict(sorted(new_pt_mapping.items(), key=lambda t: t))
 
-    # hold correction mapping
-    new_corr_mapping = {p: c for p, c in zip(pt_orig, corr_orig)}
-    new_corr_mapping[0] = 0.
-    new_corr_mapping = OrderedDict(sorted(new_corr_mapping.items(), key=lambda t: t))
-
     end_ind = len(pt_orig) - 1
+
+    if merge_above:
+        merge_above_ind = 0
+        for ind, pt in enumerate(new_pt_mapping.iterkeys()):
+            if pt >= merge_above:
+                new_pt_mapping[pt] = new_pt_mapping.keys()[merge_above_ind + 1]
+            else:
+                merge_above_ind = ind
+        end_ind = merge_above_ind
+
+    orig_start_ind = 1
+
+    if merge_below:
+        merge_below_ind = 0
+        for ind, pt in enumerate(new_pt_mapping.iterkeys()):
+            # keep pt = 0 set to 0
+            if ind == 0:
+                continue
+            if pt <= merge_below:
+                new_pt_mapping[pt] = new_pt_mapping.values()[1]  # we don't want 0
+                merge_below_ind = ind
+        orig_start_ind = merge_below_ind + 1
 
     last_num_bins = 111111111
 
-    while len(set(new_corr_mapping.values())) > target_num_bins:
-        last_num_bins = len(set(new_corr_mapping.values()))
+    while len(set(new_pt_mapping.values())) > target_num_bins:
+        last_num_bins = len(set(new_pt_mapping.values()))
 
-        print 'Got', len(set(new_corr_mapping.values())), 'bins'
+        print 'Got', len(set(new_pt_mapping.values())), 'bins'
         # start with larget number of bins, look at compatibility,
         # then reduce bin span if necessary
-        start_ind = 0
+        start_ind = orig_start_ind
 
         while start_ind < end_ind and end_ind > 2:
             corrs = corr_orig[start_ind: end_ind + 1]
@@ -87,38 +107,35 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, merge
                 # since the merge is greedy, but we want to use all our possible bins,
                 # we have to modify the last group to not go over our target number
                 if (end_ind < len(pt_orig) - 1 and
-                    target_num_bins > (len(set(new_corr_mapping.values())) - len(corrs))):
+                    target_num_bins > (len(set(new_pt_mapping.values())) - len(corrs))):
 
-                    start_ind += target_num_bins - (len(set(new_corr_mapping.values())) - len(corrs)) - 1
+                    start_ind += target_num_bins - (len(set(new_pt_mapping.values())) - len(corrs)) - 1
                     corrs = corr_orig[start_ind:end_ind + 1]
 
                 if verbose:
                     print 'max:', corrs.max(), 'min:', corrs.min()
                     print 'bin edges:', start_ind, end_ind
 
-                mean_corr = corrs.mean()
-
                 for i in xrange(start_ind, end_ind + 1):
-                    new_corr_mapping[pt_orig[i]] = mean_corr
                     new_pt_mapping[pt_orig[i]] = pt_orig[start_ind]
 
                 end_ind = start_ind - 1
-                if verbose: print len(set(new_corr_mapping.values())), 'diff pt values'
+                if verbose: print len(set(new_pt_mapping.values())), 'diff pt values'
 
                 break
             else:
                 start_ind += 1
 
-        if len(set(new_corr_mapping.values())) == last_num_bins:
+        if len(set(new_pt_mapping.values())) == last_num_bins:
             print 'Stuck in a loop - you need to loosen merge_criterion, or increase the numebr of bins'
             print 'Dumping mapping to file stuck_dump.txt'
             with open('stuck_dump.txt', 'w') as f:
-                for k,v in new_corr_mapping.iteritems():
+                for k, v in new_pt_mapping.iteritems():
                     f.write("%f,%f\n" % (k, v))
             exit()
 
-    print len(set(new_corr_mapping.values())), 'compressed bins:'
-    print set(new_corr_mapping.values())
+    print len(set(new_pt_mapping.values())), 'compressed bins:'
+    print sorted(set(new_pt_mapping.values()))
 
     mask = [k != v for k, v in new_pt_mapping.iteritems()]
     if any(mask):
@@ -126,7 +143,39 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, merge
         print 'Quantised above (inclusive):', pt_orig[mask.index(True) - 1]
     else:
         print 'No pT quantisation happened!'
-    return new_pt_mapping, new_corr_mapping
+    return new_pt_mapping
+
+
+def calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping):
+    """Calculate  new corrections using new compressed pT mapping
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    OrderedDict
+        Map of {pt: new correction}
+    """
+    if len(pt_orig) != len(corr_orig):
+        raise IndexError('Different lengths for pt_orig, corr_orig')
+    # hold correction mapping
+    new_corr_mapping = {p: c for p, c in zip(pt_orig, corr_orig)}
+    new_corr_mapping[0] = 0.
+    new_corr_mapping = OrderedDict(sorted(new_corr_mapping.items(), key=lambda t: t))
+
+    # Get indices of locations of new pt bins
+    compr_pt = list(new_pt_mapping.values())
+    unique_pt = sorted(list(set(compr_pt)))  # sets are unordered!
+    indices = [compr_pt.index(upt) for upt in unique_pt] + [len(corr_orig)]
+
+    # Need to calculate new mean correction for each pt bin
+    for i_low, i_high in pairwise(indices):
+        mean_corr = corr_orig[i_low:i_high].mean()
+        for j in xrange(i_low, i_high):
+            new_corr_mapping[pt_orig[j]] = mean_corr
+
+    return new_corr_mapping
 
 
 def generate_address(iet, ieta):
@@ -339,7 +388,7 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
 def print_Stage2_lut_files(fit_functions,
                            pt_lut_filename, corr_lut_filename,
                            corr_max, num_corr_bits,
-                           target_num_pt_bins, merge_criterion, merge_above):
+                           target_num_pt_bins, merge_criterion):
     """Make LUTs for Stage 2.
 
     This creates 2 LUT files:
@@ -374,11 +423,6 @@ def print_Stage2_lut_files(fit_functions,
         be combined if the maximum correction factor = merge_criterion * minimum
         correction factor for those pt bins.
 
-    merge_above: float
-        Above this physical pT value, merge all pt bins together, ignoring
-        merge_criterion. This may also include pt bins below merge_above,
-        depending on merge_criterion.
-
     Raises
     ------
     IndexError
@@ -395,27 +439,50 @@ def print_Stage2_lut_files(fit_functions,
     else:
         raise RuntimeError('Correction factor > 7 sounds dangerous!')
 
-    max_pt = 1023.5
+    max_pt = (2**11 - 1 ) * 0.5
 
     print 'Running Stage 2 LUT making with:'
     print ' - target num pt bins (per eta bin):', target_num_pt_bins
     print ' - merge criterion:', merge_criterion
     print ' - # corr bits:', num_corr_bits
     print ' - right shift:', right_shift
-    # print ' -'
 
     # figure out new binning and new correction mappings, for each eta bin
     mapping_info = OrderedDict()  # store {ieta: [pt map, corr map, corr matrix]}
 
+    pt_orig = np.arange(0, max_pt + 0.5, 0.5)
+    # decide which fit func to use for binning based on which has the curve start at the lowest pT
+    curve_start_pts = [f.functions_dict.keys()[0][1] for f in fit_functions]
+    eta_ind_lowest = curve_start_pts.index(min(curve_start_pts))
+    # make sure it's not in HF
+    if eta_ind_lowest > 6:
+        raise RuntimeError('Selected HF bin for pT compression')
+    print 'Low pt plateaus end at:', curve_start_pts
+    print 'Using eta bin %d for pT compression' % eta_ind_lowest
+
+    corr_orig = np.array([0.] + [fit_functions[eta_ind_lowest].Eval(pt) for pt in pt_orig if pt > 0])
+
+    # find min of curve and merge above that
+    merge_above = fit_functions[eta_ind_lowest].functions_dict.values()[1].GetMinimumX()
+    # merge_above = 300
+    print 'Merge above', merge_above
+
+    # find end of plateau and merge below that
+    merge_below = min(curve_start_pts)
+    print 'Merge below', merge_below
+    new_pt_mapping = calc_compressed_pt_mapping(pt_orig, corr_orig,
+                                                target_num_pt_bins,
+                                                merge_criterion,
+                                                merge_above, merge_below)
+
+    # print new_pt_mapping
+
     for ieta, func in enumerate(fit_functions):
-        print 'Doing ieta', ieta
-        pt_orig = np.arange(0.5, max_pt + 0.5, 0.5)
-        corr_orig = np.array([func.Eval(pt) for pt in pt_orig])
-        new_pt_mapping, new_corr_mapping = calc_new_mapping(pt_orig,
-                                                            corr_orig,
-                                                            target_num_pt_bins,
-                                                            merge_criterion,
-                                                            merge_above)
+        print 'Calculating compressed correction value for eta bin', ieta
+        pt_orig = np.arange(0, max_pt + 0.5, 0.5)
+        corr_orig = np.array([0.] + [func.Eval(pt) for pt in pt_orig if pt > 0.])
+        new_corr_mapping = calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping)
+
         title = 'Target # bins %d, merge_criterion %.3f' % (target_num_pt_bins, merge_criterion)
         plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title)
 
@@ -434,14 +501,17 @@ def print_Stage2_lut_files(fit_functions,
     assign_hw_correction_factors(mapping_info, max_iet=int(max_pt * 2), cap_correction=corr_max,
                                  max_hw_correction=(2**num_corr_bits) - 1, right_shift=right_shift)
 
+    # plot original correction, compressed correciton, and HW correction equivalent
+
     # put them into a LUT
     write_stage2_correction_lut(corr_lut_filename, mapping_info, address_index_map)
 
 
 def plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title=''):
     """Make plots to showoff compression and mapping"""
+    max_ind = -1
     # Plot original : compressed pT mapping
-    plt.plot(new_pt_mapping.keys()[:2200], new_pt_mapping.values()[:2200], 'o', markersize=3, alpha=0.7)
+    plt.plot(new_pt_mapping.keys()[:max_ind], new_pt_mapping.values()[:max_ind], 'o', markersize=3, alpha=0.7)
     plt.suptitle('Compressed pt mapping, eta bin %d, %s' % (ieta, title))
     plt.xlabel('Original pT [GeV]')
     plt.ylabel('Compressed pT [GeV]')
@@ -451,8 +521,8 @@ def plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mappin
     plt.clf()
 
     # Plot original and compressed correction values as a function of pT
-    plt.plot(new_corr_mapping.keys()[:2200], new_corr_mapping.values()[:2200], 'or', label='compressed', markersize=3, alpha=0.7)
-    plt.plot(pt_orig[:2200], corr_orig[:2200], 'blue', label='orig')
+    plt.plot(new_corr_mapping.keys()[:max_ind], new_corr_mapping.values()[:max_ind], 'or', label='compressed', markersize=3, alpha=0.7)
+    plt.plot(pt_orig[:max_ind], corr_orig[:max_ind], 'blue', label='orig')
     plt.xlabel('pT [GeV]')
     plt.ylabel('Correction')
     plt.legend(loc=0)
@@ -480,8 +550,8 @@ def print_Stage2_func_file(fits, output_filename):
                 continue
             line_cols = []
             if isinstance(fit, MultiFunc):
-                linear_limit = fit.functions_dict.keys()[0][1]
                 linear_const = fit.functions_dict.values()[0].GetParameter(0)
+                linear_limit = fit.functions_dict.keys()[0][1]
                 if len(fit.functions_dict.keys()) > 1:
                     curve_fn = fit.functions_dict.values()[1]
                     curve_params = [curve_fn.GetParameter(i) for i in range(curve_fn.GetNpar())]
@@ -566,7 +636,7 @@ def do_constant_fit(graph, eta_min, eta_max, output_dir):
     print 'jackknfe mean:', jackmean
     const_fn = ROOT.TF1("constant", '[0]', 0, 1024)
     const_fn.SetParameter(0, peak)
-    const_multifn = MultiFunc({(0, 1024): const_fn})
+    const_multifn = MultiFunc({(0, np.inf): const_fn})
     return const_multifn
 
 
