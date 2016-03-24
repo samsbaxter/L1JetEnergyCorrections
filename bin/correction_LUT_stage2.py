@@ -400,12 +400,16 @@ def print_Stage2_lut_files(fit_functions,
     mapping_info = OrderedDict()  # store {ieta: [pt map, corr map, corr matrix]}
 
     for ieta, func in enumerate(fit_functions):
+        print 'Doing ieta', ieta
         pt_orig = np.arange(0.5, max_pt + 0.5, 0.5)
         corr_orig = np.array([func.Eval(pt) for pt in pt_orig])
         new_pt_mapping, new_corr_mapping = calc_new_mapping(pt_orig,
                                                             corr_orig,
                                                             target_num_pt_bins,
                                                             merge_criterion)
+        title = 'Target # bins %d, merge_criterion %.3f' % (target_num_pt_bins, merge_criterion)
+        plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title)
+
         mapping_info[ieta] = dict(pt=new_pt_mapping,
                                   corr=new_corr_mapping,
                                   hw_corr=None,
