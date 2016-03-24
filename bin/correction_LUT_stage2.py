@@ -53,6 +53,7 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbo
         Dict of {original pt: correction}, where the correction value is the
         mean of the compressed bin.
     """
+    print 'Calculating new mapping for compressed ET'
 
     # hold pt mapping
     new_pt_mapping = {p: p for p in pt_orig}
@@ -66,13 +67,17 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbo
 
     end_ind = len(pt_orig) - 1
 
+    last_num_bins = 111111111
+
     while len(set(new_corr_mapping.values())) > target_num_bins:
+        last_num_bins = len(set(new_corr_mapping.values()))
+
+        print 'Got', len(set(new_corr_mapping.values())), 'bins'
         # start with larget number of bins, look at compatibility,
         # then reduce bin span if necessary
         start_ind = 0
 
         while start_ind < end_ind and end_ind > 2:
-
             corrs = corr_orig[start_ind: end_ind + 1]
             if corrs.max() < (merge_criterion * corrs.min()):
 
@@ -100,6 +105,17 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbo
                 break
             else:
                 start_ind += 1
+
+        if len(set(new_corr_mapping.values())) == last_num_bins:
+            print 'Stuck in a loop - you need to loosen merge_criterion, or increase the numebr of bins'
+            print 'Dumping mapping to file stuck_dump.txt'
+            with open('stuck_dump.txt', 'w') as f:
+                for k,v in new_corr_mapping.iteritems():
+                    f.write("%f,%f\n" % (k, v))
+            exit()
+
+    print len(set(new_corr_mapping.values())), 'compressed bins:'
+    print set(new_corr_mapping.values())
 
     mask = [k != v for k, v in new_pt_mapping.iteritems()]
     # -1 required with .index() as otherwise it picks up wrong index
