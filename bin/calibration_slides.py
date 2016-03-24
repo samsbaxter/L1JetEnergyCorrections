@@ -74,7 +74,8 @@ def plot_to_file(f, plotname, filename, xtitle="", ytitle="", title="",
     plot = obj.Clone()
     plot.SetTitle(';'.join([title, xtitle, ytitle]))
     plot.Draw(drawopts)
-    plot.GetYaxis().SetRangeUser(0.5, 1.2*ROOT.TMath.MaxElement(plot.GetN(), plot.GetY()))
+    # plot.GetYaxis().SetRangeUser(0.5, 1.2*ROOT.TMath.MaxElement(plot.GetN(), plot.GetY()))
+    plot.GetYaxis().SetRangeUser(0.5, 2)
     if drawfit:
         plot2 = obj2.Clone()
         plot2.SetTitle(';'.join([title, xtitle, ytitle]))
