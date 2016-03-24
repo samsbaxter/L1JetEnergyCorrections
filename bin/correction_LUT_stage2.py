@@ -10,24 +10,20 @@ Gets pretty gnarly, improvements needed.
 
 
 import ROOT
-import sys
-import array
 import numpy as np
-from itertools import izip
 import os
-import argparse
-import binning
 import common_utils as cu
-from runCalibration import generate_eta_graph_name
 from collections import OrderedDict
 from bisect import bisect_left
 from multifunc import MultiFunc
+import matplotlib.pyplot as plt
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
+ROOT.TH1.SetDefaultSumw2(True)
 
 
 def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbose=False):

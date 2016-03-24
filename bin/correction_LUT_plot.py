@@ -30,6 +30,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
+ROOT.TH1.SetDefaultSumw2(True)
 
 
 def print_function_code(function, lang="cpp"):

@@ -4,9 +4,8 @@
 import ROOT
 from itertools import izip
 import os
-import common_utils as cu
 import numpy as np
-from collections import OrderedDict
+import common_utils as cu
 from correction_LUT_stage2 import do_constant_fit
 import binning
 from multifunc import MultiFunc
@@ -131,13 +130,11 @@ def do_fancy_fits(fits, graphs, const_hf, condition=0.1, look_ahead=4, plot_dir=
     for i, (fit, gr) in enumerate(zip(fits, graphs)):
         print "Eta bin", str(i)
         if (i >= len(binning.eta_bins_central) - 1) and const_hf:
-            print 'doing constant fit'
             new_fn = do_constant_fit(gr, binning.eta_bins[i], binning.eta_bins[i+1], plot_dir)
             new_functions.append(new_fn)
         else:
             new_fn = do_fancy_fit(fit, gr, condition, look_ahead)
             new_functions.append(new_fn)
-    print new_functions
     return new_functions
 
 
