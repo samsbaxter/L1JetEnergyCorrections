@@ -118,8 +118,11 @@ def calc_new_mapping(pt_orig, corr_orig, target_num_bins, merge_criterion, verbo
     print set(new_corr_mapping.values())
 
     mask = [k != v for k, v in new_pt_mapping.iteritems()]
-    # -1 required with .index() as otherwise it picks up wrong index
-    print 'Quantised above (inclusive):', pt_orig[mask.index(True) - 1]
+    if any(mask):
+        # -1 required with .index() as otherwise it picks up wrong index
+        print 'Quantised above (inclusive):', pt_orig[mask.index(True) - 1]
+    else:
+        print 'No pT quantisation happened!'
     return new_pt_mapping, new_corr_mapping
 
 
