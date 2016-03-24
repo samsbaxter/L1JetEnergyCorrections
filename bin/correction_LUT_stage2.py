@@ -406,6 +406,35 @@ def print_Stage2_lut_files(fit_functions,
     write_stage2_correction_lut(corr_lut_filename, mapping_info, address_index_map)
 
 
+def plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title=''):
+    """Make plots to showoff compression and mapping"""
+    # Plot original : compressed pT mapping
+    plt.plot(new_pt_mapping.keys()[:2200], new_pt_mapping.values()[:2200], 'o', markersize=3, alpha=0.7)
+    plt.suptitle('Compressed pt mapping, eta bin %d, %s' % (ieta, title))
+    plt.xlabel('Original pT [GeV]')
+    plt.ylabel('Compressed pT [GeV]')
+    plt.minorticks_on()
+    plt.grid(which='both')
+    plt.savefig('comp_pt_map_%d.pdf' % ieta)
+    plt.clf()
+
+    # Plot original and compressed correction values as a function of pT
+    plt.plot(new_corr_mapping.keys()[:2200], new_corr_mapping.values()[:2200], 'or', label='compressed', markersize=3, alpha=0.7)
+    plt.plot(pt_orig[:2200], corr_orig[:2200], 'blue', label='orig')
+    plt.xlabel('pT [GeV]')
+    plt.ylabel('Correction')
+    plt.legend(loc=0)
+    plt.ylim(1, 2)
+    plt.minorticks_on()
+    plt.grid(which='both')
+    plt.suptitle('Compressed corr , eta bin %d, %s' % (ieta, title))
+    plt.savefig('comp_corr_%d.pdf' % ieta)
+    plt.xlim(10, 1000)
+    plt.xscale('log')
+    plt.savefig('comp_corr_logX_%d.pdf' % ieta)
+    plt.clf()
+
+
 def print_Stage2_func_file(fits, output_filename):
     """Print function info to file.
     Each line corresponds to an abs(eta) bin.
