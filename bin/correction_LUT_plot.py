@@ -155,13 +155,68 @@ def plot_graph_function(eta_index, graph, function, filename):
     text.SetLineStyle(0)
     text.Draw()
     if function:
-        function.Draw("SAME")
+        function.Draw('SAME')
     graph.GetXaxis().SetLimits(0, 250)
 
     # y_ax.SetRangeUser(0.5, ROOT.TMath.MaxElement(graph.GetN(), graph.GetY()) * 1.2)
     y_ax.SetRangeUser(0.5, 3)
     c.SaveAs(filename)
 
+
+def plot_all_graph_functions(graphs, functions, filename):
+    """Plot both graph and function on the same canvas. Useful for fancy fits.
+
+    Parameters
+    ----------
+    eta_index: int
+        Which eta bin this plot refers to, just for labelling
+
+    graph: TGraphErrors
+        Graph to be plotted
+
+    function: MultiFunc
+        Function to be drawn
+
+    filename: str
+        Path & filename for plot
+    """
+    c = ROOT.TCanvas("c", "SCREW ROOT", 800, 600)
+    c.SetTicks(1, 1)
+    eta_bin_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kBlack,
+        ROOT.kMagenta, ROOT.kOrange + 7, ROOT.kAzure + 1, ROOT.kRed + 3,
+        ROOT.kViolet + 1, ROOT.kOrange, ROOT.kTeal - 5]
+    leg = ROOT.TLegend(0.7, 0.7, 0.88, 0.88)
+    if graphs and not functions:
+        functions = [None] * len(graphs)
+    elif functions and not graphs:
+        graphs = [None] * len(functions)
+    elif not graphs and not functions:
+        raise RuntimeError("Neither graphs nor functions - can't plot")
+
+    for eta_index, (gr, fn) in enumerate(zip(graphs, functions)):
+        col = eta_bin_colors[eta_index]
+        if gr:
+            gr.SetLineColor(col)
+            gr.SetMarkerColor(col)
+            gr.SetTitle('')
+            if eta_index == 0:
+                gr.Draw("ALP")
+            else:
+                gr.Draw("LP SAME")
+            y_ax = gr.GetYaxis()
+            y_ax.SetRangeUser(0.5, 3)
+            leg.AddEntry(gr, "eta ind %d" % eta_index, "LP")
+            gr.GetXaxis().SetLimits(0, 250)
+        if fn:
+            fn.SetLineColor(col)
+            if eta_index == 0 and not gr:
+                fn.Draw()
+            else:
+                fn.Draw("SAME")
+            if not gr:
+                leg.AddEntry(fn.functions_dict.values()[0], "eta ind %d" % eta_index, "L")
+    leg.Draw()
+    c.SaveAs(filename)
 
 def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
     """Draw all corrections functions on one big canvas"""
@@ -218,6 +273,8 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--python", help="print PyROOT code to screen", action='store_true')
     parser.add_argument("--numpy", help="print numpy code to screen", action='store_true')
     args = parser.parse_args(args=in_args)
+
+    print args
 
     if not any([args.gct, args.stage1, args.stage2, args.stage2Func]):
         print "You didn't pick which format for the corrections - not making a corrections file unless you choose!"
@@ -298,6 +355,9 @@ def main(in_args=sys.argv[1:]):
             for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
                 plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
                 plot_graph_function(i, gr, total_fit, plot_file)
+            plot_all_graph_functions(all_graphs, fits, os.path.join(out_dir, "fancyfit_all.pdf"))
+            plot_all_graph_functions(all_graphs, None, os.path.join(out_dir, "fancyfit_all_gr.pdf"))
+            plot_all_graph_functions(None, fits, os.path.join(out_dir, "fancyfit_all_fn.pdf"))
 
         if args.stage2:
             lut_base, ext = os.path.splitext(args.lut)
