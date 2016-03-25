@@ -814,7 +814,6 @@ def make_gif(input_file_list, output_gif_filename, convert_exe):
     cwd = os.getcwd()
     # we have to chdir since list file only has bare filenames
     os.chdir(os.path.dirname(input_file_list))
-    print os.getcwd()
     cmd = "%s -dispose Background -delay 50 -loop 0 @%s %s" % (convert_exe, os.path.relpath(input_file_list), os.path.relpath(output_gif_filename))
     print cmd
     check_output(cmd.split())
@@ -870,6 +869,7 @@ def main(in_args=sys.argv[1:]):
             print "Making animated graphs from fit plots."
         else:
             print "To use the --gifs flag, you also need --detail"
+
     if not args.gifexe:
         args.gifexe = find_executable('convert')
         if not args.gifexe:
@@ -889,39 +889,25 @@ def main(in_args=sys.argv[1:]):
 
     # auto determine output directory
     if not args.oDir:
-        filename = ''
-        stem = ''
+        filename, stem = '', ''
         if args.pairs:
-            filename = args.pairs
-            stem = 'pairs_'
+            filename, stem = args.pairs, 'pairs_'
         elif args.checkcal:
-            filename = args.checkcal
-            stem = 'check_'
+            filename, stem = args.checkcal, 'check_'
         elif args.res:
-            filename = args.res
-            stem = 'res_'
+            filename, stem = args.res, 'res_'
         elif args.calib:
-            filename = args.calib
-            stem = 'output_'
-        new_dir = os.path.basename(filename)
-        new_dir = new_dir.replace(".root", '')
-        new_dir = new_dir.replace(stem, 'showoff_')
+            filename, stem = args.calib, 'output_'
+        new_dir = os.path.basename(filename).replace(".root", '').replace(stem, 'showoff_')
 
         args.oDir = os.path.join(os.path.dirname(os.path.abspath(filename)), new_dir)
 
+    cu.check_dir_exists_create(args.oDir)
     print "Output directory:", args.oDir
 
-    # Check if directory exists. If not, create it.
-    cu.check_dir_exists_create(args.oDir)
 
     # Choose eta
-    # ptBins = binning.pt_bins
-    # ptBins = binning.pt_bins_stage2_old
     ptBins = binning.pt_bins_stage2
-
-    # if args.etaInd:
-    #     eta_min = binning.eta_bins[int(args.etaInd)]
-    #     eta_max = binning.eta_bins[int(args.etaInd) + 1]
 
     # Do plots with output from RunMatcher
     # ------------------------------------------------------------------------
@@ -987,7 +973,6 @@ def main(in_args=sys.argv[1:]):
 
         # indiviudal eta bins
         for eta_min, eta_max in pairwise(etaBins):
-            print eta_min, eta_max
             for (normX, logZ) in product([True, False], [True, False]):
                 plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
                 plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, args.oDir, 'png')
