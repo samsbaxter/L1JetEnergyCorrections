@@ -316,16 +316,21 @@ def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     h_rsp.Draw("HISTE")
     if func:
         func.Draw("SAME")
-    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+    filename = "%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat)
+    c.SaveAs(filename)
+    return filename
 
 
 def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin with a pt cut"""
-    hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
+    if eta_max <= 3:
+        hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
+    else:
+        hname = "eta_3_5/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
     try:
         h_rsp = cu.get_from_file(calib_file, hname)
     except Exception:
-        return
+        return None
     func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
     h_rsp.SetTitle(os.path.basename(hname) + ';response (%s)' % rsp_str)
@@ -1010,12 +1015,12 @@ def main(in_args=sys.argv[1:]):
         plot_rsp_pt_binned_graph(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
         plot_rsp_pt_binned_graph(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
 
-        # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
-        # for (eta_min, eta_max) in product([0, 3], [3, 5]):
+        all_rsp_pt_plot_filenames = []
+        all_rsp_ptRef_plot_filenames = []
+
+        # Loop over central/forward eta, do 2D plots, and graphs, and component hists
         for (eta_min, eta_max) in [[0, 3], [3, 5]]:
             print eta_min, eta_max
-            if eta_min == eta_max:
-                continue
 
             for (normX, logZ) in product([True, False], [True, False]):
                 plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
@@ -1035,11 +1040,43 @@ def main(in_args=sys.argv[1:]):
             plot_rsp_pt_graph(check_file, eta_min, eta_max, args.oDir, args.format)
             plot_rsp_ptRef_graph(check_file, eta_min, eta_max, args.oDir, args.format)
 
-            for etamin, etamax in izip(etaBins[:-1], etaBins[1:]):
-                # component plots for the eta graphs, binned by pt
+            for etamin, etamax in pairwise(etaBins):
+                if etamin < eta_min or etamax > eta_max:
+                    continue
+                print etamin, etamax
+                this_rsp_pt_plot_filenames = []
+                this_rsp_ptRef_plot_filenames = []
+                # component hists/fits for the eta graphs, binned by pt
                 for pt_min, pt_max in binning.check_pt_bins:
-                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'pt', pt_min, pt_max, args.oDir, 'png')
-                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'ptRef', pt_min, pt_max, args.oDir, 'png')
+                    pt_filename = plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'pt', pt_min, pt_max, args.oDir, 'png')
+                    if pt_filename:
+                        this_rsp_pt_plot_filenames.append(pt_filename)
+                    ptRef_filename = plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'ptRef', pt_min, pt_max, args.oDir, 'png')
+                    if ptRef_filename:
+                        this_rsp_ptRef_plot_filenames.append(ptRef_filename)
+
+                pt_list_file = os.path.join(args.oDir, 'list_pt_eta_%g_%g.txt' % (etamin, etamax))
+                write_filelist(this_rsp_pt_plot_filenames, pt_list_file)
+                if args.gifs:
+                    make_gif(pt_list_file, pt_list_file.replace('.txt', '.gif'), args.gifexe)
+
+                ptRef_list_file = os.path.join(args.oDir, 'list_ptRef_eta_%g_%g.txt' % (etamin, etamax))
+                write_filelist(this_rsp_ptRef_plot_filenames, ptRef_list_file)
+                if args.gifs:
+                    make_gif(ptRef_list_file, ptRef_list_file.replace('.txt', '.gif'), args.gifexe)
+
+                all_rsp_pt_plot_filenames.extend(this_rsp_pt_plot_filenames)
+                all_rsp_ptRef_plot_filenames.extend(this_rsp_ptRef_plot_filenames)
+
+        pt_list_file = os.path.join(args.oDir, 'list_pt_eta_%g_%g.txt' % (etaBins[0], etaBins[-1]))
+        write_filelist(all_rsp_pt_plot_filenames, pt_list_file)
+        if args.gifs:
+            make_gif(pt_list_file, pt_list_file.replace('.txt', '.gif'), args.gifexe)
+
+        ptRef_list_file = os.path.join(args.oDir, 'list_ptRef_eta_%g_%g.txt' % (etaBins[0], etaBins[-1]))
+        write_filelist(all_rsp_ptRef_plot_filenames, ptRef_list_file)
+        if args.gifs:
+            make_gif(ptRef_list_file, ptRef_list_file.replace('.txt', '.gif'), args.gifexe)
 
         check_file.Close()
 
