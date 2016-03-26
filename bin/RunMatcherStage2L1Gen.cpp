@@ -305,12 +305,21 @@ int main(int argc, char* argv[]) {
         out_mhtPhiL1 = l1Data->sumPhi[3];
         float httL1_check = scalarSumPt(httL1Jets);
 
-        if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
-            cout << "HTT L1 not agreeing with calculation: " + lexical_cast<std::string>(out_httL1) + " vs " + lexical_cast<std::string>(httL1_check) << endl;
-            for (const auto& itr: l1Jets) {
-                cout << itr.Pt() << " " << itr.Eta() << endl;
-            }
-        }
+        // Check my calc with stored value
+        // Doens't make sense to do this when applying calibrations on the fly
+        // if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
+        //     cout << "HTT L1 not agreeing with calculation: " + lexical_cast<std::string>(out_httL1) + " vs " + lexical_cast<std::string>(httL1_check) << endl;
+        //     for (const auto& itr: l1Jets) {
+        //         cout << itr.Pt() << " " << itr.Eta() << endl;
+        //     }
+        // }
+
+        TLorentzVector mhtL1_check = vectorSum(httL1Jets);
+
+        // Override sums with calibrated jets
+        out_httL1 = httL1_check;
+        out_mhtL1 = mhtL1_check.Pt();
+        out_mhtPhiL1 = mhtL1_check.Phi();
 
         // Ref jet sums
         std::vector<TLorentzVector> httRefJets = getJetsForHTT(refJets);
