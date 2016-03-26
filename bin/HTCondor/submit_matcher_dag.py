@@ -29,7 +29,6 @@ import re
 import htcondenser as ht
 import condorCommon as cc
 import logging
-from itertools import chain
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -180,9 +179,10 @@ def submit_all_matcher_dags(exe, ntuple_dirs, log_dir, append,
                                    cleaning_cut=cleaning_cut,
                                    append=append, force_submit=force_submit)
         status_files.append(sfile)
-    status_files = list(chain.from_iterable(status_files))  # flatten the list
-    print 'All statuses:'
-    print 'DAGstatus.py ', ' '.join(status_files)
+
+    if status_files:
+        print 'All statuses:'
+        print 'DAGstatus.py ', ' '.join(status_files)
 
 
 def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_min_pt, cleaning_cut,
@@ -305,9 +305,8 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     if not force_submit:
         for f in [final_file] + match_output_files:
             if os.path.isfile(f):
-                print 'ERROR: output file already exists - not submitting'
-                print 'FILE:', f
-                return 1
+                raise RuntimeError('ERROR: output file already exists - not submitting.'
+                                   '\nTo bypass, use -f flag. \nFILE: %s' % f)
 
     # Add in hadding jobs
     # ---------------------------------------------------------------------
@@ -339,7 +338,7 @@ def submit_matcher_dag(exe, ntuple_dir, log_dir, l1_dir, ref_dir, deltaR, ref_mi
     # ---------------------------------------------------------------------
     # matcher_dag.write()
     matcher_dag.submit()
-    return 0
+    return matcher_dag.status_file
 
 
 def add_hadd_jobs(dagman, jobs, final_file, log_dir):
