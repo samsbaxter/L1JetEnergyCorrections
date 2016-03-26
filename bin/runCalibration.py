@@ -22,6 +22,7 @@ import argparse
 import binning
 from binning import pairwise
 import common_utils as cu
+from math import sqrt, log
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -36,22 +37,48 @@ ROOT.TH1.SetDefaultSumw2(True)
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
-# [0] is c
-# [1] is d (scipy) or k (wiki)
-# [2] is a normalisation factor
+# Burr Type 3 distribution for response hist fitting
+# [0] is c in scipy notation
+# [1] is d in scipy notation
+# [2] is an overall normalisation factor
 # [3] is a location factor
 # [4] is a scale factor
-burr_fit = ROOT.TF1("burr", "[2]*[0]*[1]*pow((x-[3])/[4], -1.*(1+[0])) / pow(1+pow((x-[3])/[4], -1*[0]), 1+[1] )", 0, 2)
-burr_fit.SetParameter(0, 3.64850e+00)
-burr_fit.SetParameter(1, 7.06077e-01)
-burr_fit.SetParameter(2, 1.28317e+04)
-burr_fit.SetParameter(3, -1.50503e-02)
-burr_fit.SetParameter(4, 4.87032e-01)
+burr3_fit = ROOT.TF1("burr3", "[2]*[0]*[1]*pow((x-[3])/[4], -1.-[0]) / pow(1+pow((x-[3])/[4], -[0]), 1+[1] )", 0, 2)
 
-# Fit defaults
+def setup_burr3():
+    burr3_fit.SetParameter(0, 3.64850e+00)
+    burr3_fit.SetParameter(1, 7.06077e-01)
+    burr3_fit.SetParameter(2, 1.28317e+04)
+    burr3_fit.SetParameter(3, -1.50503e-02)
+    burr3_fit.SetParameter(4, 4.87032e-01)
+
+def setup_burr3_higherEta():
+    burr3_fit.SetParameter(0, 4.08877e+00)
+    burr3_fit.SetParameter(1, 1.40812e+00)
+    burr3_fit.SetParameter(2, 9.49084e+01)
+    burr3_fit.SetParameter(3, -2.06920e-01)
+    burr3_fit.SetParameter(4, 9.41943e-01)
+
+setup_burr3()
+
+# Burr Type 12 distribution for response hist fitting
+# [0] is c in wiki notation
+# [1] is k in wiki notation
+# [2] is an overall normalisation factor
+# [3] is a location factor
+# [4] is a scale factor
+burr12_fit = ROOT.TF1("burr12", "[2]*[0]*[1]*pow((x-[3])/[4], [0]-1.) / pow(1+pow((x-[3])/[4], [0]), 1+[1] )", 0, 2)
+burr12_fit.SetParameter(0, 2.96)
+burr12_fit.SetParameter(1, 1.31)
+burr12_fit.SetParameter(2, 367)
+burr12_fit.SetParameter(3, 0)
+burr12_fit.SetParameter(4, 1.01)
+
+# Curve Fit defaults
 GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE2_DEFAULT_PARAMS = [-0.5, 50, 1, -80, 0.01, -20]
+STAGE2_DEFAULT_PARAMS = [3.0, 35., 3, -200, 0.01, -20]
 
 
 def set_fit_params(fitfunc, params):
@@ -76,9 +103,141 @@ def generate_eta_graph_name(absetamin, absetamax):
     return "l1corr_eta_%g_%g" % (absetamin, absetamax)
 
 
+def get_hist_bin_contents(hist):
+    return np.array([hist.GetBinContent(i) for i in range(1, hist.GetNbinsX() + 1)])
+
+
+def do_gauss_response_hist_fit(hrsp):
+    """Fit Gaussian function to response histogram."""
+    # but only if we have a sensible number of entries
+    fitStatus = -1
+    mean = -999
+    err = -999
+    if hrsp.GetEntries() >= 3:
+        # Try the fit mutliple times, beacuse it can converge on the 2nd or 3rd
+        # iteration but not on the 1st...
+        fit_counter = 3
+        while fitStatus != 0 and fit_counter > 0:
+            fitStatus = int(hrsp.Fit("gaus", "QER", "",
+                                     hrsp.GetMean() - 1. * hrsp.GetRMS(),
+                                     hrsp.GetMean() + 1. * hrsp.GetRMS()))
+            # fitStatus = int(hrsp.Fit("burr", "QER", "", 0, 2))
+            fit_counter -= 1
+            if fitStatus == 0:
+                mean = hrsp.GetFunction("gaus").GetParameter(1)
+                err = hrsp.GetFunction("gaus").GetParError(1)
+                # mean = hrsp.GetFunction("burr").GetMaximumX()
+                # err = hrsp.GetMeanError()
+                break
+
+    # check if we have a bad fit - either fit status != 0, or
+    # fit mean is not close to raw mean. in either case use raw mean
+    if fitStatus != 0:  # or (xlow > 50 and abs((mean / hrsp.GetMean()) - 1) > 0.2):
+        print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), "fit status:", fitStatus
+        mean = hrsp.GetMean()
+        err = hrsp.GetMeanError()
+    return mean, err
+
+
+def calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, err_mu):
+    """Calculate the total error on the mode from errors on fitted params.
+
+    c, d are shape params
+    s is scale param
+    mu is location param
+    """
+    total = ((burr_diff_mu() * err_mu)**2 + (burr_diff_s(c, d) * err_s)**2 +
+             (burr_diff_c(mode, c, d, s) * err_c)**2 + (burr_diff_d(c, d, s) * err_d)**2)
+    return sqrt(total)
+
+
+def burr_diff_mu():
+    """Partial differential of Burr3 mode wrt mu"""
+    return 1.
+
+
+def burr_diff_s(c, d):
+    """Partial differential of Burr3 mode wrt s"""
+    comp = (c * d + 1.) / (c + 1.)
+    if comp > 0:
+        return comp**(1. / c)
+    else:
+        return 0
+
+
+def burr_diff_c(mode, c, d, s):
+    """Partial differential of Burr3 mode wrt c"""
+    part1 = 0 if s <=0 else log(s) * (-1. / (c**2))
+    comp = (c + 1.) / (c * d - 1.)
+    part2 = 0 if comp <= 0 else log(comp) * (1. / c**2)
+    part3 = (d + 1) / (c * (c * d - 1.) * (c + 1.))
+    return mode * (part1 + part2 + part3)
+
+
+def burr_diff_d(c, d, s):
+    """Partial differential of Burr3 mode wrt d"""
+    comp = (c * d - 1.) / (1. + c)
+    if comp > 0:
+        return (s / c) * (c / (1. + c)) * (comp)**((1. / c) - 1)
+    else:
+        return 0
+
+
+def do_burr_response_hist_fit(hrsp, setup_fn):
+    """Fit Burr function to response histogram."""
+    # but only if we have a sensible number of entries
+    fitStatus = -1
+    mode = -999
+    err = -999
+    if hrsp.GetEntries() >= 10:
+        # Try the fit mutliple times, beacuse it can converge on the 2nd or 3rd
+        # iteration but not on the 1st...
+        # fit_counter = 3
+        # while fitStatus != 0 and fit_counter > 0:
+        #     print 'Iterations left', fit_counter
+        #     fitStatus = int(hrsp.Fit("burr3", "QE"))
+        #     fit_counter -= 1
+        #     if fitStatus == 0 and hrsp.GetFunction("burr3").GetMaximumX() > 0:
+        #         mode = hrsp.GetFunction("burr3").GetMaximumX()
+        #         err = hrsp.GetMeanError()
+        #         break
+        # Ok, so it didn't work, so let's rebin with double bin width and retry
+        print 'Doubling bin size'
+        hrsp.Rebin(2)
+        fit_counter = 3
+        setup_fn()
+        while fitStatus != 0 and fit_counter > 0:
+            print 'Iterations left', fit_counter
+            fitStatus = int(hrsp.Fit("burr3", "QE"))
+            fit_counter -= 1
+            if fitStatus == 0 and hrsp.GetFunction("burr3").GetMaximumX() > 0:
+                burr_fn = hrsp.GetFunction("burr3")
+                mode = burr_fn.GetMaximumX()
+                c = burr_fn.GetParameter(0)
+                err_c = burr_fn.GetParError(0)
+                d = burr_fn.GetParameter(1)
+                err_d = burr_fn.GetParError(1)
+                err_mu = burr_fn.GetParError(3)
+                s = burr_fn.GetParameter(4)
+                err_s = burr_fn.GetParError(4)
+                err = calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, err_mu)
+                break
+
+    # check if we have a bad fit - either fit status != 0, or
+    # fit mode is not close to raw mode. in either case use raw mode
+    # or (xlow > 50 and abs((mode / hrsp.GetMean()) - 1) > 0.2):
+    if (fitStatus != 0 or mode <= 0 or err <= 0 or
+        (hrsp.GetFunction("burr3").GetMaximum() / hrsp.GetMaximum()) < 0.8 or
+        (hrsp.GetFunction("burr3").GetMaximum() / hrsp.GetMaximum()) > 1.2 ):
+        print "Poor Fit: fit mode:", mode, "raw mean:", hrsp.GetMean(), "fit status:", fitStatus
+        mode = hrsp.GetMean()
+        err = hrsp.GetMeanError()
+    return mode, err
+
+
 def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetamax,
                            fitfcn, do_genjet_plots, do_correction_fit,
-                           pu_min, pu_max):
+                           pu_min, pu_max, do_burr):
     """
     Do all the relevant hists and fitting, for one eta bin.
 
@@ -112,6 +271,8 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
 
     pu_max: float. Cut on maximum number of PU vertices.
 
+    do_burr: bool. If True, use Burr fn to fit response histograms.
+    The default is to use a Gaussian.
     """
 
     print "Doing PU range: %g - %g" % (pu_min, pu_max)
@@ -228,40 +389,21 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
             hpt_gen.SetName("gen_pt_genpt_%g_%g" % (xlow, xhigh))
             output_f_hists.WriteTObject(hpt_gen)
 
-        # Fit Gaussian to response curve,
-        # but only if we have a sensible number of entries
-        fitStatus = -1
-        mean = -999
-        err = -999
-        if hrsp.GetEntries() >= 3:
-            fit_counter = 3
-            while fitStatus != 0 and fit_counter > 0:
-                fitStatus = int(hrsp.Fit("gaus", "QER", "",
-                                         hrsp.GetMean() - 1. * hrsp.GetRMS(),
-                                         hrsp.GetMean() + 1. * hrsp.GetRMS()))
-                # fitStatus = int(hrsp.Fit("burr", "QER", "", 0, 2))
-                fit_counter -= 1
-                if fitStatus == 0:
-                    mean = hrsp.GetFunction("gaus").GetParameter(1)
-                    err = hrsp.GetFunction("gaus").GetParError(1)
-                    # mean = hrsp.GetFunction("burr").GetMaximumX()
-                    # err = hrsp.GetMeanError()
-                    break
+        # Fit to resposne hist to get mean response & error on mean
+        if do_burr:
+            if (absetamin > 2 and i == 0):
+                setup_burr3_higherEta()
+            setup_fn = setup_burr3 if absetamin < 2 else setup_burr3_higherEta
+            mean, err = do_burr_response_hist_fit(hrsp, setup_fn)
+        else:
+            mean, err = do_gauss_response_hist_fit(hrsp)
+
         output_f_hists.WriteTObject(hrsp)
-
-        # check if we have a bad fit - either fit status != 0, or
-        # fit mean is not close to raw mean. in either case use raw mean
-        if fitStatus != 0:  # or (xlow > 50 and abs((mean / hrsp.GetMean()) - 1) > 0.2):
-
-            print "Poor Fit: fit mean:", mean, "raw mean:", hrsp.GetMean(), \
-                "fit status:", fitStatus, \
-                "bin :", [xlow, xhigh], [absetamin, absetamax]
-            mean = hrsp.GetMean()
-            err = hrsp.GetMeanError()
 
         print "pT Gen: ", ptR, "-", ptBins[i + 1], "<pT L1>:", hpt.GetMean(), \
               "<pT Gen>:", (hpt_gen.GetMean() if do_genjet_plots else "NA"), "<rsp>:", mean
 
+        # Since we're plotting 1/rsp on y axis, so need jacobian
         err = err / (mean**2)
 
         # add point to response graph vs pt
@@ -524,13 +666,13 @@ def redo_correction_fit(inputfile, outputfile, absetamin, absetamax, fitfcn):
     """
     # Get relevant graph
     gr = cu.get_from_file(inputfile, generate_eta_graph_name(absetamin, absetamax))
+    outputfile.WriteTObject(gr, gr.GetName(), 'Overwrite')  # the original graph
 
     # Setup fitting (calculate sensible range, make sub-graph), then do fit!
     sub_graph, this_fit = setup_fit(gr, fitfcn, absetamin, absetamax, outputfile)
     fit_graph, fit_params = fit_correction(sub_graph, this_fit)
     outputfile.WriteTObject(this_fit, this_fit.GetName(), 'Overwrite')  # function by itself
     outputfile.WriteTObject(fit_graph, fit_graph.GetName(), 'Overwrite')  # has the function stored in it as well
-    outputfile.WriteTObject(gr, gr.GetName(), 'Overwrite')  # the original graph
     return fit_params
 
 
@@ -547,6 +689,8 @@ def main(in_args=sys.argv[1:]):
     parser.add_argument("--inherit-params", action='store_true',
                         help='Use previous eta bins function parameters as starting point. '
                         'Helpful when fits not converging.')
+    parser.add_argument("--burr", action='store_true',
+                        help='Do Burr type 3 fit for response histograms instead of Gaus')
     parser.add_argument("--gct", action='store_true',
                         help="Load legacy GCT specifics e.g. fit defaults.")
     parser.add_argument("--stage1", action='store_true',
@@ -643,6 +787,7 @@ def main(in_args=sys.argv[1:]):
 
         # Ignore the genric fit defaults and use the last fit params instead
         if args.inherit_params and previous_fit_params != []:
+            print "Inheriting params from last fit"
             default_params = previous_fit_params[:]
 
         fitfunc = central_fit
@@ -654,7 +799,7 @@ def main(in_args=sys.argv[1:]):
         else:
             fit_params = make_correction_curves(input_file, output_file, ptBins, eta_min, eta_max,
                                                 fitfunc, do_genjet_plots, do_correction_fit,
-                                                args.PUmin, args.PUmax)
+                                                args.PUmin, args.PUmax, args.burr)
         # Save successful fit params
         if fit_params != []:
             previous_fit_params = fit_params[:]
