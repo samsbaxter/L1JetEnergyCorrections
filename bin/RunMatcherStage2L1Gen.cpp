@@ -283,6 +283,11 @@ int main(int argc, char* argv[]) {
         /////////////////////////////////////////////
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
         std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
+        // apply calibration
+        for (auto & itr: l1Jets) {
+            double corrEt = itr.Et() * correction(itr.Et(), itr.Eta(), funcParams4);
+            itr.SetPtEtaPhiM(corrEt, itr.Eta(), itr.Phi(), 0);
+        }
 
         out_nL1 = l1Jets.size();
         out_nRef = refJets.size();
@@ -333,8 +338,7 @@ int main(int argc, char* argv[]) {
             if (opts.correctionFilename() != "") {
                 out_pt = getCorrectedEt(pt_lut, corr_lut, it.l1Jet().Et(), it.l1Jet().Eta());
             } else {
-                // out_pt = it.l1Jet().Et();
-                out_pt = it.l1Jet().Et() * correction(it.l1Jet().Et(), it.l1Jet().Eta(), funcParams5);
+                out_pt = it.l1Jet().Et();
             }
             out_eta = it.l1Jet().Eta();
             out_phi = it.l1Jet().Phi();
