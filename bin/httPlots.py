@@ -486,13 +486,13 @@ def do_dr_plots(tree, output_dir, cut=''):
     htt_bin_edges = [[30, 50], [50, 75], [75, 100], [100, 150], [150, 200], [200, 300], [300, 400]][:4]
     htt_bins = generate_cut_strings('httL1', htt_bin_edges)
     htt_labels = generate_cut_labels(HTT_L1_STR, htt_bin_edges)
-    make_slice_plots(tree, 'dr', DR_STR, NB_DR/2, DR_MIN, DR_MAX, htt_bins,
+    make_slice_plots(tree, 'dr', DR_STR, NB_DR, DR_MIN, DR_MAX, htt_bins,
                      os.path.join(output_dir, 'dr_httL1_slices.pdf'), title=TITLE,
                      normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
     # plot dr in bins of HTT(Ref)
     htt_bins = generate_cut_strings('httRef', htt_bin_edges)
     htt_labels = generate_cut_labels(HTT_REF_STR, htt_bin_edges)
-    make_slice_plots(tree, 'dr', DR_STR, NB_DR/2, DR_MIN, DR_MAX, htt_bins,
+    make_slice_plots(tree, 'dr', DR_STR, NB_DR, DR_MIN, DR_MAX, htt_bins,
                      os.path.join(output_dir, 'dr_httRef_slices.pdf'), title=TITLE,
                      normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
 
@@ -531,13 +531,13 @@ def do_rsp_plots(tree, output_dir, cut=''):
         htt_bin_edges = [[30, 50], [50, 75], [75, 100], [100, 150], [150, 200], [200, 300], [300, 400]][:4]
         htt_bins = generate_cut_strings('httL1', htt_bin_edges)
         htt_labels = generate_cut_labels(HTT_L1_STR, htt_bin_edges)
-        make_slice_plots(tree, 'rsp', RSP_STR, NB_RSP/2, RSP_MIN, RSP_MAX, htt_bins,
+        make_slice_plots(tree, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX, htt_bins,
                          os.path.join(output_dir, 'rsp_httL1_slices.pdf'), title=TITLE,
                          normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
         # plot rsp in bins of HTT(Ref)
         htt_bins = generate_cut_strings('httRef', htt_bin_edges)
         htt_labels = generate_cut_labels(HTT_REF_STR, htt_bin_edges)
-        make_slice_plots(tree, 'rsp', RSP_STR, NB_RSP/2, RSP_MIN, RSP_MAX, htt_bins,
+        make_slice_plots(tree, 'rsp', RSP_STR, NB_RSP, RSP_MIN, RSP_MAX, htt_bins,
                          os.path.join(output_dir, 'rsp_httRef_slices.pdf'), title=TITLE,
                          normalise=True, labels=htt_labels, colors=binning.eta_bin_colors[:len(htt_bins)])
 
