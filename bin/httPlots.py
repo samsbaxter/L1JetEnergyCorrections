@@ -103,6 +103,9 @@ NB_MHT_RATIO, MHT_RATIO_MIN, MHT_RATIO_MAX = 100, 0, 5
 NB_MHT_DIFF, MHT_DIFF_MIN, MHT_DIFF_MAX = 100, 0, 5
 
 
+COMMON_CUT = '!(httL1 < 0.1 && httRef < 0.1) && numPUVertices <25 && numPUVertices>15'
+
+
 def generate_canvas(w=700, h=600):
     """TCanvas factory method.
 
@@ -355,7 +358,7 @@ def make_htt_plots(input_filename, output_dir):
     f = cu.open_root_file(input_filename)
     tree = cu.get_from_file(f, "valid")
 
-    common_cut = ''
+    common_cut = COMMON_CUT
     norm_cut = '1./nMatches'  # normalisation, for event-level quantities, since we store it for each match in an event
     if common_cut != '':
         norm_cut += ' && %s' % common_cut
