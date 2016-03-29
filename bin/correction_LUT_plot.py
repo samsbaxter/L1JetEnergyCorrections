@@ -129,7 +129,7 @@ def plot_graph_function(eta_index, graph, function, filename):
     Parameters
     ----------
     eta_index: int
-        Which eta bin this plot refers to
+        Which eta bin this plot refers to, just for labelling
 
     graph: TGraphErrors
         Graph to be plotted
@@ -184,8 +184,8 @@ def plot_all_graph_functions(graphs, functions, filename):
     c = ROOT.TCanvas("c", "SCREW ROOT", 800, 600)
     c.SetTicks(1, 1)
     eta_bin_colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen + 2, ROOT.kBlack,
-        ROOT.kMagenta, ROOT.kOrange + 7, ROOT.kAzure + 1, ROOT.kRed + 3,
-        ROOT.kViolet + 1, ROOT.kOrange, ROOT.kTeal - 5]
+                      ROOT.kMagenta, ROOT.kOrange + 7, ROOT.kAzure + 1,
+                      ROOT.kRed + 3, ROOT.kViolet + 1, ROOT.kOrange, ROOT.kTeal - 5]
     leg = ROOT.TLegend(0.7, 0.7, 0.88, 0.88)
     if graphs and not functions:
         functions = [None] * len(graphs)
@@ -390,7 +390,6 @@ def main(in_args=sys.argv[1:]):
     all_graphs = []
 
     # Get all the fit functions from file and their corresponding graphs
-    etaBins = binning.eta_bins_central
     etaBins = binning.eta_bins
     for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
         print "Eta bin:", eta_min, "-", eta_max
@@ -425,7 +424,7 @@ def main(in_args=sys.argv[1:]):
         raise Exception("Incorrect number of fit functions/sets of parameters "
                         "for corresponding number of eta bins")
 
-    # Plot all functions on one canvas, zomme din on low pt & whole pt range
+    # Plot all functions on one canvas, zommed in on low pt & whole pt range
     plot_file = os.path.join(out_dir, "all_raw_fits_ptZoomed.pdf")
     plot_all_functions(all_fits, plot_file, etaBins, et_min=0, et_max=30)
     plot_file = os.path.join(out_dir, "all_raw_fits.pdf")

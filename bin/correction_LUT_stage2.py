@@ -148,7 +148,7 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
 
 
 def calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping):
-    """Calculate  new corrections using new compressed pT mapping
+    """Calculate new corrections using new compressed pT mapping
 
     Parameters
     ----------
@@ -194,7 +194,7 @@ def generate_address(iet, ieta):
     int
         Corresponding address.
     """
-    return (iet<<4) + ieta
+    return (ieta<<4) + iet
 
 
 def generate_address_index_map(mapping_info):
