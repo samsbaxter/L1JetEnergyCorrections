@@ -386,6 +386,30 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
             lut.write(line)
 
 
+
+def assign_pt_index(pt_values):
+    """Calculate an index for each pt_value. Only unique values get
+    different indices.
+
+    >>> assign_pt_index([1, 1, 2, 3, 3])
+    [0, 0, 1, 2, 2]
+
+    Parameters
+    ----------
+    pt_values : list[int or float]
+        List of pt values
+
+    Returns
+    -------
+    list[int]
+
+    """
+    pt_values = list(pt_values)
+    unique_pt_values = sorted(set(pt_values))
+    unique_indices_map = {p: ind for ind, p in enumerate(unique_pt_values)}
+    return [unique_indices_map[p] for p in pt_values]
+
+
 def print_Stage2_lut_files(fit_functions,
                            pt_lut_filename, corr_lut_filename,
                            corr_max, num_corr_bits,
