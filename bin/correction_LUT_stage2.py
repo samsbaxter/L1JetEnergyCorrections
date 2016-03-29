@@ -18,6 +18,7 @@ from bisect import bisect_left
 from multifunc import MultiFunc
 import matplotlib.pyplot as plt
 from binning import pairwise
+from itertools import izip
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -535,6 +536,59 @@ def plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mappin
     plt.xscale('log')
     plt.savefig('comp_corr_logX_%d.pdf' % ieta)
     plt.clf()
+
+
+def plot_pre_post_compare(map_info, corr_orig, right_shift, eta_ind):
+    pt_pre = map_info['corr'].keys()
+    pt_post_orig = [pt * corr for pt, corr in izip(pt_pre, corr_orig)]
+    plt.plot(pt_pre, pt_post_orig, 'bo', label='Original', alpha=0.7, markersize=4)
+
+    new_corr_map = map_info['corr']
+    pt_post_compressed = [pt * corr for pt, corr in new_corr_map.iteritems()]
+    plt.plot(pt_pre, pt_post_compressed, 'gd', label='Compressed', alpha=0.7, markersize=4)
+
+    hw_corr_map = map_info['hw_corr']
+    pt_post_hw = [0.5 * correct_iet(iet, cf, right_shift) for iet, cf in hw_corr_map.iteritems()]
+    plt.plot(pt_pre, pt_post_hw, 'rx', label='HW', alpha=0.7, markersize=4)
+
+    plt.legend(loc=0)
+    plt.minorticks_on()
+    plt.grid(which='both')
+    plt.xlabel('Pre-correction pT [GeV]')
+    plt.ylabel('Post-correction pT [GeV]')
+    plt.savefig('pt_pre_post_all_%d.pdf' % eta_ind)
+
+    plt.xlim(0, 200)
+    plt.ylim(0, 200)
+    plt.savefig('pt_pre_post_all_zoom_%d.pdf' % eta_ind)
+
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.savefig('pt_pre_post_all_zoom_log_%d.pdf' % eta_ind)
+    plt.clf()
+
+
+def plot_orig_compressed_hw_corr(pt_orig, corr_orig, map_info, right_shift, eta_ind):
+    plt.plot(pt_orig, corr_orig, label='Orig')
+    new_corr_map = map_info['corr']
+    plt.plot(new_corr_map.keys(), new_corr_map.values(), 'ro', label='Compressed', markersize=3, alpha=0.7)
+    hw_corr_map = map_info['hw_corr']
+    # correction factors from HW
+
+    hw_corr_factors = [correct_iet(iet, cf, right_shift) / (1. * iet)
+                       for iet, cf in hw_corr_map.iteritems() if iet > 0]
+    plt.plot([x * 0.5 for x in hw_corr_map.keys() if x > 0], hw_corr_factors, 'gd', label='HW', markersize=3, alpha=0.7)
+    plt.legend(loc=0)
+    plt.ylim(1, 2)
+    plt.xlabel('Original pT [GeV]')
+    plt.ylabel('Compressed pT [GeV]')
+    plt.minorticks_on()
+    plt.grid(which='both')
+    plt.savefig('compare_all_corr_%d.pdf' % eta_ind)
+
+    plt.xlim(1, 1000)
+    plt.xscale('log')
+    plt.savefig('compare_all_corr_%d_logX.pdf' % eta_ind)
 
 
 def print_Stage2_func_file(fits, output_filename):
