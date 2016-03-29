@@ -285,6 +285,9 @@ def calculate_hw_corr_factor(corr_matrix, iet_pre, iet_post):
     """
     iet_pre = int(round(iet_pre))
     iet_post = int(round(iet_post))
+    # always return factor 0 when input pt = 0
+    if iet_pre == 0:
+        return 0
     try:
         # try and find an exact match
         ind = int(np.where(corr_matrix[:, iet_pre] == iet_post)[0][0])
@@ -295,7 +298,7 @@ def calculate_hw_corr_factor(corr_matrix, iet_pre, iet_post):
         if ind == len(corr_matrix[:, iet_pre]):
             return ind - 1
         diff_above = abs(corr_matrix[ind, iet_pre] - iet_post)
-        diff_below = abs(corr_matrix[ind, iet_pre] - iet_post)
+        diff_below = abs(corr_matrix[ind-1, iet_pre] - iet_post)
         if diff_above < diff_below:
             return ind
         else:
