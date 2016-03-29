@@ -29,11 +29,12 @@ ROOT.TH1.SetDefaultSumw2(True)
 
 
 def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
-                               merge_criterion, merge_above=None, merge_below=None,
-                               verbose=False):
+                               merge_criterion, merge_above=None, merge_below=None):
     """Calculate new compressed pt mapping. Uses corrections
     to decide how to merge bins.
-    Returns a dicts for original:quantised pt mapping.
+
+    Returns a dicts for original:quantised pt mapping, where the quantised pT
+    is the centre of the pT bin (for lack of anything better)
 
     Parameters
     ----------
@@ -70,26 +71,27 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
     end_ind = len(pt_orig) - 1
 
     if merge_above:
-        merge_above_ind = 0
+        # set all bins above this value to merge, and set to mean pt
+        merge_above_ind = bisect_left(new_pt_mapping.keys(), merge_above)
+        mean_merge = np.array(new_pt_mapping.keys()[merge_above_ind:]).mean()
         for ind, pt in enumerate(new_pt_mapping.iterkeys()):
             if pt >= merge_above:
-                new_pt_mapping[pt] = new_pt_mapping.keys()[merge_above_ind + 1]
-            else:
-                merge_above_ind = ind
+                new_pt_mapping[pt] = mean_merge
         end_ind = merge_above_ind
 
     orig_start_ind = 1
 
     if merge_below:
-        merge_below_ind = 0
+        # set all bins below this value to merge, and set to mean pt
+        merge_below_ind = bisect_left(new_pt_mapping.keys(), merge_below)
+        mean_merge = np.array(new_pt_mapping.keys()[1:merge_below_ind]).mean()
         for ind, pt in enumerate(new_pt_mapping.iterkeys()):
             # keep pt = 0 set to 0
             if ind == 0:
                 continue
             if pt <= merge_below:
-                new_pt_mapping[pt] = new_pt_mapping.values()[1]  # we don't want 0
-                merge_below_ind = ind
-        orig_start_ind = merge_below_ind + 1
+                new_pt_mapping[pt] = mean_merge
+        orig_start_ind = merge_below_ind
 
     last_num_bins = 111111111
 
@@ -113,22 +115,21 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
                     start_ind += target_num_bins - (len(set(new_pt_mapping.values())) - len(corrs)) - 1
                     corrs = corr_orig[start_ind:end_ind + 1]
 
-                if verbose:
-                    print 'max:', corrs.max(), 'min:', corrs.min()
-                    print 'bin edges:', start_ind, end_ind
+                mean_pt = round(pt_orig[start_ind: end_ind + 1].mean() * 2) / 2
+                # print 'mean pt for this bin:', mean_pt, 'from', pt_orig[start_ind: end_ind + 1]
 
                 for i in xrange(start_ind, end_ind + 1):
-                    new_pt_mapping[pt_orig[i]] = pt_orig[start_ind]
+                    new_pt_mapping[pt_orig[i]] = mean_pt
 
                 end_ind = start_ind - 1
-                if verbose: print len(set(new_pt_mapping.values())), 'diff pt values'
 
                 break
             else:
                 start_ind += 1
 
         if len(set(new_pt_mapping.values())) == last_num_bins:
-            print 'Stuck in a loop - you need to loosen merge_criterion, or increase the numebr of bins'
+            print 'Stuck in a loop - you need to loosen merge_criterion, ' \
+                  'or increase the number of bins'
             print 'Dumping mapping to file stuck_dump.txt'
             with open('stuck_dump.txt', 'w') as f:
                 for k, v in new_pt_mapping.iteritems():
@@ -141,9 +142,10 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
     mask = [k != v for k, v in new_pt_mapping.iteritems()]
     if any(mask):
         # -1 required with .index() as otherwise it picks up wrong index
-        print 'Quantised above (inclusive):', pt_orig[mask.index(True) - 1]
+        print 'Compressed above (inclusive):', pt_orig[mask.index(True) - 1]
     else:
-        print 'No pT quantisation happened!'
+        print 'No pT compression required'
+
     return new_pt_mapping
 
 
@@ -218,8 +220,8 @@ def generate_address_index_map(mapping_info):
     return mapping
 
 
-def write_pt_compress_lut(lut_filename, address_index_map):
-    """Write LUT that converts pt,eta to compressed address
+def write_pt_compress_lut(lut_filename, hw_pt_orig, pt_index):
+    """Write LUT that converts HW pt to compressed index
 
     Parameters
     ----------
@@ -228,11 +230,12 @@ def write_pt_compress_lut(lut_filename, address_index_map):
     """
     print 'Making PT compress LUT', lut_filename
     with open(lut_filename, 'w') as lut:
-        for i, (addr, ind) in enumerate(address_index_map.iteritems()):
-            lut.write('%d %d\n' % (addr, ind))
+        for pt, ind in izip(hw_pt_orig, pt_index):
+            lut.write('%d %d\n' % (pt, ind))
 
 
 def correct_iet(iet, corr_factor, right_shift):
+    """Apply correction int to HW pt."""
     iet_new = iet * corr_factor
     iet_new = np.right_shift(iet_new, right_shift)
     iet_new += iet
@@ -263,7 +266,7 @@ def generate_corr_matrix(max_iet, max_hw_correction, right_shift):
     return corr_m
 
 
-def calculate_hw_corr_factor(corr_matrix, iet_pre, iet_post):
+def calc_hw_corr_factor(corr_matrix, iet_pre, iet_post):
     """Return multiplicative factor (for hardware) that gives closest
     value to iet_post for a given iet_pre.
 
@@ -305,44 +308,37 @@ def calculate_hw_corr_factor(corr_matrix, iet_pre, iet_post):
             return ind - 1
 
 
-def assign_hw_correction_factors(mapping_info, max_iet, cap_correction, max_hw_correction, right_shift):
-    """For each pt, assign an integer correction factor
+def calc_hw_correction_ints(hw_pts, corrections, corr_matrix, cap_correction):
+    """For each pt bin calculate the integer correction factor that gives the
+    closest factor to the equivalent entry in corrections.
 
     Parameters
     ----------
-    mapping_info : dict
-        Description
-    max_iet : int
-        Description
+    hw_pts : list[int]
+        Input hardware pTs
+    corrections : list[float]
+        Target correction factors
+    corr_matrix : np.ndarray
+        2D Matrix that maps hw pt (pre) and correction integer to hw pt (post).
     cap_correction : float
         Maximum physical correction (to stop ridiculously large factors)
-    max_hw_correction : int
-        Description
-    right_shift : int
-        Description
+
+    Returns
+    -------
+    list[int]
+        List of HW correction integers, one per entry in hw_pts
     """
     print 'Assigning HW correction factors'
-    # create a correction matrix
-    corr_matrix = generate_corr_matrix(max_iet, max_hw_correction, right_shift)
 
-    # for each ieta, go though pt and convert floating-point correction factor to
-    # integer factor that is used on iEt
-    for ieta, mdict in mapping_info.iteritems():
-        # do all pt values
-        hw_corr = OrderedDict()
-        for pt_pre, corr in mdict['corr'].iteritems():
-            iet_pre = int(pt_pre * 2)
-            iet_post = int(round(pt_pre * min(corr, cap_correction) * 2))
-            hw_corr[iet_pre] = calculate_hw_corr_factor(corr_matrix, iet_pre, iet_post)
-        mapping_info[ieta]['hw_corr'] = hw_corr
+    hw_corrections = []
 
-        # do unique value only
-        hw_corr_unique = OrderedDict()
-        for pt_pre in sorted(set(mdict['pt'].values())):
-            iet_pre = int(pt_pre * 2)
-            iet_post = int(round(pt_pre * min(mdict['corr'][pt_pre], cap_correction) * 2))
-            hw_corr_unique[iet_pre] = calculate_hw_corr_factor(corr_matrix, iet_pre, iet_post)
-        mapping_info[ieta]['hw_corr_unique'] = hw_corr_unique
+    for hw_pt_pre, corr in izip(hw_pts, corrections):
+        # print hw_pt_pre, corr
+        hw_pt_post = int(round(hw_pt_pre * corr))
+        hw_factor = calc_hw_corr_factor(corr_matrix, hw_pt_pre, hw_pt_post)
+        hw_corrections.append(hw_factor)
+
+    return np.array(hw_corrections)
 
 
 def generate_correction_lut_contents(mapping_info, address_index_map):
@@ -388,6 +384,9 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
         for line in contents:
             lut.write(line)
 
+
+def write_eta_compress_lut():
+    print "DO THIS ETA LUT ROBIN"
 
 
 def determine_lowest_curve_start(fit_functions):
@@ -441,10 +440,9 @@ def assign_pt_index(pt_values):
     return [unique_indices_map[p] for p in pt_values]
 
 
-def print_Stage2_lut_files(fit_functions,
-                           pt_lut_filename, corr_lut_filename,
-                           corr_max, num_corr_bits,
-                           target_num_pt_bins, merge_criterion):
+def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
+                           corr_max, num_corr_bits, target_num_pt_bins,
+                           merge_criterion, plot_dir):
     """Make LUTs for Stage 2.
 
     This creates 2 LUT files:
@@ -479,11 +477,18 @@ def print_Stage2_lut_files(fit_functions,
         be combined if the maximum correction factor = merge_criterion * minimum
         correction factor for those pt bins.
 
+    plot_dir : str
+        Directory to put checking plots.
+
     Raises
     ------
     IndexError
         If the number of fit functions is not the same as number of eta bins
     """
+
+    # Plot LUT for eta compression
+    write_eta_compress_lut()
+
     if corr_max <= 2:
         right_shift = num_corr_bits
     elif corr_max <= 3:
@@ -517,7 +522,8 @@ def print_Stage2_lut_files(fit_functions,
     pt_orig = np.arange(0, max_pt + 0.5, 0.5)
     hw_pt_orig = (pt_orig * 2).astype(int)
     # do 0 separately as it should have 0 correction factor
-    corr_orig = np.array([0.] + [fit_functions[eta_ind_lowest].Eval(pt) for pt in pt_orig if pt > 0])
+    corr_orig = np.array([0.] + [fit_functions[eta_ind_lowest].Eval(pt)
+                                 for pt in pt_orig if pt > 0])
 
     # Find the optimal compressed pt binning
     new_pt_mapping = calc_compressed_pt_mapping(pt_orig, corr_orig,
@@ -525,119 +531,178 @@ def print_Stage2_lut_files(fit_functions,
                                                 merge_criterion,
                                                 merge_above, merge_below)
 
-    # print new_pt_mapping
+    pt_compressed = np.array(new_pt_mapping.values())
+    hw_pt_compressed = (pt_compressed * 2).astype(int)
 
-    for ieta, func in enumerate(fit_functions):
-        print 'Calculating compressed correction value for eta bin', ieta
-        pt_orig = np.arange(0, max_pt + 0.5, 0.5)
-        corr_orig = np.array([0.] + [func.Eval(pt) for pt in pt_orig if pt > 0.])
-        new_corr_mapping = calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping)
-
-        title = 'Target # bins %d, merge_criterion %.3f' % (target_num_pt_bins, merge_criterion)
-        plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title)
-
-        mapping_info[ieta] = dict(pt=new_pt_mapping,
-                                  corr=new_corr_mapping,
-                                  hw_corr=None,
-                                  hw_corr_unique=None)
-
-    # map to convert address to index
-    address_index_map = generate_address_index_map(mapping_info)
+    # figure out pt unique indices for each pt
+    pt_index = np.array(assign_pt_index(hw_pt_compressed))
 
     # make a lut to convert original pt (address) to compressed (index)
-    write_pt_compress_lut(pt_lut_filename, address_index_map)
+    write_pt_compress_lut(pt_lut_filename, hw_pt_orig, pt_index)
 
-    # then we calculate all the necessary correction integers
-    assign_hw_correction_factors(mapping_info, max_iet=int(max_pt * 2), cap_correction=corr_max,
-                                 max_hw_correction=(2**num_corr_bits) - 1, right_shift=right_shift)
+    # to store {eta_index: {various pt/correction mappings}} for all eta bins
+    all_mapping_info = OrderedDict()
 
-    # plot original correction, compressed correciton, and HW correction equivalent
+    # Generate matrix of iet pre/post for different correction integers
+    # Only need to do it once beforehand, can be used for all eta bins
+    corr_matrix = generate_corr_matrix(max_iet=int(max_pt * 2),
+                                       max_hw_correction=(2**num_corr_bits) - 1,
+                                       right_shift=right_shift)
+
+    # figure out new correction mappings for each eta bin
+    for eta_ind, func in enumerate(fit_functions):
+        # if eta_ind>0:
+            # break
+
+        # Dict to hold ALL info for this eta bin
+        map_info = dict(pt_orig=pt_orig,  # original phys pt values
+                        hw_pt_orig=hw_pt_orig,  # original HW pt values
+                        pt_compressed=pt_compressed,  # phys pt values after compression
+                        hw_pt_compressed=hw_pt_compressed,  # HW pt values after compression
+                        pt_index=pt_index,  # index for compressed pt
+                        corr_orig=None,  # original correction factors (phys)
+                        corr_compressed=None,  # correction factors after pt compression (phys)
+                        hw_corr_compressed=None,  # HW correction factor after pt compression
+                        pt_post_corr_orig=None,  # phys pt post original corrections
+                        pt_post_corr_compressed=None,  # phys pt post compressed corrections
+                        hw_pt_post_hw_corr_compressed=None,  # HW pt post HW correction factor
+                        pt_post_hw_corr_compressed=None  # phys pt post HW correction factor
+                        )
+
+        print 'Calculating compressed correction value for eta bin', eta_ind
+
+        corr_orig = np.array([0.] + [func.Eval(pt) for pt in pt_orig if pt > 0.])
+        map_info['corr_orig'] = corr_orig
+
+        map_info['pt_post_corr_orig'] = pt_orig * corr_orig
+
+        new_corr_mapping = calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping)
+        map_info['corr_compressed'] = np.array(new_corr_mapping.values())
+
+        map_info['pt_post_corr_compressed'] = pt_orig * map_info['corr_compressed']
+
+        # then we calculate all the necessary correction integers
+        corr_ints = calc_hw_correction_ints(map_info['hw_pt_compressed'],
+                                            map_info['corr_compressed'],
+                                            corr_matrix,
+                                            cap_correction=corr_max)
+        map_info['hw_corr_compressed'] = corr_ints
+
+        # Store the result of applying the HW correction ints
+        hw_pt_post = [correct_iet(iet, cf, right_shift) for iet, cf
+                      in izip(map_info['hw_pt_orig'], map_info['hw_corr_compressed'])]
+        hw_pt_post = np.array(hw_pt_post)
+        map_info['hw_pt_post_hw_corr_compressed'] = hw_pt_post
+        map_info['pt_post_hw_corr_compressed'] = hw_pt_post * 0.5
+
+        # for k, v in map_info.iteritems():
+        #     if v is not None:
+        #         print k, type(v), len(v)
+
+        all_mapping_info[eta_ind] = map_info
+
+        if eta_ind in [0, 7]:
+            print_map_info(map_info)  # for debugging dict contents
+
+        # Print some plots to check results.
+        # Show original corr, compressed corr, compressed corr from HW
+        title = 'eta bin %d, target # bins %d, ' \
+                'merge criterion %.3f' % (eta_ind, target_num_pt_bins, merge_criterion)
+        plot_pt_pre_post_mapping(map_info, eta_ind, title, plot_dir)
+        plot_corr_vs_pt(map_info, eta_ind, title, plot_dir)
 
     # put them into a LUT
-    write_stage2_correction_lut(corr_lut_filename, mapping_info, address_index_map)
+    # write_stage2_correction_lut(corr_lut_filename, all_mapping_info, address_index_map)
 
 
-def plot_new_pt_corr_mapping(pt_orig, corr_orig, new_pt_mapping, new_corr_mapping, ieta, title=''):
-    """Make plots to showoff compression and mapping"""
-    max_ind = -1
-    # Plot original : compressed pT mapping
-    plt.plot(new_pt_mapping.keys()[:max_ind], new_pt_mapping.values()[:max_ind], 'o', markersize=3, alpha=0.7)
-    plt.suptitle('Compressed pt mapping, eta bin %d, %s' % (ieta, title))
+def print_map_info(map_info):
+    """Print out contents of dict, entry by entry"""
+    keys = map_info.keys()
+    print ' : '.join(keys)
+    for i in range(len(map_info['pt_orig'])):
+        print ' : '.join([str(map_info[k][i]) for k in keys])
+
+
+def plot_pt_pre_post_mapping(map_info, eta_ind, title, plot_dir):
+    """Plot map of pt (pre) -> pt (post), for original corrections,
+    compressed corrections, and HW integer corrections, to compare.
+
+    Parameters
+    ----------
+    map_info : dict
+        Holds np.ndarrays for various values
+    eta_ind : int
+        eta index for plot filename
+    title : str
+        Title to put on plot
+    plot_dir : str
+        Where to save the plot
+    """
+    plt.plot(map_info['pt_orig'], map_info['pt_post_corr_orig'],
+             'bo', label='Original', markersize=4, alpha=0.7)
+    plt.plot(map_info['pt_orig'], map_info['pt_post_corr_compressed'],
+             'rd', label='Compressed', markersize=4, alpha=0.7)
+    plt.plot(map_info['pt_orig'], map_info['pt_post_hw_corr_compressed'],
+             'gs', label='HW compressed', markersize=4, alpha=0.7)
     plt.xlabel('Original pT [GeV]')
-    plt.ylabel('Compressed pT [GeV]')
-    plt.minorticks_on()
-    plt.grid(which='both')
-    plt.savefig('comp_pt_map_%d.pdf' % ieta)
-    plt.clf()
-
-    # Plot original and compressed correction values as a function of pT
-    plt.plot(new_corr_mapping.keys()[:max_ind], new_corr_mapping.values()[:max_ind], 'or', label='compressed', markersize=3, alpha=0.7)
-    plt.plot(pt_orig[:max_ind], corr_orig[:max_ind], 'blue', label='orig')
-    plt.xlabel('pT [GeV]')
-    plt.ylabel('Correction')
-    plt.legend(loc=0)
-    plt.ylim(1, 2)
-    plt.minorticks_on()
-    plt.grid(which='both')
-    plt.suptitle('Compressed corr , eta bin %d, %s' % (ieta, title))
-    plt.savefig('comp_corr_%d.pdf' % ieta)
-    plt.xlim(10, 1000)
-    plt.xscale('log')
-    plt.savefig('comp_corr_logX_%d.pdf' % ieta)
-    plt.clf()
-
-
-def plot_pre_post_compare(map_info, corr_orig, right_shift, eta_ind):
-    pt_pre = map_info['corr'].keys()
-    pt_post_orig = [pt * corr for pt, corr in izip(pt_pre, corr_orig)]
-    plt.plot(pt_pre, pt_post_orig, 'bo', label='Original', alpha=0.7, markersize=4)
-
-    new_corr_map = map_info['corr']
-    pt_post_compressed = [pt * corr for pt, corr in new_corr_map.iteritems()]
-    plt.plot(pt_pre, pt_post_compressed, 'gd', label='Compressed', alpha=0.7, markersize=4)
-
-    hw_corr_map = map_info['hw_corr']
-    pt_post_hw = [0.5 * correct_iet(iet, cf, right_shift) for iet, cf in hw_corr_map.iteritems()]
-    plt.plot(pt_pre, pt_post_hw, 'rx', label='HW', alpha=0.7, markersize=4)
-
+    plt.ylabel('Post-Correction pT [GeV]')
     plt.legend(loc=0)
     plt.minorticks_on()
     plt.grid(which='both')
-    plt.xlabel('Pre-correction pT [GeV]')
-    plt.ylabel('Post-correction pT [GeV]')
-    plt.savefig('pt_pre_post_all_%d.pdf' % eta_ind)
+    plt.suptitle(title)
+    plt.savefig(os.path.join(plot_dir, 'pt_pre_vs_post_%d.pdf' % eta_ind))
 
-    plt.xlim(0, 200)
-    plt.ylim(0, 200)
-    plt.savefig('pt_pre_post_all_zoom_%d.pdf' % eta_ind)
+    plt.xlim(0, 150)
+    plt.ylim(0, 150)
+    plt.savefig(os.path.join(plot_dir, 'pt_pre_vs_post_zoomX_%d.pdf' % eta_ind))
 
+    plt.xlim(5, 100)
+    plt.ylim(5, 100)
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('pt_pre_post_all_zoom_log_%d.pdf' % eta_ind)
+    plt.savefig(os.path.join(plot_dir, 'pt_pre_vs_post_zoomX_logX_%d.pdf' % eta_ind))
+
     plt.clf()
 
 
-def plot_orig_compressed_hw_corr(pt_orig, corr_orig, map_info, right_shift, eta_ind):
-    plt.plot(pt_orig, corr_orig, label='Orig')
-    new_corr_map = map_info['corr']
-    plt.plot(new_corr_map.keys(), new_corr_map.values(), 'ro', label='Compressed', markersize=3, alpha=0.7)
-    hw_corr_map = map_info['hw_corr']
-    # correction factors from HW
+def plot_corr_vs_pt(map_info, eta_ind, title, plot_dir):
+    """Plot correction factor vs pT, for original corrections,
+    compressed corrections, and HW correciton ints.
 
-    hw_corr_factors = [correct_iet(iet, cf, right_shift) / (1. * iet)
-                       for iet, cf in hw_corr_map.iteritems() if iet > 0]
-    plt.plot([x * 0.5 for x in hw_corr_map.keys() if x > 0], hw_corr_factors, 'gd', label='HW', markersize=3, alpha=0.7)
-    plt.legend(loc=0)
-    plt.ylim(1, 2)
+    Parameters
+    ----------
+    map_info : dict
+        Holds np.ndarrays for various values
+    eta_ind : int
+        eta index for plot filename
+    title : str
+        Title to put on plot
+    plot_dir : str
+        Where to save the plot
+    """
+    plt.plot(map_info['pt_orig'], map_info['corr_orig'],
+             'bo', label='Original', markersize=4, alpha=0.7)
+    plt.plot(map_info['pt_orig'], map_info['corr_compressed'],
+             'rd', label='Compressed', markersize=4, alpha=0.7)
+    plt.plot(map_info['pt_orig'], map_info['hw_pt_post_hw_corr_compressed'] / (1. * map_info['hw_pt_orig']),
+             'gs', label='HW compressed', markersize=4, alpha=0.7)
     plt.xlabel('Original pT [GeV]')
-    plt.ylabel('Compressed pT [GeV]')
+    plt.ylabel('Correction')
+    plt.ylim(0.5, 2.5)
+    plt.legend(loc=0)
     plt.minorticks_on()
     plt.grid(which='both')
-    plt.savefig('compare_all_corr_%d.pdf' % eta_ind)
+    plt.suptitle(title)
+    plt.savefig(os.path.join(plot_dir, 'corr_vs_pt_%d.pdf' % eta_ind))
 
-    plt.xlim(1, 1000)
+    plt.xlim(0, 150)
+    plt.savefig(os.path.join(plot_dir, 'corr_vs_pt_zoomX_%d.pdf' % eta_ind))
+
+    plt.xlim(5, 100)
     plt.xscale('log')
-    plt.savefig('compare_all_corr_%d_logX.pdf' % eta_ind)
+    plt.savefig(os.path.join(plot_dir, 'corr_vs_pt_zoomX_logX_%d.pdf' % eta_ind))
+
+    plt.clf()
 
 
 def print_Stage2_func_file(fits, output_filename):
@@ -727,12 +792,12 @@ def do_constant_fit(graph, eta_min, eta_max, output_dir):
     jack_means = [np.delete(yarr, i).mean() for i in range(len(yarr))]
 
     # Do plotting & peak finding, for both methods
-    peak, mean = find_peak_and_average_plot(means, eta_min, eta_max,
-                                            os.path.join(output_dir, 'means_hist_%g_%g_myjackknife.pdf' % (eta_min, eta_max)),
-                                            'My jackknife')
-    jackpeak, jackmean = find_peak_and_average_plot(jack_means, eta_min, eta_max,
-                                                    os.path.join(output_dir, 'means_hist_%g_%g_root_jackknife.pdf' % (eta_min, eta_max)),
-                                                    'Proper jackknife')
+    plot_name = os.path.join(output_dir, 'means_hist_%g_%g_myjackknife.pdf' % (eta_min, eta_max))
+    peak, mean = find_peak_and_average_plot(means, eta_min, eta_max, plot_name, 'My jackknife')
+
+    plot_name = os.path.join(output_dir, 'means_hist_%g_%g_root_jackknife.pdf' % (eta_min, eta_max))
+    jackpeak, jackmean = find_peak_and_average_plot(jack_means, eta_min, eta_max, plot_name, 'Proper jackknife')
+
     print 'my jackknife peak:', peak
     print 'my jackknife mean:', mean
     print 'jackknife peak:', jackpeak

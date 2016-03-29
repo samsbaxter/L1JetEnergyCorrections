@@ -467,7 +467,8 @@ def main(in_args=sys.argv[1:]):
                                    corr_max=3,
                                    num_corr_bits=10,
                                    target_num_pt_bins=2**4,
-                                   merge_criterion=1.05)
+                                   merge_criterion=1.05,
+                                   plot_dir=out_dir)
         else:
             print_Stage2_func_file(fits, args.lut)
 
