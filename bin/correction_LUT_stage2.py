@@ -387,6 +387,34 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
 
 
 
+def determine_lowest_curve_start(fit_functions):
+    """Determine which fit function has the lowest pT for curve start.
+
+    Parameters
+    ----------
+    fit_functions : list[MultiFunc]
+        List of MultiFunc objects, one per eta bin.
+
+    Returns
+    -------
+    int
+        Index of MultiFunc object with curve that has lowest pT start.
+
+    Raises
+    ------
+    RuntimeError
+        If it picks HF bin somehow.
+    """
+    curve_start_pts = [f.functions_dict.keys()[0][1] for f in fit_functions]
+    eta_ind_lowest = curve_start_pts.index(min(curve_start_pts))
+    # make sure it's not in HF
+    if eta_ind_lowest > 6:
+        raise RuntimeError('Selected HF bin for pT compression')
+    print 'Low pt plateaus end at:', curve_start_pts
+    print 'Using eta bin %d for pT compression' % eta_ind_lowest
+    return eta_ind_lowest
+
+
 def assign_pt_index(pt_values):
     """Calculate an index for each pt_value. Only unique values get
     different indices.
@@ -464,37 +492,31 @@ def print_Stage2_lut_files(fit_functions,
     else:
         raise RuntimeError('Correction factor > 7 sounds dangerous!')
 
-    max_pt = (2**11 - 1 ) * 0.5
-
     print 'Running Stage 2 LUT making with:'
     print ' - target num pt bins (per eta bin):', target_num_pt_bins
     print ' - merge criterion:', merge_criterion
     print ' - # corr bits:', num_corr_bits
     print ' - right shift:', right_shift
 
-    # figure out new binning and new correction mappings, for each eta bin
-    mapping_info = OrderedDict()  # store {ieta: [pt map, corr map, corr matrix]}
+    max_pt = (2**11 - 1) * 0.5
 
-    pt_orig = np.arange(0, max_pt + 0.5, 0.5)
     # decide which fit func to use for binning based on which has the curve start at the lowest pT
-    curve_start_pts = [f.functions_dict.keys()[0][1] for f in fit_functions]
-    eta_ind_lowest = curve_start_pts.index(min(curve_start_pts))
-    # make sure it's not in HF
-    if eta_ind_lowest > 6:
-        raise RuntimeError('Selected HF bin for pT compression')
-    print 'Low pt plateaus end at:', curve_start_pts
-    print 'Using eta bin %d for pT compression' % eta_ind_lowest
-
-    corr_orig = np.array([0.] + [fit_functions[eta_ind_lowest].Eval(pt) for pt in pt_orig if pt > 0])
+    eta_ind_lowest = determine_lowest_curve_start(fit_functions)
 
     # find min of curve and merge above that
     merge_above = fit_functions[eta_ind_lowest].functions_dict.values()[1].GetMinimumX()
-    # merge_above = 300
     print 'Merge above', merge_above
 
     # find end of plateau and merge below that
-    merge_below = min(curve_start_pts)
+    merge_below = fit_functions[eta_ind_lowest].functions_dict.keys()[0][1]
     print 'Merge below', merge_below
+
+    pt_orig = np.arange(0, max_pt + 0.5, 0.5)
+    hw_pt_orig = (pt_orig * 2).astype(int)
+    # do 0 separately as it should have 0 correction factor
+    corr_orig = np.array([0.] + [fit_functions[eta_ind_lowest].Eval(pt) for pt in pt_orig if pt > 0])
+
+    # Find the optimal compressed pt binning
     new_pt_mapping = calc_compressed_pt_mapping(pt_orig, corr_orig,
                                                 target_num_pt_bins,
                                                 merge_criterion,
