@@ -791,7 +791,7 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
 # Helper functions
 ##################
 def write_filelist(plot_filenames, list_file):
-    """Write a list of plto filenames to a text file."""
+    """Write a list of plot filenames to a text file."""
     if plot_filenames:
         with open(list_file, 'w') as f:
             f.write('\n'.join(map(lambda x: os.path.basename(x), filter(None, plot_filenames))))
@@ -802,6 +802,9 @@ def write_filelist(plot_filenames, list_file):
 def make_gif(input_file_list, output_gif_filename, convert_exe):
     """Make an animated GIF from a list of images.
     Requires Imagemagick to be installed.
+
+    Does a preliminary check to ensure that the input filelist is not empty,
+    otherwise convert will error.
 
     Note that we cd to the directory with the input file list, as all image
     files are assumed to be relative to its location.
@@ -815,6 +818,15 @@ def make_gif(input_file_list, output_gif_filename, convert_exe):
     """
     print 'Making GIF', output_gif_filename, 'from', input_file_list
     input_file_list = os.path.abspath(input_file_list)
+
+    if not os.path.isfile(input_file_list):
+        print 'Skipping GIF making as %s does not exist' % input_file_list
+        return
+
+    if os.stat(input_file_list).st_size == 0:
+        print 'Skipping GIF making as %s is empty' % input_file_list
+        return
+
     output_gif_filename = os.path.abspath(output_gif_filename)
     cwd = os.getcwd()
     # we have to chdir since list file only has bare filenames
