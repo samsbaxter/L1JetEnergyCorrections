@@ -257,6 +257,7 @@ class Plot(object):
 
     def save(self, filename):
         """Save the plot to file. Do some check to make sure dir exists."""
+        filename = os.path.abspath(filename)
         if not os.path.isdir(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
         self.canvas.SaveAs(filename)
