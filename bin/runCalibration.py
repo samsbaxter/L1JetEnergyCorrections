@@ -139,7 +139,7 @@ def do_gauss_response_hist_fit(hrsp):
     return mean, err
 
 
-def calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, err_mu):
+def calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, mu, err_mu):
     """Calculate the total error on the mode from errors on fitted params.
 
     c, d are shape params
@@ -147,7 +147,7 @@ def calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, err_mu):
     mu is location param
     """
     total = ((burr_diff_mu() * err_mu)**2 + (burr_diff_s(c, d) * err_s)**2 +
-             (burr_diff_c(mode, c, d, s) * err_c)**2 + (burr_diff_d(c, d, s) * err_d)**2)
+             (burr_diff_c(mode, c, d, s, mu) * err_c)**2 + (burr_diff_d(c, d, s) * err_d)**2)
     return sqrt(total)
 
 
@@ -165,20 +165,20 @@ def burr_diff_s(c, d):
         return 0
 
 
-def burr_diff_c(mode, c, d, s):
+def burr_diff_c(mode, c, d, s, mu):
     """Partial differential of Burr3 mode wrt c"""
-    part1 = 0 if s <=0 else log(s) * (-1. / (c**2))
+    part1 = 0 # if s <=0 else log(s) * (-1. / (c**2))
     comp = (c + 1.) / (c * d - 1.)
     part2 = 0 if comp <= 0 else log(comp) * (1. / c**2)
     part3 = (d + 1) / (c * (c * d - 1.) * (c + 1.))
-    return mode * (part1 + part2 + part3)
+    return (mode-mu) * (part1 + part2 + part3)
 
 
 def burr_diff_d(c, d, s):
     """Partial differential of Burr3 mode wrt d"""
     comp = (c * d - 1.) / (1. + c)
     if comp > 0:
-        return (s / c) * (c / (1. + c)) * (comp)**((1. / c) - 1)
+        return (s / (c * d - 1.)) * (comp)**(1. / c)
     else:
         return 0
 
@@ -217,10 +217,11 @@ def do_burr_response_hist_fit(hrsp, setup_fn):
                 err_c = burr_fn.GetParError(0)
                 d = burr_fn.GetParameter(1)
                 err_d = burr_fn.GetParError(1)
+                mu = burr_fn.GetParameter(3)
                 err_mu = burr_fn.GetParError(3)
                 s = burr_fn.GetParameter(4)
                 err_s = burr_fn.GetParError(4)
-                err = calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, err_mu)
+                err = calc_burr_mode_error(mode, c, err_c, d, err_d, s, err_s, mu, err_mu)
                 break
 
     # check if we have a bad fit - either fit status != 0, or
@@ -738,6 +739,9 @@ def main(in_args=sys.argv[1:]):
     do_correction_fit = args.no_correction_fit
     if not do_correction_fit:
         print "Not fitting correction curves"
+
+    if args.burr:
+        print 'Using Burr Type3 for response hist fits'
 
     # Open input & output files, check
     print "IN:", args.input
