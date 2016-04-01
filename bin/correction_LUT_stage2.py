@@ -19,6 +19,7 @@ from multifunc import MultiFunc
 import matplotlib.pyplot as plt
 from binning import pairwise
 from itertools import izip
+from math import ceil
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -26,6 +27,10 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
+
+
+def round_to_half(num):
+    return round(num * 2) / 2
 
 
 def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
@@ -385,8 +390,34 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
             lut.write(line)
 
 
-def write_eta_compress_lut():
-    print "DO THIS ETA LUT ROBIN"
+def ieta_to_index(ieta):
+    """Convert ieta to index"""
+    ieta = abs(ieta)
+    if ieta <= 29:  # HBHE
+        return int(ceil(ieta / 4.)) - 1
+    else:  # HF
+        return int(ceil((ieta - 29) / 3.)) + 6
+
+
+def write_eta_compress_lut(lut_filename):
+    """Write LUT that converts ieta to eta index.
+
+    Parameters
+    ----------
+    lut_filename : str
+        filename for LUT
+    """
+    print "Making eta compression LUT"
+    with open(lut_filename, 'w') as lut:
+        lut.write("# ieta compression LUT\n")
+        lut.write("# Converts abs(ieta) (6 bits) into 4 bit index\n")
+        lut.write("# anything after # is ignored with the exception of the header\n")
+        lut.write("# the header is first valid line starting with ")
+        lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
+        lut.write("#<header> v1 6 4 </header>\n")
+        for ieta in range(1, 42):
+            line = "%d %d\n" % (ieta, ieta_to_index(ieta))
+            lut.write(line)
 
 
 def determine_lowest_curve_start(fit_functions):
@@ -440,7 +471,8 @@ def assign_pt_index(pt_values):
     return [unique_indices_map[p] for p in pt_values]
 
 
-def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
+def print_Stage2_lut_files(fit_functions,
+                           eta_lut_filename, pt_lut_filename, corr_lut_filename,
                            corr_max, num_corr_bits, target_num_pt_bins,
                            merge_criterion, plot_dir):
     """Make LUTs for Stage 2.
@@ -455,8 +487,11 @@ def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
     fit_functions: list[TF1]
         List of correction functions to convert to LUT
 
+    eta_lut_filename: str
+        Filename for output LUT that converts eta to compressed index
+
     pt_lut_filename: str
-        Filename for output LUT that converts pt, eta to compressed address
+        Filename for output LUT that converts pt to compressed index
 
     corr_lut_filename: str
         Filename for output LUT that converts address to factor
@@ -487,7 +522,7 @@ def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
     """
 
     # Plot LUT for eta compression
-    write_eta_compress_lut()
+    write_eta_compress_lut(eta_lut_filename)
 
     if corr_max <= 2:
         right_shift = num_corr_bits

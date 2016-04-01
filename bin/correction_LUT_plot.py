@@ -459,9 +459,11 @@ def main(in_args=sys.argv[1:]):
 
         if args.stage2:
             lut_base, ext = os.path.splitext(args.lut)
+            eta_lut_filename = lut_base + '_eta' + ext
             pt_lut_filename = lut_base + '_pt' + ext
             corr_lut_filename = lut_base + "_corr" + ext
             print_Stage2_lut_files(fit_functions=fits,
+                                   eta_lut_filename=eta_lut_filename,
                                    pt_lut_filename=pt_lut_filename,
                                    corr_lut_filename=corr_lut_filename,
                                    corr_max=3,
