@@ -48,6 +48,17 @@ float getCorrectedEt(std::map<int, int> & pt_lut, std::map<int, int> & corr_lut,
                      float et, float eta);
 float iPhiToPhi(int iphi);
 
+float regionEtas[12] = {0,0.348,0.696,1.044,1.392,1.740,2.172,3.0,3.5,4.0,4.5,5.0};
+
+int regionEta(float eta) {
+  for (int i=0; i<11; ++i) {
+    if (fabs(eta) > regionEtas[i] && fabs(eta) <= regionEtas[i+1])  return i;
+  }
+  return -1;
+}
+
+double correction(float pt, float eta, double params[11][8]);
+
 /**
  * @brief Matching L1 jets from L1UpgradeTree, to reference GenJets from L1ExtraTree.
  *
@@ -74,8 +85,8 @@ int main(int argc, char* argv[]) {
 
     // L1 jets
     TString l1JetDirectory = opts.l1JetDirectory();
-    L1GenericTree<L1AnalysisL1UpgradeDataFormat> l1JetTree(opts.inputFilename(), 
-                                                           l1JetDirectory+"/L1UpgradeTree", 
+    L1GenericTree<L1AnalysisL1UpgradeDataFormat> l1JetTree(opts.inputFilename(),
+                                                           l1JetDirectory+"/L1UpgradeTree",
                                                            "L1Upgrade");
     L1AnalysisL1UpgradeDataFormat * l1Data = l1JetTree.getData();
 
@@ -210,6 +221,35 @@ int main(int argc, char* argv[]) {
         pt_lut = load_lut("stage2_lut_pu15to25_pt.txt");
         corr_lut = load_lut("stage2_lut_pu15to25_corr.txt");
     }
+
+    // double funcParams4[11][8] = {
+    //   { 2.08107691501,22.4129703515,5.46086027683,-150.888778124,18.3292242153,16968.6469599,0.0147496053457,-22.4089831889 },
+    //   { 2.04880080215,22.5083699943,10.2635352836,-466.890522023,32.5408463829,2429.03382746,0.0111274121697,-22.0890253377 },
+    //   { 2.03808638982,22.2127275989,13.7594864391,-761.860391454,39.9060363401,1019.30588542,0.00952105483129,-21.6814176696 },
+    //   { 2.05901166216,23.8125466978,14.119589176,-766.199501821,38.7767169666,1059.63374337,0.00952979125289,-21.6477483043 },
+    //   { 2.08021511285,22.265051562,14.0198255047,-769.175319944,38.687351315,1072.9785137,0.00951954709279,-21.6277409602 },
+    //   { 2.04623980351,19.6049149791,12.2578170485,-736.96846599,45.3225355911,848.976802835,0.00946235693865,-21.7970133915 },
+    //   { 1.77585386314,24.1202894336,10.1179757811,-697.422255848,55.9767511168,599.040770412,0.00930772659892,-21.9921521313 },
+    //   { 1.42460009989,1024,1,0,1,0,1,1 },
+    //   { 1.37157036457,1024,1,0,1,0,1,1 },
+    //   { 1.37830172245,1024,1,0,1,0,1,1 },
+    //   { 1.36123039014,1024,1,0,1,0,1,1 },
+    // };
+
+    double funcParams5[11][8] = {
+      { 1.85654432772,29.1779814299,5.93738250047,-188.618421587,23.5055878881,15481.6853917,0.01545758831,-21.9321959989 },
+      { 1.86683225196,28.5893940566,7.94415725192,-314.427488849,29.7352089394,6153.57607,0.0136091836255,-21.8490511405 },
+      { 1.87275107753,28.6997236682,10.5573368438,-474.149928322,33.0929700288,3075.32028268,0.0119648577597,-21.7908155125 },
+      { 1.93675455767,27.8884842745,10.4257201468,-472.621608809,33.705157155,3003.72148818,0.0119490813992,-21.8003847032 },
+      { 1.8829708424,28.5534869174,10.4514369849,-475.146502442,33.2201024621,3084.15497191,0.0119473728743,-21.778533095 },
+      { 1.95700730302,20.8033388211,8.21037294488,-440.555146819,43.3753969091,2076.29499709,0.0117726824911,-21.9651107434 },
+      { 1.68923714809,27.78846291,6.64274683779,-415.710057696,55.0222309142,1370.81335041,0.0115025916177,-22.1054873456 },
+      { 1.37070618136,1024,1,0,1,0,1,1 },
+      { 1.33685072327,1024,1,0,1,0,1,1 },
+      { 1.27627349839,1024,1,0,1,0,1,1 },
+      { 1.35003172007,1024,1,0,1,0,1,1 },
+    };
+
     //////////////////////
     // LOOP OVER EVENTS //
     //////////////////////
@@ -243,6 +283,11 @@ int main(int argc, char* argv[]) {
         /////////////////////////////////////////////
         std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
         std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
+        // apply calibration
+        for (auto & itr: l1Jets) {
+            double corrEt = itr.Et() * correction(itr.Et(), itr.Eta(), funcParams4);
+            itr.SetPtEtaPhiM(corrEt, itr.Eta(), itr.Phi(), 0);
+        }
 
         out_nL1 = l1Jets.size();
         out_nRef = refJets.size();
@@ -260,12 +305,21 @@ int main(int argc, char* argv[]) {
         out_mhtPhiL1 = l1Data->sumPhi[3];
         float httL1_check = scalarSumPt(httL1Jets);
 
-        if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
-            cout << "HTT L1 not agreeing with calculation: " + lexical_cast<std::string>(out_httL1) + " vs " + lexical_cast<std::string>(httL1_check) << endl;
-            for (const auto& itr: l1Jets) {
-                cout << itr.Pt() << " " << itr.Eta() << endl;
-            }
-        }
+        // Check my calc with stored value
+        // Doens't make sense to do this when applying calibrations on the fly
+        // if (fabs(out_httL1 - httL1_check) > 0.01 && out_httL1 < 2047.5) {
+        //     cout << "HTT L1 not agreeing with calculation: " + lexical_cast<std::string>(out_httL1) + " vs " + lexical_cast<std::string>(httL1_check) << endl;
+        //     for (const auto& itr: l1Jets) {
+        //         cout << itr.Pt() << " " << itr.Eta() << endl;
+        //     }
+        // }
+
+        TLorentzVector mhtL1_check = vectorSum(httL1Jets);
+
+        // Override sums with calibrated jets
+        out_httL1 = httL1_check;
+        out_mhtL1 = mhtL1_check.Pt();
+        out_mhtPhiL1 = mhtL1_check.Phi();
 
         // Ref jet sums
         std::vector<TLorentzVector> httRefJets = getJetsForHTT(refJets);
@@ -424,4 +478,32 @@ float iPhiToPhi(int iphi) {
     if (iphi > 36)
         eta -= 360.;
     return eta * TMath::Pi() / 180.;
+}
+
+
+double correction(float pt, float eta, double params[11][8]) {
+
+    int etaInd = regionEta(eta);
+    double par[8];
+    for(int i=0; i<8; i++) {
+        par[i] = params[etaInd][i];
+    }
+
+    double plateauLimit = par[1]; // plateau limit applies to physical, uncorrected pT
+    if (pt < plateauLimit) {
+
+        return par[0];
+    } else {
+        double logX = log10(pt);
+        double term1 = par[3] / ( logX * logX + par[4] );
+        double term2 = par[5] * exp( -par[6]*((logX - par[7])*(logX - par[7])) );
+
+        // Final fitting function, with sanity check
+        double f = par[2] + term1 + term2;
+        if (f < 0)
+            f = 0;
+        if (f != f) // stop NaN
+            f = 1;
+        return f;
+    }
 }

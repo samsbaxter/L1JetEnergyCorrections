@@ -23,6 +23,7 @@ from time import strftime
 import htcondenser as ht
 import condorCommon as cc
 import logging
+from itertools import chain
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -37,8 +38,18 @@ PAIRS_FILES = [
 # '/hdfs/user/ra12451/L1JEC/CMSSW_8_0_0_pre5/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_12Feb_85a0ccf_noJEC_fixedPUS/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root'
 # '/hdfs/L1JEC/run260627_SingleMuReReco_HF_noL1JEC_3bf1b93_20Feb_Bristol_v3/pairs/pairs_SingleMuReReco_ak4_ref10to5000_l10to5000_dr0p4_cleanTIGHTLEPVETO.root',
 # '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_QCDSpring15_20Feb_3bf1b93_noL1JEC_PFJets_V7PFJEC/pairs/pairs_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_PF10to5000_l10to5000_dr0p4_noCleaning.root'
-'/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
-'/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/pairs/pairs_ttHTobbFall15PU30_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/L1JetEnergyCorrections/Stage2_HF_Fall15_9Mar_integration-v9_NoL1JEC_jst1p5_v2/pairs/pairs_ttHTobbFall15PU30_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst2_RAWONLY/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst3_RAWONLY/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+'/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY_v2/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+'/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst6_RAWONLY_v2/pairs/pairs_QCDFlatFall15NoPU_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst2_RAWONLY/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst3_RAWONLY/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst6_RAWONLY_v2/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
+# '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY_v2/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4.root',
 
 ]
 
@@ -97,13 +108,21 @@ def submit_all_runCalib_dags(pairs_files, log_dir, append, pu_bins, eta_bins, fo
     common_input_files = ['runCalibration.py', 'binning.py', 'common_utils.py']
     common_input_files = [os.path.join(os.path.dirname(os.getcwd()), f) for f in common_input_files]
 
+    status_files = []
+
     # Submit a DAG for each pairs file
     for pfile in pairs_files:
         print 'Processing', pfile
-        submit_runCalib_dag(pairs_file=pfile, log_dir=log_dir, append=append,
-                            pu_bins=pu_bins, eta_bins=eta_bins,
-                            common_input_files=common_input_files,
-                            force_submit=force_submit)
+        sfile = submit_runCalib_dag(pairs_file=pfile, log_dir=log_dir, append=append,
+                                    pu_bins=pu_bins, eta_bins=eta_bins,
+                                    common_input_files=common_input_files,
+                                    force_submit=force_submit)
+        status_files.append(sfile)
+
+    if status_files:
+        status_files = list(chain.from_iterable(status_files))  # flatten the list
+        print 'All statuses:'
+        print 'DAGstatus.py ', ' '.join(status_files)
 
 
 def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_input_files,
@@ -248,6 +267,7 @@ def submit_runCalib_dag(pairs_file, log_dir, append, pu_bins, eta_bins, common_i
 
     print 'For all statuses:'
     print 'DAGstatus.py', ' '.join(status_files)
+    return status_files
 
 
 if __name__ == "__main__":

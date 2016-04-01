@@ -155,6 +155,8 @@ class Plot(object):
             Extend functions to cover the whole x axis range.
         """
         self.contributions = contributions if contributions else []
+        if what not in ['graph', 'function', 'both']:
+            raise RuntimeError("`what` argument must be one of 'graph' 'function' 'both'")
         self.plot_what = what
         self.title = title
         self.xtitle = xtitle
@@ -162,7 +164,7 @@ class Plot(object):
         self.xlim = xlim
         self.ylim = ylim
         self.do_legend = legend
-        self.legend = ROOT.TLegend(0.65, 0.55, 0.87, 0.87) if legend else None
+        self.legend = ROOT.TLegend(0.65, 0.6, 0.87, 0.87) if legend else None
         self.do_extend = extend
         self.container = None
         self.canvas = None
@@ -192,7 +194,11 @@ class Plot(object):
             raise UnboundLocalError("contributions list is empty")
 
         for c in self.contributions:
-            obj = c.get_obj().Clone()
+            try:
+                obj = c.get_obj().Clone()
+            except IOError:
+                print "Couldn't get", c.obj_name
+                continue
 
             if self.plot_what == "graph":
                 # if drawing only graph, we need to remove the fit if there is one
@@ -251,6 +257,7 @@ class Plot(object):
 
     def save(self, filename):
         """Save the plot to file. Do some check to make sure dir exists."""
+        filename = os.path.abspath(filename)
         if not os.path.isdir(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
         self.canvas.SaveAs(filename)

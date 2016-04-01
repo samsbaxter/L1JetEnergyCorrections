@@ -25,8 +25,10 @@ ind="" # ind is the job number
 arch="" # architecture
 cmssw_version="" # cmssw version
 sandbox="" # sandbox location
-doProfile=0  # do profiling - runs with callgrind
-while getopts ":s:f:o:i:a:c:S:p" opt; do
+doProfile=0 # run in profiling mode - use whatever files specified in config, don't override
+doCallgrind=0  # do profiling - runs with callgrind
+doValgrind=0  # do memcheck - runs with valgrind
+while getopts ":s:f:o:i:a:c:S:p;m" opt; do
     case $opt in
         \?)
             echo "Invalid option $OPTARG" >&2
@@ -65,7 +67,13 @@ while getopts ":s:f:o:i:a:c:S:p" opt; do
             sandbox=$OPTARG
             ;;
         p)
-            echo "Profiling"
+            echo "Running callgrind"
+            doCallgrind=1
+            doProfile=1
+            ;;
+        m)
+            echo "Running valgrind memcheck"
+            doValgrind=1
             doProfile=1
             ;;
     esac
@@ -92,14 +100,39 @@ echo "${cmssw_version} has been set up"
 # Extract sandbox of user's libs, headers, and python files
 ###############################################################################
 cd ..
-cp $sandbox sandbox.tgz
+hadoop fs -copyToLocal ${sandbox#/hdfs} sandbox.tgz  # assumes this is on HDFS!
 tar xvzf sandbox.tgz
 
+cp $script src/
+
+if [ $doProfile == 0 ]; then
+    # only need filelist if not profiling - in profile mode use file in config
+    cp $filelist src/
+fi
+
+cd src # run everything inside CMSSW_BASE/src
+
 # Setup new libs to point to local ones
-export LD_LIBRARY_PATH=${worker}/${cmssw_version}/biglib/${SCRAM_ARCH}:${worker}/${cmssw_version}/lib/${SCRAM_ARCH}:${worker}/${cmssw_version}/external/${SCRAM_ARCH}/lib:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=$CMSSW_BASE/biglib/${SCRAM_ARCH}:$CMSSW_BASE/lib/${SCRAM_ARCH}:$CMSSW_BASE/external/${SCRAM_ARCH}/lib:$LD_LIBRARY_PATH
+# export PYTHONPATH=$CMSSW_BASE/python:$CMSSW_BASE/lib/${SCRAM_ARCH}:$PYTHONPATH
+# export ROOT_INCLUDE_PATH=$CMSSW_BASE/src:${ROOT_INCLUDE_PATH}
+# export SRT_ROOT_INCLUDE_PATH_SCRAMRTDEL=$CMSSW_BASE/src:${SRT_ROOT_INCLUDE_PATH_SCRAMRTDEL}
+# export SRT_RIVET_ANALYSIS_PATH_SCRAMRTDEL=$CMSSW_BASE/src:${SRT_RIVET_ANALYSIS_PATH_SCRAMRTDEL}
+# export PATH=$CMSSW_BASE/bin/slc6_amd64_gcc493:$CMSSW_BASE/external/slc6_amd64_gcc493/bin:${PATH}
+# export SRT_CMSSW_SEARCH_PATH_SCRAMRTDEL=$CMSSW_BASE/src:$CMSSW_BASE/external/slc6_amd64_gcc493/data:${SRT_CMSSW_SEARCH_PATH_SCRAMRTDEL}
+# export SRT_PATH_SCRAMRT=$CMSSW_BASE/bin/slc6_amd64_gcc493:$CMSSW_BASE/external/slc6_amd64_gcc493/bin:${SRT_PATH_SCRAMRT}
+# export RIVET_ANALYSIS_PATH=$CMSSW_BASE/lib/slc6_amd64_gcc493:${RIVET_ANALYSIS_PATH}
+# export SRT_LOCALRT_SCRAMRTDEL=$CMSSW_BASE
+# export LOCALRT=$CMSSW_BASE
+# export SRT_LOCALRT_SCRAMRTDEL=$CMSSW_BASE
+# export SRT_CMSSW_BASE_SCRAMRTDEL=$CMSSW_BASE
+# export SRT_PYTHONPATH_SCRAMRT=$CMSSW_BASE/python:$CMSSW_BASE/lib/$SCRAM_ARCH:$SRT_PYTHONPATH_SCRAMRT
+# export CMSSW_SEARCH_PATH=$CMSSW_BASE/src:$CMSSW_BASE/external/$SCRAM_ARCH/data
+# export SRT_LD_LIBRARY_PATH_SCRAMRT=$CMSSW_BASE/biglib/$SCRAM_ARCH:$CMSSW_BASE/lib/$SCRAM_ARCH:$CMSSW_BASE/external/slc6_amd64_gcc493/lib:$SRT_LD_LIBRARY_PATH_SCRAMRT
+
 echo "========================="
-echo "New LD_LIBRARY_PATH:"
-echo $LD_LIBRARY_PATH
+echo "New env vars"
+printenv
 echo "========================="
 
 ###############################################################################
@@ -140,16 +173,16 @@ cat $script
 echo ""
 echo "========================="
 
-# Get offline JEC SQL database
-# hadoop fs -copyToLocal /user/ra12451/L1JEC/Summer15_25nsV6_DATA.db Summer15_25nsV6_DATA.db
-
 ###############################################################################
 # Now finally run script!
 # TODO: some automated retry system
 ###############################################################################
-if [ $doProfile == 1 ]; then
+if [[ $doCallgrind == 1 ]]; then
     echo "Running with callgrind"
     valgrind --tool=callgrind cmsRun $wrapper
+elif [[ $doValgrind == 1 ]]; then
+    echo "Running with valgrind"
+    valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all cmsRun $wrapper
 else
     /usr/bin/time -v cmsRun $wrapper
 fi

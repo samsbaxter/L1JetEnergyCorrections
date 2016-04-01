@@ -11,8 +11,8 @@ accounting_group = group_physics.hep
 account_group_user = $ENV(LOGNAME)
 
 request_cpus = 1
-request_memory = 500MB
-request_disk = 500MB
+request_memory = 700MB
+request_disk = 300MB
 
 use_x509userproxy = True
 # use the ENV that is provided

@@ -24,6 +24,9 @@ import common_utils as cu
 from array import array
 import os
 from runCalibration import generate_eta_graph_name
+from subprocess import check_output
+from shutil import make_archive
+from distutils.spawn import find_executable
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -34,14 +37,18 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(55)
 ROOT.gErrorIgnoreLevel = ROOT.kWarning # turn off the printing output
 
-
+#################################################
 # Some common strings
+# Note that l1_str and ref_str can be overridden
+# using the --l1str and --refstr args
+#################################################
 l1_str = 'L1'
 # l1_str = 'PF'
 
 ref_str = "GenJet"
 # ref_str = "PFJet"
 
+# Some common axis labels
 rsp_str = "E_{T}^{%s}/E_{T}^{%s}" % (l1_str, ref_str)
 eta_str = "#eta"
 eta_ref_str = "|#eta^{%s}|" % (ref_str)
@@ -62,18 +69,11 @@ rsp_min, rsp_max = 0, 2
 
 #############################################
 # LABELS, COLOURS, AND TITLE ON PLOTS
+# NB title can be overridden using --title <str>
 #############################################
-plot_labels = [
-     # "Spring15 + HF fix (no JEC)"
-     "Without L1JEC"
-     # "Without L1JEC, with Summer15_25nsV6_MC PFJEC"
-     # "With L1JEC (derived from Spring15)"
-     # "With L1JEC (LUT)"
-     # "With Summer15_25nsV6_MC PFJEC"
-    ]
-
 # plot_title = "Run 260627, Stage 2, no L1JEC, with PF cleaning"
 # plot_title = "Run 260627 SingleMu, Stage 2, with L1JEC, with PF cleaning"
+
 # plot_title = "Spring15 MC, Stage 2, no JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC"
 # plot_title = "Spring15 MC, Stage 2, with L1JEC (LUT)"
@@ -168,7 +168,7 @@ def plot_pt_both(tree, oDir, cut="1", eta_min=0, eta_max=5, oFormat="pdf"):
     stack.GetHistogram().SetTitle("%s;%s;N" % (total_cut, pt_str))
     c.SetTitle(total_cut)
     leg = generate_legend()
-    leg.AddEntry(0, "|#eta|: %g - %g" % (eta_min, eta_max), "")
+    leg.AddEntry(0, "%s: %g - %g" % (eta_l1_str, eta_min, eta_max), "")
     leg.AddEntry(h_pt_l1, "L1", "L")
     leg.AddEntry(h_pt_ref, "Ref", "L")
     leg.Draw()
@@ -208,7 +208,7 @@ def plot_pt_diff(res_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf"
     # h_diff.SetLineWidth(2)
     func = h_diff.GetListOfFunctions().At(0)
     func.SetLineWidth(1)
-    h_diff.SetTitle("%g < |#eta^{L1}| < %g, %g < p_{T}^{%s} < %g;%s;N" % (eta_min, eta_max, pt_min, ref_str, pt_max, pt_diff_str))
+    h_diff.SetTitle("%g < %s < %g, %g < p_{T}^{%s} < %g;%s;N" % (eta_min, eta_l1_str, eta_max, pt_min, ref_str, pt_max, pt_diff_str))
     if not os.path.exists("%s/eta_%g_%g" % (oDir, eta_min, eta_max)):
         os.makedirs("%s/eta_%g_%g" % (oDir, eta_min, eta_max))
     c.SaveAs("%s/eta_%g_%g/pt_diff_eta_%g_%g_%g_%g.%s" % (oDir, eta_min, eta_max, eta_min, eta_max, pt_min, pt_max, oFormat))
@@ -249,14 +249,14 @@ def plot_res_all_pt(res_file, eta_min, eta_max, oDir, oFormat="pdf"):
     grname = "eta_%g_%g/resRefRef_%g_%g_diff" % (eta_min, eta_max, eta_min, eta_max)
 
     graph = cu.get_from_file(res_file, grname)
-    leg = generate_legend()
+    # leg = generate_legend()
     mg = ROOT.TMultiGraph()
     i = 0
     graph.SetLineColor(plot_colors[i])
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     mg.Draw("ALP")
     mg.GetXaxis().SetTitleSize(0.04)
@@ -264,9 +264,9 @@ def plot_res_all_pt(res_file, eta_min, eta_max, oDir, oFormat="pdf"):
     # mg.GetYaxis().SetTitle(res_l1_str)
     mg.GetYaxis().SetRangeUser(0, mg.GetYaxis().GetXmax() * 1.5)
     mg.GetYaxis().SetRangeUser(0, 0.6)
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < |#eta^{L1}| < %g' % (eta_min, eta_max), pt_ref_str, res_ref_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ', %g < %s < %g' % (eta_min, eta_l1_str, eta_max), pt_ref_str, res_ref_str))
     mg.Draw("ALP")
-    leg.Draw()
+    # leg.Draw()
     append = ""
     c.SaveAs("%s/res_ref_eta_%g_%g_diff%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
 
@@ -280,7 +280,7 @@ def plot_eta_pt_rsp_2d(calib_file, etaBins, ptBins, oDir, oFormat='pdf'):
     and will be done for pre and post calib, whereas output from runCalibration
     will generally only be pre calib, and is binned by ref Jet pt
     """
-    h_2d = ROOT.TH2D("h2d_eta_pt_rsp", ";p_{T}^{L1} [GeV];|#eta^{L1}|",
+    h_2d = ROOT.TH2D("h2d_eta_pt_rsp", ";%s;%s" % (pt_l1_str, eta_l1_str) ,
                      len(ptBins) - 1, array('d', ptBins),
                      len(etaBins) - 1, array('d', etaBins))
     for eta_ind, (eta_min, eta_max) in enumerate(zip(etaBins[:-1], etaBins[1:]), 1):
@@ -316,23 +316,30 @@ def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
     h_rsp.Draw("HISTE")
     if func:
         func.Draw("SAME")
-    c.SaveAs("%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat))
+    filename = "%s/h_rsp_%g_%g.%s" % (oDir, eta_min, eta_max, oFormat)
+    c.SaveAs(filename)
+    return filename
 
 
 def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin with a pt cut"""
-    hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
+    if eta_max <= 3:
+        hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
+    else:
+        hname = "eta_3_5/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
     try:
         h_rsp = cu.get_from_file(calib_file, hname)
     except Exception:
-        return
+        return None
     func = h_rsp.GetListOfFunctions().At(0)
     c = generate_canvas()
     h_rsp.SetTitle(os.path.basename(hname) + ';response (%s)' % rsp_str)
     h_rsp.Draw("HISTE")
     if func:
         func.Draw("SAME")
-    c.SaveAs("%s/h_rsp_%g_%g_%s_%g_%g.%s" % (oDir, eta_min, eta_max, pt_var, pt_min, pt_max, oFormat))
+    output_filename = "%s/h_rsp_%g_%g_%s_%g_%g.%s" % (oDir, eta_min, eta_max, pt_var, pt_min, pt_max, oFormat)
+    c.SaveAs(output_filename)
+    return output_filename
 
 
 def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
@@ -344,7 +351,7 @@ def plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, oDir, oFormat="pdf"):
     if logZ:
         c.SetLogz()
         app = "_log"
-    h2d_gen_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, pt_l1_str))
+    h2d_gen_l1.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_ref_str, pt_l1_str))
     h2d_gen_l1.Draw("COLZ")
     max_pt = 512
     h2d_gen_l1.SetAxisRange(0, max_pt, 'X')
@@ -390,7 +397,7 @@ def plot_rsp_Vs_l1(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pdf
     if logZ:
         c.SetLogz()
         app += "_log"
-    h2d_rsp_l1.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_l1_str, rsp_str))
+    h2d_rsp_l1.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_l1_str, rsp_str))
     if normX:
         h2d_rsp_l1.Draw("COL")
     else:
@@ -421,7 +428,7 @@ def plot_rsp_Vs_ref(check_file, eta_min, eta_max, normX, logZ, oDir, oFormat="pd
     if logZ:
         c.SetLogz()
         app += "_log"
-    h2d_rsp_ref.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
+    h2d_rsp_ref.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_ref_str, rsp_str))
     if normX:
         h2d_rsp_ref.Draw("COL")
     else:
@@ -448,7 +455,7 @@ def plot_rsp_Vs_pt_candle_violin(check_file, eta_min, eta_max, ptVar, oDir, oFor
     h2d_rsp_pt = h2d_rsp_pt_orig.Rebin2D(1, 1, "hnew")
 
     c = generate_canvas()
-    h2d_rsp_pt.SetTitle("|#eta|: %g-%g;%s;%s" % (eta_min, eta_max, pt_ref_str, rsp_str))
+    h2d_rsp_pt.SetTitle("%s: %g-%g;%s;%s" % (eta_l1_str, eta_min, eta_max, pt_ref_str, rsp_str))
     h2d_rsp_pt.Draw("CANDLE")
     # Draw fitted peaks as well
     gr_name = "eta_{0:g}_{1:g}/gr_rsp_{2}_eta_{0:g}_{1:g}".format(eta_min, eta_max, 'pt' if ptVar == 'l1' else 'ptRef')
@@ -482,7 +489,7 @@ def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFo
     c = generate_canvas(plot_title)
 
     # leg = generate_legend() #(0.4, 0.7, 0.87, 0.87) # top right
-    leg = generate_legend()
+    # leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -491,7 +498,7 @@ def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFo
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     # lines at 1, and +/- 0.1
     line_central = ROOT.TLine(eta_min, 1, eta_max, 1)
@@ -513,7 +520,7 @@ def plot_rsp_eta_inclusive_graph(check_file, eta_min, eta_max, pt_var, oDir, oFo
     mg.Draw("ALP")
     mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title, eta_l1_str, rsp_str))
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = ""
     c.SaveAs("%s/gr_rsp_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
@@ -596,7 +603,7 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = generate_legend()
+    # leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -605,7 +612,7 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
@@ -626,9 +633,9 @@ def plot_rsp_pt_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
     mg.Draw("ALP")
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_l1_str, rsp_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < %s < %g" % (eta_min, eta_l1_str, eta_max), pt_l1_str, rsp_str))
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = ""
     c.SaveAs("%s/gr_rsp_pt_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
@@ -641,7 +648,7 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
 
     c = generate_canvas(plot_title)
 
-    leg = generate_legend()
+    # leg = generate_legend()
 
     mg = ROOT.TMultiGraph()
 
@@ -651,7 +658,7 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     graph.SetMarkerColor(plot_colors[i])
     graph.SetMarkerStyle(plot_markers[i])
     mg.Add(graph)
-    leg.AddEntry(graph, plot_labels[i], "LP")
+    # leg.AddEntry(graph, plot_labels[i], "LP")
 
     pt_min, pt_max = 0, 1022
     # lines at 1, and +/- 0.1
@@ -672,9 +679,9 @@ def plot_rsp_ptRef_graph(check_file, eta_min, eta_max, oDir, oFormat='pdf'):
     mg.GetXaxis().SetTitleOffset(0.9)
     # mg.GetYaxis().SetTitleSize(0.04)
     mg.Draw("ALP")
-    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < |#eta^{L1}| < %g" % (eta_min, eta_max), pt_ref_str, rsp_str))
+    mg.GetHistogram().SetTitle("%s;%s;%s" % (plot_title + ", %g < %s < %g" % (eta_min, eta_l1_str, eta_max), pt_ref_str, rsp_str))
 
-    leg.Draw()
+    # leg.Draw()
     [line.Draw() for line in [line_central, line_plus, line_minus]]
     append = ""
     c.SaveAs("%s/gr_rsp_ptRef_eta_%g_%g%s.%s" % (oDir, eta_min, eta_max, append, oFormat))
@@ -694,7 +701,7 @@ def plot_rsp_pt_binned_graph(check_file, eta_bins, pt_var, oDir, oFormat='pdf', 
         g.SetMarkerStyle(plot_markers[0])
         mg.Add(g)
         # leg.AddEntry(g, plot_labels[0] + " %g < |#eta^{L1}| < %g" % (eta_min, eta_var), "LP")
-        leg.AddEntry(g, " %g < |#eta^{L1}| < %g" % (eta_min, eta_max), "LP")
+        leg.AddEntry(g, " %g < %s < %g" % (eta_min, eta_l1_str, eta_max), "LP")
 
     pt_min, pt_max = (0, 1022) if not x_range else (x_range[0], x_range[1])
     # lines at 1, and +/- 0.1
@@ -780,6 +787,56 @@ def plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, oDir, oFormat="pdf
         print "! No histogram %s exists" % hname
 
 
+##################
+# Helper functions
+##################
+def write_filelist(plot_filenames, list_file):
+    """Write a list of plot filenames to a text file."""
+    if plot_filenames:
+        with open(list_file, 'w') as f:
+            f.write('\n'.join(map(lambda x: os.path.basename(x), filter(None, plot_filenames))))
+    else:
+        print 'Warning: nothing to write to txt file'
+
+
+def make_gif(input_file_list, output_gif_filename, convert_exe):
+    """Make an animated GIF from a list of images.
+    Requires Imagemagick to be installed.
+
+    Does a preliminary check to ensure that the input filelist is not empty,
+    otherwise convert will error.
+
+    Note that we cd to the directory with the input file list, as all image
+    files are assumed to be relative to its location.
+
+    Parameters
+    ----------
+    input_file_list : str
+        Filepath of txt file with locations of images to be made into GIF
+    output_gif_filename : str
+        Filepath of GIF
+    """
+    print 'Making GIF', output_gif_filename, 'from', input_file_list
+    input_file_list = os.path.abspath(input_file_list)
+
+    if not os.path.isfile(input_file_list):
+        print 'Skipping GIF making as %s does not exist' % input_file_list
+        return
+
+    if os.stat(input_file_list).st_size == 0:
+        print 'Skipping GIF making as %s is empty' % input_file_list
+        return
+
+    output_gif_filename = os.path.abspath(output_gif_filename)
+    cwd = os.getcwd()
+    # we have to chdir since list file only has bare filenames
+    os.chdir(os.path.dirname(input_file_list))
+    cmd = "%s -dispose Background -delay 50 -loop 0 @%s %s" % (convert_exe, os.path.relpath(input_file_list), os.path.relpath(output_gif_filename))
+    print cmd
+    check_output(cmd.split())
+    os.chdir(cwd)
+
+
 def main(in_args=sys.argv[1:]):
     print in_args
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -796,7 +853,7 @@ def main(in_args=sys.argv[1:]):
                         help="input ROOT file from output of runCalibration.py")
 
     parser.add_argument("--oDir",
-                        help="Directory to save plots. Default is $PWD.")
+                        help="Directory to save plots. Default is in same location as ROOT file.")
     parser.add_argument("--detail",
                         help="Plot all the individual component hists for each eta bin. There are a lot!",
                         action='store_true')
@@ -804,50 +861,70 @@ def main(in_args=sys.argv[1:]):
                         help="Format for plots (PDF, png, etc). Note that 2D correlation plots will "
                              "always be PNGs to avoid large files.",
                         default="pdf")
-    parser.add_argument("--etaInd",
-                        help="list of eta bin index to run over")
+    parser.add_argument("--title",
+                        help="Title for plots.")
+    parser.add_argument('--zip',
+                        help="Zip filename for zipping up all plots. Don't include extension")
+
+    # FIXME
+    # parser.add_argument("--etaInd",
+                        # help="list of eta bin index/indices to run over")
+    parser.add_argument("--gifs",
+                        help="Make GIFs (only applicable if --detail is also used)",
+                        action='store_true')
+    parser.add_argument("--gifexe",
+                        help='Convert executable to use. Default is result of `which convert`')
     args = parser.parse_args(args=in_args)
 
     print args
 
-    if args.oDir == ".":
-        print "Warning: I'm going to make these plots here!"
+    if args.detail:
+        print "Warning: producing all component hists. This could take a while..."
+
+    if args.gifs:
+        if args.detail:
+            print "Making animated graphs from fit plots."
+        else:
+            print "To use the --gifs flag, you also need --detail"
+
+    if not args.gifexe:
+        args.gifexe = find_executable('convert')
+        if not args.gifexe:
+            print 'Cannot find convert exe, not making gifs'
+            args.gif = False
+        else:
+            print 'Using %s to make GIFs' % args.gifexe
+
+    # customise titles
+    # note the use of global keyword
+    if args.title:
+        global plot_title
+        plot_title = args.title
+
+    if args.oDir == os.getcwd():
+        print "Warning: plots will be made in $PWD!"
 
     # auto determine output directory
     if not args.oDir:
-        filename = ''
-        stem = ''
+        filename, stem = '', ''
         if args.pairs:
-            filename = args.pairs
-            stem = 'pairs_'
+            filename, stem = args.pairs, 'pairs_'
         elif args.checkcal:
-            filename = args.checkcal
-            stem = 'check_'
+            filename, stem = args.checkcal, 'check_'
         elif args.res:
-            filename = args.res
-            stem = 'res_'
+            filename, stem = args.res, 'res_'
         elif args.calib:
-            filename = args.calib
-            stem = 'output_'
-        new_dir = os.path.basename(filename)
-        new_dir = new_dir.replace(".root", '')
-        new_dir = new_dir.replace(stem, 'showoff_')
+            filename, stem = args.calib, 'output_'
+        new_dir = os.path.basename(filename).replace(".root", '').replace(stem, 'showoff_')
 
         args.oDir = os.path.join(os.path.dirname(os.path.abspath(filename)), new_dir)
 
+    cu.check_dir_exists_create(args.oDir)
     print "Output directory:", args.oDir
 
-    # Check if directory exists. If not, create it.
-    cu.check_dir_exists_create(args.oDir)
 
     # Choose eta
-    # ptBins = binning.pt_bins
-    # ptBins = binning.pt_bins_stage2_old
     ptBins = binning.pt_bins_stage2
-
-    if args.etaInd:
-        eta_min = binning.eta_bins[int(args.etaInd)]
-        eta_max = binning.eta_bins[int(args.etaInd) + 1]
 
     # Do plots with output from RunMatcher
     # ------------------------------------------------------------------------
@@ -924,34 +1001,38 @@ def main(in_args=sys.argv[1:]):
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
                 cu.check_dir_exists_create(list_dir)
 
-                # list of histograms (in the correct order) for converting to animated GIFs
-                # use imagemagick e.g.
-                # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
-                pt_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
-                ptRef_names = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                pt_plot_filenames = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "pt", args.oDir, 'png')
+                pt_plot_filenames_file = os.path.join(list_dir, 'list_pt.txt')
+                write_filelist(pt_plot_filenames, pt_plot_filenames_file)
 
-                with open(os.path.join(list_dir, 'list_pt.txt'), 'w') as pt_file, \
-                     open(os.path.join(list_dir, 'list_ptRef.txt'), 'w') as ptRef_file:
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                ptRef_plot_filenames = plot_rsp_pt_hists(check_file, eta_min, eta_max, ptBins, "ptRef", args.oDir, 'png')
+                ptRef_plot_filenames_file = os.path.join(list_dir, 'list_ptRef.txt')
+                write_filelist(ptRef_plot_filenames, ptRef_plot_filenames_file)
 
-                    if pt_names:
-                        pt_file.write('\n'.join(pt_names))
-                    if ptRef_names:
-                        ptRef_file.write('\n'.join(ptRef_names))
-
-                print "To make animated gif from PNGs using a plot list:"
-                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s pt_eta_%g_%g.gif" % (pt_file.name, eta_min, eta_max)
+                # make dem GIFs
+                if args.gifs:
+                    for inf in [pt_plot_filenames_file, ptRef_plot_filenames_file]:
+                        make_gif(inf, inf.replace('.txt', '.gif'), args.gifexe)
+                else:
+                    print "To make animated gif from PNGs using a plot list:"
+                    print "convert -dispose Background -delay 50 -loop 0 @%s " \
+                        "%s" % (pt_plot_filenames_file,
+                                os.path.basename(pt_plot_filenames_file).replace(".txt", ".gif"))
 
         # Graph of response vs pt, but in bins of eta
-        x_range = [0, 150]
+        x_range = [0, 150]  # for zoomed-in low pt
         x_range = None
         plot_rsp_pt_binned_graph(check_file, etaBins, "pt", args.oDir, args.format, x_range=x_range)
         plot_rsp_pt_binned_graph(check_file, etaBins, "ptRef", args.oDir, args.format, x_range=x_range)
 
-        # Loop over central/forward/all eta, with/without normX, and lin/log Z axis
-        # for (eta_min, eta_max) in product([0, 3], [3, 5]):
+        all_rsp_pt_plot_filenames = []
+        all_rsp_ptRef_plot_filenames = []
+
+        # Loop over central/forward eta, do 2D plots, and graphs, and component hists
         for (eta_min, eta_max) in [[0, 3], [3, 5]]:
-            if eta_min == eta_max:
-                continue
+            print eta_min, eta_max
 
             for (normX, logZ) in product([True, False], [True, False]):
                 plot_l1_Vs_ref(check_file, eta_min, eta_max, logZ, args.oDir, 'png')
@@ -971,11 +1052,43 @@ def main(in_args=sys.argv[1:]):
             plot_rsp_pt_graph(check_file, eta_min, eta_max, args.oDir, args.format)
             plot_rsp_ptRef_graph(check_file, eta_min, eta_max, args.oDir, args.format)
 
-            for etamin, etamax in izip(etaBins[:-1], etaBins[1:]):
-                # component plots for the eta graphs, binned by pt
+            for etamin, etamax in pairwise(etaBins):
+                if etamin < eta_min or etamax > eta_max:
+                    continue
+                print etamin, etamax
+                this_rsp_pt_plot_filenames = []
+                this_rsp_ptRef_plot_filenames = []
+                # component hists/fits for the eta graphs, binned by pt
                 for pt_min, pt_max in binning.check_pt_bins:
-                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'pt', pt_min, pt_max, args.oDir, 'png')
-                    plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'ptRef', pt_min, pt_max, args.oDir, 'png')
+                    pt_filename = plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'pt', pt_min, pt_max, args.oDir, 'png')
+                    if pt_filename:
+                        this_rsp_pt_plot_filenames.append(pt_filename)
+                    ptRef_filename = plot_rsp_eta_bin_pt(check_file, etamin, etamax, 'ptRef', pt_min, pt_max, args.oDir, 'png')
+                    if ptRef_filename:
+                        this_rsp_ptRef_plot_filenames.append(ptRef_filename)
+
+                pt_list_file = os.path.join(args.oDir, 'list_pt_eta_%g_%g.txt' % (etamin, etamax))
+                write_filelist(this_rsp_pt_plot_filenames, pt_list_file)
+                if args.gifs:
+                    make_gif(pt_list_file, pt_list_file.replace('.txt', '.gif'), args.gifexe)
+
+                ptRef_list_file = os.path.join(args.oDir, 'list_ptRef_eta_%g_%g.txt' % (etamin, etamax))
+                write_filelist(this_rsp_ptRef_plot_filenames, ptRef_list_file)
+                if args.gifs:
+                    make_gif(ptRef_list_file, ptRef_list_file.replace('.txt', '.gif'), args.gifexe)
+
+                all_rsp_pt_plot_filenames.extend(this_rsp_pt_plot_filenames)
+                all_rsp_ptRef_plot_filenames.extend(this_rsp_ptRef_plot_filenames)
+
+        pt_list_file = os.path.join(args.oDir, 'list_pt_eta_%g_%g.txt' % (etaBins[0], etaBins[-1]))
+        write_filelist(all_rsp_pt_plot_filenames, pt_list_file)
+        if args.gifs:
+            make_gif(pt_list_file, pt_list_file.replace('.txt', '.gif'), args.gifexe)
+
+        ptRef_list_file = os.path.join(args.oDir, 'list_ptRef_eta_%g_%g.txt' % (etaBins[0], etaBins[-1]))
+        write_filelist(all_rsp_ptRef_plot_filenames, ptRef_list_file)
+        if args.gifs:
+            make_gif(ptRef_list_file, ptRef_list_file.replace('.txt', '.gif'), args.gifexe)
 
         check_file.Close()
 
@@ -1000,30 +1113,45 @@ def main(in_args=sys.argv[1:]):
                 list_dir = os.path.join(args.oDir, 'eta_%g_%g' % (eta_min, eta_max))
                 cu.check_dir_exists_create(list_dir)
 
-                # list of histograms (in the correct order) for converting to animated GIFs
-                # use imagemagick e.g.
-                # convert -delay 50 -loop 0 @list_rsp.txt rsp.gif
-                rsp_file = open(os.path.join(list_dir, 'list_rsp.txt'), 'w')
-                pt_file = open(os.path.join(list_dir, 'list_pt.txt'), 'w')
-
                 if eta_min > 2.9:
                     ptBins = binning.pt_bins_stage2_hf
 
+                rsp_plot_filenames = []
+                pt_plot_filenames = []
+
                 for pt_min, pt_max in pairwise(ptBins):
                     rsp_name = plot_rsp_eta_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
+                    rsp_plot_filenames.append(rsp_name)
                     pt_name = plot_pt_bin(calib_file, eta_min, eta_max, pt_min, pt_max, args.oDir, 'png')
-                    if rsp_name: rsp_file.write(os.path.basename(rsp_name) + '\n')
-                    if pt_name: pt_file.write(os.path.basename(pt_name) + '\n')
+                    pt_plot_filenames.append(pt_name)
 
-                rsp_file.close()
-                pt_file.close()
-                print "To make animated gif from PNGs using a plot list:"
-                print "convert -dispose Background -layers OptimizeTransparency -delay 50 -loop 0 @%s rsp_eta_%g_%g.gif" % (rsp_file.name, eta_min, eta_max)
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                rsp_plot_filenames_file = os.path.join(list_dir, 'list_rsp.txt')
+                write_filelist(rsp_plot_filenames, rsp_plot_filenames_file)
+
+                # print individual histograms, and make a list suitable for imagemagick to turn into a GIF
+                pt_plot_filenames_file = os.path.join(list_dir, 'list_pt.txt')
+                write_filelist(pt_plot_filenames, pt_plot_filenames_file)
+
+                # make dem gifs
+                if args.gifs:
+                    for inf in [pt_plot_filenames_file, rsp_plot_filenames_file]:
+                        make_gif(inf, inf.replace('.txt', '.gif'), args.gifexe)
+                else:
+                    print "To make animated gif from PNGs using a plot list:"
+                    print "convert -dispose Background -delay 50 -loop 0 @%s "\
+                        "pt_eta_%g_%g.gif" % (pt_plot_filenames_file, eta_min, eta_max)
 
             # the correction curve graph
             plot_correction_graph(calib_file, eta_min, eta_max, args.oDir, args.format)
 
         calib_file.Close()
+
+    if args.zip:
+        print 'Zipping up files'
+        zip_filename = os.path.basename(args.zip.split('.')[0])
+        make_archive(zip_filename, 'gztar', args.oDir)
+
 
 if __name__ == "__main__":
     main()

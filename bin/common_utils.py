@@ -62,10 +62,10 @@ def open_root_file(filename, mode="READ"):
     """Safe way to open ROOT file. Could be improved."""
     if mode in ["READ", "UPDATE"]:
         if not check_file_exists(filename):
-            raise RuntimeError("No such file %s" % filename)
+            raise IOError("No such file %s" % filename)
     f = ROOT.TFile(filename, mode)
     if f.IsZombie() or not f:
-        raise RuntimeError("Can't open TFile %s" % filename)
+        raise IOError("Can't open TFile %s" % filename)
     return f
 
 
@@ -89,7 +89,7 @@ def get_from_file(tfile, obj_name, info=False):
     if info:
         print "Getting %s" % obj_name
     if not exists_in_file(tfile, obj_name):
-        raise Exception("Can't get object named %s from %s" % (obj_name, tfile.GetName()))
+        raise IOError("Can't get object named %s from %s" % (obj_name, tfile.GetName()))
     else:
         return tfile.Get(obj_name)
 
