@@ -68,8 +68,6 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
     """
     print 'Calculating new mapping for compressed ET'
 
-    hw_pt_orig = pt_orig * 2
-
     # hold pt mapping
     new_pt_mapping = {p: p for p in pt_orig}
     new_pt_mapping[0] = 0.
@@ -168,7 +166,7 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
             exit()
 
     # now go back and set all the half integers to have same correction as whole integers
-    for i in range(len(pt_orig)/2):
+    for i in range(len(pt_orig) / 2):
         if new_pt_mapping[i + 0.5] != new_pt_mapping[i]:
             new_pt_mapping[i + 0.5] = new_pt_mapping[i]
 
@@ -218,43 +216,22 @@ def calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping):
     return new_corr_mapping
 
 
-def generate_address(iet, ieta):
-    """Convert iEt, iEta to address. Must be HW values.
+def generate_address(iet_index, ieta_index):
+    """Convert iEt, iEta indices to address. These are NOT HW values.
 
     Parameters
     ----------
-    iet : int
-        iEt value (HW)
-    ieta : int
-        iEta value (HW)
+    iet_index : int
+        iEt index
+    ieta_index : int
+        iEta index
 
     Returns
     -------
     int
         Corresponding address.
     """
-    return (ieta<<4) + iet
-
-
-def generate_address_index_map(mapping_info):
-    """Map address to index
-
-    Parameters
-    ----------
-    mapping_info : TYPE
-        Description
-    """
-    mapping = OrderedDict()
-    index = -1
-    for ieta, mdict in mapping_info.iteritems():
-        last_pt = -1
-        for pt_old, pt_new in mdict['pt'].iteritems():
-            if pt_new != last_pt:
-                index += 1
-                last_pt = pt_new
-            address = generate_address(int(pt_old * 2), ieta)
-            mapping[address] = index
-    return mapping
+    return (ieta_index<<4) + iet_index
 
 
 def iet_to_index(iet, hw_pt_orig, pt_index):
@@ -278,7 +255,7 @@ def write_pt_compress_lut(lut_filename, hw_pt_orig, pt_index):
     with open(lut_filename, 'w') as lut:
         lut.write('# PT compression LUT\n')
         lut.write('# maps 8 bits to 4 bits\n')
-        lut.write('# maps 8 bits to 4 bits\n')
+        lut.write('# the 1st column is the integer value after selecting bits 1:8\n')
         lut.write("# anything after # is ignored with the exception of the header\n")
         lut.write("# the header is first valid line starting with ")
         lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
@@ -399,31 +376,7 @@ def calc_hw_correction_ints(hw_pts, corrections, corr_matrix, cap_correction):
     return np.array(hw_corrections)
 
 
-def generate_correction_lut_contents(mapping_info, address_index_map):
-    """Generate contents for Stage 2 correction LUT, for mapping index: correction factor.
-
-    Parameters
-    ----------
-    mapping_info : OrderedDict
-        Ordered map of {ieta : dict()}, where dict() contains dict 'hw_corr_unique'
-    address_index_map : OrderedDict
-        Ordered map of {address : index}
-
-    Returns
-    -------
-    name : list[str]
-        File contents, each entry is a line.
-    """
-    contents = []
-    for ieta, mdict in mapping_info.iteritems():
-            for iet, hw_corr in mdict['hw_corr_unique'].iteritems():
-                address = generate_address(iet=iet, ieta=ieta)
-                index = address_index_map[address]
-                contents.append('%d %d # ieta=%d iet=%d\n' % (index, hw_corr, ieta, iet))
-    return contents
-
-
-def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
+def write_stage2_correction_lut(lut_filename, mapping_info):
     """Write LUT that converts compressed address to correction factor.
 
     Parameters
@@ -432,15 +385,22 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
         Filename for output LUT
     mapping_info : TYPE
         Description
-    address_index_map : TYPE
-        Description
     """
-    contents = generate_correction_lut_contents(mapping_info, address_index_map)
-
     print 'Making corr LUT', lut_filename
     with open(lut_filename, 'w') as lut:
-        for line in contents:
-            lut.write(line)
+        lut.write('# address to multiplicative factor LUT\n')
+        lut.write('# maps 8 bits to 10 bits\n')
+        lut.write("# anything after # is ignored with the exception of the header\n")
+        lut.write("# the header is first valid line starting with ")
+        lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
+        lut.write("#<header> v1 8 10 </header>\n")
+        for eta_ind, map_info in mapping_info.iteritems():
+            last_ind = -1
+            for pt_ind, corr in izip(map_info['pt_index'], map_info['hw_corr_compressed']):
+                if pt_ind != last_ind:
+                    comment = '  # eta_bin %d, pt 0' % (eta_ind) if pt_ind == 0 else ''
+                    lut.write('%d %d%s\n' % (generate_address(pt_ind, eta_ind), corr, comment))
+                    last_ind = pt_ind
 
 
 def ieta_to_index(ieta):
@@ -700,7 +660,7 @@ def print_Stage2_lut_files(fit_functions,
         plot_corr_vs_pt(map_info, eta_ind, title, plot_dir)
 
     # put them into a LUT
-    # write_stage2_correction_lut(corr_lut_filename, all_mapping_info, address_index_map)
+    write_stage2_correction_lut(corr_lut_filename, all_mapping_info)
 
 
 def print_map_info(map_info):
