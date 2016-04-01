@@ -68,6 +68,8 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
     """
     print 'Calculating new mapping for compressed ET'
 
+    hw_pt_orig = pt_orig * 2
+
     # hold pt mapping
     new_pt_mapping = {p: p for p in pt_orig}
     new_pt_mapping[0] = 0.
@@ -75,21 +77,33 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
 
     end_ind = len(pt_orig) - 1
 
+    # enforce truncation at 8 bits, since we only use bits 1:8
+    if not merge_above or merge_above >= 255.:
+        print 'Overriding merge_above to', merge_above
+        merge_above = 254.5
+
     if merge_above:
         # set all bins above this value to merge, and set to mean pt
         merge_above_ind = bisect_left(new_pt_mapping.keys(), merge_above)
-        mean_merge = np.array(new_pt_mapping.keys()[merge_above_ind:]).mean()
+        mean_merge = round_to_half(np.array(new_pt_mapping.keys()[merge_above_ind:]).mean())
         for ind, pt in enumerate(new_pt_mapping.iterkeys()):
             if pt >= merge_above:
                 new_pt_mapping[pt] = mean_merge
         end_ind = merge_above_ind
 
-    orig_start_ind = 1
+    orig_start_ind = 2
 
     if merge_below:
+        # round to nearest 0.5
+        merge_below = round_to_half(merge_below)
+        # check it's a half number, then the bin above is for even number
+        if float(merge_below).is_integer():
+            merge_below += 0.5
+            print 'Overriding merge_below to', merge_below
+
         # set all bins below this value to merge, and set to mean pt
         merge_below_ind = bisect_left(new_pt_mapping.keys(), merge_below)
-        mean_merge = np.array(new_pt_mapping.keys()[1:merge_below_ind]).mean()
+        mean_merge = round_to_half(np.array(new_pt_mapping.keys()[1:merge_below_ind]).mean())
         for ind, pt in enumerate(new_pt_mapping.iterkeys()):
             # keep pt = 0 set to 0
             if ind == 0:
@@ -100,7 +114,11 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
 
     last_num_bins = 111111111
 
-    while len(set(new_pt_mapping.values())) > target_num_bins:
+    def count_number_bins(new_pt_mapping):
+        """Count inque values, but only for whole number pts"""
+        return len({v for k, v in new_pt_mapping.iteritems() if float(k).is_integer()})
+
+    while count_number_bins(new_pt_mapping) > target_num_bins:
         last_num_bins = len(set(new_pt_mapping.values()))
 
         print 'Got', len(set(new_pt_mapping.values())), 'bins'
@@ -109,6 +127,14 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
         start_ind = orig_start_ind
 
         while start_ind < end_ind and end_ind > 2:
+            # Because we select bits 1:9, we can only distinguish
+            # between even HW pT i.e. 1 GeV LSB
+            # E.g. 0010 and 0011 are both treated the same.
+            # So skip to next pT if this one is XXX.5 GeV
+            if not pt_orig[start_ind].is_integer():
+                start_ind += 1
+                continue
+
             corrs = corr_orig[start_ind: end_ind + 1]
             if corrs.max() < (merge_criterion * corrs.min()):
 
@@ -120,8 +146,8 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
                     start_ind += target_num_bins - (len(set(new_pt_mapping.values())) - len(corrs)) - 1
                     corrs = corr_orig[start_ind:end_ind + 1]
 
-                mean_pt = round(pt_orig[start_ind: end_ind + 1].mean() * 2) / 2
-                # print 'mean pt for this bin:', mean_pt, 'from', pt_orig[start_ind: end_ind + 1]
+                mean_pt = round_to_half(pt_orig[start_ind: end_ind + 1].mean())
+                print 'mean pt for this bin:', mean_pt, 'from', pt_orig[start_ind: end_ind + 1]
 
                 for i in xrange(start_ind, end_ind + 1):
                     new_pt_mapping[pt_orig[i]] = mean_pt
@@ -132,7 +158,7 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
             else:
                 start_ind += 1
 
-        if len(set(new_pt_mapping.values())) == last_num_bins:
+        if count_number_bins(new_pt_mapping) == last_num_bins:
             print 'Stuck in a loop - you need to loosen merge_criterion, ' \
                   'or increase the number of bins'
             print 'Dumping mapping to file stuck_dump.txt'
@@ -141,6 +167,12 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
                     f.write("%f,%f\n" % (k, v))
             exit()
 
+    # now go back and set all the half integers to have same correction as whole integers
+    for i in range(len(pt_orig)/2):
+        if new_pt_mapping[i + 0.5] != new_pt_mapping[i]:
+            new_pt_mapping[i + 0.5] = new_pt_mapping[i]
+
+    print count_number_bins(new_pt_mapping), 'compressed bins:'
     print len(set(new_pt_mapping.values())), 'compressed bins:'
     print sorted(set(new_pt_mapping.values()))
 
@@ -225,8 +257,17 @@ def generate_address_index_map(mapping_info):
     return mapping
 
 
+def iet_to_index(iet, hw_pt_orig, pt_index):
+    """Convert iet (HW) to an index"""
+    ind = np.where(hw_pt_orig == iet)[0][0]
+    return pt_index[ind]
+
+
 def write_pt_compress_lut(lut_filename, hw_pt_orig, pt_index):
     """Write LUT that converts HW pt to compressed index
+
+    Note that we take bits 1:8 from the 16 bits that represent jet ET
+    So we only need those values.
 
     Parameters
     ----------
@@ -235,8 +276,20 @@ def write_pt_compress_lut(lut_filename, hw_pt_orig, pt_index):
     """
     print 'Making PT compress LUT', lut_filename
     with open(lut_filename, 'w') as lut:
+        lut.write('# PT compression LUT\n')
+        lut.write('# maps 8 bits to 4 bits\n')
+        lut.write('# maps 8 bits to 4 bits\n')
+        lut.write("# anything after # is ignored with the exception of the header\n")
+        lut.write("# the header is first valid line starting with ")
+        lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
+        lut.write("#<header> v1 8 4 </header>\n")
         for pt, ind in izip(hw_pt_orig, pt_index):
-            lut.write('%d %d\n' % (pt, ind))
+            if pt > 511:
+                break
+            if pt % 2 == 0:
+                # only want even HW values, then convert to what it would be
+                # if removed LSB
+                lut.write('%d %d\n' % (int(pt / 2), ind))
 
 
 def correct_iet(iet, corr_factor, right_shift):
