@@ -73,4 +73,20 @@ samples = {
     "ZeroBiasReReco_Run2015D_4" : Dataset(inputDataset='/ZeroBias4/Run2015D-16Dec2015-v1/AOD',
                                       useParent=True, unitsPerJob=2, totalUnits=-1),
 
+
+    "ZeroBiasReReco_Run2015D_0_noReco" : Dataset(inputDataset='/ZeroBias/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=False, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_1_noReco" : Dataset(inputDataset='/ZeroBias1/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=False, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_2_noReco" : Dataset(inputDataset='/ZeroBias2/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=False, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_3_noReco" : Dataset(inputDataset='/ZeroBias3/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=False, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_4_noReco" : Dataset(inputDataset='/ZeroBias4/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=False, unitsPerJob=2, totalUnits=-1),
+
 }

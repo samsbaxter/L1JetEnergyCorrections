@@ -28,7 +28,7 @@ job_append = "Stg2_Run2015D_run259721_zeroBias_3Apr_jetmetUpdateForJoe_L1JEC"
 # job_append = "Stg2_Run2015D_run259721_zeroBias_intv14p0Layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 # CHANGE ME - select dataset(s) keys to run over - see data_samples.py
-datasets = ["ZeroBiasReReco_Run2015D_0", "ZeroBiasReReco_Run2015D_1", "ZeroBiasReReco_Run2015D_2", "ZeroBiasReReco_Run2015D_3", "ZeroBiasReReco_Run2015D_4"]
+datasets = ["ZeroBiasReReco_Run2015D_0_noReco", "ZeroBiasReReco_Run2015D_1_noReco", "ZeroBiasReReco_Run2015D_2_noReco", "ZeroBiasReReco_Run2015D_3_noReco", "ZeroBiasReReco_Run2015D_4_noReco"]
 
 if __name__ == "__main__":
 
