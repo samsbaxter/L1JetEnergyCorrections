@@ -58,5 +58,19 @@ samples = {
     "Express_Run2015D_v4_25ns": Dataset(inputDataset='/ExpressPhysics/Run2015D-Express-v4/FEVT',
                                         useParent=False, unitsPerJob=10, totalUnits=-1),
 
+    "ZeroBiasReReco_Run2015D_0" : Dataset(inputDataset='/ZeroBias/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=True, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_1" : Dataset(inputDataset='/ZeroBias1/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=True, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_2" : Dataset(inputDataset='/ZeroBias2/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=True, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_3" : Dataset(inputDataset='/ZeroBias3/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=True, unitsPerJob=2, totalUnits=-1),
+
+    "ZeroBiasReReco_Run2015D_4" : Dataset(inputDataset='/ZeroBias4/Run2015D-16Dec2015-v1/AOD',
+                                      useParent=True, unitsPerJob=2, totalUnits=-1),
 
 }

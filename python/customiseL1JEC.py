@@ -101,5 +101,5 @@ def L1JEC_off(process):
 
 def L1JEC_on(process):
     """Turn Stage 2 JEC ON"""
-    process.caloStage2Params.jetCalibrationType = cms.string("function6PtParams22EtaBins")
+    process.caloStage2Params.jetCalibrationType = cms.string("function8PtParams22EtaBins")
     return process

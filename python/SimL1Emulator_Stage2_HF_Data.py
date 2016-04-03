@@ -83,16 +83,23 @@ process = L1TTurnOffUnpackStage2GtGmtAndCalo(process)
 process = L1TTurnOffGtAndGmtEmulation(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
-# from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1JEC_off
+from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1JEC_on
 
 #call to customisation function L1JEC_off imported from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
-# process = L1JEC_off(process)
+process = L1JEC_on(process)
 
 # End of customisation functions
-process.TFileService.fileName = cms.string("L1Ntuple_Stage2_ReReco_HF_integration-v9_dummyLayer1_L1Jec_Fall15V2.root")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 200
 process.MessageLogger.suppressWarning = cms.untracked.vstring(
        "l1UpgradeEmuTree",
        "l1CaloTowerEmuTree"
        )
+
+# Modify the jet seed threshold, default was 1.5
+# jet_seed_threshold = 6
+# process.caloStage2Params.jetSeedThreshold = cms.double(jet_seed_threshold)
+
+# Set the NTuple filename
+process.TFileService.fileName = cms.string("L1Ntuple.root")
+# process.TFileService.fileName = cms.string("L1Ntuple_Stage2_ReReco_HF_noL1Jec_%s_jst%s.root" % (process.GlobalTag.globaltag.value(), str(jet_seed_threshold).replace('.', 'p')))

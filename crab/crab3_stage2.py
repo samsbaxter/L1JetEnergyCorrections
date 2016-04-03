@@ -18,20 +18,22 @@ import sys
 PY_CONFIG = '../python/SimL1Emulator_Stage2_HF_MC.py'
 
 # Auto-retrieve jet seed threshold in config
-sys.path.append(os.path.dirname(os.path.abspath(PY_CONFIG)))  # nasty hack cos python packaging stoopid
-cmssw_config = importlib.import_module(os.path.splitext(os.path.basename(PY_CONFIG))[0],)
-jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
-print 'Running with JetSeedThreshold', jst
+# sys.path.append(os.path.dirname(os.path.abspath(PY_CONFIG)))  # nasty hack cos python packaging stoopid
+# cmssw_config = importlib.import_module(os.path.splitext(os.path.basename(PY_CONFIG))[0],)
+# jst = cmssw_config.process.caloStage2Params.jetSeedThreshold.value()
+# print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
+job_append = "Stg2_HF_ttHTobbFall15PU30RECO_3Apr_jetmetUpdateForJoe_L1JEC"
+# job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 
 # CHANGE ME - select dataset(s) keys to run over - see python/mc_samples.py
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # Fall15, RAW only
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # Spring15, RAW + RECO (via useParent)
-#datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
-datasets = ["QCDFlatFall15PU0to50NzshcalRaw", "QCDFlatFall15NoPU"]  # Fall15, RAW (via useParent)
+# datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
+# datasets = ["QCDFlatFall15PU0to50NzshcalRaw", "QCDFlatFall15NoPU"]  # Fall15, RAW (via useParent)
+datasets = ["ttHTobbFall15PU30RECO"]  # Fall15, RAW + RECO
 
 if __name__ == "__main__":
     # We want to put all the CRAB project directories from the tasks we submit
