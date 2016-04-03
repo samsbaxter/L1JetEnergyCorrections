@@ -19,6 +19,7 @@ from multifunc import MultiFunc
 import matplotlib.pyplot as plt
 from binning import pairwise
 from itertools import izip
+from math import ceil
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -26,6 +27,10 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gROOT.SetBatch(1)
 ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
+
+
+def round_to_half(num):
+    return round(num * 2) / 2
 
 
 def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
@@ -70,21 +75,33 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
 
     end_ind = len(pt_orig) - 1
 
+    # enforce truncation at 8 bits, since we only use bits 1:8
+    if not merge_above or merge_above >= 255.:
+        print 'Overriding merge_above to', merge_above
+        merge_above = 254.5
+
     if merge_above:
         # set all bins above this value to merge, and set to mean pt
         merge_above_ind = bisect_left(new_pt_mapping.keys(), merge_above)
-        mean_merge = np.array(new_pt_mapping.keys()[merge_above_ind:]).mean()
+        mean_merge = round_to_half(np.array(new_pt_mapping.keys()[merge_above_ind:]).mean())
         for ind, pt in enumerate(new_pt_mapping.iterkeys()):
             if pt >= merge_above:
                 new_pt_mapping[pt] = mean_merge
         end_ind = merge_above_ind
 
-    orig_start_ind = 1
+    orig_start_ind = 2
 
     if merge_below:
+        # round to nearest 0.5
+        merge_below = round_to_half(merge_below)
+        # check it's a half number, then the bin above is for even number
+        if float(merge_below).is_integer():
+            merge_below += 0.5
+            print 'Overriding merge_below to', merge_below
+
         # set all bins below this value to merge, and set to mean pt
         merge_below_ind = bisect_left(new_pt_mapping.keys(), merge_below)
-        mean_merge = np.array(new_pt_mapping.keys()[1:merge_below_ind]).mean()
+        mean_merge = round_to_half(np.array(new_pt_mapping.keys()[1:merge_below_ind]).mean())
         for ind, pt in enumerate(new_pt_mapping.iterkeys()):
             # keep pt = 0 set to 0
             if ind == 0:
@@ -95,7 +112,11 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
 
     last_num_bins = 111111111
 
-    while len(set(new_pt_mapping.values())) > target_num_bins:
+    def count_number_bins(new_pt_mapping):
+        """Count inque values, but only for whole number pts"""
+        return len({v for k, v in new_pt_mapping.iteritems() if float(k).is_integer()})
+
+    while count_number_bins(new_pt_mapping) > target_num_bins:
         last_num_bins = len(set(new_pt_mapping.values()))
 
         print 'Got', len(set(new_pt_mapping.values())), 'bins'
@@ -104,6 +125,14 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
         start_ind = orig_start_ind
 
         while start_ind < end_ind and end_ind > 2:
+            # Because we select bits 1:9, we can only distinguish
+            # between even HW pT i.e. 1 GeV LSB
+            # E.g. 0010 and 0011 are both treated the same.
+            # So skip to next pT if this one is XXX.5 GeV
+            if not pt_orig[start_ind].is_integer():
+                start_ind += 1
+                continue
+
             corrs = corr_orig[start_ind: end_ind + 1]
             if corrs.max() < (merge_criterion * corrs.min()):
 
@@ -115,8 +144,8 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
                     start_ind += target_num_bins - (len(set(new_pt_mapping.values())) - len(corrs)) - 1
                     corrs = corr_orig[start_ind:end_ind + 1]
 
-                mean_pt = round(pt_orig[start_ind: end_ind + 1].mean() * 2) / 2
-                # print 'mean pt for this bin:', mean_pt, 'from', pt_orig[start_ind: end_ind + 1]
+                mean_pt = round_to_half(pt_orig[start_ind: end_ind + 1].mean())
+                print 'mean pt for this bin:', mean_pt, 'from', pt_orig[start_ind: end_ind + 1]
 
                 for i in xrange(start_ind, end_ind + 1):
                     new_pt_mapping[pt_orig[i]] = mean_pt
@@ -127,7 +156,7 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
             else:
                 start_ind += 1
 
-        if len(set(new_pt_mapping.values())) == last_num_bins:
+        if count_number_bins(new_pt_mapping) == last_num_bins:
             print 'Stuck in a loop - you need to loosen merge_criterion, ' \
                   'or increase the number of bins'
             print 'Dumping mapping to file stuck_dump.txt'
@@ -136,6 +165,12 @@ def calc_compressed_pt_mapping(pt_orig, corr_orig, target_num_bins,
                     f.write("%f,%f\n" % (k, v))
             exit()
 
+    # now go back and set all the half integers to have same correction as whole integers
+    for i in range(len(pt_orig) / 2):
+        if new_pt_mapping[i + 0.5] != new_pt_mapping[i]:
+            new_pt_mapping[i + 0.5] = new_pt_mapping[i]
+
+    print count_number_bins(new_pt_mapping), 'compressed bins:'
     print len(set(new_pt_mapping.values())), 'compressed bins:'
     print sorted(set(new_pt_mapping.values()))
 
@@ -181,47 +216,35 @@ def calc_new_corr_mapping(pt_orig, corr_orig, new_pt_mapping):
     return new_corr_mapping
 
 
-def generate_address(iet, ieta):
-    """Convert iEt, iEta to address. Must be HW values.
+def generate_address(iet_index, ieta_index):
+    """Convert iEt, iEta indices to address. These are NOT HW values.
 
     Parameters
     ----------
-    iet : int
-        iEt value (HW)
-    ieta : int
-        iEta value (HW)
+    iet_index : int
+        iEt index
+    ieta_index : int
+        iEta index
 
     Returns
     -------
     int
         Corresponding address.
     """
-    return (ieta<<4) + iet
+    return (ieta_index<<4) + iet_index
 
 
-def generate_address_index_map(mapping_info):
-    """Map address to index
-
-    Parameters
-    ----------
-    mapping_info : TYPE
-        Description
-    """
-    mapping = OrderedDict()
-    index = -1
-    for ieta, mdict in mapping_info.iteritems():
-        last_pt = -1
-        for pt_old, pt_new in mdict['pt'].iteritems():
-            if pt_new != last_pt:
-                index += 1
-                last_pt = pt_new
-            address = generate_address(int(pt_old * 2), ieta)
-            mapping[address] = index
-    return mapping
+def iet_to_index(iet, hw_pt_orig, pt_index):
+    """Convert iet (HW) to an index"""
+    ind = np.where(hw_pt_orig == iet)[0][0]
+    return pt_index[ind]
 
 
 def write_pt_compress_lut(lut_filename, hw_pt_orig, pt_index):
     """Write LUT that converts HW pt to compressed index
+
+    Note that we take bits 1:8 from the 16 bits that represent jet ET
+    So we only need those values.
 
     Parameters
     ----------
@@ -230,8 +253,20 @@ def write_pt_compress_lut(lut_filename, hw_pt_orig, pt_index):
     """
     print 'Making PT compress LUT', lut_filename
     with open(lut_filename, 'w') as lut:
+        lut.write('# PT compression LUT\n')
+        lut.write('# maps 8 bits to 4 bits\n')
+        lut.write('# the 1st column is the integer value after selecting bits 1:8\n')
+        lut.write("# anything after # is ignored with the exception of the header\n")
+        lut.write("# the header is first valid line starting with ")
+        lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
+        lut.write("#<header> v1 8 4 </header>\n")
         for pt, ind in izip(hw_pt_orig, pt_index):
-            lut.write('%d %d\n' % (pt, ind))
+            if pt > 511:
+                break
+            if pt % 2 == 0:
+                # only want even HW values, then convert to what it would be
+                # if removed LSB
+                lut.write('%d %d\n' % (int(pt / 2), ind))
 
 
 def correct_iet(iet, corr_factor, right_shift):
@@ -341,31 +376,7 @@ def calc_hw_correction_ints(hw_pts, corrections, corr_matrix, cap_correction):
     return np.array(hw_corrections)
 
 
-def generate_correction_lut_contents(mapping_info, address_index_map):
-    """Generate contents for Stage 2 correction LUT, for mapping index: correction factor.
-
-    Parameters
-    ----------
-    mapping_info : OrderedDict
-        Ordered map of {ieta : dict()}, where dict() contains dict 'hw_corr_unique'
-    address_index_map : OrderedDict
-        Ordered map of {address : index}
-
-    Returns
-    -------
-    name : list[str]
-        File contents, each entry is a line.
-    """
-    contents = []
-    for ieta, mdict in mapping_info.iteritems():
-            for iet, hw_corr in mdict['hw_corr_unique'].iteritems():
-                address = generate_address(iet=iet, ieta=ieta)
-                index = address_index_map[address]
-                contents.append('%d %d # ieta=%d iet=%d\n' % (index, hw_corr, ieta, iet))
-    return contents
-
-
-def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
+def write_stage2_correction_lut(lut_filename, mapping_info):
     """Write LUT that converts compressed address to correction factor.
 
     Parameters
@@ -374,19 +385,52 @@ def write_stage2_correction_lut(lut_filename, mapping_info, address_index_map):
         Filename for output LUT
     mapping_info : TYPE
         Description
-    address_index_map : TYPE
-        Description
     """
-    contents = generate_correction_lut_contents(mapping_info, address_index_map)
-
     print 'Making corr LUT', lut_filename
     with open(lut_filename, 'w') as lut:
-        for line in contents:
+        lut.write('# address to multiplicative factor LUT\n')
+        lut.write('# maps 8 bits to 10 bits\n')
+        lut.write("# anything after # is ignored with the exception of the header\n")
+        lut.write("# the header is first valid line starting with ")
+        lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
+        lut.write("#<header> v1 8 10 </header>\n")
+        for eta_ind, map_info in mapping_info.iteritems():
+            last_ind = -1
+            for pt_ind, corr in izip(map_info['pt_index'], map_info['hw_corr_compressed']):
+                if pt_ind != last_ind:
+                    comment = '  # eta_bin %d, pt 0' % (eta_ind) if pt_ind == 0 else ''
+                    lut.write('%d %d%s\n' % (generate_address(pt_ind, eta_ind), corr, comment))
+                    last_ind = pt_ind
+
+
+def ieta_to_index(ieta):
+    """Convert ieta to index"""
+    ieta = abs(ieta)
+    if ieta <= 29:  # HBHE
+        return int(ceil(ieta / 4.)) - 1
+    else:  # HF
+        return int(ceil((ieta - 29) / 3.)) + 6
+
+
+def write_eta_compress_lut(lut_filename):
+    """Write LUT that converts ieta to eta index.
+
+    Parameters
+    ----------
+    lut_filename : str
+        filename for LUT
+    """
+    print "Making eta compression LUT"
+    with open(lut_filename, 'w') as lut:
+        lut.write("# ieta compression LUT\n")
+        lut.write("# Converts abs(ieta) (6 bits) into 4 bit index\n")
+        lut.write("# anything after # is ignored with the exception of the header\n")
+        lut.write("# the header is first valid line starting with ")
+        lut.write("#<header> versionStr(unused but may be in future) nrBitsAddress nrBitsData </header>\n")
+        lut.write("#<header> v1 6 4 </header>\n")
+        for ieta in range(1, 42):
+            line = "%d %d\n" % (ieta, ieta_to_index(ieta))
             lut.write(line)
-
-
-def write_eta_compress_lut():
-    print "DO THIS ETA LUT ROBIN"
 
 
 def determine_lowest_curve_start(fit_functions):
@@ -440,7 +484,8 @@ def assign_pt_index(pt_values):
     return [unique_indices_map[p] for p in pt_values]
 
 
-def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
+def print_Stage2_lut_files(fit_functions,
+                           eta_lut_filename, pt_lut_filename, corr_lut_filename,
                            corr_max, num_corr_bits, target_num_pt_bins,
                            merge_criterion, plot_dir):
     """Make LUTs for Stage 2.
@@ -455,8 +500,11 @@ def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
     fit_functions: list[TF1]
         List of correction functions to convert to LUT
 
+    eta_lut_filename: str
+        Filename for output LUT that converts eta to compressed index
+
     pt_lut_filename: str
-        Filename for output LUT that converts pt, eta to compressed address
+        Filename for output LUT that converts pt to compressed index
 
     corr_lut_filename: str
         Filename for output LUT that converts address to factor
@@ -487,7 +535,7 @@ def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
     """
 
     # Plot LUT for eta compression
-    write_eta_compress_lut()
+    write_eta_compress_lut(eta_lut_filename)
 
     if corr_max <= 2:
         right_shift = num_corr_bits
@@ -612,7 +660,7 @@ def print_Stage2_lut_files(fit_functions, pt_lut_filename, corr_lut_filename,
         plot_corr_vs_pt(map_info, eta_ind, title, plot_dir)
 
     # put them into a LUT
-    # write_stage2_correction_lut(corr_lut_filename, all_mapping_info, address_index_map)
+    write_stage2_correction_lut(corr_lut_filename, all_mapping_info)
 
 
 def print_map_info(map_info):
