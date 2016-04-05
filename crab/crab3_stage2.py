@@ -24,7 +24,7 @@ PY_CONFIG = '../python/SimL1Emulator_Stage2_HF_MC.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "Stg2_HF_ttHTobbFall15PU30RECO_3Apr_jetmetUpdateForJoe_L1JEC"
+job_append = "Stg2_HF_ttHTobbFall15PU30RECO_5Apr_jetmetUpdateForJoe_L1JEC"
 # job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 

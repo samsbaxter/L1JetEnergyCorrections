@@ -24,11 +24,12 @@ PY_CONFIG = '../python/SimL1Emulator_Stage2_HF_Data.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stg2_Run2015D_run259721_zeroBias_3Apr_jetmetUpdateForJoe_L1JEC"
+job_append = "Stg2_Run2015D_run259721_zeroBias_5Apr_jetmetUpdateForJoe_L1JEC"
 # job_append = "Stg2_Run2015D_run259721_zeroBias_intv14p0Layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 # CHANGE ME - select dataset(s) keys to run over - see data_samples.py
-datasets = ["ZeroBiasReReco_Run2015D_0_noReco", "ZeroBiasReReco_Run2015D_1_noReco", "ZeroBiasReReco_Run2015D_2_noReco", "ZeroBiasReReco_Run2015D_3_noReco", "ZeroBiasReReco_Run2015D_4_noReco"]
+# datasets = ["ZeroBiasReReco_Run2015D_0_noReco", "ZeroBiasReReco_Run2015D_1_noReco", "ZeroBiasReReco_Run2015D_2_noReco", "ZeroBiasReReco_Run2015D_3_noReco", "ZeroBiasReReco_Run2015D_4_noReco"]
+datasets = ["ZeroBiasReReco_Run2015D_1_noReco"]
 
 if __name__ == "__main__":
 

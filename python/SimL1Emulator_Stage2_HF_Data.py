@@ -80,13 +80,13 @@ from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAn
 process = L1TTurnOffUnpackStage2GtGmtAndCalo(process)
 
 #call to customisation function L1TTurnOffGtAndGmtEmulation imported from L1Trigger.Configuration.customiseUtils
-process = L1TTurnOffGtAndGmtEmulation(process)
+# process = L1TTurnOffGtAndGmtEmulation(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
-from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1JEC_on
+# from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1JEC_on
 
 #call to customisation function L1JEC_off imported from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
-process = L1JEC_on(process)
+# process = L1JEC_on(process)
 
 # End of customisation functions
 

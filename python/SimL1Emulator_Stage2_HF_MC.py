@@ -97,10 +97,10 @@ from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleAODEMU
 process = L1NtupleAODEMU(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
-from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1NtupleJEC_ON 
+from L1Trigger.L1JetEnergyCorrections.customiseL1JEC import L1NtupleJEC 
 
 #call to customisation function L1NtupleJEC_OFF imported from L1Trigger.L1JetEnergyCorrections.customiseL1JEC
-process = L1NtupleJEC_ON(process)
+process = L1NtupleJEC(process)
 
 # Automatic addition of the customisation function from L1Trigger.Configuration.customiseUtils
 from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAndCalo, L1TTurnOffGtAndGmtEmulation
@@ -108,7 +108,7 @@ from L1Trigger.Configuration.customiseUtils import L1TTurnOffUnpackStage2GtGmtAn
 #call to customisation function L1TTurnOffUnpackStage2GtGmtAndCalo imported from L1Trigger.Configuration.customiseUtils
 process = L1TTurnOffUnpackStage2GtGmtAndCalo(process)
 
-process = L1TTurnOffGtAndGmtEmulation(process)
+# process = L1TTurnOffGtAndGmtEmulation(process)
 
 # End of customisation functions
 
