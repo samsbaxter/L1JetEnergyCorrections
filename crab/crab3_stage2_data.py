@@ -15,7 +15,8 @@ import sys
 
 
 # CMSSW CONFIG TO RUN
-PY_CONFIG = '../python/SimL1Emulator_Stage2_HF_Data.py'
+# PY_CONFIG = '../python/SimL1Emu_L1HW_stage2_Data2016.py'
+PY_CONFIG = '../python/SimL1Emu_L1HW_stage2_Data2016_noReco.py'
 
 # Auto-retrieve jet seed threshold in config
 # sys.path.append(os.path.dirname(os.path.abspath(PY_CONFIG)))  # nasty hack cos python packaging stoopid
@@ -24,11 +25,11 @@ PY_CONFIG = '../python/SimL1Emulator_Stage2_HF_Data.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stg2_Run2015D_run259721_zeroBias_6Apr_jetmetUpdateForJoe_L1JEC"
+job_append = "Stg2_com16noReco_run268955_zeroBias_15Apr_v34p0_L1JEC"
 # job_append = "Stg2_Run2015D_run259721_zeroBias_intv14p0Layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 # CHANGE ME - select dataset(s) keys to run over - see data_samples.py
-datasets = ["ZeroBiasReReco_Run2015D_0", "ZeroBiasReReco_Run2015D_1", "ZeroBiasReReco_Run2015D_2", "ZeroBiasReReco_Run2015D_3", "ZeroBiasReReco_Run2015D_4"]
+datasets = ["ZeroBiasRaw_com2016_1", "ZeroBiasRaw_com2016_2", "ZeroBiasRaw_com2016_3", "ZeroBiasRaw_com2016_4", "ZeroBiasRaw_com2016_5", "ZeroBiasRaw_com2016_6", "ZeroBiasRaw_com2016_7", "ZeroBiasRaw_com2016_8"]
 
 if __name__ == "__main__":
 
@@ -55,8 +56,8 @@ if __name__ == "__main__":
         config.Data.inputDataset = dset_opts.inputDataset
         config.Data.useParent = dset_opts.useParent
         config.Data.unitsPerJob = dset_opts.unitsPerJob
-        config.Data.runRange = '259721'
-        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
+        config.Data.runRange = '268955'
+        # config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
         config.Data.splitting = 'LumiBased'
         config.JobType.inputFiles = ['../python/Fall15_25nsV2_DATA.db']
 

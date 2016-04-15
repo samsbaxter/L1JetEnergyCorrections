@@ -26,8 +26,9 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/data/Run2015D/DoubleEG/RAW-RECO/ZElectron-PromptReco-v4/000/260/627/00000/12455212-1E85-E511-8913-02163E014472.root'),
-    secondaryFileNames = cms.untracked.vstring()
+    fileNames = cms.untracked.vstring('/store/data/Commissioning2016/ZeroBias2/AOD/PromptReco-v1/000/268/955/00000/36CC36F5-3900-E611-81A7-02163E0133A2.root'),
+    secondaryFileNames = cms.untracked.vstring('/store/data/Commissioning2016/ZeroBias2/RAW/v1/000/268/955/00000/06B47904-E2FD-E511-9C11-02163E013437.root', 
+    											'/store/data/Commissioning2016/ZeroBias2/RAW/v1/000/268/955/00000/10B613AA-E1FD-E511-B37E-02163E01459C.root')
 )
 
 process.options = cms.untracked.PSet(
