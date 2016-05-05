@@ -121,4 +121,7 @@ samples = {
     "ZeroBiasRaw_com2016_8" :  Dataset(inputDataset='/ZeroBias8/Commissioning2016-PromptReco-v1/RAW',
                                       useParent=False, unitsPerJob=2, totalUnits=-1),
 
+    "MinimumBiasRaw_Run2016B" : Dataset(inputDataset='/MinimumBias/Run2016B-v1/RAW',
+                                      useParent=False, unitsPerJob=2, totalUnits=-1)
+
 }
