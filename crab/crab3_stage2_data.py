@@ -5,7 +5,7 @@ Run with 'python crab3_stage2_data.py'
 """
 
 
-from LSctions.crab3_cfg import config
+from L1Trigger.L1JetEnergyCorrections.crab3_cfg import config
 import L1Trigger.L1JetEnergyCorrections.data_samples as samples
 from CRABAPI.RawCommand import crabCommand
 import httplib
@@ -15,7 +15,7 @@ import sys
 
 
 # CMSSW CONFIG TO RUN
-PY_CONFIG = '../python/l1Ntuple_RAW2DIGI.py'
+PY_CONFIG = '../python/l1NtupleMaker_RAW2DIGI.py'
 
 # Auto-retrieve jet seed threshold in config
 # sys.path.append(os.path.dirname(os.path.abspath(PY_CONFIG)))  # nasty hack cos python packaging stoopid
@@ -24,7 +24,7 @@ PY_CONFIG = '../python/l1Ntuple_RAW2DIGI.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs, e.g v2
-job_append = "Stg2_Run272396_minBias_5May_v42p1"
+job_append = "Stg2_Run272396_minBias_5May_v42p1_EMU"
 # job_append = "Stg2_Run2015D_run259721_zeroBias_intv14p0Layer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 # CHANGE ME - select dataset(s) keys to run over - see data_samples.py

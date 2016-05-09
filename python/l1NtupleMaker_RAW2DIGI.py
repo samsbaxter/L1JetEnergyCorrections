@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: l1Ntuple -s RAW2DIGI --era=Run2_2016 --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODRAWEMU --geometry=Extended2016,Extended2016Reco --conditions=auto:run2_data --no_output -n 100 --data --filein=/store/data/Commissioning2016/ZeroBias2/AOD/PromptReco-v1/000/268/955/00000/36CC36F5-3900-E611-81A7-02163E0133A2.root --secondfilein=/store/data/Commissioning2016/ZeroBias2/RAW/v1/000/268/955/00000/06B47904-E2FD-E511-9C11-02163E013437.root
+# with command line options: l1Ntuple --conditions=80X_dataRun2_v13 -s RAW2DIGI -n 100 --era=Run2_2016 --data --filein=/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root --no_output --no_exec --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleEMU
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -26,9 +26,8 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/data/Commissioning2016/ZeroBias6/AOD/PromptReco-v1/000/269/224/00000/5A27D7AE-6802-E611-B799-02163E011D68.root'),
-    secondaryFileNames = cms.untracked.vstring('/store/data/Commissioning2016/ZeroBias6/RAW/v1/000/269/224/00000/0AE3FFA2-E7FF-E511-B3CE-02163E011E2F.root',
-    											'/store/data/Commissioning2016/ZeroBias6/RAW/v1/000/269/224/00000/54DBD396-E7FF-E511-83DE-02163E014697.root')
+    fileNames = cms.untracked.vstring('/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root'),
+    secondaryFileNames = cms.untracked.vstring()
 )
 
 process.options = cms.untracked.PSet(
@@ -48,7 +47,7 @@ process.configurationMetadata = cms.untracked.PSet(
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_v13', '')
 
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)
@@ -60,19 +59,16 @@ process.schedule = cms.Schedule(process.raw2digi_step,process.endjob_step)
 # customisation of the process.
 
 # Automatic addition of the customisation function from L1Trigger.Configuration.customiseReEmul
-from L1Trigger.Configuration.customiseReEmul import L1TReEmulFromRAW,L1TEventSetupForHF1x1TPs 
-
-#call to customisation function L1TReEmulFromRAW imported from L1Trigger.Configuration.customiseReEmul
-process = L1TReEmulFromRAW(process)
+from L1Trigger.Configuration.customiseReEmul import L1TEventSetupForHF1x1TPs 
 
 #call to customisation function L1TEventSetupForHF1x1TPs imported from L1Trigger.Configuration.customiseReEmul
 process = L1TEventSetupForHF1x1TPs(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1TNtuples.customiseL1Ntuple
-from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleAODRAWEMU 
+from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleEMU 
 
-#call to customisation function L1NtupleAODRAWEMU imported from L1Trigger.L1TNtuples.customiseL1Ntuple
-process = L1NtupleAODRAWEMU(process)
+#call to customisation function L1NtupleEMU imported from L1Trigger.L1TNtuples.customiseL1Ntuple
+process = L1NtupleEMU(process)
 
 # End of customisation functions
 

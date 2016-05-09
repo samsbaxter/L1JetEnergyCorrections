@@ -1,0 +1,13 @@
+Should probably make a new CMSSW config file every time.
+This is a log of cmsDriver.py commands have been sucessfully used.
+
+HARDWARE OUTPUT 2016
+cmsDriver.py l1NtupleMaker -s RAW2DIGI -n 100 --era=Run2_2016 --data --conditions=80X_dataRun2_v13 --no_output --no_exec --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleEMU --filein=/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root
+
+EMULATOR OUTPUT 2016
+
+
+
+HARDWARE & EMULATOR OUTPUT 2016
+
+
