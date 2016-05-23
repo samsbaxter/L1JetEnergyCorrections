@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: l1Ntuple --conditions=80X_dataRun2_v13 -s RAW2DIGI -n 100 --era=Run2_2016 --data --filein=/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root --no_output --no_exec --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleEMU
+# with command line options: l1NtupleDataMaker2016 --conditions=80X_dataRun2_v13 -s RAW2DIGI -n 100 --era=Run2_2016 --data --filein=/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root --no_output --no_exec --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleEMU
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
