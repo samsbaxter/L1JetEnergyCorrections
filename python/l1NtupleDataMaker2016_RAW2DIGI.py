@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: l1NtupleDataMaker2016 --conditions=80X_dataRun2_v13 -s RAW2DIGI -n 100 --era=Run2_2016 --data --filein=/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root --no_output --no_exec --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleEMU
+# with command line options: l1NtupleDataMaker2016 -s RAW2DIGI -n 100 --era=Run2_2016 --data --conditions=80X_dataRun2_v13 --no_output --no_exec --geometry=Extended2016,Extended2016Reco --customise=L1Trigger/Configuration/customiseReEmul.L1TEventSetupForHF1x1TPs --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleEMU --filein=/store/data/Run2016B/ZeroBias/RAW/v2/000/273/158/00000/0AC840F0-7418-E611-98C5-02163E01399D.root
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -26,7 +26,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/data/Run2016B/MinimumBias/RAW/v1/000/272/396/00000/C8E7944A-8B11-E611-A80C-02163E0136EE.root'),
+    fileNames = cms.untracked.vstring('/store/data/Run2016B/ZeroBias/RAW/v2/000/273/158/00000/0AC840F0-7418-E611-98C5-02163E01399D.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -36,7 +36,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('l1Ntuple nevts:100'),
+    annotation = cms.untracked.string('l1NtupleDataMaker2016 nevts:100'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -59,10 +59,13 @@ process.schedule = cms.Schedule(process.raw2digi_step,process.endjob_step)
 # customisation of the process.
 
 # Automatic addition of the customisation function from L1Trigger.Configuration.customiseReEmul
-from L1Trigger.Configuration.customiseReEmul import L1TEventSetupForHF1x1TPs 
+from L1Trigger.Configuration.customiseReEmul import L1TEventSetupForHF1x1TPs,L1TReEmulFromRAW 
 
 #call to customisation function L1TEventSetupForHF1x1TPs imported from L1Trigger.Configuration.customiseReEmul
 process = L1TEventSetupForHF1x1TPs(process)
+
+#call to customisation function L1TReEmulFromRAW imported from L1Trigger.Configuration.customiseReEmul
+process = L1TReEmulFromRAW(process)
 
 # Automatic addition of the customisation function from L1Trigger.L1TNtuples.customiseL1Ntuple
 from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleEMU 

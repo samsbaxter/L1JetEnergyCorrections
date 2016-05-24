@@ -15,7 +15,7 @@ import sys
 
 
 # CMSSW CONFIG TO RUN
-PY_CONFIG = '../python/l1NtupleMaker_RAW2DIGI.py'
+PY_CONFIG = '../python/l1NtupleDataMaker2016_RAW2DIGI.py'
 
 # Auto-retrieve jet seed threshold in config
 # sys.path.append(os.path.dirname(os.path.abspath(PY_CONFIG)))  # nasty hack cos python packaging stoopid

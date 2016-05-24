@@ -34,8 +34,9 @@ import os
 def get_number_files(dataset):
     """Get total number of files in dataset"""
     HOME = os.environ['HOME']
-    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json',
-            '--key=%s/.globus/userkey.pem' % HOME, '--cert=%s/.globus/usercert.pem' % HOME]
+    # cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json',
+    #         '--key=%s/.globus/userkey.pem' % HOME, '--cert=%s/.globus/usercert.pem' % HOME]
+    cmds = ['das_client.py', '--query', 'summary dataset=%s' % dataset, '--format=json']
     output = subprocess.check_output(cmds, stderr=subprocess.STDOUT)
     summary_dict = json.loads(output)
     return int(summary_dict['data'][0]['summary'][0]['nfiles'])
