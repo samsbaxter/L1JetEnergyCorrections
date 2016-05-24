@@ -21,6 +21,7 @@
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1ExtraDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeDataFormat.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisRecoVertexDataFormat.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisGeneratorDataFormat.h"
 
 // Headers from this package
 #include "DeltaR_Matcher.h"
@@ -37,6 +38,7 @@ using L1Analysis::L1AnalysisEventDataFormat;
 using L1Analysis::L1AnalysisL1ExtraDataFormat;
 using L1Analysis::L1AnalysisL1UpgradeDataFormat;
 using L1Analysis::L1AnalysisRecoVertexDataFormat;
+using L1Analysis::L1AnalysisGeneratorDataFormat;
 using boost::lexical_cast;
 
 namespace fs = boost::filesystem;
@@ -78,10 +80,10 @@ int main(int argc, char* argv[]) {
     // get input TTrees
     // Reference jets - GenJets
     TString refJetDirectory = opts.refJetDirectory();
-    L1GenericTree<L1AnalysisL1ExtraDataFormat> refJetTree(opts.inputFilename(),
-                                                          refJetDirectory+"/L1ExtraTree",
-                                                          "L1Extra");
-    L1AnalysisL1ExtraDataFormat * refData = refJetTree.getData();
+    L1GenericTree<L1AnalysisGeneratorDataFormat> refJetTree(opts.inputFilename(),
+                                                          refJetDirectory+"/L1GenTree",
+                                                          "Generator");
+    L1AnalysisGeneratorDataFormat * refData = refJetTree.getData();
 
     // L1 jets
     TString l1JetDirectory = opts.l1JetDirectory();
@@ -90,8 +92,8 @@ int main(int argc, char* argv[]) {
                                                            "L1Upgrade");
     L1AnalysisL1UpgradeDataFormat * l1Data = l1JetTree.getData();
 
-    // TTree that holds PileupInfo
-    PileupInfoTree puInfoTree(opts.inputFilename());
+    // // TTree that holds PileupInfo (joe: this is in the gen jet info...)
+    // PileupInfoTree puInfoTree(opts.inputFilename());
 
     // hold Event tree
     L1GenericTree<L1AnalysisEventDataFormat> eventTree(opts.inputFilename(),
@@ -273,21 +275,24 @@ int main(int argc, char* argv[]) {
         // Store pileup quantities //
         /////////////////////////////
         // note these get stored once per pair of matched jets NOT once per event
-        puInfoTree.GetEntry(iEntry);
-        out_trueNumInteractions = puInfoTree.trueNumInteractions();
-        out_numPUVertices = puInfoTree.numPUVertices();
+        // puInfoTree.GetEntry(iEntry);
+        // out_trueNumInteractions = puInfoTree.trueNumInteractions();
+        // out_numPUVertices = puInfoTree.numPUVertices();
+        out_trueNumInteractions = refData->nMeanPU;
+        out_numPUVertices = refData->nVtx;
+
         // out_recoNVtx = recoVtxData->nVtx;
 
         /////////////////////////////////////////////
         // Make vectors of ref & L1 jets from trees //
         /////////////////////////////////////////////
-        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->cenJetEt, refData->cenJetEta, refData->cenJetPhi);
+        std::vector<TLorentzVector> refJets = makeTLorentzVectors(refData->jetPt, refData->jetEta, refData->jetPhi);
         std::vector<TLorentzVector> l1Jets = makeTLorentzVectors(l1Data->jetEt, l1Data->jetEta, l1Data->jetPhi);
         // apply calibration
-        for (auto & itr: l1Jets) {
-            double corrEt = itr.Et() * correction(itr.Et(), itr.Eta(), funcParams4);
-            itr.SetPtEtaPhiM(corrEt, itr.Eta(), itr.Phi(), 0);
-        }
+        // for (auto & itr: l1Jets) {
+        //     double corrEt = itr.Et() * correction(itr.Et(), itr.Eta(), funcParams4);
+        //     itr.SetPtEtaPhiM(corrEt, itr.Eta(), itr.Phi(), 0);
+        // }
 
         out_nL1 = l1Jets.size();
         out_nRef = refJets.size();
