@@ -35,6 +35,7 @@ ROOT.TH1.SetDefaultSumw2(True)
 # definition of the response function to fit to get our correction function
 # MAKE SURE IT'S THE SAME ONE THAT IS USED IN THE EMULATOR
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
+central_fit_newJetMet = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-([4]*(log10(x)-[5])*(log10(x)-[5])))+[6]*exp(-([7]*(log10(x)-[8])*(log10(x)-[8])))")
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
 # Burr Type 3 distribution for response hist fitting
@@ -77,9 +78,9 @@ burr12_fit.SetParameter(4, 1.01)
 # Curve Fit defaults
 GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
-STAGE2_DEFAULT_PARAMS = [-0.5, 50, 1, -80, 0.01, -20]
+# STAGE2_DEFAULT_PARAMS = [-0.5, 50, 1, -80, 0.01, -20]
 STAGE2_DEFAULT_PARAMS = [3.0, 35., 3, -200, 0.01, -20]
-
+STAGE2_DEFAULT_PARAMS_newJetMet = [3.0, 35., 3, -200, 0.01, -20, 1, 0, 0] # new jet met function has three more parameters
 
 def set_fit_params(fitfunc, params):
     """Set function parameters.
@@ -783,7 +784,8 @@ def main(in_args=sys.argv[1:]):
         # can cause fit failures
         default_params = []
         if args.stage2:
-            default_params = STAGE2_DEFAULT_PARAMS
+            # default_params = STAGE2_DEFAULT_PARAMS
+            default_params =STAGE2_DEFAULT_PARAMS_newJetMet
         elif args.stage1:
             default_params = STAGE1_DEFAULT_PARAMS
         elif args.gct:
@@ -794,7 +796,8 @@ def main(in_args=sys.argv[1:]):
             print "Inheriting params from last fit"
             default_params = previous_fit_params[:]
 
-        fitfunc = central_fit
+        # fitfunc = central_fit # old jet met version
+        fitfunc = central_fit_newJetMet # new jet met version
         set_fit_params(fitfunc, default_params)
 
         # Actually do the graph making and/or fitting!
