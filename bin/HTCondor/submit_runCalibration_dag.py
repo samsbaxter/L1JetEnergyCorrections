@@ -53,8 +53,13 @@ PAIRS_FILES = [
 '/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4.root'
 ]
 
-# Select eta bins to run over
-ETA_BINS = binning.eta_bins
+# Select which set of eta bins to run over (and change the name so we can put it in the filename)
+# new version (bin for every two trigger-towers)
+ETA_BINS = binning.eta_bins_v2
+etaBinsLabel = "_etaBinsVersion2"
+# old version (bin for every four trigger-towers)
+# ETA_BINS = binning.eta_bins
+# etaBinsLabel = "_etaBinsOriginal"
 
 # Select PU bins to run over
 # PU_BINS = None  # None if you don't want to cut on PU
@@ -64,7 +69,7 @@ PU_BINS = binning.pu_bins
 # String to append to output ROOT filename, depending on PU
 # Note that the things in {} get formatted out later, see below
 # Bit of dodgy magic
-APPEND = "_PU{puMin}to{puMax}" if PU_BINS else ""
+APPEND = etaBinsLabel + "_PU{puMin}to{puMax}" if PU_BINS else etaBinsLabel
 
 # Directory for logs (should be on /storage)
 # Will be created automatically by htcondenser
