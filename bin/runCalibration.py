@@ -35,7 +35,9 @@ ROOT.TH1.SetDefaultSumw2(True)
 # definition of the response function to fit to get our correction function
 # MAKE SURE IT'S THE SAME ONE THAT IS USED IN THE EMULATOR
 central_fit = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
-central_fit_newJetMet = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-([4]*(log10(x)-[5])*(log10(x)-[5])))+[6]*exp(-([7]*(log10(x)-[8])*(log10(x)-[8])))")
+central_fit_newJetMet1 = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-([4]*(log10(x)-[5])*(log10(x)-[5])))+[6]*exp(-([7]*(log10(x)-[8])*(log10(x)-[8])))")
+central_fit_newJetMetErr = ROOT.TF1("fitfcn", "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))")
+
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
 # Burr Type 3 distribution for response hist fitting
@@ -80,7 +82,8 @@ GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 # STAGE2_DEFAULT_PARAMS = [-0.5, 50, 1, -80, 0.01, -20]
 STAGE2_DEFAULT_PARAMS = [3.0, 35., 3, -200, 0.01, -20]
-STAGE2_DEFAULT_PARAMS_newJetMet = [3.0, 35., 3, -200, 0.01, -20, 1, 0, 0] # new jet met function has three more parameters
+STAGE2_DEFAULT_PARAMS_newJetMet1 = [3.0, 35., 3, -200, 0.01, -20, 1, 0, 0] # new jet met function has three more parameters
+STAGE2_DEFAULT_PARAMS_newJetMetErr = [0, 0, 0, 0, 0, 0] # other new jet met function, err func style (no idea what params should be)
 
 def set_fit_params(fitfunc, params):
     """Set function parameters.
@@ -785,7 +788,8 @@ def main(in_args=sys.argv[1:]):
         default_params = []
         if args.stage2:
             # default_params = STAGE2_DEFAULT_PARAMS
-            default_params =STAGE2_DEFAULT_PARAMS_newJetMet
+            default_params =STAGE2_DEFAULT_PARAMS_newJetMet1 # new jet met version (additional exp term)
+            # default_params =STAGE2_DEFAULT_PARAMS_newJetMetErr # other jet met version (err func. style)
         elif args.stage1:
             default_params = STAGE1_DEFAULT_PARAMS
         elif args.gct:
@@ -797,7 +801,8 @@ def main(in_args=sys.argv[1:]):
             default_params = previous_fit_params[:]
 
         # fitfunc = central_fit # old jet met version
-        fitfunc = central_fit_newJetMet # new jet met version
+        fitfunc = central_fit_newJetMet1 # new jet met version
+        # fitfunc = central_fit_newJetMetErr # other jet met version (err func. style)
         set_fit_params(fitfunc, default_params)
 
         # Actually do the graph making and/or fitting!

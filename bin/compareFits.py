@@ -31,17 +31,17 @@ def compare():
               ROOT.kOrange+7, ROOT.kAzure+1, ROOT.kRed+3, ROOT.kViolet+1,
               ROOT.kOrange-3, ROOT.kTeal-5]
 
-    s2_new = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre5/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_12Feb_85a0ccf_noJEC_fixedPUS/output'
-    f_0PU_new = os.path.join(s2_new, 'output_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
-    f_PU0to10_new = os.path.join(s2_new, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
-    f_PU15to25_new = os.path.join(s2_new, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
-    f_PU30to40_new = os.path.join(s2_new, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
+    s2_new = '/users/jt15104/local_L1JEC_store'
+    # f_0PU_new = os.path.join(s2_new, 'output_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
+    f_PU0to10_new = os.path.join(s2_new, 'output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_new = os.path.join(s2_new, 'output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_new = os.path.join(s2_new, 'output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
 
-    # s2_old = '/users/ra12451/L1JEC/CMSSW_7_6_0_pre7/src/L1Trigger/L1JetEnergyCorrections/Stage2_QCDFlatSpring15BX25HCALFix_26Nov_76X_mcRun2_asymptotic_v5_jetSeed1p5_noJec_v2/output/'
+    s2_old = '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/output'
     # f_0PU_old = os.path.join(s2_old, 'output_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_orig.root')
-    # f_PU0to10_old = os.path.join(s2_old, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10_orig.root')
-    # f_PU15to25_old = os.path.join(s2_old, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25_orig.root')
-    # f_PU30to40_old = os.path.join(s2_old, 'output_QCDFlatSpring15BX25PU10to30HCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40_orig.root')
+    f_PU0to10_old = os.path.join(s2_old, '/output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root')
+    f_PU15to25_old = os.path.join(s2_old, '/output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root')
+    f_PU30to40_old = os.path.join(s2_old, '/output_QCDFlatFall15PU0to50NzshcalRaw_MP_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root')
 
     # s2_buggy = '/users/ra12451/L1JEC/CMSSW_8_0_0_pre5/src/L1Trigger/L1JetEnergyCorrections/Stage2_HF_QCDFlatSpring15BX25HCALFix_10Feb_2dd1043_noJEC_v2/output'
     # f_0PU_buggy = os.path.join(s2_buggy, 'output_QCDFlatSpring15BX25FlatNoPUHCALFix_MP_ak4_ref10to5000_l10to5000_dr0p4.root')
@@ -241,8 +241,8 @@ def compare():
     # Plot different PU scenarios for given eta bin
     # --------------------------------------------------------------------
     graphs = [
-        Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
-                     label="0PU", line_color=colors[0], marker_color=colors[0]),
+        # Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
+        #              label="0PU", line_color=colors[0], marker_color=colors[0]),
         Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
                      label="PU: 0 - 10", line_color=colors[1], marker_color=colors[1]),
         Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
@@ -250,13 +250,12 @@ def compare():
         Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
                      label="PU: 30 - 40", line_color=colors[3], marker_color=colors[3])
     ]
-    """
-    title = "Spring15 MC, no JEC, Stage 2, {pu_label}"
-    compare_eta_by_pu_bins(graphs, pu_labels, title, s2_new, lowpt_zoom=True)
-    compare_PU_by_eta_bins(graphs, title, s2_new, lowpt_zoom=True)
-    """
 
-    """
+    title = "Fall15MC, no JEC, Stage 2, eta_{eta_min:g}_{eta_max:g}"
+    # compare_eta_by_pu_bins(graphs, pu_labels, title, s2_new, lowpt_zoom=True)
+    compare_PU_by_eta_bins(graphs, title, s2_new, lowpt_zoom=True)
+
+
     # --------------------------------------------------------------------
     # New vs Old curves
     # --------------------------------------------------------------------
@@ -264,26 +263,26 @@ def compare():
         # Contribution(file_name=f_0PU_new, obj_name=corr_eta_graph_name,
         #              label="0PU (800pre5)", line_color=colors[0], marker_color=colors[0]),
         Contribution(file_name=f_PU0to10_new, obj_name=corr_eta_graph_name,
-                     label="PU: 0 - 10 (800pre5)", line_color=colors[1], marker_color=colors[1]),
+                     label="PU: 0 - 10 (new layer 1)", line_color=colors[1], marker_color=colors[1]),
         Contribution(file_name=f_PU15to25_new, obj_name=corr_eta_graph_name,
-                     label="PU: 15 - 25 (800pre5)", line_color=colors[2], marker_color=colors[2]),
+                     label="PU: 15 - 25 (new layer 1)", line_color=colors[2], marker_color=colors[2]),
         Contribution(file_name=f_PU30to40_new, obj_name=corr_eta_graph_name,
-                     label="PU: 30 - 40 (800pre5)", line_color=colors[3], marker_color=colors[3])
+                     label="PU: 30 - 40 (new layer 1)", line_color=colors[3], marker_color=colors[3])
     ]
 
     old_graphs = [
         # Contribution(file_name=f_0PU_old, obj_name=corr_eta_graph_name,
         #              label="0PU (760pre7)", line_style=2, line_color=colors[0], marker_color=colors[0]),
         Contribution(file_name=f_PU0to10_old, obj_name=corr_eta_graph_name,
-                     label="PU: 0 - 10 (760pre7)", line_style=2, line_color=colors[1], marker_color=colors[1]),
+                     label="PU: 0 - 10 (old layer 1)", line_style=2, line_color=colors[1], marker_color=colors[1]),
         Contribution(file_name=f_PU15to25_old, obj_name=corr_eta_graph_name,
-                     label="PU: 15 - 25 (760pre7)", line_style=2, line_color=colors[2], marker_color=colors[2]),
+                     label="PU: 15 - 25 (old layer 1)", line_style=2, line_color=colors[2], marker_color=colors[2]),
         Contribution(file_name=f_PU30to40_old, obj_name=corr_eta_graph_name,
-                     label="PU: 30 - 40 (760pre7)", line_style=2, line_color=colors[3], marker_color=colors[3])
+                     label="PU: 30 - 40 (old layer 1)", line_style=2, line_color=colors[3], marker_color=colors[3])
     ]
-    title = "Spring15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
-    compare_by_eta_pu_bins([new_graphs, old_graphs], '800pre5_760pre7', pu_labels, title, s2_new)
-    """
+    title = "Fall15 MC, no JEC, Stage 2, {eta_min:g} < |#eta| < {eta_max:g}"
+    compare_by_eta_pu_bins([new_graphs, old_graphs], 'new vs old', pu_labels, title, s2_new)
+    return
 
     """
     # --------------------------------------------------------------------
