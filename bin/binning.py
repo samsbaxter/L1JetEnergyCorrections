@@ -67,18 +67,21 @@ check_pt_bins = [[0, 20], [20, 30], [30, 40], [40, 50], [50, 60], [60, 80], [80,
 ############
 # ETA BINS
 ############
-# robins old version. Four (not in hf) discrete l1 eta values per bin
-eta_bins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
+# robins old version of eta info. Four (not in hf) discrete l1 eta values per bin
+# eta_bins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
+# eta_bins_all = [-5, -4.5, -4.0, -3.5, -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348,
+#                 0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
 
 # new version. Two discrete l1 eta values per bin (start off by going up in multiples of 0.175)
 eta_bins = [0.000, 0.175, 0.350, 0.525, 0.700, 0.875, 1.050, 1.225, 1.400, 1.575, 1.750, 1.925, 2.100, 2.500, 3.000, 3.500, 3.900, 4.100, 4.500, 5.000]
 
+eta_bins_all = [-5.000, -4.500, -4.100, -3.900, -3.500, -3.000, -2.500, -2.100, -1.925, -1.750, -1.575, -1.400, -1.225, -1.050, -0.875, -0.700, -0.525, -0.350, -0.175,
+                  0.000, 0.175, 0.350, 0.525, 0.700, 0.875, 1.050, 1.225, 1.400, 1.575, 1.750, 1.925, 2.100, 2.500, 3.000, 3.500, 3.900, 4.100, 4.500, 5.000]
 
-eta_bins_all = [-5, -4.5, -4.0, -3.5, -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348,
-                0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
+
 eta_bins_central = [eta for eta in eta_bins if eta < 3.1]
 eta_bins_forward = [eta for eta in eta_bins if eta > 2.9]
-# a handy palette of colours
+# a handy palette of colours. TODO: add more colours as we now have more bins
 eta_bin_colors = [ROOT.kRed,
                   ROOT.kBlue,
                   ROOT.kGreen + 2,
@@ -90,6 +93,10 @@ eta_bin_colors = [ROOT.kRed,
                   ROOT.kViolet + 1,
                   ROOT.kOrange,
                   ROOT.kTeal - 5]
+
+
+
+
 
 ##########
 # PU BINS
