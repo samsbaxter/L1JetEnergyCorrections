@@ -34,9 +34,9 @@ ROOT.TH1.SetDefaultSumw2(True)
 
 # definition of the response function to fit to get our correction function
 # MAKE SURE IT'S THE SAME ONE THAT IS USED IN THE EMULATOR
-central_fit_original = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
-central_fit_newJetMet1 = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-([4]*(log10(x)-[5])*(log10(x)-[5])))+[6]*exp(-([7]*(log10(x)-[8])*(log10(x)-[8])))")
-central_fit_newJetMetErr = ROOT.TF1("fitfcn", "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))")
+central_fit_conventional = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))")
+central_fit_JetMet1 = ROOT.TF1("fitfcn", "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-([4]*(log10(x)-[5])*(log10(x)-[5])))+[6]*exp(-([7]*(log10(x)-[8])*(log10(x)-[8])))")
+central_fit_JetMetErr = ROOT.TF1("fitfcn", "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))")
 
 forward_fit = ROOT.TF1("fitfcn", "pol0")
 
@@ -81,21 +81,21 @@ burr12_fit.SetParameter(4, 1.01)
 GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 # STAGE2_DEFAULT_PARAMS_ORIGINAL = [-0.5, 50, 1, -80, 0.01, -20]
-STAGE2_DEFAULT_PARAMS_ORIGINAL = [3.0, 35., 3, -200, 0.01, -20]
-STAGE2_DEFAULT_PARAMS_NEWJETMET1 = [3.0, 35., 3, -200, 0.01, -20, 1, 0, 0] # new jet met function has three more parameters
-STAGE2_DEFAULT_PARAMS_NEWJETMETERR = [0, 0, 0, 0, 0, 0] # other new jet met function, err func style (no idea what params should be)
+STAGE2_DEFAULT_PARAMS_CONVENTIONAL = [3.0, 35., 3, -200, 0.01, -20]
+STAGE2_DEFAULT_PARAMS_JETMET1 = [3.0, 35., 3, -200, 0.01, -20, 1, 0, 0] # new jet met function has three more parameters
+STAGE2_DEFAULT_PARAMS_JETMETERR = [0, 0, 0, 0, 0, 0] # other new jet met function, err func style (no idea what params should be)
 
 #######################################################
 # select which fit function and input parameters to use
 #######################################################
-central_fit_select = central_fit_original
-STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_ORIGINAL
+central_fit_select = central_fit_conventional
+STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_CONVENTIONAL
 
-# central_fit_select = central_fit_newJetMet1
-# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_NEWJETMET1
+# central_fit_select = central_fit_JetMet1
+# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMET1
 
-# central_fit_select = central_fit_newJetMetErr
-# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_NEWJETMETERR
+# central_fit_select = central_fit_JetMetErr
+# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMETERR
 
 
 def set_fit_params(fitfunc, params):
