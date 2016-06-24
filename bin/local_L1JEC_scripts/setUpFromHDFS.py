@@ -14,17 +14,26 @@ import sys
 ##################################################
 # make sure the new directory has a clear name
 # dateOfNtupleCreation, dataType, cmssw version, dr, etaBinning
-newDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p4_etaBinningOriginal/"
+newDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion2/"
 
 checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/check/"
-checkCalibFiles = ["check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU0to10_maxPt1022.root",
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU15to25_maxPt1022.root",
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU30to40_maxPt1022.root",]
+# comment out files that you don't wish to copy (eg they don't exist yet)
+checkCalibFiles = [
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU0to10_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU15to25_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU30to40_maxPt1022.root",
+					]
 
 runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/output/"
-runCalibFiles = ["output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU0to10.root",
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU15to25.root",
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4_PU30to40.root",]
+runCalibFiles = [
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU0to10.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU15to25.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU30to40.root",
+					]
+
+##################################################
+##################################################
+##################################################
 
 
 # setup the locations required
@@ -41,14 +50,11 @@ for i in range(0, len(runCalibFiles)):
 	runCalibFiles_initialCopy.append(runCalibFiles[i])
 	runCalibFiles_initialCopy[i] = runCalibFiles_initialCopy[i][:-5] + "_initialCopy.root"
 
-##################################################
-##################################################
-##################################################
 
-# make the directories for the files
+# make the directories for the files if they don't already exist
 if os.path.isdir(newDirectoryPath):
-	print "The directory " + newDirectory + " already exists...\nexiting..."
-	sys.exit()
+	# print "The directory " + newDirectory + " already exists...\nexiting..."
+	# sys.exit() # want to carry on
 
 else:
 	os.system("mkdir " + newDirectoryPath)
