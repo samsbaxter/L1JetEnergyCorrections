@@ -1,13 +1,19 @@
 import os
 import sys
 
-# does creates the framework for the local L1JEC analysis
-# TODO: could automate local running of run calibrations 
+# creates the framework for the local L1JEC analysis
+# 
+# select the new dir name
+# select the directories and files we wish to copy
+# 
+# $ python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/setUpFromHDFS.py
 
-#############
-# user inputs
-#############
+
+##################################################
+# user inputs ####################################
+##################################################
 # make sure the new directory has a clear name
+# dateOfNtupleCreation, dataType, cmssw version, dr, etaBinning
 newDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p4_etaBinningOriginal/"
 
 checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/check/"
@@ -35,6 +41,9 @@ for i in range(0, len(runCalibFiles)):
 	runCalibFiles_initialCopy.append(runCalibFiles[i])
 	runCalibFiles_initialCopy[i] = runCalibFiles_initialCopy[i][:-5] + "_initialCopy.root"
 
+##################################################
+##################################################
+##################################################
 
 # make the directories for the files
 if os.path.isdir(newDirectoryPath):

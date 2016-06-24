@@ -1,6 +1,13 @@
 import os
 import sys
 
+# choose the mother directory
+# choose the fit type (ie the daughter directory), make sure the same has been selected in runCalibration.py
+# set the input file names
+# and the output file names (either a test or an append)
+# $ python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/runCalibFitsLocally.py
+
+
 ############################################
 # user defined section #####################
 ############################################
@@ -37,8 +44,4 @@ for i in range(0, len(inputFiles)):
 os.system("python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/runCalibration.py "
 			+ inputFiles[i] + " " + outputFiles[i]
 			+ " --redo-correction-fit --inherit-params --stage2")
-
-
-local = "/users/jt15104/local_L1JEC_store/"
-scriptPath = "/users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/runCalibration.py"
 
