@@ -47,4 +47,6 @@ for i in range(0, len(inputFiles)):
 	os.system("python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/runCalibration.py "
 			+ inputFiles[i] + " " + outputFiles[i]
 			+ " --redo-correction-fit --inherit-params --stage2")
+	print "done " + str(i+1) + " of " + str(len(inputFiles)) + " routines"
 
+print "all done:)"

@@ -81,18 +81,18 @@ burr12_fit.SetParameter(4, 1.01)
 GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 # STAGE2_DEFAULT_PARAMS_ORIGINAL = [-0.5, 50, 1, -80, 0.01, -20]
-STAGE2_DEFAULT_PARAMS_CONVENTIONAL = [3.0, 35., 3, -200, 0.01, -20]
-STAGE2_DEFAULT_PARAMS_JETMET1 = [3.0, 35., 3, -200, 0.01, -20, 1, 0, 0] # new jet met function has three more parameters
-STAGE2_DEFAULT_PARAMS_JETMETERR = [0, 0, 0, 0, 0, 0] # other new jet met function, err func style (no idea what params should be)
+STAGE2_DEFAULT_PARAMS_CONVENTIONAL = [6.89, -252.79, 27.01, 4345.01, 0.01, -20.9794]
+STAGE2_DEFAULT_PARAMS_JETMET1 = [6.89, -252.79, 27.01, 4345.01, 0.01, -20.9794, 0, 0, 0] # new jet met function has three more parameters
+STAGE2_DEFAULT_PARAMS_JETMETERR = [1.36, -1398000, 0, -0.74, 0, -2.15, 1.04] # other new jet met function, err func style (no idea what params should be)
 
 #######################################################
 # select which fit function and input parameters to use
 #######################################################
-central_fit_select = central_fit_conventional
-STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_CONVENTIONAL
+# central_fit_select = central_fit_conventional
+# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_CONVENTIONAL
 
-# central_fit_select = central_fit_JetMet1
-# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMET1
+central_fit_select = central_fit_JetMet1
+STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMET1
 
 # central_fit_select = central_fit_JetMetErr
 # STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMETERR
