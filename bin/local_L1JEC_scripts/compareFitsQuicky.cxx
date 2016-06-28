@@ -12,7 +12,7 @@ void makePlots(std::string,std::string,std::string);
 
 void compareFitsQuicky(){
 
-	std::string directory = "/users/jt15104/local_L1JEC_store/26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion2/runCalib_jetMetFit1/";
+	std::string directory = "/users/jt15104/local_L1JEC_store/26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion2/runCalib_jetMetFitErr/";
 	
 	std::string inputFile1 = "testPU0to10.root";
 	std::string outputName1 = "fitsPU0to10.pdf";
@@ -80,6 +80,7 @@ void makePlots(std::string inputFile, std::string outputFile, std::string direct
 	TCanvas * c3 = new TCanvas("c3", "", 600, 600);
 	gStyle->SetOptStat(0);
 	g00->GetYaxis()->SetRangeUser(0.9,2.0);
+	g00->GetXaxis()->SetRangeUser(20,300);
 	g00->Draw();
 	g01->Draw("same");
 	g02->Draw("same");
