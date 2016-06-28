@@ -71,17 +71,28 @@ check_pt_bins = [[0, 20], [20, 30], [30, 40], [40, 50], [50, 60], [60, 80], [80,
 # the eta_bins_label is to hack onto the output file names so we can distinguish them
 
 # # robins original version of eta info. Four (not in hf) discrete l1 eta values per bin
-eta_bins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
-eta_bins_all = [-5, -4.5, -4.0, -3.5, -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348,
-                0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
-eta_bins_label = "_etaBinsOriginal"
+# eta_bins = [0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
+# eta_bins_all = [-5, -4.5, -4.0, -3.5, -3.0, -2.172, -1.74, -1.392, -1.044, -0.695, -0.348,
+#                 0.0, 0.348, 0.695, 1.044, 1.392, 1.74, 2.172, 3.0, 3.5, 4.0, 4.5, 5]
+# eta_bins_label = "_etaBinsOriginal"
 
 
-# new version (version 2). Two discrete l1 eta values per bin (start off by going up in multiples of 0.175)
+# new version (version 2). Two discrete l1 eta values per bin (start off by going up in multiples of 0.175)...TODO: use the official end values...
 # eta_bins = [0.000, 0.175, 0.350, 0.525, 0.700, 0.875, 1.050, 1.225, 1.400, 1.575, 1.750, 1.925, 2.100, 2.500, 3.000, 3.500, 3.900, 4.100, 4.500, 5.000]
 # eta_bins_all = [-5.000, -4.500, -4.100, -3.900, -3.500, -3.000, -2.500, -2.100, -1.925, -1.750, -1.575, -1.400, -1.225, -1.050, -0.875, -0.700, -0.525, -0.350, -0.175,
 #                   0.000, 0.175, 0.350, 0.525, 0.700, 0.875, 1.050, 1.225, 1.400, 1.575, 1.750, 1.925, 2.100, 2.500, 3.000, 3.500, 3.900, 4.100, 4.500, 5.000]
 # eta_bins_label = "_etaBinsVersion2"
+
+
+# another new version (version 3). Initally two discrete l1 eta values per bin (for the first 14 discrete eta bins)
+# Then every individual bin until the end...
+eta_bins = [0.000, 0.174, 0.348, 0.552, 0.696, 0.870, 1.044, 1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.740, 1.830, 1.930, 2.043, 2.172, 2.322, 2.500,
+            2.650, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191]
+eta_bins_all = [-5.191,-4.889,-4.716,-4.538,-4.363,-4.191,-4.013,-3.839,-3.664,-3.489,-3.314,-3.139,-2.964,-2.650,-2.500,-2.322,-2.172,-2.043,-1.930,-1.830,
+                -1.740,-1.653,-1.566,-1.479,-1.392,-1.305,-1.218,-1.044,-0.870,-0.696,-0.552,-0.348,-0.174, 0.000, 0.174, 0.348, 0.552, 0.696, 0.870, 1.044,
+                1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.740, 1.830, 1.930, 2.043, 2.172, 2.322, 2.500, 2.650, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839,
+                4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191]
+eta_bins_label = "_etaBinsVersion3"
 
 
 eta_bins_central = [eta for eta in eta_bins if eta < 3.1]
@@ -98,8 +109,6 @@ eta_bin_colors = [ROOT.kRed,
                   ROOT.kViolet + 1,
                   ROOT.kOrange,
                   ROOT.kTeal - 5]
-
-
 
 
 
