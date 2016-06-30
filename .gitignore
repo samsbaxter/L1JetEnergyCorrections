@@ -46,3 +46,6 @@ crab_get_hadd_*
 PROOF
 GUI
 Aaron
+*_cxx.d
+*_cxx.so
+*_cxx_ACLiC_dist_rdict.pcm
