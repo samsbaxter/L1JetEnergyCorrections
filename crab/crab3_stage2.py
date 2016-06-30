@@ -24,15 +24,15 @@ PY_CONFIG = '../python/l1NtupleMcMaker2016_RAW2DIGI.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "QCDFall15_genEmuReco_23May_jbntuples"
+job_append = "QCDFall15_genEmu_30June2016_809v70_noJEC_ADDHASH"
 # job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 
 # CHANGE ME - select dataset(s) keys to run over - see python/mc_samples.py
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFix", "QCDFlatSpring15BX25FlatNoPUHCALFix"]  # Fall15, RAW only
 # datasets = ["QCDFlatSpring15BX25PU10to30HCALFixRECO", "QCDFlatSpring15BX25FlatNoPUHCALFixRECO"]  # Spring15, RAW + RECO (via useParent)
-datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
-# datasets = ["QCDFlatFall15PU0to50NzshcalRaw", "QCDFlatFall15NoPU"]  # Fall15, RAW
+# datasets = ["QCDFlatFall15PU0to50NzshcalRawRECO", "QCDFlatFall15NoPURECO"]  # Fall15, RAW + RECO (via useParent)
+datasets = ["QCDFlatFall15PU0to50NzshcalRaw", "QCDFlatFall15NoPU"]  # Fall15, RAW
 # datasets = ["ttHTobbFall15PU30RECO"]  # Fall15, RAW + RECO
 
 if __name__ == "__main__":
