@@ -7,28 +7,30 @@ import sys
 # select the directories and files we wish to copy
 # 
 # $ python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/setUpFromHDFS.py
-
+# 
+# watchout! you could easily overwrite...(maybe not the worst thing ever)
 
 ##################################################
 # user inputs ####################################
 ##################################################
 # make sure the new directory has a clear name
 # dateOfNtupleCreation, dataType, cmssw version, dr, etaBinning
-newDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion2/"
+newDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion4/"
 
 checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/check/"
 # comment out files that you don't wish to copy (eg they don't exist yet)
 checkCalibFiles = [
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU0to10_maxPt1022.root",
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU15to25_maxPt1022.root",
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU30to40_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU0to10_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU15to25_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU30to40_maxPt1022.root",
 					]
 
 runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/output/"
+# comment out files that you don't wish to copy (eg they don't exist yet)
 runCalibFiles = [
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU0to10.root",
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU15to25.root",
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU30to40.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU0to10.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU15to25.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU30to40.root",
 					]
 
 ##################################################
@@ -53,8 +55,9 @@ for i in range(0, len(runCalibFiles)):
 
 # make the directories for the files if they don't already exist
 if os.path.isdir(newDirectoryPath):
+	print "the directory already exists"
 	# print "The directory " + newDirectory + " already exists...\nexiting..."
-	# sys.exit() # want to carry on
+	# sys.exit() # don't do this if you want to continue
 
 else:
 	os.system("mkdir " + newDirectoryPath)

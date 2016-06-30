@@ -12,17 +12,17 @@ import sys
 ############################################
 # user defined section #####################
 ############################################
-motherDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion2/"
+motherDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion4/"
 
 # must ensure that the runCalibration file is set-up to use the same fit! TODO: automate it?
 # daughterDirectory = "runCalib_conventionalFit/"
-daughterDirectory = "runCalib_jetMetFit1/"
-# daughterDirectory = "runCalib_jetMetFitErr/"
+# daughterDirectory = "runCalib_jetMetFit1/"
+daughterDirectory = "runCalib_jetMetFitErr/"
 
 inputFiles = [
-				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU0to10.root",
-				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU15to25.root",
-				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion2_PU30to40.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU0to10.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU15to25.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU30to40.root",
 				]
 
 # initially output a test file
