@@ -82,7 +82,7 @@ GCT_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 # STAGE2_DEFAULT_PARAMS_ORIGINAL = [-0.5, 50, 1, -80, 0.01, -20]
 STAGE2_DEFAULT_PARAMS_CONVENTIONAL = [6.89, -252.79, 27.01, 4345.01, 0.01, -20.9794]
-STAGE2_DEFAULT_PARAMS_JETMET1 = [6.89, -252.79, 27.01, 4345.01, 0.01, -20.9794, 0, 0, 0] # new jet met function has three more parameters
+STAGE2_DEFAULT_PARAMS_JETMET1 = [-11.64, -43.50, 1.19, 2190.7, 0, -19.51, -18.7426, 0.22, 0.98] # new jet met function has three more parameters
 STAGE2_DEFAULT_PARAMS_JETMETERR = [1.36, -1398000, 0, -0.74, 0, -2.15, 1.04] # other new jet met function, err func style (no idea what params should be)
 
 #######################################################
@@ -91,11 +91,11 @@ STAGE2_DEFAULT_PARAMS_JETMETERR = [1.36, -1398000, 0, -0.74, 0, -2.15, 1.04] # o
 # central_fit_select = central_fit_conventional
 # STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_CONVENTIONAL
 
-central_fit_select = central_fit_JetMet1
-STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMET1
+# central_fit_select = central_fit_JetMet1
+# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMET1
 
-# central_fit_select = central_fit_JetMetErr
-# STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMETERR
+central_fit_select = central_fit_JetMetErr
+STAGE2_DEFAULT_PARAMS_SELECT = STAGE2_DEFAULT_PARAMS_JETMETERR
 
 
 def set_fit_params(fitfunc, params):
@@ -478,8 +478,8 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         raise RuntimeError("graph in setup_fit() is empty")
 
     fit_max = max(xarr)  # Maxmimum pt for upper bound of fit
-    fit_min = 10 if absetamin > 2.9 else 10
-    # fit_min = min(xarr) # Minimum pt for lower bound of fit
+    # fit_min = 10 if absetamin > 2.9 else 10
+    fit_min = min(xarr) # Minimum pt for lower bound of fit
 
     # For lower bound of fit, use either fit_min or the pt
     # of the maximum correction value, whichever has the larger pT.
@@ -489,6 +489,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     # fit_min could correspond to a pT that isn't in the list of x-points)
     # Note that we want the maximum in the first half of the graph to avoid
     # the 'flick' at high pT in HF
+    # JOE EDIT: (un)comment the next 4 lines to (not) have the flick
     max_corr = max(yarr[:len(yarr) / 2])
     max_corr_ind = yarr.index(max_corr)
     max_corr_pt = xarr[max_corr_ind]
