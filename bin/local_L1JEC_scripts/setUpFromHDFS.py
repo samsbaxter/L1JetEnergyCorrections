@@ -6,7 +6,7 @@ import sys
 # select the new dir name
 # select the directories and files we wish to copy
 # 
-# $ python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/setUpFromHDFS.py
+# $ python /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/setUpFromHDFS.py
 # 
 # watchout! you could easily overwrite...(maybe not the worst thing ever)
 
@@ -15,22 +15,22 @@ import sys
 ##################################################
 # make sure the new directory has a clear name
 # dateOfNtupleCreation, dataType, cmssw version, dr, etaBinning
-newDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion4/"
+newDirectory = "30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/"
 
-checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/check/"
+checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/check/"
 # comment out files that you don't wish to copy (eg they don't exist yet)
 checkCalibFiles = [
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU0to10_maxPt1022.root",
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU15to25_maxPt1022.root",
-					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU30to40_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU15to25_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40_maxPt1022.root",
 					]
 
-runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/output/"
+runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/output/"
 # comment out files that you don't wish to copy (eg they don't exist yet)
 runCalibFiles = [
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU0to10.root",
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU15to25.root",
-					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU30to40.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU15to25.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40.root",
 					]
 
 ##################################################

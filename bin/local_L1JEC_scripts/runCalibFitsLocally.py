@@ -5,14 +5,15 @@ import sys
 # choose the fit type (ie the daughter directory), make sure the same has been selected in runCalibration.py
 # set the input file names
 # and the output file names (either a test or an append)
-# $ python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/runCalibFitsLocally.py
+# $ python /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/runCalibFitsLocally.py
 
-# note: bin/binning.py must correspond to the type of data you are using!!!
-
+# note: eta_bins in bin/binning.py must correspond to the type of data you are using!!!
+# if you change CMSSW its name comes into the path ~line 48
+############################################
 ############################################
 # user defined section #####################
 ############################################
-motherDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbntuples_dr0p25_etaBinningVersion4/"
+motherDirectory = "30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsAllTT/"
 
 # must ensure that the runCalibration file is set-up to use the same fit! TODO: automate it?
 # daughterDirectory = "runCalib_conventionalFit/"
@@ -20,9 +21,9 @@ motherDirectory = "26May2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_jbnt
 daughterDirectory = "runCalib_jetMetFitErr/"
 
 inputFiles = [
-				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU0to10.root",
-				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU15to25.root",
-				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsVersion4_PU30to40.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsAllTT_PU0to10.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsAllTT_PU15to25.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsAllTT_PU30to40.root",
 				]
 
 # initially output a test file
@@ -34,7 +35,7 @@ outputFiles = [
 
 # if you are sure that you wish to append the output onto the input
 # outputFiles = inputFiles
-
+############################################
 ############################################
 ############################################
 if len(inputFiles) != len(outputFiles):
@@ -44,7 +45,7 @@ if len(inputFiles) != len(outputFiles):
 for i in range(0, len(inputFiles)):
 	inputFiles[i] = "/users/jt15104/local_L1JEC_store/" + motherDirectory + daughterDirectory + inputFiles[i]
 	outputFiles[i] = "/users/jt15104/local_L1JEC_store/" + motherDirectory + daughterDirectory + outputFiles[i]
-	os.system("python /users/jt15104/CMSSW_8_0_7/src/L1Trigger/L1JetEnergyCorrections/bin/runCalibration.py "
+	os.system("python /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/runCalibration.py "
 			+ inputFiles[i] + " " + outputFiles[i]
 			+ " --redo-correction-fit --inherit-params --stage2")
 	print "done " + str(i+1) + " of " + str(len(inputFiles)) + " routines"
