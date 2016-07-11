@@ -1,33 +1,62 @@
 #include "TFile.h"
 #include "TF1.h"
 #include "TGraphErrors.h"
+#include "TAxis.h"
 #include <iostream>
 #include <TCanvas.h>
+#include <vector>
+
+// to use the class
+// #include "/users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/tuneFits.h"
+// 
+// good idea to compile it to find the errors
+//  $ .L /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/tuneFits.h+
+//  also works fine (probs my preferred method)
+
+// HOW TO USE
+// pass it a .root file name containing the fits
+// pass it the eta range we wish to massage
+// see if you can get a better looking fit
+// if so save...and it will update the .root file
+
+// note: currently if you work on a test file you cannot get the new fits to the total appended file
+// you would have to go again:(
+
+// The format for the etaRange: "2.65_3.139"
+// note: might want to change the setting for how the graph range is done, okay for now
 
 class tuneFits{
 
+	TFile * file;
 	TGraphErrors * graph;
 	TF1 * newFit;
-	double xmin;
-	double xmax;
+	double xmin_init; // initial
+	double xmax_init;
+	double xmin_rec; // most recent
+	double xmax_rec;
+	string etaRangeLabel;	
+
 public:
 	void setup(string,string);
 	void redoFit(double,double);
-	void save(string);
+	void save();
 };
 
 void tuneFits::setup(string inputRootFileName, string etaRange)
 {
-	TFile * file = TFile::Open(inputRootFileName.c_str());
-// 2.65_3.139
+	file = TFile::Open(inputRootFileName.c_str(), "update");
 
-	string graphName = "l1corr_eta_" + etaRange;
-	graph = (TGraphErrors*)file->Get(graphName.c_str());
+	etaRangeLabel = etaRange;
 
-	string oldFitName = "fitfcneta_" + etaRange;
-	TF1 * oldFit = (TF1*)file->Get(oldFitName.c_str());
-	xmin = oldFit->GetXmin();
-	xmax = oldFit->GetXmax();
+	string graphNameGrab = "l1corr_eta_" + etaRangeLabel;
+	graph = (TGraphErrors*)file->Get(graphNameGrab.c_str());
+	string graphNameUse = "l1corr_eta_" + etaRangeLabel + "_fitTESTING";
+	graph->SetName(graphNameUse.c_str());
+
+	string fitName = "fitfcneta_" + etaRangeLabel;
+	TF1 * oldFit = (TF1*)file->Get(fitName.c_str());
+	xmin_init = oldFit->GetXmin();
+	xmax_init = oldFit->GetXmax();
 	cout << endl;
 	cout << "oldFit parameters: " << endl;
 	cout << "p0: " << oldFit->GetParameter(0) << endl;
@@ -37,11 +66,10 @@ void tuneFits::setup(string inputRootFileName, string etaRange)
 	cout << "p4: " << oldFit->GetParameter(4) << endl;
 	cout << "p5: " << oldFit->GetParameter(5) << endl;
 	cout << "p6: " << oldFit->GetParameter(6) << endl;
-	cout << "oldFit xmin: " << xmin << endl;
-	cout << "oldFit xmax: " << xmax << endl << endl;					
+	cout << "oldFit xmin: " << xmin_init << endl;
+	cout << "oldFit xmax: " << xmax_init << endl << endl;					
 
-	// string newFitName = 
-	newFit = new TF1(oldFitName.c_str(), "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))");
+	newFit = new TF1("newFit", "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))");
 	newFit->SetParameter(0, oldFit->GetParameter(0));
 	newFit->SetParameter(1, oldFit->GetParameter(1));
 	newFit->SetParameter(2, oldFit->GetParameter(2));
@@ -49,27 +77,49 @@ void tuneFits::setup(string inputRootFileName, string etaRange)
 	newFit->SetParameter(4, oldFit->GetParameter(4));
 	newFit->SetParameter(5, oldFit->GetParameter(5));
 	newFit->SetParameter(6, oldFit->GetParameter(6));
-
+	// the 'browser range' you select here will be used going forward
 	graph->Draw();
 	oldFit->Draw("same");
 	return;						
 }
 
-// note that plots will keep the same 'browser range' from earlier
+
 void tuneFits::redoFit(double posRelToXmin, double posRelToXmax)
 {
-	cout << "Fitting between the ranges: " << xmin + posRelToXmin << " and " << xmax + posRelToXmax;
-	graph->Fit(newFit, "", "", xmin + posRelToXmin, xmax + posRelToXmax);
+	xmin_rec = xmin_init + posRelToXmin;
+	xmax_rec = xmax_init + posRelToXmax;
+
+	cout << endl << "Fitting between the ranges: " << xmin_rec << " and " << xmax_rec << endl << endl;
+	graph->Fit(newFit, "", "", xmin_rec, xmax_rec);
+	cout << endl;
 	graph->Draw("AL");
 }
 
-// make a function that just draws the current status
 
-void tuneFits::save(string outputFilename)
+// replaces the fit and graph&fit in the .root file
+void tuneFits::save()
 { 
-	// updates current file or creates it if it does not exist
-	// does not overwrite, creates a second version
-	TFile g(outputFilename.c_str(), "update");
+	// set the ranges to the fit range(ish)
+	graph->GetXaxis()->SetRangeUser(0,xmax_rec); // will use the y-axis of how you were looking at it
+	// Not as simple for a function
+	string fitName = "fitfcneta_" + etaRangeLabel +"TESTING";
+	TF1 * saveNewFit = new TF1(fitName.c_str(), "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))", xmin_rec, xmax_rec);
+	saveNewFit->SetParameter(0, newFit->GetParameter(0));
+	saveNewFit->SetParameter(1, newFit->GetParameter(1));
+	saveNewFit->SetParameter(2, newFit->GetParameter(2));
+	saveNewFit->SetParameter(3, newFit->GetParameter(3));
+	saveNewFit->SetParameter(4, newFit->GetParameter(4));
+	saveNewFit->SetParameter(5, newFit->GetParameter(5));
+	saveNewFit->SetParameter(6, newFit->GetParameter(6));
+
+	string graphNameUse = "l1corr_eta_" + etaRangeLabel + "_fit";
+	// file->Delete(graphNameUse.c_str());
+	// file->Delete(fitName.c_str());
 	graph->Write();
-	newFit->Write();
+	saveNewFit->Write();
+	file->Close();
 }
+
+// IMPORT THESE OBJECTS FOR EASY INTERACTIVE RUNNING
+string etaNamesDummy[3] = {"0_0.174", "0.174_0.348", "2.65_3.139"};
+tuneFits t0, t1, t2; 
