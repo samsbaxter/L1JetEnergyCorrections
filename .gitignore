@@ -49,3 +49,6 @@ Aaron
 *_cxx.d
 *_cxx.so
 *_cxx_ACLiC_dist_rdict.pcm
+*.d
+*.pcm
+*.so
