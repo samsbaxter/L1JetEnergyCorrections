@@ -58,8 +58,10 @@ NTUPLE_DIRS = [
     # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst4_RAWONLY/QCDFlatFall15PU0to50NzshcalRaw',
     # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst5_RAWONLY_v2/QCDFlatFall15PU0to50NzshcalRaw',
     # '/hdfs/L1JEC/CMSSW_8_0_2/L1JetEnergyCorrections/Stage2_HF_QCDFall15_16Mar_int-v14_layer1_noL1JEC_jst6_RAWONLY_v2/QCDFlatFall15PU0to50NzshcalRaw',
-    '/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/QCDFlatFall15PU0to50NzshcalRaw',
+    # '/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15PU0to50NzshcalRaw_genEmu_23May_jbntuples/QCDFlatFall15PU0to50NzshcalRaw',
     # '/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15NoPU_genEmu_23May_jbntuples/QCDFlatFall15NoPU',
+    # '/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/QCDFlatFall15PU0to50NzshcalRaw',
+    '/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15NoPU_genEmu_30June2016_809v70_noJEC_893ca/QCDFlatFall15NoPU',
 ]
 
 # Pick one
@@ -77,7 +79,7 @@ if SAMPLE.startswith("MC"):
     EXE = 'RunMatcherStage2%s%s' % (parts[1], parts[2])
 
 # DeltaR(L1, RefJet) for matching (typically a value between 0.2<->0.4)
-DELTA_R = 0.2
+DELTA_R = 0.25
 
 # Minimum pt cut on reference jets
 PT_REF_MIN = 10
