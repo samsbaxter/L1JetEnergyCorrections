@@ -83,7 +83,7 @@ STAGE1_DEFAULT_PARAMS = [1, 5, 1, -25, 0.01, -20]
 # STAGE2_DEFAULT_PARAMS_ORIGINAL = [-0.5, 50, 1, -80, 0.01, -20]
 STAGE2_DEFAULT_PARAMS_CONVENTIONAL = [6.89, -252.79, 27.01, 4345.01, 0.01, -20.9794]
 STAGE2_DEFAULT_PARAMS_JETMET1 = [-11.64, -43.50, 1.19, 2190.7, 0, -19.51, -18.7426, 0.22, 0.98] # new jet met function has three more parameters
-STAGE2_DEFAULT_PARAMS_JETMETERR = [1.36, -1398000, 0, -0.74, 0, -2.15, 1.04] # other new jet met function, err func style (no idea what params should be)
+STAGE2_DEFAULT_PARAMS_JETMETERR = [1.4036, -1398000, 0, 0.2249, 0, -2.926, 1.175] # other new jet met function, err func style (no idea what params should be)
 
 #######################################################
 # select which fit function and input parameters to use
