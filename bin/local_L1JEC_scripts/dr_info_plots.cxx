@@ -10,11 +10,14 @@
 
 // script for plotting useful dr information about the matched pairs
 // output's pdfs with figures of interest
+// 
+// TO RUN: just set the input and output directory
+// $ root -q -b -l "/users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/dr_info_plots.cxx+"
 
 void dr_info_plots(){
 
-	std::string inputPairsFile = "/hdfs/L1JEC/CMSSW_8_0_7/L1JetEnergyCorrections/QCDFlatFall15NoPU_genEmu_23May_jbntuples/pairs/pairs_QCDFlatFall15NoPU_ak4_ref10to5000_l10to5000_dr0p25.root";
-	std::string outputDirectory = "~/local_L1JEC_store/dr_plots/QCDFlatFall15NoPU_genEmu_23May_jbntuples_dr0p25/";
+	std::string inputPairsFile = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/pairs/pairs_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p4.root";
+	std::string outputDirectory = "~/local_L1JEC_store/dr_plots/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca_dr0p4/";
 
 	TFile * f = new TFile(inputPairsFile.c_str());
 	TTree * t = (TTree*)f->Get("valid");
