@@ -25,6 +25,8 @@
 // The format for the etaRange: "2.65_3.139"
 // note: might want to change the setting for how the graph range is done, okay for now
 
+// DO NOT USE THE INITIAL COPIES!!!
+
 class tuneFits{
 
 	TFile * file;
@@ -50,7 +52,7 @@ void tuneFits::setup(string inputRootFileName, string etaRange)
 
 	string graphNameGrab = "l1corr_eta_" + etaRangeLabel;
 	graph = (TGraphErrors*)file->Get(graphNameGrab.c_str());
-	string graphNameUse = "l1corr_eta_" + etaRangeLabel + "_fitTESTING";
+	string graphNameUse = "l1corr_eta_" + etaRangeLabel + "_fit";
 	graph->SetName(graphNameUse.c_str());
 
 	string fitName = "fitfcneta_" + etaRangeLabel;
@@ -58,6 +60,7 @@ void tuneFits::setup(string inputRootFileName, string etaRange)
 	xmin_init = oldFit->GetXmin();
 	xmax_init = oldFit->GetXmax();
 	cout << endl;
+	cout << "eta range = " + etaRangeLabel << endl;
 	cout << "oldFit parameters: " << endl;
 	cout << "p0: " << oldFit->GetParameter(0) << endl;
 	cout << "p1: " << oldFit->GetParameter(1) << endl;
@@ -113,8 +116,10 @@ void tuneFits::save()
 	saveNewFit->SetParameter(6, newFit->GetParameter(6));
 
 	string graphNameUse = "l1corr_eta_" + etaRangeLabel + "_fit";
-	file->Delete(graphNameUse.c_str());
-	file->Delete(fitName.c_str());
+	string graphNameDel = graphNameUse + ";1";
+	file->Delete(graphNameDel.c_str());
+	string fitNameDel = fitName + ";1";
+	file->Delete(fitNameDel.c_str());
 	graph->Write();
 	saveNewFit->Write();
 	file->Close();
