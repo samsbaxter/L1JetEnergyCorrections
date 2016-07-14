@@ -23,6 +23,7 @@ checkCalibFiles = [
 					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10_maxPt1022.root",
 					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU15to25_maxPt1022.root",
 					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40_maxPt1022.root",
+					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU45to55_maxPt1022.root",
 					]
 
 runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/output/"
@@ -31,6 +32,7 @@ runCalibFiles = [
 					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10.root",
 					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU15to25.root",
 					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40.root",
+					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU45to55.root",
 					]
 
 ##################################################
