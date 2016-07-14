@@ -17,26 +17,31 @@ void makePlots_sel16etaBinning(std::string,std::string,std::string);
 
 void compareFitsQuicky(){
 
-	std::string directory = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsAllTT/runCalib_jetMetFitErr/";
+	std::string directory = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/";
 	
-	std::string addOnInfo = "_allTT";
+	std::string addOnInfo = "_sel16";
 
-	std::string inputFile1 = "testPU0to10.root";
-	std::string outputName1 = "fitsPU0to10" + addOnInfo + ".pdf";
+	std::string inputFile1 = "fitsPU0to10.root";
+	std::string outputName1 = "plotFitsPU0to10" + addOnInfo + ".pdf";
 
-	std::string inputFile2 = "testPU15to25.root";
-	std::string outputName2 = "fitsPU15to25" + addOnInfo + ".pdf";
+	std::string inputFile2 = "fitsPU15to25.root";
+	std::string outputName2 = "plotFitsPU15to25" + addOnInfo + ".pdf";
 
-	std::string inputFile3 = "testPU30to40.root";
-	std::string outputName3 = "fitsPU30to40" + addOnInfo + ".pdf";
+	std::string inputFile3 = "fitsPU30to40.root";
+	std::string outputName3 = "plotFitsPU30to40" + addOnInfo + ".pdf";
+
+	std::string inputFile4 = "fitsPU45to55.root";
+	std::string outputName4 = "plotFitsPU45to55" + addOnInfo + ".pdf";
 
 	// makePlots_allTTetaBinning(inputFile1, outputName1, directory);
 	// makePlots_allTTetaBinning(inputFile2, outputName2, directory);
 	// makePlots_allTTetaBinning(inputFile3, outputName3, directory);
+	// makePlots_allTTetaBinning(inputFile4, outputName4, directory);
 
-	makePlots_sel16etaBinning(inputFile1, outputName1, directory);
-	makePlots_sel16etaBinning(inputFile2, outputName2, directory);
+	// makePlots_sel16etaBinning(inputFile1, outputName1, directory);
+	// makePlots_sel16etaBinning(inputFile2, outputName2, directory);
 	makePlots_sel16etaBinning(inputFile3, outputName3, directory);
+	// makePlots_sel16etaBinning(inputFile4, outputName4, directory);	
 }
 
 void makePlots_allTTetaBinning(std::string inputFile, std::string outputFile, std::string directory){
@@ -241,45 +246,46 @@ void makePlots_sel16etaBinning(std::string inputFile, std::string outputFile, st
 
 	TFile * f = TFile::Open(inputPath.c_str());
 
-	TF1 * g01 = (TF1*)f->Get("fitfcneta_0_0.435");
-	TF1 * g02 = (TF1*)f->Get("fitfcneta_0.435_0.783");
-	TF1 * g03 = (TF1*)f->Get("fitfcneta_0.783_1.131");
-	TF1 * g04 = (TF1*)f->Get("fitfcneta_1.131_1.305");
-	TF1 * g05 = (TF1*)f->Get("fitfcneta_1.305_1.479");
-	TF1 * g06 = (TF1*)f->Get("fitfcneta_1.479_1.653");
-	TF1 * g07 = (TF1*)f->Get("fitfcneta_1.653_1.83");
-	TF1 * g08 = (TF1*)f->Get("fitfcneta_1.83_1.93");
-	TF1 * g09 = (TF1*)f->Get("fitfcneta_1.93_2.043");
-	TF1 * g10 = (TF1*)f->Get("fitfcneta_2.043_2.172");
-	TF1 * g11 = (TF1*)f->Get("fitfcneta_2.172_2.322");
-	TF1 * g12 = (TF1*)f->Get("fitfcneta_2.322_2.5");
-	TF1 * g13 = (TF1*)f->Get("fitfcneta_2.5_2.964");
-	TF1 * g14 = (TF1*)f->Get("fitfcneta_2.964_3.489");
-	TF1 * g15 = (TF1*)f->Get("fitfcneta_3.489_4.191");
-	TF1 * g16 = (TF1*)f->Get("fitfcneta_4.191_5.191");	
+	TF1 * g00 = (TF1*)f->Get("fitfcneta_0_0.435");
+	TF1 * g01 = (TF1*)f->Get("fitfcneta_0.435_0.783");
+	TF1 * g02 = (TF1*)f->Get("fitfcneta_0.783_1.131");
+	TF1 * g03 = (TF1*)f->Get("fitfcneta_1.131_1.305");
+	TF1 * g04 = (TF1*)f->Get("fitfcneta_1.305_1.479");
+	TF1 * g05 = (TF1*)f->Get("fitfcneta_1.479_1.653");
+	TF1 * g06 = (TF1*)f->Get("fitfcneta_1.653_1.83");
+	TF1 * g07 = (TF1*)f->Get("fitfcneta_1.83_1.93");
+	TF1 * g08 = (TF1*)f->Get("fitfcneta_1.93_2.043");
+	TF1 * g09 = (TF1*)f->Get("fitfcneta_2.043_2.172");
+	TF1 * g10 = (TF1*)f->Get("fitfcneta_2.172_2.322");
+	TF1 * g11 = (TF1*)f->Get("fitfcneta_2.322_2.5");
+	TF1 * g12 = (TF1*)f->Get("fitfcneta_2.5_2.964");
+	TF1 * g13 = (TF1*)f->Get("fitfcneta_2.964_3.489");
+	TF1 * g14 = (TF1*)f->Get("fitfcneta_3.489_4.191");
+	TF1 * g15 = (TF1*)f->Get("fitfcneta_4.191_5.191");	
 
-	g01->SetLineColor(kBlue+2);
-	g02->SetLineColor(kBlue);
-	g03->SetLineColor(kCyan+1);
-	g04->SetLineColor(kGreen+2);
-	g05->SetLineColor(kGreen);	
-	g06->SetLineColor(kYellow+2);
-	g07->SetLineColor(kOrange);
-	g08->SetLineColor(kOrange+7);
-	g09->SetLineColor(kRed+2);	
-	g10->SetLineColor(kRed);
-	g11->SetLineColor(kMagenta+3);
-	g12->SetLineColor(kMagenta);
-	g13->SetLineColor(kBlack);
-	g14->SetLineColor(kBlue+2);
-	g15->SetLineColor(kBlue);
-	g16->SetLineColor(kBlack);
+	g00->SetLineColor(kBlue+2);
+	g01->SetLineColor(kBlue);
+	g02->SetLineColor(kCyan+1);
+	g03->SetLineColor(kGreen+2);
+	g04->SetLineColor(kGreen);	
+	g05->SetLineColor(kYellow+2);
+	g06->SetLineColor(kOrange);
+	g07->SetLineColor(kOrange+7);
+	g08->SetLineColor(kRed+2);	
+	g09->SetLineColor(kRed);
+	g10->SetLineColor(kMagenta+3);
+	g11->SetLineColor(kMagenta);
+	g12->SetLineColor(kBlue+2);
+	g13->SetLineColor(kCyan+1);
+	g14->SetLineColor(kGreen+2);
+	g15->SetLineColor(kGreen);
 
 	TCanvas * c3 = new TCanvas("c3", "", 600, 600);
 	gStyle->SetOptStat(0);
-	g01->GetYaxis()->SetRangeUser(0.9,2.0);
-	g01->GetXaxis()->SetRangeUser(20,300);
-	g01->Draw();
+	g00->GetYaxis()->SetRangeUser(0.9,2.0);
+	g00->GetXaxis()->SetRangeUser(0,300);
+	g00->Draw();
+	g01->Draw("same");
 	g02->Draw("same");
 	g03->Draw("same");
 	g04->Draw("same");
@@ -294,25 +300,24 @@ void makePlots_sel16etaBinning(std::string inputFile, std::string outputFile, st
 	g13->Draw("same");
 	g14->Draw("same");
 	g15->Draw("same");
-	g16->Draw("same");
 	
 	TLegend * leg3 = new TLegend(0.43,0.53,0.88,0.88);	
-	leg3->AddEntry(g01, "bin1");
-	leg3->AddEntry(g02, "bin2");
-	leg3->AddEntry(g03, "bin3");
-	leg3->AddEntry(g04, "bin4");
-	leg3->AddEntry(g05, "bin5");
-	leg3->AddEntry(g06, "bin6");
-	leg3->AddEntry(g07, "bin7");
-	leg3->AddEntry(g08, "bin8");
-	leg3->AddEntry(g09, "bin9");
+	leg3->AddEntry(g00, "bin00");
+	leg3->AddEntry(g01, "bin01");
+	leg3->AddEntry(g02, "bin02");
+	leg3->AddEntry(g03, "bin03");
+	leg3->AddEntry(g04, "bin04");
+	leg3->AddEntry(g05, "bin05");
+	leg3->AddEntry(g06, "bin06");
+	leg3->AddEntry(g07, "bin07");
+	leg3->AddEntry(g08, "bin08");
+	leg3->AddEntry(g09, "bin09");
 	leg3->AddEntry(g10, "bin10");
 	leg3->AddEntry(g11, "bin11");
 	leg3->AddEntry(g12, "bin12");
 	leg3->AddEntry(g13, "bin13");
 	leg3->AddEntry(g14, "bin14");
-	leg3->AddEntry(g15, "bin15");
-	leg3->AddEntry(g16, "bin16");	
+	leg3->AddEntry(g15, "bin15");	
 	leg3->Draw();		
 	c3->SaveAs(outputPath.c_str());
 	c3->Close();	
