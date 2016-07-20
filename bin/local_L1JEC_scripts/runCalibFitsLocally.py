@@ -15,7 +15,7 @@ import sys
 ############################################
 # user defined section #####################
 ############################################
-motherDirectory = "30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/"
+motherDirectory = "15Jul2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_L1JECinFuncForm0262d_L1JEC4a3a1_v2/"
 
 # must ensure that the runCalibration file is set-up to use the same fit! TODO: automate it?
 # daughterDirectory = "runCalib_conventionalFit/"
@@ -23,17 +23,17 @@ motherDirectory = "30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809
 daughterDirectory = "runCalib_jetMetFitErr/"
 
 inputFiles = [
-				# "output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10.root",
-				# "output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU15to25.root",
-				# "output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU15to25.root",
+				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40.root",
 				"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU45to55.root",
 				]
 
 # initially output a test file
 outputFiles = [
-				# "fitsPU0to10.root",
-				# "fitsPU15to25.root",
-				# "fitsPU30to40.root",
+				"fitsPU0to10.root",
+				"fitsPU15to25.root",
+				"fitsPU30to40.root",
 				"fitsPU45to55.root",
 				]
 

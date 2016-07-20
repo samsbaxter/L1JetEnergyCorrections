@@ -15,9 +15,9 @@ import sys
 ##################################################
 # make sure the new directory has a clear name
 # dateOfNtupleCreation, dataType, cmssw version, dr, etaBinning
-newDirectory = "30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/"
+newDirectory = "15Jul2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_L1JECinFuncForm0262d_L1JEC4a3a1_v2/"
 
-checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/check/"
+checkCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_15Jul2016_809v70_L1JECinFuncForm0262d_L1JEC4a3a1_v2/check/"
 # comment out files that you don't wish to copy (eg they don't exist yet)
 checkCalibFiles = [
 					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10_maxPt1022.root",
@@ -26,7 +26,7 @@ checkCalibFiles = [
 					"check_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU45to55_maxPt1022.root",
 					]
 
-runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_30June2016_809v70_noJEC_893ca/output/"
+runCalibDirectory = "/hdfs/L1JEC/CMSSW_8_0_9/QCDFlatFall15PU0to50NzshcalRaw_genEmu_15Jul2016_809v70_L1JECinFuncForm0262d_L1JEC4a3a1_v2/output/"
 # comment out files that you don't wish to copy (eg they don't exist yet)
 runCalibFiles = [
 					"output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU0to10.root",
