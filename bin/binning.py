@@ -189,18 +189,38 @@ eta_bins_label = "_etaBinsSel16"
 eta_bins_central = [eta for eta in eta_bins if eta < 3.1]
 eta_bins_forward = [eta for eta in eta_bins if eta > 2.9]
 # a handy palette of colours. TODO: add more colours as we now have more bins
-eta_bin_colors = [ROOT.kRed,
-                  ROOT.kBlue,
-                  ROOT.kGreen + 2,
-                  ROOT.kBlack,
-                  ROOT.kMagenta,
-                  ROOT.kOrange + 7,
-                  ROOT.kAzure + 1,
-                  ROOT.kRed + 3,
-                  ROOT.kViolet + 1,
-                  ROOT.kOrange,
-                  ROOT.kTeal - 5]
+# eta_bin_colors = [ROOT.kRed,
+#                   ROOT.kBlue,
+#                   ROOT.kGreen + 2,
+#                   ROOT.kBlack,
+#                   ROOT.kMagenta,
+#                   ROOT.kOrange + 7,
+#                   ROOT.kAzure + 1,
+#                   ROOT.kRed + 3,
+#                   ROOT.kViolet + 1,
+#                   ROOT.kOrange,
+#                   ROOT.kTeal - 5
+#                   ]
 
+# for sel 16 eta binning
+eta_bin_colors = [
+                  ROOT.kBlue+2,
+                  ROOT.kBlue,
+                  ROOT.kCyan+1,
+                  ROOT.kGreen+2,
+                  ROOT.kGreen,  
+                  ROOT.kYellow+2,
+                  ROOT.kOrange,
+                  ROOT.kOrange+7,
+                  ROOT.kRed+2,  
+                  ROOT.kRed,
+                  ROOT.kMagenta+3,
+                  ROOT.kMagenta,
+                  ROOT.kBlue+2,
+                  ROOT.kCyan+1,
+                  ROOT.kGreen+2,
+                  ROOT.kGreen,
+                  ]
 
 
 ##########
