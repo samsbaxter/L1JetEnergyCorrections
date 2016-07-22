@@ -5,6 +5,9 @@ runCalibration.py as one long pdf, cos TBrowser sucks.
 
 It will make the PDF in the same directory as the ROOT file, under a directory
 named output_<ROOT file stem>
+
+run with:
+$ python /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/calibration_slides.py <file>
 """
 
 

@@ -9,6 +9,8 @@ output by runCalibration.py and:
 
 See options with python correction_LUT_plot.py -h
 
+$ python /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/correction_LUT_plot.py <inputfilename> <outputfilename> --stage2Func [--fancy] --plots
+
 Robin Aggleton
 """
 

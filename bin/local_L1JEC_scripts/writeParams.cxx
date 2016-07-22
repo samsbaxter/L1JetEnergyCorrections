@@ -10,8 +10,8 @@ void writeParams()
 {
 
 	// SELECT THE INPUT AND OUTPUT FILES
-	std::string inputFile = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/fitsPU30to40.root";
-	std::string outputFile = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/paramsFitsPU30to40.txt";
+	std::string inputFile = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/fitsPU30to40_hfHighPt_experiment2.root";
+	std::string outputFile = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/paramsFitsPU30to40_hfHighPt_experiment2.txt";
 
 	TFile * f = TFile::Open(inputFile.c_str());
 	TF1 * g00 = (TF1*)f->Get("fitfcneta_0_0.435");
