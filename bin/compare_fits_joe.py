@@ -88,10 +88,10 @@ def compare():
 
     # New 
     s2_new = '/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/'
-    f_PU0to10_new = os.path.join(s2_new, 'fitsAndOutputPU0_10.root')
-    f_PU15to25_new = os.path.join(s2_new, 'fitsAndOutputPU15_25.root')
-    f_PU30to40_new = os.path.join(s2_new, 'output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU30to40.root')
-    f_PU45to55_new = os.path.join(s2_new, 'output_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU45to55_initialCopy.root')
+    f_PU0to10_new = os.path.join(s2_new, 'totalPairs_L1Ntuple_etaBinsSel16_PU0to10_maxPt1022.root')
+    f_PU15to25_new = os.path.join(s2_new, 'totalPairs_L1Ntuple_etaBinsSel16_PU15to25_maxPt1022.root')
+    f_PU30to40_new = os.path.join(s2_new, 'totalPairs_L1Ntuple_etaBinsSel16_PU30to40_maxPt1022.root')
+    f_PU45to55_new = os.path.join(s2_new, 'totalPairs_L1Ntuple_etaBinsSel16_PU45to55_maxPt1022.root')
 
     pu_labels = ['PU0to10', 'PU15to25', 'PU30to40']
 
