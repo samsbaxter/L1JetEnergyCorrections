@@ -24,7 +24,7 @@ PY_CONFIG = '../python/l1NtupleMcMaker2016_RAW2DIGI.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "QCDFall15_genEmu_22Jul2016_809v70_L1JECinFuncFormXXXXX_L1JEC81886"
+job_append = "QCDFall15_genEmu_30June2016_809v70_noJEC_893ca"
 # job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         config.Data.inputDataset = dset_opts.inputDataset
         config.Data.useParent = dset_opts.useParent
         config.Data.unitsPerJob = dset_opts.unitsPerJob
-        config.JobType.inputFiles = ['Fall15_25nsV2_MC.db']
+        # config.JobType.inputFiles = ['Fall15_25nsV2_MC.db']
 
         # to restrict total units run over
         # comment it out to run over all
