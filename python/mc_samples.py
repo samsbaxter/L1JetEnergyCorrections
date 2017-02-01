@@ -53,6 +53,11 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 
 # This dict holds ALL samples
 samples = {
+    # SPRING 16/80X
+    # -------------
+    "qcdSpring16FlatPU20to70genSimRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring16DR80-FlatPU20to70HcalNZSRAW_withHLT_80X_mcRun2_asymptotic_v14-v1/GEN-SIM-RAW",
+                                              useParent=False, unitsPerJob=10, totalUnits=-1),  # has about 10M events, 1.7K evt/file
+
     # FALL 15/76X
     # -----------
     # note there are also individual PU bins at PU = [10, 20, 30, 40, 50]
