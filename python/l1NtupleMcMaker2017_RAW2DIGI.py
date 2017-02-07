@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: -s L1REPACK:FullMC,RAW2DIGI --python_filename=l1NtupleMcMaker2017_RAW2DIGI.py -n 100 --no_output --no_exec --era=Run2_2016 --mc --conditions=auto:run2_mc --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleRAWEMUGEN_MC --filein=/store/mc/RunIISpring16DR80/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/FlatPU20to70HcalNZSRAW_withHLT_80X_mcRun2_asymptotic_v14-v1/40000/0002348A-1664-E611-81DA-0CC47A4C8F0C.root
+# with command line options: -s L1REPACK:FullMC,RAW2DIGI --python_filename=l1NtupleMcMaker2017_RAW2DIGI.py -n 100 --no_output --no_exec --era=Run2_2016 --mc --conditions=90X_mcRun2_asymptotic_v0 --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleRAWEMUGEN_MC --filein=/store/mc/RunIISpring16DR80/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/GEN-SIM-RAW/FlatPU20to70HcalNZSRAW_withHLT_80X_mcRun2_asymptotic_v14-v1/40000/0002348A-1664-E611-81DA-0CC47A4C8F0C.root
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -49,7 +49,7 @@ process.configurationMetadata = cms.untracked.PSet(
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '90X_mcRun2_asymptotic_v0', '')
 
 # Path and EndPath definitions
 process.L1RePack_step = cms.Path(process.SimL1Emulator)
