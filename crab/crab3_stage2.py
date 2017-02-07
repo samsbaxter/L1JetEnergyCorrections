@@ -24,7 +24,7 @@ PY_CONFIG = '../python/l1NtupleMcMaker2017_RAW2DIGI.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "qcdSpring16_genEmu_1Feb2017_8024v89p20_noJEC_086b699"
+job_append = "qcdSpring16_genEmu_7Feb2017_902pre2v91p7_noJEC_059f1f"
 # old example (includes tuning of JST):
 # job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 
