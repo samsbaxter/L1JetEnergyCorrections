@@ -48,7 +48,9 @@ def check_create_dir(directory, info=False):
     if not os.path.isdir(directory):
         if os.path.isfile(directory):
             raise RuntimeError('%s already exists as a file' % directory)
-        os.makedirs(directory)
+        # os.makedirs(directory) # can no longer use normal bash commands on /hdfs
+        hadoopDirectory = directory[5:] # strips off the /hdfs prefix
+        os.system("hadoop fs -mkdir %s" % hadoopDirectory)
         if info:
             print 'Making dir', directory
 
