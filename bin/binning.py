@@ -226,8 +226,7 @@ eta_bin_colors = [
 ##########
 # PU BINS
 ##########
-# pu_bins = [[0, 10], [15, 25], [30, 40]]  # usual binning used for MC studies
-pu_bins = [[25, 35], [40, 50], [55, 65]] # a new high-PU bin is added
-# pu_bins = [[45, 55]] # just to do it by itself
+pu_bins = [[25, 35], [40, 50], [55, 65]]
+# pu_bins = [[40, 50]] # just to do one bin by itself
 
 pu_bins_lower = [[0, 5], [8, 12], [15, 25]] # run260627 lower PU overall - mean 10
