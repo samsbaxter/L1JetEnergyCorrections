@@ -478,6 +478,7 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         raise RuntimeError("graph in setup_fit() is empty")
 
     fit_max = max(xarr)  # Maxmimum pt for upper bound of fit
+
     # fit_min = 10 if absetamin > 2.9 else 10
     fit_min = min(xarr) # Minimum pt for lower bound of fit
 
@@ -551,6 +552,12 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         # the smallest point.
         max_ind = list(yarr).index(min(yarr))
         fit_max = xarr[max_ind]
+
+    # JOE_HACK to fix the maximum pt for all fits
+    # helps ease things into the right solution space
+    if fit_max > 650.0:
+        fit_max = 650.0
+
     if fit_min > fit_max:
         raise RuntimeError('fit_min > fit_max! (%f > %f)' % (fit_min, fit_max))
 
