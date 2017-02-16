@@ -10,26 +10,26 @@ void writeParams()
 {
 
 	// SELECT THE INPUT AND OUTPUT FILES
-	std::string inputFile = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/fitsPU30to40_hfHighPt_experiment2.root";
-	std::string outputFile = "/users/jt15104/local_L1JEC_store/30June2016_QCDFlatFall15PU0to50NzshcalRaw_ak4_ref10to5000_809v70_noJEC_893ca_etaBinsSel16/runCalib_jetMetFitErr/paramsFitsPU30to40_hfHighPt_experiment2.txt";
+	std::string inputFile = "/users/jt15104/L1JEC2017/qcdSpring16FlatPU20to70genSimRaw_qcdSpring16_genEmu_7Feb2017_902pre2v91p7_noJEC_059f1f/output_initialNtuples_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU40to50_WITH_FITS_EDIT.root";
+	std::string outputFile = "/users/jt15104/L1JEC2017/qcdSpring16FlatPU20to70genSimRaw_qcdSpring16_genEmu_7Feb2017_902pre2v91p7_noJEC_059f1f/params_initialNtuples_ak4_ref10to5000_l10to5000_dr0p25_etaBinsSel16_PU40to50_WITH_FITS_EDIT.txt";
 
 	TFile * f = TFile::Open(inputFile.c_str());
-	TF1 * g00 = (TF1*)f->Get("fitfcneta_0_0.435");
-	TF1 * g01 = (TF1*)f->Get("fitfcneta_0.435_0.783");
-	TF1 * g02 = (TF1*)f->Get("fitfcneta_0.783_1.131");
-	TF1 * g03 = (TF1*)f->Get("fitfcneta_1.131_1.305");
-	TF1 * g04 = (TF1*)f->Get("fitfcneta_1.305_1.479");
-	TF1 * g05 = (TF1*)f->Get("fitfcneta_1.479_1.653");
-	TF1 * g06 = (TF1*)f->Get("fitfcneta_1.653_1.83");
-	TF1 * g07 = (TF1*)f->Get("fitfcneta_1.83_1.93");
-	TF1 * g08 = (TF1*)f->Get("fitfcneta_1.93_2.043");
-	TF1 * g09 = (TF1*)f->Get("fitfcneta_2.043_2.172");
-	TF1 * g10 = (TF1*)f->Get("fitfcneta_2.172_2.322");
-	TF1 * g11 = (TF1*)f->Get("fitfcneta_2.322_2.5");
-	TF1 * g12 = (TF1*)f->Get("fitfcneta_2.5_2.964");
-	TF1 * g13 = (TF1*)f->Get("fitfcneta_2.964_3.489");
-	TF1 * g14 = (TF1*)f->Get("fitfcneta_3.489_4.191");
-	TF1 * g15 = (TF1*)f->Get("fitfcneta_4.191_5.191");
+	TF1 * g00 = (TF1*)f->Get("EDITFIT_fitfcneta_0_0.435");
+	TF1 * g01 = (TF1*)f->Get("EDITFIT_fitfcneta_0.435_0.783");
+	TF1 * g02 = (TF1*)f->Get("EDITFIT_fitfcneta_0.783_1.131");
+	TF1 * g03 = (TF1*)f->Get("EDITFIT_fitfcneta_1.131_1.305");
+	TF1 * g04 = (TF1*)f->Get("EDITFIT_fitfcneta_1.305_1.479");
+	TF1 * g05 = (TF1*)f->Get("EDITFIT_fitfcneta_1.479_1.653");
+	TF1 * g06 = (TF1*)f->Get("EDITFIT_fitfcneta_1.653_1.83");
+	TF1 * g07 = (TF1*)f->Get("EDITFIT_fitfcneta_1.83_1.93");
+	TF1 * g08 = (TF1*)f->Get("EDITFIT_fitfcneta_1.93_2.043");
+	TF1 * g09 = (TF1*)f->Get("EDITFIT_fitfcneta_2.043_2.172");
+	TF1 * g10 = (TF1*)f->Get("EDITFIT_fitfcneta_2.172_2.322");
+	TF1 * g11 = (TF1*)f->Get("EDITFIT_fitfcneta_2.322_2.5");
+	TF1 * g12 = (TF1*)f->Get("EDITFIT_fitfcneta_2.5_2.964");
+	TF1 * g13 = (TF1*)f->Get("EDITFIT_fitfcneta_2.964_3.489");
+	TF1 * g14 = (TF1*)f->Get("EDITFIT_fitfcneta_3.489_4.191");
+	TF1 * g15 = (TF1*)f->Get("EDITFIT_fitfcneta_4.191_5.191");
 
 	ofstream myfile;
 	myfile.open(outputFile.c_str());

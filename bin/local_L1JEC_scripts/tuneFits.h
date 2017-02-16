@@ -105,7 +105,7 @@ void tuneFits::save()
 	// set the ranges to the fit range(ish)
 	graph->GetXaxis()->SetRangeUser(0,xmax_rec); // will use the y-axis of how you were looking at it
 	// Not as simple for a function
-	string fitName = "fitfcneta_" + etaRangeLabel;
+	string fitName = "EDITFIT_fitfcneta_" + etaRangeLabel;
 	TF1 * saveNewFit = new TF1(fitName.c_str(), "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))", xmin_rec, xmax_rec);
 	saveNewFit->SetParameter(0, newFit->GetParameter(0));
 	saveNewFit->SetParameter(1, newFit->GetParameter(1));
@@ -115,11 +115,12 @@ void tuneFits::save()
 	saveNewFit->SetParameter(5, newFit->GetParameter(5));
 	saveNewFit->SetParameter(6, newFit->GetParameter(6));
 
-	string graphNameUse = "l1corr_eta_" + etaRangeLabel + "_fit";
-	string graphNameDel = graphNameUse + ";1";
-	file->Delete(graphNameDel.c_str());
-	string fitNameDel = fitName + ";1";
-	file->Delete(fitNameDel.c_str());
+	string graphNameUse = "EDITFIT_l1corr_eta_" + etaRangeLabel + "_fit";
+	// string graphNameDel = graphNameUse + ";1";
+	// file->Delete(graphNameDel.c_str());
+	// string fitNameDel = fitName + ";1";
+	// file->Delete(fitNameDel.c_str());
+	graph->SetName(graphNameUse.c_str());
 	graph->Write();
 	saveNewFit->Write();
 	file->Close();
