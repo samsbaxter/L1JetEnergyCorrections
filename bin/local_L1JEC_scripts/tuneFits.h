@@ -6,24 +6,26 @@
 #include <TCanvas.h>
 #include <vector>
 
-// to use the class
-// #include "/users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/tuneFits.h"
-// 
-// good idea to compile it to find the errors
-//  $ .L /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/tuneFits.h+
-//  also works fine (probs my preferred method)
+/*
+HOW TO USE
 
-// HOW TO USE
-// pass it a .root file name containing the fits
-// pass it the eta range we wish to massage
-// see if you can get a better looking fit
-// if so save...and it will update the .root file
+load up this class in a ROOT session
+$ .L $CMSSW_BASE/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/tuneFits.h+
 
-// note: currently if you work on a test file you cannot get the new fits to the total appended file
-// you would have to go again:(
+$ t0.setup("fileNameToTune.root", etaNames[0])
+$ t0.redoFit(delta_xMin, delta_xMax) <--try to get a better fit
+^can repeat multiple times, must do it at least once!
+$ t0.save()
 
-// The format for the etaRange: "2.65_3.139"
-// note: might want to change the setting for how the graph range is done, okay for now
+loop through for t0, t1, t2 etc.
+
+NOTES:
+-it will only save correctly if you make a change
+-if you re-initialize a tuneFits object it will not save correctly, you will need to restart root session
+(close browser before initialization to avoid this)
+-after you save a tuneFits objects don't make further changes...it can screw with it
+-the yaxis you have set before saving will be that which is saved, so zoom in correctly
+*/
 
 // DO NOT USE THE INITIAL COPIES!!!
 
