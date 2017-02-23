@@ -9,8 +9,6 @@ output by runCalibration.py and:
 
 See options with python correction_LUT_plot.py -h
 
-$ python /users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/correction_LUT_plot.py <inputfilename> <outputfilename> --stage2Func [--fancy] --plots
-
 Robin Aggleton
 """
 
@@ -22,11 +20,13 @@ import os
 import argparse
 import binning
 import common_utils as cu
-from runCalibration import generate_eta_graph_name
+from runCalibration import generate_eta_graph_name, set_fit_params
 from correction_LUT_GCT import print_GCT_lut_file
 from correction_LUT_stage1 import print_Stage1_lut_file
-from correction_LUT_stage2 import print_Stage2_lut_files, print_Stage2_func_file, do_constant_fit
+from correction_LUT_stage2 import print_Stage2_lut_files, print_Stage2_func_file
 from multifunc import MultiFunc
+import csv
+from pprint import pprint
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -36,44 +36,107 @@ ROOT.gStyle.SetOptFit(1111)
 ROOT.TH1.SetDefaultSumw2(True)
 
 
-def print_function_code(function, lang="cpp"):
-    """Print TF1 to screen so can replicate in ROOT or numpy
+def get_functions_graphs_params_rootfile(root_filename):
+    """Get function parameters from ROOT file
 
-    Can choose language (py, cpp, numpy)
+    Gets object based on name in runCalibration.py
+
+    Parameters
+    ----------
+    root_filename : str
+        Name of ROOT file to get things from
+
+    Returns
+    -------
+    all_fits : list[TF1]
+        Collection of TF1 objects, one per line of file ( = 1 eta bin)
+    all_fit_params : list[list[float]]
+        Collection of fit parameters, one per line of file ( = 1 eta bin)
+    all_graphs : list[TGraphErrors]
+        Colleciton of correction graphs, one per eta bin
     """
+    print 'Reading functions from ROOT file'
+    in_file = cu.open_root_file(root_filename)
+    all_fit_params = []
+    all_fits = []
+    all_graphs = []
+    # Get all the fit functions from file and their corresponding graphs
+    etaBins = binning.eta_bins
+    for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
+        print "Eta bin:", eta_min, "-", eta_max
 
-    rangemin = ROOT.Double()  # eurghhhhh - fixes pass by reference
-    rangemax = ROOT.Double()
-    function.GetRange(rangemin, rangemax)
-    params = [function.GetParameter(i) for i in range(function.GetNumberFreeParameters())]
-    name = function.GetName().replace(".", "p")
+        # get the fitted TF1
+        try:
+            fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (eta_min, eta_max))
+            fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
+            print "Fit fn evaluated at 5 GeV:", fit_func.Eval(5)
+        except IOError:
+            print "No fit func"
+            fit_func = None
+            fit_params = []
+        all_fits.append(fit_func)
+        all_fit_params.append(fit_params)
+        # print "Fit parameters:", fit_params
 
-    print ""
+        # get the corresponding fit graph
+        fit_graph = cu.get_from_file(in_file, generate_eta_graph_name(eta_min, eta_max))
+        all_graphs.append(fit_graph)
 
-    if lang.lower() == "py" or lang.lower() == "cpp":
-        if lang.lower() == 'py':
-            print "import ROOT"
-            print '%s = ROOT.TF1("%s", "%s", %g, %g);' % (name, name, function.GetExpFormula(), rangemin, rangemax)
-        elif lang.lower() == 'cpp':
-            print 'TF1 %s("%s", "%s", %g, %g);' % (name, name, function.GetExpFormula(), rangemin, rangemax)
-        for i, param in enumerate(params):
-            print "%s.SetParameter(%d, %.8f)" % (name, i, param)
-    elif lang.lower() == "numpy":
-        print "import numpy as np"
-        print "import matplotlib.pyplot as plt"
-        print "et = np.arange(%g, %g, 0.1)" % (0, 250)
-        for i, param in enumerate(params):
-            print "p%d = %.8f" % (i, param)
-        print "def pf_func(et, p0, p1, p2, p3, p4, p5):"
-        print "    return p0 + (p1/(np.power(np.log10(et), 2)+p2)) + p3 * np.exp(-1.*p4*np.power(np.log10(et)-p5, 2))"
-        print ""
-        print ""
-        print "plt.plot(et, pf_func(et, p0, p1, p2, p3, p4, p5), lw=2, color='red')"
-        print "plt.xlabel(r'$E_T$');plt.ylabel('Correction Factor')"
-        print "plt.show()"
-        # print "plt.savefig('plot.pdf')"
+    in_file.Close()
+    return all_fits, all_fit_params, all_graphs
 
-    print ""
+
+def get_functions_params_textfile(text_filename):
+    """Get function parameters from textfile, create MultiFunc objects from them.
+
+    IMPORTANT: if you change fit function, you **MUST** change this here!!!
+
+    Parameters
+    ----------
+    text_filename : str
+        Name of text file to get params from. Should be comma-separated,
+        with one line per eta bin
+
+    Returns
+    -------
+    all_fits : list[MultiFunc]
+        Collection of MultiFunc objects, one per line of file ( = 1 eta bin)
+    all_fit_params : list[list[float]]
+        Collection of fit parameters, one per line of file ( = 1 eta bin)
+
+    """
+    print 'Reading functions from text file'
+    with open(text_filename) as f:
+        freader = csv.reader(f)
+        all_fits = []
+        all_fit_params = []
+        for ind, row in enumerate(freader):
+            nentries = 11
+            if len(row) != nentries:
+                raise IndexError('Row must have %d rows' % nentries)
+            # construct MultiFunc object from fit params
+            row = [float(f.strip()) for f in row]
+            all_fit_params.append(row)
+            low_plateau = row[7]
+            low_plateau_end = row[8]
+            low_plateau_fn = ROOT.TF1("lower_%d" % ind, "%f" % low_plateau, 0, low_plateau_end)
+
+            high_plateau = row[9]
+            high_plateau_start = row[10]
+            high_plateau_fn = ROOT.TF1("higher_%d" % ind, "%f" % high_plateau, high_plateau_start, 1024)
+
+            main_fn = ROOT.TF1("fitfcn_%d" % ind, "[0]+[1]*TMath::Erf([2]*(log10(x)-[3])+[4]*exp([5]*(log10(x)-[6])*(log10(x)-[6])))")
+            main_fn.SetRange(low_plateau_end, high_plateau_start)
+            set_fit_params(main_fn, row[0:7])
+
+            fn = MultiFunc({
+                (0, low_plateau_end): low_plateau_fn,
+                (low_plateau_end, high_plateau_start): main_fn,
+                (high_plateau_start, 1024): high_plateau_fn
+            })
+            all_fits.append(fn)
+
+        return all_fits, all_fit_params
 
 
 def plot_correction_map(corr_fn, filename="correction_map.pdf"):
@@ -222,23 +285,187 @@ def plot_all_graph_functions(graphs, functions, filename):
     c.SaveAs(filename)
 
 
-def do_fancy_fits(fits, graphs, const_hf, condition=0.1, look_ahead=4, plot_dir=None):
-    """Do fancy plateau/constant fits for graphs. """
+def do_constant_hf_fits(fits, graphs, plot_dir):
+    """Do constant correction factor fits for HF bins.
+
+    Also makes plots to check procedure.
+
+    Parameters
+    ----------
+    fits : list[TF1]
+        List of fit functions, one per eta bin.
+    graphs : list[TGraph]
+        List of graphs, one per eta bin.
+    plot_dir : str
+        Directory to put plots
+
+    Returns
+    -------
+    list[TF1]
+    """
     new_functions = []
     for i, (fit, gr) in enumerate(zip(fits, graphs)):
         print "Eta bin", str(i)
-        if (i >= len(binning.eta_bins_central) - 1) and const_hf:
+        if (i >= len(binning.eta_bins_central) - 1):
             new_fn = do_constant_fit(gr, binning.eta_bins[i], binning.eta_bins[i+1], plot_dir)
             new_functions.append(new_fn)
         else:
-            new_fn = do_fancy_fit(fit, gr, condition, look_ahead)
+            new_functions.append(fit)
+    return new_functions
+
+
+def do_constant_fit(graph, eta_min, eta_max, output_dir):
+    """Do constant-value fit to graph and plot the jackknife procedure.
+
+    We derive the constant fit value by jack-knifing. There are 2 forms here:
+    - "my jackknifing": where we loop over all possible subgraphs, and calculate
+    the mean for each.
+    - "proper jackknifing": where we loop over all N-1 subgraphs, and calulate
+    the mean for each.
+
+    Using these, we can then find the peak mean, or the average mean.
+    By default, we use the peak of "my jackknife" as it ignores the
+    high-correction tail better, and gives the better-sampled low pT
+    end more importance.
+
+    Parameters
+    ----------
+    graph : TGraph
+        Graph to fit
+    eta_min, eta_max : float
+        Eta bin boundaries, purely for the plots
+    output_dir : str
+        Output directory for plots.
+
+    Returns
+    -------
+    MultiFunc
+        MultiFunc object with a const-value function for the whole pT range.
+    """
+    print 'Doing constant-value fit'
+
+    xarr, yarr = cu.get_xy(graph)
+    xarr, yarr = np.array(xarr), np.array(yarr)  # use numpy array for easy slicing
+
+    # "my jackknifing": Loop over all possible subgraphs, and calculate a mean for each
+    end = len(yarr)
+    means = []
+    while end > 0:
+        start = 0
+        while start < end:
+            means.append(yarr[start:end].mean())
+            start += 1
+        end -= 1
+
+    # "proper" Jackknife means
+    jack_means = [np.delete(yarr, i).mean() for i in range(len(yarr))]
+
+    # Do plotting & peak finding, for both methods
+    plot_name = os.path.join(output_dir, 'means_hist_%g_%g_myjackknife.pdf' % (eta_min, eta_max))
+    peak, mean = find_peak_and_average_plot(means, eta_min, eta_max, plot_name, 'My jackknife')
+
+    plot_name = os.path.join(output_dir, 'means_hist_%g_%g_root_jackknife.pdf' % (eta_min, eta_max))
+    jackpeak, jackmean = find_peak_and_average_plot(jack_means, eta_min, eta_max, plot_name, 'Proper jackknife')
+
+    print 'my jackknife peak:', peak
+    print 'my jackknife mean:', mean
+    print 'jackknife peak:', jackpeak
+    print 'jackknfe mean:', jackmean
+    const_fn = ROOT.TF1("constant", '[0]', 0, 1024)
+    const_fn.SetParameter(0, peak)
+    const_multifn = MultiFunc({(0, np.inf): const_fn})
+    return const_multifn
+
+
+def find_peak_and_average_plot(values, eta_min, eta_max, plot_filename, title='Jackknife'):
+    """Plot histogram of values, and extract peak and average, using ROOT.
+
+    Parameters
+    ----------
+    means: list[float]
+        Collection of values
+    eta_min, eta_max: float
+        Eta bin edges
+    plot_filename: str
+        Output filepath for plot.
+    title : str
+        Title for plot
+
+    Returns
+    -------
+    float, float
+        Peak mean, and average mean.
+    """
+    values = np.array(values)
+    # auto-generate histogram x axis limits using min/max of values + spacer
+    num_bins = 75 if len(values) > 200 else 50
+    hist = ROOT.TH1D('h_mean', '', num_bins, 0.95 * values.min(), 1.05 * values.max())
+    for m in values:
+        hist.Fill(m)
+    # find peak
+    peak_bin = hist.GetMaximumBin()
+    peak = hist.GetBinCenter(peak_bin)
+    # plot
+    canv = ROOT.TCanvas('c', '', 600, 600)
+    canv.SetTicks(1, 1)
+    hist.Draw("HISTE")
+    average = values.mean()  # average of the values
+    title = '%s, %g < #eta^{L1} < %g, peak at %g, mean at %g;Subgraph mean correction' % (title, eta_min, eta_max, peak, average)
+    hist.SetTitle(title)
+    # Draw a marker for peak value
+    arrow_peak = ROOT.TArrow(peak, 25, peak, 0)
+    arrow_peak.SetLineWidth(2)
+    arrow_peak.SetLineColor(ROOT.kRed)
+    arrow_peak.Draw()
+    # Draw a marker for average value
+    arrow_mean = ROOT.TArrow(average, 5, average, 0)
+    arrow_mean.SetLineWidth(2)
+    arrow_mean.SetLineColor(ROOT.kBlue)
+    arrow_mean.Draw()
+    leg = ROOT.TLegend(0.75, 0.75, 0.88, 0.88)
+    leg.AddEntry(arrow_peak, "peak", "L")
+    leg.AddEntry(arrow_mean, "average", "L")
+    leg.Draw()
+    canv.SaveAs(plot_filename)
+    return peak, average
+
+
+def do_low_pt_plateau_fits(fits, graphs, ignore_hf, condition=0.1, look_ahead=4):
+    """Do low PT plateau fits for graphs.
+
+    Parameters
+    ----------
+    fits : list[TF1]
+        List of fit functions, one per eta bin.
+    graphs : list[TGraph]
+        List of graphs, one per eta bin.
+    ignore_hf : bool
+        Do not apply to HF bins, returns original fit function instead
+    condition : float
+        Absolute difference between graph & curve to determine where curve
+        becomes a constant value.
+    look_ahead : int, optional
+        Number of lower points to also consider when calculating
+        where plateau should occur
+
+    Returns
+    -------
+    list[MultiFunc, TF1]
+        MultiFunc if capped rpocdure used, TF1 if not.
+    """
+    new_functions = []
+    for i, (fit, gr) in enumerate(zip(fits, graphs)):
+        print "Eta bin", str(i)
+        if (i >= len(binning.eta_bins_central) - 1) and ignore_hf:
+            new_functions.append(fit)
+        else:
+            new_fn = do_low_pt_plateau_fit(fit, gr, condition, look_ahead)
             new_functions.append(new_fn)
     return new_functions
 
 
-def do_fancy_fit(fit, graph, condition=0.1, look_ahead=4):
-    """
-    Make fancy fit, by checking for deviations between graph and fit at low pT.
+def do_low_pt_plateau_fit(fit, graph, condition=0.1, look_ahead=4):
+    """Make low pt plateau fit, by checking for deviations between graph and fit at low pT.
     Then below the pT where they differ, just use the last good correction
     factor as a constant correction factor.
 
@@ -259,6 +486,10 @@ def do_fancy_fit(fit, graph, condition=0.1, look_ahead=4):
     look_ahead : int, optional
         Number of lower points to also consider when calculating
         where plateau should occur
+
+    Returns
+    -------
+    MultiFunc
 
     """
     print "Making fancy fit, using condition %f with look-ahead %d" % (condition, look_ahead)
@@ -321,9 +552,9 @@ def do_fancy_fit(fit, graph, condition=0.1, look_ahead=4):
 
 def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
     """Draw all corrections functions on one big canvas"""
-    canv = ROOT.TCanvas("canv", "", 3800, 1200)
-    nrows = 2
-    ncols = ((len(binning.eta_bins) - 1) / nrows) + 1
+    nrows = 4
+    ncols = ((len(binning.eta_bins) - 1) / nrows)
+    canv = ROOT.TCanvas("canv", "", 800 * ncols, 800 * nrows)
     canv.Divide(ncols, nrows)
 
     # vertical line to intersect graph at a certain pT
@@ -339,91 +570,91 @@ def plot_all_functions(functions, filename, eta_bins, et_min=0, et_max=30):
         canv.cd(i + 1)
         if not fit_func:
             continue
-        fit_func.SetRange(et_min, et_max)
-        fit_func.SetLineWidth(1)
+        if isinstance(fit_func, ROOT.TF1):
+            fit_func.SetRange(et_min, et_max)
         fit_func.SetTitle("%g - %g" % (eta_bins[i], eta_bins[i + 1]))
-        fit_func.Draw()
-        corr_5 = fit_func.Eval(5)
-        vert_line.SetY1(-15)
-        vert_line.SetY2(15)
+        fit_func.SetLineWidth(1)
+        if isinstance(fit_func, MultiFunc):
+            fit_func.Draw(draw_range=[et_min, et_max])
+        else:
+            fit_func.Draw()
+        # corr_5 = fit_func.Eval(5)
+        # vert_line.SetY1(-15)
+        # vert_line.SetY2(15)
+        # vert_line.Draw()
+        # l2 = hori_line.Clone()
+        # l2.SetY1(corr_5)
+        # l2.SetY2(corr_5)
+        # l2.Draw("SAME")
         ROOT.gPad.SetTicks(1, 1)
         ROOT.gPad.SetGrid(1, 1)
-        vert_line.Draw()
-        l2 = hori_line.Clone()
-        l2.SetY1(corr_5)
-        l2.SetY2(corr_5)
-        l2.Draw("SAME")
 
     canv.SaveAs(filename)
 
 
 def main(in_args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", help="input ROOT filename")
-    parser.add_argument("lut", help="output LUT filename", default="my_lut.txt")
-    parser.add_argument("--gct", help="Make LUT for GCT", action='store_true')
-    parser.add_argument("--stage1", help="Make LUT for Stage 1", action='store_true')
-    parser.add_argument("--stage2", help="Make LUT for Stage 2", action='store_true')
-    parser.add_argument("--stage2Func", help="Make function params file for Stage 2", action='store_true')
-    parser.add_argument("--fancy", help="Make fancy LUT. "
-                        "This checks for low pT deviations and caps the correction value",
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=cu.CustomFormatter)
+    parser.add_argument("input",
+                        help="input ROOT/txt filename")
+    parser.add_argument("lut",
+                        help="output LUT filename",
+                        default="my_lut.txt")
+    parser.add_argument("--text",
+                        help="Read correction functions from text file instead of ROOT file",
                         action='store_true')
-    parser.add_argument("--plots", help="Make plots to check sensibility of correction functions.",
+    parser.add_argument("--gct",
+                        help="Make LUT for GCT",
                         action='store_true')
-    parser.add_argument("--cpp", help="print ROOT C++ code to screen", action='store_true')
-    parser.add_argument("--python", help="print PyROOT code to screen", action='store_true')
-    parser.add_argument("--numpy", help="print numpy code to screen", action='store_true')
+    parser.add_argument("--stage1",
+                        help="Make LUT for Stage 1",
+                        action='store_true')
+    parser.add_argument("--stage2",
+                        help="Make LUT for Stage 2",
+                        action='store_true')
+    parser.add_argument("--stage2Func",
+                        help="Make function params file for Stage 2",
+                        action='store_true')
+    parser.add_argument("--lowPtPlateau",
+                        help="This checks for low pT turnover and caps the correction "
+                        "value below that to a constant factor.",
+                        action='store_true')
+    parser.add_argument("--constantHF",
+                        help="This calculates a constant correciton factor for HF bins.",
+                        action='store_true')
+    parser.add_argument("--plots",
+                        help="Make plots to check sensibility of correction functions.",
+                        action='store_true')
+    parser.add_argument("--ptCompressionFile",
+                        help="Human-readable pT compression LUT to use instead of deriving one  (Stage 2 only)",
+                        default=None)
     args = parser.parse_args(args=in_args)
 
     print args
 
     if not any([args.gct, args.stage1, args.stage2, args.stage2Func]):
-        print "You didn't pick which format for the corrections - not making a corrections file unless you choose!"
+        print "You didn't pick which trigger version for the corrections - not making a corrections file unless you choose!"
         exit()
 
-    in_file = cu.open_root_file(args.input)
     out_dir = os.path.join(os.path.dirname(args.input),
                            os.path.splitext(os.path.basename(args.lut))[0])
-
     cu.check_dir_exists_create(out_dir)
 
     all_fit_params = []
     all_fits = []
     all_graphs = []
 
-    # Get all the fit functions from file and their corresponding graphs
-    etaBins = binning.eta_bins
-    for i, (eta_min, eta_max) in enumerate(izip(etaBins[:-1], etaBins[1:])):
-        print "Eta bin:", eta_min, "-", eta_max
-
-        # get the fitted TF1
-        try:
-            fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (eta_min, eta_max))
-            fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
-            print "Fit fn evaluated at 5 GeV:", fit_func.Eval(5)
-        except IOError:
-            print "No fit func"
-            fit_func = None
-            fit_params = []
-        all_fits.append(fit_func)
-        all_fit_params.append(fit_params)
-        # print "Fit parameters:", fit_params
-
-        # get the corresponding fit graph
-        fit_graph = cu.get_from_file(in_file, generate_eta_graph_name(eta_min, eta_max))
-        all_graphs.append(fit_graph)
-
-        # Print function to screen
-        if args.cpp:
-            print_function_code(fit_func, "cpp")
-        if args.python:
-            print_function_code(fit_func, "py")
-        if args.numpy:
-            print_function_code(fit_func, "numpy")
+    if args.text:
+        all_fits, all_fit_params = get_functions_params_textfile(args.input)
+    else:
+        all_fits, all_fit_params, all_graphs = get_functions_graphs_params_rootfile(args.input)
 
     # Check we have the correct number
-    if len(all_fits) + 1 != len(etaBins) or len(all_fit_params) + 1 != len(etaBins):
-        raise Exception("Incorrect number of fit functions/sets of parameters "
+    etaBins = binning.eta_bins
+    if len(all_fits) + 1 != len(etaBins):
+        raise Exception("Incorrect number of fit functions "
+                        "for corresponding number of eta bins")
+    if len(all_fit_params) + 1 != len(etaBins):
+        raise Exception("Incorrect number of fit params "
                         "for corresponding number of eta bins")
 
     # Plot all functions on one canvas, zommed in on low pt & whole pt range
@@ -431,14 +662,13 @@ def main(in_args=sys.argv[1:]):
     plot_all_functions(all_fits, plot_file, etaBins, et_min=0, et_max=30)
     plot_file = os.path.join(out_dir, "all_raw_fits.pdf")
     plot_all_functions(all_fits, plot_file, etaBins, et_min=0, et_max=1024)
-    fits = all_fits
 
     # Make LUTs
     if args.gct:
         print_GCT_lut_file(all_fit_params, etaBins, args.lut)
 
     elif args.stage1:
-        fits = do_fancy_fits(all_fits, all_graphs, const_hf=False, condition=0.05, look_ahead=0) if args.fancy else all_fits
+        fits = do_low_pt_plateau_fits(all_fits, all_graphs, ignore_hf=False, condition=0.05, look_ahead=0) if args.lowPtPlateau else all_fits
 
         if args.plots:
             # plot the fancy fits
@@ -448,40 +678,54 @@ def main(in_args=sys.argv[1:]):
         print_Stage1_lut_file(fits, args.lut, args.plots)
 
     elif args.stage2 or args.stage2Func:
-        # do fancy fits, can do constant values only for HF
-        fits = do_fancy_fits(all_fits, all_graphs, const_hf=True, condition=0.075, look_ahead=5, plot_dir=out_dir) if args.fancy else all_fits
+        # do fancy fits: low Pt cap, and/or constant HF
+        fits = all_fits
+        if args.lowPtPlateau:
+            fits = do_low_pt_plateau_fits(fits, all_graphs, ignore_hf=True, condition=0.075, look_ahead=5)
+        if args.constantHF:
+            fits = do_constant_hf_fits(fits, all_graphs, plot_dir=out_dir)
         if args.plots:
             # plot the fancy fits
-            for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
-                plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
-                plot_graph_function(i, gr, total_fit, plot_file)
-            plot_all_graph_functions(all_graphs, fits, os.path.join(out_dir, "fancyfit_all.pdf"))
-            plot_all_graph_functions(all_graphs, None, os.path.join(out_dir, "fancyfit_all_gr.pdf"))
-            plot_all_graph_functions(None, fits, os.path.join(out_dir, "fancyfit_all_fn.pdf"))
+            if not args.text:
+                for i, (total_fit, gr) in enumerate(izip(fits, all_graphs)):
+                    plot_file = os.path.join(out_dir, "fancyfit_%d.pdf" % i)
+                    plot_graph_function(i, gr, total_fit, plot_file)
+                plot_all_graph_functions(all_graphs, fits, os.path.join(out_dir, "fancyfit_all.pdf"))
+                plot_all_graph_functions(all_graphs, None, os.path.join(out_dir, "fancyfit_all_gr.pdf"))
+                plot_all_graph_functions(None, fits, os.path.join(out_dir, "fancyfit_all_fn.pdf"))
 
         if args.stage2:
-            lut_base, ext = os.path.splitext(args.lut)
-            eta_lut_filename = lut_base + '_eta' + ext
-            pt_lut_filename = lut_base + '_pt' + ext
-            corr_lut_filename = lut_base + "_corr" + ext
+            lut_base, ext = os.path.splitext(os.path.basename(args.lut))
+            eta_lut_filename = os.path.join(out_dir, lut_base + '_eta' + ext)
+            pt_lut_filename = os.path.join(out_dir, lut_base + '_pt' + ext)
+            mult_lut_filename = os.path.join(out_dir, lut_base + "_mult" + ext)
+            add_lut_filename = os.path.join(out_dir, lut_base + "_add" + ext)
+            add_mult_lut_filename = os.path.join(out_dir, lut_base + "_add_mult" + ext)
             print_Stage2_lut_files(fit_functions=fits,
                                    eta_lut_filename=eta_lut_filename,
                                    pt_lut_filename=pt_lut_filename,
-                                   corr_lut_filename=corr_lut_filename,
-                                   corr_max=3,
+                                   mult_lut_filename=mult_lut_filename,
+                                   add_lut_filename=add_lut_filename,
+                                   add_mult_lut_filename=add_mult_lut_filename,
+                                   right_shift=9,
                                    num_corr_bits=10,
+                                   num_add_bits=8,
+                                   plot_dir=out_dir,
+                                   # read_pt_compression='lut_pt_compress.txt'
+                                   read_pt_compression=args.ptCompressionFile,
                                    target_num_pt_bins=2**4,
                                    merge_criterion=1.05,
-                                   plot_dir=out_dir)
+                                   merge_algorithm='greedy')  # greedy or kmeans
         else:
             print_Stage2_func_file(fits, args.lut)
 
-    if args.plots:
-        # Plot function mapping
-        for i, (eta_min, eta_max, fit_func) in enumerate(izip(etaBins[:-1], etaBins[1:], fits)):
-            if fit_func:
-                plot_file = os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max))
-                plot_correction_map(fit_func, plot_file)
+    # if args.plots:
+    #     # Plot function mapping
+    #     for i, (eta_min, eta_max, fit_func) in enumerate(izip(etaBins[:-1], etaBins[1:], fits)):
+    #         if fit_func:
+    #             plot_file = os.path.join(out_dir, "correction_map_%g_%g.pdf" % (eta_min, eta_max))
+    #             plot_correction_map(fit_func, plot_file)
+
 
 
 if __name__ == "__main__":
