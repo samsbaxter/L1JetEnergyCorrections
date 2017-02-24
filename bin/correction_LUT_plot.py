@@ -635,6 +635,13 @@ def main(in_args=sys.argv[1:]):
         print "You didn't pick which trigger version for the corrections - not making a corrections file unless you choose!"
         exit()
 
+    if args.text and args.lowPtPlateau:
+        print "You have selected both a text file correction input format"
+        print "and the option of using lowPtPlateau"
+        print "but the latter only works for ROOT file inputs!"
+        print "ReThink yo options...Exiting..."
+        exit()
+
     out_dir = os.path.join(os.path.dirname(args.input),
                            os.path.splitext(os.path.basename(args.lut))[0])
     cu.check_dir_exists_create(out_dir)
