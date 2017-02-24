@@ -77,7 +77,7 @@ What the `correction_LUT_plot.py` script does roughly is:
 
 - This script will (a) make LUTs, (b) make plots about said LUTs.
 
-- **Input**: either (a) a ROOT file output by `runCalibration.py` or (b) a text file with the function parameters in it
+- **Input**: either (a) a ROOT file output by `runCalibration.py` or (b) a text file with the function parameters in it (NB the functions do_low_pt_plateau_fits and do_constant_hf_fits DO NOT currently work with the text file option)
 
     * If using the plain text file it assumes each line is of the format
 
