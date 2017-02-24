@@ -500,10 +500,10 @@ def do_low_pt_plateau_fit(fit, graph, condition=0.1, look_ahead=4):
 
     for j, (pt, corr) in enumerate(izip(x_arr[::-1], y_arr[::-1])):
         # Loop through each point of the graph in reverse,
-        # only considering points with pt < 40.
+        # only considering points with pt < 70.
         # Determine where the function and graph separate by
         # looking at the difference.
-        if pt > 40:
+        if pt > 70:
             continue
 
         def get_nth_lower_point(n):
