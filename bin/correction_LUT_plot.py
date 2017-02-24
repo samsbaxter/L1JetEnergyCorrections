@@ -531,7 +531,7 @@ def do_low_pt_plateau_fit(fit, graph, condition=0.1, look_ahead=4):
     constant.SetParameter(0, corr_merge)
 
     function_str = "[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5]))"
-    fit_new = ROOT.TF1("fitfcn", function_str, pt_merge * 0.75, 1024)
+    fit_new = ROOT.TF1("EDITFIT_fitfcn", function_str, pt_merge * 0.75, 1024)
     for p in xrange(fit.GetNumberFreeParameters()):
         fit_new.SetParameter(p, fit.GetParameter(p))
     # set lower range below pt_merge just for drawing purposes - MultiFunc ignores it
