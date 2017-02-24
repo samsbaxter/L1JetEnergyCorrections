@@ -52,6 +52,7 @@ try:
 except ImportError:
     print "Can't use matplotlib to make sanity plots"
     print "Install it, or rewrite the plotting funcs in PyROOT"
+    USE_MPL = False
 
 USE_SKLEARN = True
 try:
@@ -1120,14 +1121,15 @@ def print_Stage2_lut_files(fit_functions,
 
         # Print some plots to check results.
         # Show original corr & compressed corr from HW
-        title = 'eta bin %d, target # bins %d, ' \
-                'merge criterion %.3f, %s merge algo' % (eta_ind,
-                    target_num_pt_bins, merge_criterion, merge_algorithm)
-        plot_pt_pre_post_mapping(map_info, eta_ind, title, plot_dir)
-        plot_corr_vs_pt(map_info, eta_ind, title, plot_dir)
-        plot_corr_vs_pt_clusters(map_info, eta_ind, title, plot_dir)
-        plot_pt_pre_pt_post_clusters(map_info, eta_ind, title, plot_dir)
-        plot_func_vs_lut_pt(map_info, eta_ind, title, plot_dir)
+        if USE_MPL:
+            title = 'eta bin %d, target # bins %d, ' \
+                    'merge criterion %.3f, %s merge algo' % (eta_ind,
+                        target_num_pt_bins, merge_criterion, merge_algorithm)
+            plot_pt_pre_post_mapping(map_info, eta_ind, title, plot_dir)
+            plot_corr_vs_pt(map_info, eta_ind, title, plot_dir)
+            plot_corr_vs_pt_clusters(map_info, eta_ind, title, plot_dir)
+            plot_pt_pre_pt_post_clusters(map_info, eta_ind, title, plot_dir)
+            plot_func_vs_lut_pt(map_info, eta_ind, title, plot_dir)
 
     # put them into a LUT
     write_stage2_multiplier_lut(mult_lut_filename, all_mapping_info)
