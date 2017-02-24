@@ -681,7 +681,7 @@ def main(in_args=sys.argv[1:]):
         # do fancy fits: low Pt cap, and/or constant HF
         fits = all_fits
         if args.lowPtPlateau:
-            fits = do_low_pt_plateau_fits(fits, all_graphs, ignore_hf=True, condition=0.075, look_ahead=5)
+            fits = do_low_pt_plateau_fits(fits, all_graphs, ignore_hf=False, condition=0.075, look_ahead=5)
         if args.constantHF:
             fits = do_constant_hf_fits(fits, all_graphs, plot_dir=out_dir)
         if args.plots:
