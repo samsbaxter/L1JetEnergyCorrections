@@ -67,7 +67,7 @@ def get_functions_graphs_params_rootfile(root_filename):
 
         # get the fitted TF1
         try:
-            fit_func = cu.get_from_file(in_file, "fitfcneta_%g_%g" % (eta_min, eta_max))
+            fit_func = cu.get_from_file(in_file, "EDITFIT_fitfcneta_%g_%g" % (eta_min, eta_max))
             fit_params = [fit_func.GetParameter(par) for par in range(fit_func.GetNumberFreeParameters())]
             print "Fit fn evaluated at 5 GeV:", fit_func.Eval(5)
         except IOError:
