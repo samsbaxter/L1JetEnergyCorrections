@@ -78,7 +78,8 @@ What the `correction_LUT_plot.py` script does roughly is:
 - This script will (a) make LUTs, (b) make plots about said LUTs.
 
 - **Input**: either (a) a ROOT file output by `runCalibration.py` or (b) a text file with the function parameters in it
-NB run with the option --text and DO NOT run with the option --lowPtPlateau as this is for only when you give it a ROOT file with the functions.
+
+(NB run with the option --text and DO NOT run with the option --lowPtPlateau as this is for only when you give it a ROOT file with the functions.
 The text file option gives plateaus at the min and max pts, the ROOT file option with --lowPtPlateau only gives min pts plateaus)
 
     * If using the plain text file it assumes each line is of the format (in CSVs)
