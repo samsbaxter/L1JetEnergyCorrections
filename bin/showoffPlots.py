@@ -328,9 +328,10 @@ def plot_rsp_eta_bin(calib_file, eta_min, eta_max, oDir, oFormat="pdf"):
 def plot_rsp_eta_bin_pt(calib_file, eta_min, eta_max, pt_var, pt_min, pt_max, oDir, oFormat="pdf"):
     """Plot the response in one eta bin with a pt cut"""
     if eta_max <= 3:
-        hname = "eta_0_3/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
+        # Quick and dirty correction to folder names, replacing 0_3 and 3_5 with more precise numbers
+        hname = "eta_0_2.964/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
     else:
-        hname = "eta_3_5/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
+        hname = "eta_2.964_5.191/Histograms/hrsp_eta_%g_%g_%s_%g_%g" % (eta_min, eta_max, pt_var, pt_min, pt_max)
     try:
         h_rsp = cu.get_from_file(calib_file, hname)
     except Exception:
@@ -1035,7 +1036,8 @@ def main(in_args=sys.argv[1:]):
         all_rsp_ptRef_plot_filenames = []
 
         # Loop over central/forward eta, do 2D plots, and graphs, and component hists
-        for (eta_min, eta_max) in [[0, 3], [3, 5]]:
+        # ALSO EDITED THE MIN AND MAX ETAS HERE
+        for (eta_min, eta_max) in [[0, 2.964], [2.964, 5.191]]:
             print eta_min, eta_max
 
             for (normX, logZ) in product([True, False], [True, False]):
