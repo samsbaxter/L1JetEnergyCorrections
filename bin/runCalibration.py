@@ -312,9 +312,13 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     else:
         pu_cut = ROOT.TCut("")
 
+    # Avoid L1 saturated jets cut (from 2017 any l1 jet with a saturated tower is auto given pt=1024GeV)
+    avoidSaturation_cut = ROOT.TCut("pt < 1023.1")
+
     # Total cut
     total_cut = ROOT.TCut(eta_cut)
     total_cut += pu_cut  # need to use += and not && cos TCut all fubar
+    total_cut += avoidSaturation_cut
     print total_cut
 
     # Draw response (pT^L1/pT^Gen) for all pt bins

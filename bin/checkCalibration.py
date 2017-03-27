@@ -50,7 +50,10 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     pt_cutStr = "pt < %g" % max_pt
     # PU cut string
     pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
-    cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
+    # Avoid L1 saturated jets cut (from 2017 any l1 jet with a saturated tower is auto given pt=1024GeV)
+    avoidSaturation_cut = ROOT.TCut("pt < 1023.1")
+
+    cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr, avoidSaturation_cut])
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
     tree_raw.Draw("rsp>>hrsp_eta_%g_%g(100,0,5)" % (absetamin, absetamax), cutStr)
