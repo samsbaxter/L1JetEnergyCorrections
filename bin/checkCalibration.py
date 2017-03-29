@@ -51,8 +51,7 @@ def plot_checks(inputfile, outputfile, absetamin, absetamax, max_pt, pu_min, pu_
     # PU cut string
     pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
     # Avoid L1 saturated jets cut (from 2017 any l1 jet with a saturated tower is auto given pt=1024GeV)
-    avoidSaturation_cut = ROOT.TCut("pt < 1023.1")
-
+    avoidSaturation_cut = "pt < 1023.1"
     cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr, avoidSaturation_cut])
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
@@ -136,7 +135,8 @@ def plot_rsp_eta(inputfile, outputfile, eta_bins, pt_min, pt_max, pt_var, pu_min
         eta_cutStr = "TMath::Abs(eta) < %f && TMath::Abs(eta) > %f" % (absetamax, absetamin)
         pt_cutStr = "%s < %g && %s > %g" % (pt_var, pt_max, pt_var, pt_min)
         pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
-        cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
+        avoidSaturation_cut = "pt < 1023.1"
+        cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr, avoidSaturation_cut])
         print cutStr
 
         nb_rsp = 100
@@ -225,7 +225,8 @@ def plot_rsp_pt(inputfile, outputfile, absetamin, absetamax, pt_bins, pt_var, pt
     # keep the pt < pt_max to safeguard against staurated L1 jets
     pt_cutStr = "%s < %g && pt < %g" % (pt_var, pt_bins[-1], pt_max)
     pu_cutStr = "numPUVertices <= %f && numPUVertices >= %f" % (pu_max, pu_min)
-    cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr])
+    avoidSaturation_cut = "pt < 1023.1"
+    cutStr = " && ".join([eta_cutStr, pt_cutStr, pu_cutStr, avoidSaturation_cut])
 
     n_rsp_bins = 100
     rsp_min = 0

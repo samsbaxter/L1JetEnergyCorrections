@@ -389,6 +389,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         pt_cut = ROOT.TCut("ptRef < %g && ptRef > %g " % (xhigh, xlow))
         total_cut = ROOT.TCut(eta_cut)
         total_cut += pu_cut
+        total_cut += avoidSaturation_cut
         total_cut += pt_cut
         print total_cut
 
