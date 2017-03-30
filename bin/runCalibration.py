@@ -312,9 +312,13 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
     else:
         pu_cut = ROOT.TCut("")
 
+    # Avoid L1 saturated jets cut (from 2017 any l1 jet with a saturated tower is auto given pt=1024GeV)
+    avoidSaturation_cut = ROOT.TCut("pt < 1023.1")
+
     # Total cut
     total_cut = ROOT.TCut(eta_cut)
     total_cut += pu_cut  # need to use += and not && cos TCut all fubar
+    total_cut += avoidSaturation_cut
     print total_cut
 
     # Draw response (pT^L1/pT^Gen) for all pt bins
@@ -385,6 +389,7 @@ def make_correction_curves(inputfile, outputfile, ptBins_in, absetamin, absetama
         pt_cut = ROOT.TCut("ptRef < %g && ptRef > %g " % (xhigh, xlow))
         total_cut = ROOT.TCut(eta_cut)
         total_cut += pu_cut
+        total_cut += avoidSaturation_cut
         total_cut += pt_cut
         print total_cut
 
@@ -553,10 +558,26 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
         max_ind = list(yarr).index(min(yarr))
         fit_max = xarr[max_ind]
 
-    # JOE_HACK to fix the maximum pt for all fits
+    #############
+    # JOE_HACKs #
+    # 1. to fix the maximum pt for all fits (high pt saturation issue)
     # helps ease things into the right solution space
-    if fit_max > 650.0:
-        fit_max = 650.0
+    # if fit_max > 650.0:
+    #     print "*** WARNING: about to apply a JOE_HACK ***"
+    #     print "*** lowers the upper limit of the fits to 650GeV ***"
+    #     fit_max = 650.0
+    # 2. to change the auto settings for a troublesome eta bin 
+    if absetamin == 2.5:
+        print "*** WARNING: about to apply a JOE_HACK ***"
+        print "*** messing with fit limits for 2.500<|eta|<2.964 ***"
+        max_ind = 80
+        fit_max = xarr[max_ind]
+        print max_ind
+        print fit_max
+        fit_min = 40.0
+        min_ind = 0
+    ###############
+    ###############
 
     if fit_min > fit_max:
         raise RuntimeError('fit_min > fit_max! (%f > %f)' % (fit_min, fit_max))
