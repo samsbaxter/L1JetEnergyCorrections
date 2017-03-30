@@ -669,8 +669,8 @@ def calc_hw_correction_addition_ints(map_info, corr_matrix, right_shift,
         if hw_pt_post[lo] > 0 and 1. * abs(post_corr_lo - hw_pt_post[lo])/hw_pt_post[lo] > 0.1:
             print 'WARNING: integer correction deviates by more than 10% at low bin edge'
 
-        if 1. * abs(post_corr_hi - hw_pt_post_hi)/hw_pt_post_hi > 0.1:
-            print 'WARNING: integer correction deviates by more than 10% at high bin edge'
+        # if 1. * abs(post_corr_hi - hw_pt_post_hi)/hw_pt_post_hi > 0.1:
+        #     print 'WARNING: integer correction deviates by more than 10% at high bin edge'
 
     return np.array(hw_corrections), np.array(hw_additions)
 
