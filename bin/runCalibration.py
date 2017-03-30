@@ -562,10 +562,10 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     # JOE_HACKs #
     # 1. to fix the maximum pt for all fits (high pt saturation issue)
     # helps ease things into the right solution space
-    if fit_max > 650.0:
-        print "*** WARNING: about to apply a JOE_HACK ***"
-        print "*** lowers the upper limit of the fits to 650GeV ***"
-        fit_max = 650.0
+    # if fit_max > 650.0:
+    #     print "*** WARNING: about to apply a JOE_HACK ***"
+    #     print "*** lowers the upper limit of the fits to 650GeV ***"
+    #     fit_max = 650.0
     # 2. to change the auto settings for a troublesome eta bin 
     if absetamin == 2.5:
         print "*** WARNING: about to apply a JOE_HACK ***"
