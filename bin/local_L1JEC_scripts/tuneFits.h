@@ -23,8 +23,9 @@ etc.
 
 NOTES:
 -once you have saved a tuneFits object you cannot redoFit() or save() again, so make sure you are happy with the results before saving!
--if you try and save a tuneFits object for an eta range already used it will not work, this is to avoid overwriting previous results
--DO NOT work on the initial file, work on a copy in case you don't like the results and need to restart
+-you should always save the result, even if you don't change anything.
+-if you try and save a tuneFits object for an eta range already used it will not work, this is to avoid overwriting previous results.
+-DO NOT work on the initial file, work on a copy in case you don't like the results and need to restart.
 */
 
 class tuneFits{
