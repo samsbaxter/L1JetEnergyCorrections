@@ -3,8 +3,12 @@
 #include <iostream>
 #include <fstream>
 
-// root -q -b -l "/users/jt15104/CMSSW_8_0_9/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/writeParams.cxx+"
-// currently only setup for jetMetFitErr function
+// HOW TO RUN
+// $ root -q -b -l $CMSSW_BASE/src/L1Trigger/L1JetEnergyCorrections/bin/local_L1JEC_scripts/writeParams.cxx
+
+// currently setup for jetMetFitErr function
+// only run this code after using tuneFits to massage fits
+// (this is incredibly hard coded sorry...)
 
 void writeParams()
 {
@@ -250,7 +254,6 @@ void writeParams()
 	myfile << g15->GetXmax() << std::endl;
 	myfile << g15->Eval(g15->GetXmin()) << ", ";
 	myfile << g15->Eval(g15->GetXmax()) << std::endl << std::endl;
-
 
 
 
