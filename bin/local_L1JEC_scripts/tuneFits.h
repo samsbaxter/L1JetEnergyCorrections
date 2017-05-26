@@ -88,6 +88,8 @@ haveSaved(false)
 	newFit->SetParameter(5, oldFit->GetParameter(5));
 	newFit->SetParameter(6, oldFit->GetParameter(6));
 
+	c->SetCanvasSize(1500, 1000);
+	c->SetWindowSize(1600, 1100);
 	redoFit(0.0, 0.0); // the TBrowser axis ranges you select for the resulting plot will be used going forward
 }
 
