@@ -53,6 +53,10 @@ Dataset = namedtuple("Dataset", "inputDataset unitsPerJob totalUnits useParent")
 
 # This dict holds ALL samples
 samples = {
+    # SPRING 17/90X
+    # -------------
+    "qcdSpring17FlatPU0to70genSimRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/PhaseISpring17DR-FlatPU0to70NZS_90X_upgrade2017_realistic_v20-v1/GEN-SIM-RAW",
+                    useParent=False, unitsPerJob=10, totalUnits=-1), # 9.9M events, 2K evt/file
     # SPRING 16/80X
     # -------------
     "qcdSpring16FlatPU20to70genSimRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISpring16DR80-FlatPU20to70HcalNZSRAW_withHLT_80X_mcRun2_asymptotic_v14-v1/GEN-SIM-RAW",
