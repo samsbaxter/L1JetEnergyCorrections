@@ -567,10 +567,19 @@ def setup_fit(graph, function, absetamin, absetamax, outputfile):
     #     print "*** lowers the upper limit of the fits to 650GeV ***"
     #     fit_max = 650.0
     # 2. to change the auto settings for a troublesome eta bin 
-    if absetamin == 2.5:
-        print "*** WARNING: about to apply a JOE_HACK ***"
-        print "*** messing with fit limits for 2.500<|eta|<2.964 ***"
-        max_ind = 80
+    #if absetamin == 2.5:
+    #    print "*** WARNING: about to apply a JOE_HACK ***"
+    #    print "*** messing with fit limits for 2.500<|eta|<2.964 ***"
+    #    max_ind = 80
+    #    fit_max = xarr[max_ind]
+    #    print max_ind
+    #    print fit_max
+    #    fit_min = 40.0
+    #    min_ind = 0
+    if absetamin == 3.489:
+        print "* WARNING: about to apply a JOE_HACK *"
+        print "* messing with fit limits for 3.489<|eta|<4.191 *"
+        max_ind = 17
         fit_max = xarr[max_ind]
         print max_ind
         print fit_max
