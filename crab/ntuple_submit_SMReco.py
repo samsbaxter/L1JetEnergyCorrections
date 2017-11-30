@@ -1,29 +1,29 @@
 from CRABClient.UserUtilities import config
 config = config()
 
-config.General.requestName = 'run260627_SingleMuReReco_HF_L1JEC_2779cb0_Bristol'
+config.General.requestName = 'run276542_JetHTReReco_HF_L1JEC_30112017_ICL'
 config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 # Name of the CMSSW configuration file
-config.JobType.psetName = '../python/ntuple_maker_SMReco.py'
+config.JobType.psetName = '../python/ntuple_maker_L1PF_Nov_2017.py'
 # config.JobType.inputFiles = ['Summer15_25nsV6_DATA.db']
 
-config.Data.inputDataset = '/SingleMuon/Run2015D-16Dec2015-v1/AOD'
-config.Data.secondaryInputDataset = '/SingleMuon/Run2015D-v1/RAW'
+config.Data.inputDataset = '/JetHT/Run2016G-07Aug17-v1/AOD'
+config.Data.secondaryInputDataset = '/JetHT/Run2016G-v1/RAW'
 
 config.Data.splitting = 'LumiBased'
 config.Data.unitsPerJob = 4
 config.Data.publication = False
 # This string is used to construct the output dataset name
-config.Data.outputDatasetTag = 'run260627_SingleMuReReco_HF_L1JEC_2779cb0'
+config.Data.outputDatasetTag = 'run276542_JetHTReReco_HF_L1JEC_30112017_ICL'
 
 # These values only make sense for processing data
 #    Select input data based on a lumi mask
-config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt'
+config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt'
 #    Select input data based on run-ranges
-config.Data.runRange = '260627'
+config.Data.runRange = '276542'
 
 # Where the output files will be transmitted to
 # config.Site.storageSite = 'T2_UK_SGrid_RALPP'
-config.Site.storageSite = 'T2_UK_SGrid_Bristol'
+config.Site.storageSite = 'T2_UK_London_IC'
