@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     L1AnalysisL1UpgradeDataFormat * l1Data = l1JetTree.getData();
 
     // TTree that holds PileupInfo
-    PileupInfoTree puInfoTree(opts.inputFilename());
+
 
     // hold Event tree
     L1GenericTree<L1AnalysisEventDataFormat> eventTree(opts.inputFilename(),
@@ -114,6 +114,8 @@ int main(int argc, char* argv[]) {
     // Quantities for reference jets (GenJet, etc):
     float out_ptRef(-1.), out_etaRef(99.), out_phiRef(99.);
     int out_nRef(-1);
+    int out_nE(-1);
+    int out_nPhi(-1);
     outTree.Branch("ptRef", &out_ptRef, "ptRef/F");
     outTree.Branch("etaRef", &out_etaRef, "etaRef/F");
     outTree.Branch("phiRef", &out_phiRef, "phiRef/F");
@@ -151,10 +153,10 @@ int main(int argc, char* argv[]) {
     outTree.Branch("nMatches", &out_nMatches, "nMatches/Int_t");
 
     // PU quantities
-    float out_trueNumInteractions(-1.), out_numPUVertices(-1.);
+
     int out_recoNVtx(0);
-    outTree.Branch("trueNumInteractions", &out_trueNumInteractions, "trueNumInteractions/Float_t");
-    outTree.Branch("numPUVertices", &out_numPUVertices, "numPUVertices/Float_t");
+
+
     outTree.Branch("recoNVtx", &out_recoNVtx, "recoNVtx/Int_t");
 
     // Event info
@@ -227,14 +229,14 @@ int main(int argc, char* argv[]) {
         ////////////////////////
         out_event = eventData->event;
 
-        puInfoTree.GetEntry(iEntry);
-        out_trueNumInteractions = puInfoTree.trueNumInteractions();
-        out_numPUVertices = puInfoTree.numPUVertices();
         out_recoNVtx = recoVtxData->nVtx;
 
         /////////////////////////////////////////////
         // Get vectors of ref & L1 jets from trees //
         /////////////////////////////////////////////
+        out_nE = refData->etCorr.size();
+        out_nPhi = refData->phi.size();
+        if (out_nE != out_nPhi) continue;
         std::vector<TLorentzVector> refJets;
         if (doCleaningCuts) {
             refJets = makeRecoTLorentzVectorsCleaned(*refData, opts.cleanJets()); // with JetID filters
@@ -245,9 +247,7 @@ int main(int argc, char* argv[]) {
 
         out_nL1 = l1Jets.size();
         out_nRef = refJets.size();
-
         if (out_nL1 == 0 || out_nRef == 0) continue;
-
         ////////////////
         // Store sums //
         ////////////////

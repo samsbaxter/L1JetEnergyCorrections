@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: -s RAW2DIGI,L1Reco --python_filename=ntuple_maker_L1PF_Nov_2017.py -n 20 --no_output --era=Run2_2017 --data --conditions=auto:run2_data --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulMCFrom90xRAWSimHcalTP --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODRAWEMU customise=L1Trigger/Configuration/customiseSettings.L1TSettingsToCaloStage2Params_2017_v1_10_mode_inconsistent --filein=/store/data/Run2016G/JetHT/AOD/07Aug17-v1/110000/0017B3B5-F17C-E711-BC55-0242AC110004.root --secondfilein=/store/data/Run2016G/JetHT/RAW/v1/000/278/816/00000/16EFAA75-0D62-E611-B93B-02163E0141A5.root --no_exec
+# with command line options: -s RAW2DIGI,L1Reco --python_filename=ntuple_maker_L1PF_Nov_2017.py -n 20 --no_output --era=Run2_2017 --data --conditions=auto:run2_data --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulMCFrom90xRAWSimHcalTP --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleAODRAWEMU --customise=L1Trigger/Configuration/customiseSettings.L1TSettingsToCaloStage2Params_2017_v1_10_mode_inconsistent --filein=/store/data/Run2016G/JetHT/AOD/07Aug17-v1/50000/1CE348F5-E87C-E711-8FA9-484D7E8DF092.root --secondfilein=/store/data/Run2016G/JetHT/RAW/v1/000/280/015/00000/683CACFB-0C73-E611-B2C4-02163E0146C5.root --no_exec
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -27,8 +27,8 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/data/Run2016G/JetHT/AOD/07Aug17-v1/50000/1CE348F5-E87C-E711-8FA9-484D7E8DF092.root'),
-    secondaryFileNames = cms.untracked.vstring('/store/data/Run2016G/JetHT/RAW/v1/000/280/015/00000/683CACFB-0C73-E611-B2C4-02163E0146C5.root')
+    fileNames = cms.untracked.vstring('/store/data/Run2016G/JetHT/AOD/07Aug17-v1/110002/008315D7-C97D-E711-AD65-7CD30AD089E0.root'),
+    secondaryFileNames = cms.untracked.vstring('/store/data/Run2016G/JetHT/RAW/v1/000/280/015/00000/5633E4AF-D772-E611-88C2-02163E0146A4.root')
 )
 
 process.options = cms.untracked.PSet(
@@ -73,6 +73,12 @@ from L1Trigger.L1TNtuples.customiseL1Ntuple import L1NtupleAODRAWEMU
 
 #call to customisation function L1NtupleAODRAWEMU imported from L1Trigger.L1TNtuples.customiseL1Ntuple
 process = L1NtupleAODRAWEMU(process)
+
+# Automatic addition of the customisation function from L1Trigger.Configuration.customiseSettings
+from L1Trigger.Configuration.customiseSettings import L1TSettingsToCaloStage2Params_2017_v1_10_mode_inconsistent 
+
+#call to customisation function L1TSettingsToCaloStage2Params_2017_v1_10_mode_inconsistent imported from L1Trigger.Configuration.customiseSettings
+process = L1TSettingsToCaloStage2Params_2017_v1_10_mode_inconsistent(process)
 
 # End of customisation functions
 

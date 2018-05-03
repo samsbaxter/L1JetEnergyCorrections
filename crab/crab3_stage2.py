@@ -24,7 +24,7 @@ PY_CONFIG = '../python/ntuple_maker_qcd_Oct_2017.py'
 # print 'Running with JetSeedThreshold', jst
 
 # CHANGE ME - to make a unique indentifier for each set of jobs
-job_append = "qcdSummer17_genEmu_31Oct2017_928v96p49_noJEC"
+job_append = "qcdSummer17_genEmu_24Jan2018_928v96p49_noJEC"
 # old example (includes tuning of JST):
 # job_append = "Stg2_HF_QCDFall15_RAWONLY_11Mar_dasuUpdatesLayer1_noL1JEC_jst%s" % str(jst).replace('.', 'p')
 

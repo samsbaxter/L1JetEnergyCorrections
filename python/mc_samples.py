@@ -57,10 +57,10 @@ samples = {
     # SUMMER 17/92X
     # -------------
     "qcdSummer17FlatPU28to62genSimRaw":Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/RunIISummer17DRStdmix-NZSFlatPU28to62_92X_upgrade2017_realistic_v10-v1/GEN-SIM-RAW",
-                                       useParent=False, unitsPerJob=10, totalUnits=-1),
+                                       useParent=False, unitsPerJob=2, totalUnits=4),
 
-    "JetHT_Run2016G-07Aug17-v1_AOD_RecoRAW":Dataset(inputDataset="/JetHT/Run2016G-07Aug17-v1/AOD", 
-                                            useParent=False, unitsPerJob=1, totalUnits=2),
+    "JetHT_Run2016B-07Aug17-v1_AOD_RecoRAW":Dataset(inputDataset="/JetHT/Run2016B-07Aug17_ver1-v1/AOD", 
+                                            useParent=False, unitsPerJob=1, totalUnits=-1),
 
     # SPRING 17/90X
     # -------------

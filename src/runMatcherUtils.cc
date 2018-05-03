@@ -57,10 +57,10 @@ std::vector<TLorentzVector> makeTLorentzVectors(std::vector<T> & et,
     }
     std::vector<TLorentzVector> vecs;
     for (unsigned i = 0; i < et.size(); i++) {
-        if (bx.at(i) == 0) {
-            TLorentzVector v;
-            v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
-            vecs.push_back(v);
+       if (bx.at(i) == 0) { 
+           TLorentzVector v;
+           v.SetPtEtaPhiM(et.at(i), eta.at(i), phi.at(i), 0);
+           vecs.push_back(v);
         }
     }
     return vecs;
