@@ -9,8 +9,8 @@ import sys
 
 # Name of the CMSSW configuration file
 PY_CONFIG =  '../python/ntuple_maker_L1PF_Nov_2017.py'
-job_append = 'JetHTReReco_B_HF_L1JEC_03052018_ICL'
-datasets = ["JetHT_Run2016B-07Aug17-v1_AOD_RecoRAW"]
+job_append = 'JetHTReReco_B_HF_L1JEC_05072018_ICL'
+datasets = ["JetHT_Run2017B-17NoV17-v1_AOD"]
 # config.JobType.inputFiles = ['Summer15_25nsV6_DATA.db']
 if __name__ == "__main__":
     config.General.workArea = 'l1ntuple_' + job_append

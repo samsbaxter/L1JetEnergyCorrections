@@ -62,6 +62,8 @@ samples = {
     "JetHT_Run2016B-07Aug17-v1_AOD_RecoRAW":Dataset(inputDataset="/JetHT/Run2016B-07Aug17_ver1-v1/AOD", 
                                             useParent=False, unitsPerJob=1, totalUnits=-1),
 
+    "JetHT_Run2017B-17NoV17-v1_AOD":Dataset(inputDataset="/JetHT/Run2017B-17NoV2017-v1/AOD",
+                                            useParent=False, unitsPerJob=1, totalUnits=-1),
     # SPRING 17/90X
     # -------------
     "qcdSpring17FlatPU0to70genSimRaw": Dataset(inputDataset="/QCD_Pt-15to3000_TuneCUETP8M1_Flat_13TeV_pythia8/PhaseISpring17DR-FlatPU0to70NZS_90X_upgrade2017_realistic_v20-v1/GEN-SIM-RAW",

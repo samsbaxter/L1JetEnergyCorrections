@@ -8,10 +8,10 @@ config = config()
 
 config.General.transferLogs = True
 config.JobType.pluginName  = 'Analysis'
-config.Data.secondaryInputDataset = '/JetHT/Run2016B-v1/RAW'
+config.Data.secondaryInputDataset = '/JetHT/Run2017B-v1/RAW'
 config.Data.splitting = 'LumiBased'
-config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt'
-config.Data.runRange='272674'
+config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+config.Data.runRange='301914'
 config.Data.ignoreLocality = True
 config.Data.publication = False
 
